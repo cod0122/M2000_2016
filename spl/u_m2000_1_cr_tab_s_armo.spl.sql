@@ -1,0 +1,111 @@
+--CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
+DROP FUNCTION u_m2000_1_cr_tab_s_armo();
+CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
+  RETURNING VARCHAR(100);
+
+  
+   define k_status varchar(100);
+     
+   --set debug file to '.\m2000_nt.trace.txt';
+   --trace on;
+     
+   --whenever error continue;
+   BEGIN ON EXCEPTION END EXCEPTION WITH RESUME
+      drop view informix.s_armo;
+      drop table informix.s_armo_n;
+   END
+   --whenever error goto  FORZA_FINE;
+
+   ---- solo per INFORMIX 12.10
+   --create table informix.s_armo as select * from informix.s_armo_p;
+
+   ---- x informix vecchi
+   create table informix.s_armo_n
+       (
+        id_meca         integer,
+        id_armo         integer,
+        magazzino       integer,
+        num_int         integer,
+        data_int        date,
+        gruppo          decimal(3,0),
+        dose            decimal(7,2),
+        travaso         char(1),
+        m_cubi_arsp     decimal(12,2),
+        colli_1         decimal(09,0),
+        colli_2         decimal(09,0),
+        m_cubi          decimal(12,2),
+        giri_f1_pl      integer,
+        giri_f1_lav     integer,
+        giri_f2_pl      integer,
+        giri_f2_lav     integer,
+        pedane          decimal(12,2),
+        imp_fatt        decimal(15,2),
+        imp_da_fatt     decimal(15,2),
+        clie_1          integer,
+        clie_2          integer,
+        clie_3          integer,
+        aperto         char(1)
+       );
+
+   if sqlcode < 0 then
+      let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in create table informix.s_armo_n sqlcode' || sqlcode;
+      --rollback;
+      goto FORZA_FINE;
+   end if
+   --commit;
+
+   CREATE VIEW informix.s_armo AS 
+      SELECT * 
+         FROM informix.s_armo_n
+      union all
+      SELECT * 
+         FROM informix.s_armo_p;
+
+   --INSERT INTO informix.s_armo SELECT * FROM informix.s_armo_p;
+
+   if sqlcode < 0 then
+      let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in  CREATE VIEW informix.s_armo  sqlcode' || sqlcode;
+      rollback;
+      goto FORZA_FINE;
+   end if
+
+   ----02.02.06 m_cubi_arsp    SEMPRE A ZERO MANTENUTO PER COMPATIBILITA' STATISTICI NT
+   --drop index   i_s_armo_1
+
+   revoke all on informix.s_armo_n from public;
+   revoke all on informix.s_armo from public;
+   grant all on informix.s_armo_n to "ixuser" as "informix";
+   grant all on informix.s_armo to "ixuser" as "informix";
+
+--------------------------------------------------------------------------------------------------------------------------------
+-- ARCHIVIO  DI SERVIZIO PER GLI STATISTICI * ENTRATE *
+-- Magazzino Magazzino di lavorazione della merce
+-- Dose      Dose
+-- Gruppo    Gruppo articoli
+-- Travaso   Flag se travaso avvenuto impostato a 'S'
+-- Colli_1   Colli entrati in bolla di entrata
+-- Colli_2   Nr. colli di lavorazione in magazzino
+-- M_cubi    M_Cubi effettivamente accupati dall'impianto (come sped cli)
+-- Clie_1    Mandante della merce
+-- Clie_2    Ricevente della bolla di uscita 
+-- Clie_3    Ricevente della fattura         
+--------------------------------------------------------------------------------------------------------------------------------
+
+    goto OK;
+
+<<FORZA_FINE>>
+   --rollback;
+   goto FINE;
+
+<<OK>>
+   --commit;
+   let k_status = 'Ok operazione conclusa, create Table s_armo_n e View  s_armo' ;
+
+<<FINE>>
+   --trace off;
+
+return K_STATUS ;
+
+
+end function
+;
