@@ -1,5 +1,5 @@
---CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
-CONNECT to 'gammarad@gammarad_at1' user 'informix' using 'infoxgamma';
+CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
+--CONNECT to 'gammarad@gammarad_at1' user 'informix' using 'infoxgamma';
 
 drop function u_m2000_get_datetime();
 create function u_m2000_get_datetime() 

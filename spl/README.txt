@@ -1,6 +1,9 @@
-passi per fare i nuovi statistici via store-procedure anzichè via 'NT'
+Step per fare i nuovi statistici via store-procedure anzichè via 'NT'
 
-1) lanciare u_m2000_inizializzaSoloPrimaVolta.sql
+1) Connettersi al server come utente INFORMIX non come informix_67
+
+
+2) lanciare u_m2000_inizializzaSoloPrimaVolta.sql
 le DROP contenute nel job non sono pericolose in quanto rimuovono solo le VIEW/TABLE relative agli ststistici e che quindi 
 sono poi ricreate automaticamente durante le operazioni di creazione statistici;
 è utile in quanto la vecchia gestione insisteva sulle tabelle che ora sono invece delle VIEW, pertanto la pulizia è necessaria 
@@ -9,12 +12,11 @@ i comandi sql contenuti possono essere lanciati anche da terminale con questo co
 
 dbaccess gammarad u_m2000_inizializzaSoloPrimaVolta.sql
 
-ovviamente bisogna essere entrati in 'DOS' con il .bat generato al momento della generazione del DB e che di solito si chiama
-nomeserver.bat (ad esempio gammarad_prx1.bat o gammarad_prs32.bat)  
-si deve lanciarlo dalla cartella che contiene questo file .sql
+entrare in ambiente 'DOS' con il .bat generato al momento della generazione del DB e che di solito si chiama
+nomeserver.cmd (ad esempio s67apps1.cmd o gammarad_prs32.cmd) che è sotto la cartella di programmi\IBM informix 
 
 
-2) lanciare u_m2000_CREA_SPL.bat
+3) lanciare u_m2000_CREA_SPL.bat
 ma prima controlla se nella SPL 'u_m2000_get_datetime.spl.sql' c'e' il comando in prima linea di connessione al DB:
 
 CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
