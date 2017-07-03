@@ -1,5 +1,5 @@
-CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
---CONNECT to 'gammarad@gammarad_at1' user 'informix' using 'infoxgamma';
+--CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
+CONNECT to 'gammarad@gammarad_at1' user 'informix' using 'infoxgamma';
 
 drop function u_m2000_get_datetime();
 create function u_m2000_get_datetime() 
@@ -313,9 +313,11 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
        (
         id_meca         integer,
         id_armo         integer,
+        id_listino      integer,
         magazzino       integer,
         num_int         integer,
         data_int        date,
+        data_ent        date,
         gruppo          decimal(3,0),
         dose            decimal(7,2),
         travaso         char(1),
@@ -338,19 +340,16 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in create table informix.s_armo_n sqlcode' || sqlcode;
-      --rollback;
       goto FORZA_FINE;
    end if
-   --commit;
 
    CREATE VIEW informix.s_armo AS 
       SELECT * 
-         FROM informix.s_armo_n
-      union all
-      SELECT * 
-         FROM informix.s_armo_p;
+         FROM informix.s_armo_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_armo_p;
 
-   --INSERT INTO informix.s_armo SELECT * FROM informix.s_armo_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in  CREATE VIEW informix.s_armo  sqlcode' || sqlcode;
@@ -358,8 +357,6 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
       goto FORZA_FINE;
    end if
 
-   ----02.02.06 m_cubi_arsp    SEMPRE A ZERO MANTENUTO PER COMPATIBILITA' STATISTICI NT
-   --drop index   i_s_armo_1
 
    revoke all on informix.s_armo_n from public;
    revoke all on informix.s_armo from public;
@@ -424,6 +421,7 @@ create function u_m2000_2_s_armo()
    define K_ARMO_ID_MECA       integer;   
    define K_ARMO_NUM_INT       integer;   
    define K_ARMO_DATA_INT      date;
+   define K_DATA_ENT      date;
    define K_ARMO_DATA_LAV_FIN  date;
    define K_ARMO_CLIE_1        integer;   
    define K_ARMO_CLIE_2        integer;   
@@ -507,6 +505,7 @@ create function u_m2000_2_s_armo()
                  MECA.ID,
                  MECA.NUM_INT,
                  MECA.DATA_INT,
+                 date(MECA.DATA_ENT),
                  MECA.CLIE_1,
                  MECA.CLIE_2,
                  MECA.CLIE_3,
@@ -532,6 +531,7 @@ create function u_m2000_2_s_armo()
                  ,K_ARMO_ID_MECA      
                  ,K_ARMO_NUM_INT       
                  ,K_ARMO_DATA_INT      
+                 ,K_DATA_ENT      
                  ,K_ARMO_CLIE_1        
                  ,K_ARMO_CLIE_2        
                  ,K_ARMO_CLIE_3        
@@ -781,6 +781,7 @@ create function u_m2000_2_s_armo()
       insert into s_armo_n
                (
                 ID_ARMO,
+			    id_listino,
                 MAGAZZINO,
                 DOSE,
                 TRAVASO,
@@ -791,6 +792,7 @@ create function u_m2000_2_s_armo()
                 ID_MECA,
                 NUM_INT,
                 DATA_INT,
+				DATA_ENT,
                 CLIE_1,
                 CLIE_2,
                 CLIE_3
@@ -807,6 +809,7 @@ create function u_m2000_2_s_armo()
              values
                (
                  K_ARMO_1_ID_ARMO,
+				 K_ARMO_1_ID_LISTINO,
                  K_ARMO_MAGAZZINO,
                  K_ARMO_DOSE,
                  K_ARMO_TRAVASO,
@@ -817,6 +820,7 @@ create function u_m2000_2_s_armo()
                  K_ARMO_ID_MECA,
                  K_ARMO_NUM_INT,
                  K_ARMO_DATA_INT,
+				 K_DATA_ENT,
                  K_ARMO_CLIE_1,
                  K_ARMO_CLIE_2,
                  K_ARMO_CLIE_3
@@ -877,6 +881,7 @@ create function u_m2000_2_s_armo()
       drop index informix.i_s_armo_n_3 ;
       drop index informix.i_s_armo_n_4 ;
       drop index informix.i_s_armo_n_5 ;
+      drop index informix.i_s_armo_n_6 ;
 
       create index informix.i_s_armo_n_0 on informix.s_armo_n (id_meca);
       create index informix.i_s_armo_n_1 on informix.s_armo_n (id_armo);
@@ -884,6 +889,7 @@ create function u_m2000_2_s_armo()
       create index informix.i_s_armo_n_3 on informix.s_armo_n (clie_1, data_int);
       create index informix.i_s_armo_n_4 on informix.s_armo_n (clie_2, data_int);
       create index informix.i_s_armo_n_5 on informix.s_armo_n (clie_3, data_int);
+      create index informix.i_s_armo_n_6 on informix.s_armo_n (id_listino);
    
    END
    
@@ -957,10 +963,10 @@ CREATE FUNCTION u_m2000_3_cr_tab_s_meca()
 
    CREATE VIEW informix.s_meca AS 
       SELECT * 
-         FROM informix.s_meca_n
-      union all
-      SELECT * 
-         FROM informix.s_meca_p;
+         FROM informix.s_meca_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_meca_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_3_cr_tab_s_meca)  Errore in  CREATE VIEW informix.s_meca  sqlcode' || sqlcode;
@@ -1175,10 +1181,10 @@ CREATE FUNCTION u_m2000_5_cr_tab_s_artr()
 
    CREATE VIEW informix.s_artr AS 
       SELECT * 
-         FROM informix.s_artr_n
-      union all
-      SELECT * 
-         FROM informix.s_artr_p;
+         FROM informix.s_artr_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_artr_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_5_cr_tab_s_artr)  Errore in  CREATE VIEW informix.s_artr  sqlcode' || sqlcode;
@@ -1993,10 +1999,10 @@ CREATE FUNCTION u_m2000_7_cr_tab_s_arfa()
 
    CREATE VIEW informix.s_arfa AS 
       SELECT * 
-         FROM informix.s_arfa_n
-      union all
-      SELECT * 
-         FROM informix.s_arfa_p;
+         FROM informix.s_arfa_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_arfa_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_7_cr_tab_s_arfa)  Errore in  CREATE VIEW informix.s_arfa_n sqlcode' || sqlcode;
@@ -2416,10 +2422,10 @@ CREATE FUNCTION u_m2000_9_cr_tab_s_arsp()
 
    CREATE VIEW informix.s_arsp AS 
       SELECT * 
-         FROM informix.s_arsp_n
-      union all
-      SELECT * 
-         FROM informix.s_arsp_p;
+         FROM informix.s_arsp_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_arsp_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_9_cr_tab_s_arsp)  Errore in  CREATE VIEW informix.s_arsp  sqlcode' || sqlcode;
@@ -3503,4 +3509,21 @@ create function u_m2000_0_start_stat()
 
 end function
 ;
-               
+               --CONNECT to 'gammarad@informix_prs64' user 'informix' using 'Gamma67rad';
+--CONNECT to 'gammarad@informix_at1' user 'informix' using 'infoxgamma';
+grant  execute on function "informix".u_m2000_get_datetime () to "public" as "informix";
+grant  execute on function "informix".u_m2000_wm_pklist_flag_sped () to "public" as "informix";
+grant  execute on function "informix".u_m2000_chiudi_bolle () to "public" as "informix";
+grant  execute on function "informix".u_m2000_1_cr_tab_s_armo () to "public" as "informix";
+grant  execute on function "informix".u_m2000_3_cr_tab_s_meca () to "public" as "informix";
+grant  execute on function "informix".u_m2000_4_s_meca () to "public" as "informix";
+grant  execute on function "informix".u_m2000_5_cr_tab_s_artr () to "public" as "informix";
+grant  execute on function "informix".u_m2000_7_cr_tab_s_arfa () to "public" as "informix";
+grant  execute on function "informix".u_m2000_8_s_arfa () to "public" as "informix";
+grant  execute on function "informix".u_m2000_9_cr_tab_s_arsp () to "public" as "informix";
+grant  execute on function "informix".u_m2000_10_s_arsp () to "public" as "informix";
+grant  execute on function "informix".u_m2000_0_start_stat () to "public" as "informix";
+
+grant  execute on function "informix".u_m2000_update_stat () to "public" as "informix";
+--grant  execute on function "informix".genidxstats () to "public" as "informix";
+

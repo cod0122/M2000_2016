@@ -62,10 +62,10 @@ CREATE FUNCTION u_m2000_7_cr_tab_s_arfa()
 
    CREATE VIEW informix.s_arfa AS 
       SELECT * 
-         FROM informix.s_arfa_n
-      union all
-      SELECT * 
-         FROM informix.s_arfa_p;
+         FROM informix.s_arfa_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_arfa_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_7_cr_tab_s_arfa)  Errore in  CREATE VIEW informix.s_arfa_n sqlcode' || sqlcode;

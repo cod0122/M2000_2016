@@ -37,10 +37,10 @@ CREATE FUNCTION u_m2000_3_cr_tab_s_meca()
 
    CREATE VIEW informix.s_meca AS 
       SELECT * 
-         FROM informix.s_meca_n
-      union all
-      SELECT * 
-         FROM informix.s_meca_p;
+         FROM informix.s_meca_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_meca_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_3_cr_tab_s_meca)  Errore in  CREATE VIEW informix.s_meca  sqlcode' || sqlcode;

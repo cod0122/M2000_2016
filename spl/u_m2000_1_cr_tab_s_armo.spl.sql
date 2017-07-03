@@ -24,9 +24,11 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
        (
         id_meca         integer,
         id_armo         integer,
+        id_listino      integer,
         magazzino       integer,
         num_int         integer,
         data_int        date,
+        data_ent        date,
         gruppo          decimal(3,0),
         dose            decimal(7,2),
         travaso         char(1),
@@ -49,19 +51,16 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in create table informix.s_armo_n sqlcode' || sqlcode;
-      --rollback;
       goto FORZA_FINE;
    end if
-   --commit;
 
    CREATE VIEW informix.s_armo AS 
       SELECT * 
-         FROM informix.s_armo_n
-      union all
-      SELECT * 
-         FROM informix.s_armo_p;
+         FROM informix.s_armo_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_armo_p;
 
-   --INSERT INTO informix.s_armo SELECT * FROM informix.s_armo_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_1_cr_tab_s_armo)  Errore in  CREATE VIEW informix.s_armo  sqlcode' || sqlcode;
@@ -69,8 +68,6 @@ CREATE FUNCTION u_m2000_1_cr_tab_s_armo()
       goto FORZA_FINE;
    end if
 
-   ----02.02.06 m_cubi_arsp    SEMPRE A ZERO MANTENUTO PER COMPATIBILITA' STATISTICI NT
-   --drop index   i_s_armo_1
 
    revoke all on informix.s_armo_n from public;
    revoke all on informix.s_armo from public;

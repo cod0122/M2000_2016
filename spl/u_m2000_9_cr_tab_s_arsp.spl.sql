@@ -60,10 +60,10 @@ CREATE FUNCTION u_m2000_9_cr_tab_s_arsp()
 
    CREATE VIEW informix.s_arsp AS 
       SELECT * 
-         FROM informix.s_arsp_n
-      union all
-      SELECT * 
-         FROM informix.s_arsp_p;
+         FROM informix.s_arsp_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_arsp_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_9_cr_tab_s_arsp)  Errore in  CREATE VIEW informix.s_arsp  sqlcode' || sqlcode;

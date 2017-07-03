@@ -24,6 +24,7 @@ create function u_m2000_2_s_armo()
    define K_ARMO_ID_MECA       integer;   
    define K_ARMO_NUM_INT       integer;   
    define K_ARMO_DATA_INT      date;
+   define K_DATA_ENT      date;
    define K_ARMO_DATA_LAV_FIN  date;
    define K_ARMO_CLIE_1        integer;   
    define K_ARMO_CLIE_2        integer;   
@@ -107,6 +108,7 @@ create function u_m2000_2_s_armo()
                  MECA.ID,
                  MECA.NUM_INT,
                  MECA.DATA_INT,
+                 date(MECA.DATA_ENT),
                  MECA.CLIE_1,
                  MECA.CLIE_2,
                  MECA.CLIE_3,
@@ -132,6 +134,7 @@ create function u_m2000_2_s_armo()
                  ,K_ARMO_ID_MECA      
                  ,K_ARMO_NUM_INT       
                  ,K_ARMO_DATA_INT      
+                 ,K_DATA_ENT,
                  ,K_ARMO_CLIE_1        
                  ,K_ARMO_CLIE_2        
                  ,K_ARMO_CLIE_3        
@@ -381,6 +384,7 @@ create function u_m2000_2_s_armo()
       insert into s_armo_n
                (
                 ID_ARMO,
+			    id_listino,
                 MAGAZZINO,
                 DOSE,
                 TRAVASO,
@@ -391,6 +395,7 @@ create function u_m2000_2_s_armo()
                 ID_MECA,
                 NUM_INT,
                 DATA_INT,
+                DATA_ENT,
                 CLIE_1,
                 CLIE_2,
                 CLIE_3
@@ -407,6 +412,7 @@ create function u_m2000_2_s_armo()
              values
                (
                  K_ARMO_1_ID_ARMO,
+				 K_ARMO_1_ID_LISTINO,
                  K_ARMO_MAGAZZINO,
                  K_ARMO_DOSE,
                  K_ARMO_TRAVASO,
@@ -417,6 +423,7 @@ create function u_m2000_2_s_armo()
                  K_ARMO_ID_MECA,
                  K_ARMO_NUM_INT,
                  K_ARMO_DATA_INT,
+                 K_DATA_ENT,
                  K_ARMO_CLIE_1,
                  K_ARMO_CLIE_2,
                  K_ARMO_CLIE_3
@@ -477,6 +484,7 @@ create function u_m2000_2_s_armo()
       drop index informix.i_s_armo_n_3 ;
       drop index informix.i_s_armo_n_4 ;
       drop index informix.i_s_armo_n_5 ;
+      drop index informix.i_s_armo_n_6 ;
 
       create index informix.i_s_armo_n_0 on informix.s_armo_n (id_meca);
       create index informix.i_s_armo_n_1 on informix.s_armo_n (id_armo);
@@ -484,6 +492,7 @@ create function u_m2000_2_s_armo()
       create index informix.i_s_armo_n_3 on informix.s_armo_n (clie_1, data_int);
       create index informix.i_s_armo_n_4 on informix.s_armo_n (clie_2, data_int);
       create index informix.i_s_armo_n_5 on informix.s_armo_n (clie_3, data_int);
+      create index informix.i_s_armo_n_6 on informix.s_armo_n (id_listino);
    
    END
    

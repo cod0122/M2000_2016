@@ -66,10 +66,10 @@ CREATE FUNCTION u_m2000_5_cr_tab_s_artr()
 
    CREATE VIEW informix.s_artr AS 
       SELECT * 
-         FROM informix.s_artr_n
-      union all
-      SELECT * 
-         FROM informix.s_artr_p;
+         FROM informix.s_artr_n;
+--      union all
+--      SELECT * 
+--         FROM informix.s_artr_p;
 
    if sqlcode < 0 then
       let k_status = '(u_m2000_5_cr_tab_s_artr)  Errore in  CREATE VIEW informix.s_artr  sqlcode' || sqlcode;
