@@ -1,5 +1,5 @@
 Chiave.gif
-MAIN.ico
+main.ico
 Nodrop.ico
 XPListBarCollapsed.bmp
 XPListBarCollapsedHover.bmp
@@ -30,6 +30,7 @@ drag1.ico
 drag2.ico
 e1Lotto.png
 edit16.gif
+certificato16.gif
 faccinako16.png
 faccinako32.png
 faccinaok16.png
@@ -38,6 +39,7 @@ fattura16x16.gif
 fattura8x8.gif
 filtro.png
 folder.gif
+folder_red.gif
 freccia_up16.png
 join.png
 lente16x16.gif
@@ -47,6 +49,26 @@ lotto16x16.gif
 lucch32.png
 lucchOpen32.png
 meca_incompleto.bmp
+meca_open.ico
+meca_dett.ico
+nav_fatt.ico
+nav_fatt_open.ico
+nav_fatt_dett.ico
+nav_sped.ico
+nav_sped_open.ico
+nav_sped_dett.ico
+nav_cert.ico
+nav_cert_open.ico
+nav_cert_dett.ico
+cartella_indietro.ico
+cartella_rossa.ico
+cartella_open_rossa.ico
+cartella_verde.ico
+cartella_open_verde.ico
+pklist.ico
+pklist_open.ico
+pklist_righe.ico
+certificato.ico
 memo32.png
 memo_disab32.png
 mkt_icona.ico
@@ -76,3 +98,6 @@ confirm.png
 refresh16.png
 gplv3-88x31.png
 logo_barcode.jpg
+arrow_down_24.png
+arrow_up_24.png
+ic_menu_24.png

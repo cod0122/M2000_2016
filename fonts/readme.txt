@@ -1,0 +1,1 @@
+3 of 9 new is a Windows 3.1 TrueType font that is a modified version of 3 of 9 Barcode Font that overcomes the SPACE character problem of 3of9.zip. For more information contact the Author Karl Snyder of Boulder Software at bldrsoft@ix.netcom.com. 
