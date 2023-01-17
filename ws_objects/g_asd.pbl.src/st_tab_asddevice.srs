@@ -1,0 +1,14 @@
+﻿$PBExportHeader$st_tab_asddevice.srs
+global type st_tab_asddevice from structure
+	long		id_asddevice		descriptor "comment" = "id del dispositivo ausiliario di schermatura/auxiliary shielding device"
+	string		des
+	integer		n_rackcode		descriptor "comment" = "num. rack (barcode)"
+	integer		enabled		descriptor "comment" = "1=abilitato a essere associato ai barcode in trattamento"
+	integer		id_asdtype		descriptor "comment" = "famiglia del device"
+	string		measures		descriptor "comment" = "misure es: 100x120 o 2 PIANI"
+	string		thickness		descriptor "comment" = "spessore es: 12 MM o FERRO HAUPT"
+	decimal { 2 }		m_cubic_max		descriptor "comment" = "massimo cubaggio in mt.cubi"
+	datetime		x_datins
+	string		x_utente
+end type
+

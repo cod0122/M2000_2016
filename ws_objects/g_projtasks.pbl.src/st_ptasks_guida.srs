@@ -1,0 +1,12 @@
+﻿$PBExportHeader$st_ptasks_guida.srs
+global type st_ptasks_guida from structure
+	long		id_ptask
+	long		n_ptask		descriptor "comment" = "Numero progressivo del progetto"
+	string		status		descriptor "comment" = "O=Aperto, S=sospeso, A=annullato, D=chiuso"
+	long		id_cliente
+	string		cntr_val		descriptor "comment" = "codice Contratto di Validazione"
+	string		cntr_descr		descriptor "comment" = "oggetto del Contratto"
+	date		cntr_expiry		descriptor "comment" = "data di scadenza del contratto"
+	string		data_json		descriptor "comment" = "ricerca dato json %....%"
+end type
+

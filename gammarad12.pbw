@@ -1,0 +1,9 @@
+Save Format v3.0(19990112)
+@begin Unchecked
+@end;
+@begin Targets
+ 0 "m_2000.pbt";
+@end;
+DefaultTarget "m_2000.pbt";
+DefaultExportEncode "UTF-8";
+DefaultRemoteTarget "m_2000.pbt";

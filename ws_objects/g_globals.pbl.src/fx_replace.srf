@@ -1,0 +1,37 @@
+﻿$PBExportHeader$fx_replace.srf
+global type fx_replace from function_object
+end type
+
+forward prototypes
+global function string fx_replace (string a_str_orig, string a_char_old, string a_char_new)
+end prototypes
+
+global function string fx_replace (string a_str_orig, string a_char_old, string a_char_new);//
+//--- ricopre nella stringa k_str i caratteri a_char_old con a_char_new 
+//
+string k_return 
+int kstart_pos = 1
+
+// Find the first occurrence of old_str.
+
+kstart_pos = pos(a_str_orig, a_char_old, kstart_pos)
+
+// Only enter the loop if you find old_str.
+
+DO WHILE kstart_pos > 0
+
+// Replace old_str with new_str.
+
+    a_str_orig = ReplaceA(a_str_orig, kstart_pos, len(a_char_old), a_char_new)
+
+// Find the next occurrence of old_str.
+
+    kstart_pos = pos(a_str_orig, a_char_old, kstart_pos+len(a_char_new) )
+
+LOOP
+
+k_return = a_str_orig
+
+return k_return
+end function
+

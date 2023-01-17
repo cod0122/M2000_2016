@@ -1,0 +1,99 @@
+﻿$PBExportHeader$d_ptasks_types_used_l.srd
+release 19;
+datawindow(units=0 timer_interval=0 color=0 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=1 grid.columnmove=no selected.mouse=no )
+header(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+footer(height=76 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+detail(height=84 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" height.autosize=yes )
+table(column=(type=long updatewhereclause=yes identity=yes name=id_ptasks_type dbname="id_ptasks_type" )
+ column=(type=long update=yes updatewhereclause=yes name=active dbname="active" initial="1" values="	1/	0" )
+ column=(type=char(3) update=yes updatewhereclause=yes name=task dbname="task" )
+ column=(type=char(164) update=yes updatewhereclause=yes name=descr dbname="descr" )
+ column=(type=long updatewhereclause=yes name=id_ptasks_row dbname="id_ptasks_row" )
+ column=(type=char(1) updatewhereclause=yes name=k_add_minus dbname="k_add_minus" )
+ column=(type=long updatewhereclause=yes name=id_ptask dbname="id_ptask" )
+ column=(type=char(1) updatewhereclause=yes name=b_task dbname="b_task" )
+ retrieve="  SELECT ptasks_types.id_ptasks_type,   
+         ptasks_types.active,   
+         ptasks_types.task   
+         , case when j_grp_id_ptasks_type_item > 0 then
+                trim(ptasks_types.descr) 
+              else
+                ('(+) '+ trim(ptasks_types.descr)) 
+           end descr
+         ,coalesce(ptasks_rows.id_ptasks_row, 0) id_ptasks_row
+         , case when ptasks_rows.id_ptasks_row > 0 then
+                ' ' 
+              else
+                '-'
+           end k_add_minus
+          ,ptasks.id_ptask id_ptask
+          ,'' b_task
+    FROM ptasks OUTER APPLY OPENJSON(ptasks_types_json,'$.id_ptasks_type')
+			                                      WITH(j_id_ptasks_type_item int '$' )
+				 inner join ptasks_types on ptasks_types.id_ptasks_type = j_id_ptasks_type_item
+             left outer join ptasks_rows on ptasks.id_ptask = ptasks_rows.id_ptask and ptasks_rows.id_ptasks_type = ptasks_types.id_ptasks_type
+             left outer join ptasks_types_grp OUTER APPLY OPENJSON(ptasks_types_json,'$.id_ptasks_type')
+			                                      WITH(j_grp_id_ptasks_type_item int '$' )  on
+                        ptasks.id_ptasks_types_grp = ptasks_types_grp.id_ptasks_types_grp
+                        and j_id_ptasks_type_item = j_grp_id_ptasks_type_item
+
+    where ptasks.id_ptask = :k_id_ptask 
+
+union all
+
+ SELECT ptasks_types.id_ptasks_type,   
+         ptasks_types.active,   
+         ptasks_types.task   
+         , trim(ptasks_types.descr) descr
+         ,0
+         ,'-' 
+         ,0
+         ,'' b_task
+    FROM ptasks_types_grp OUTER APPLY OPENJSON(ptasks_types_json,'$.id_ptasks_type')
+			                                      WITH(j_id_ptasks_type_item int '$' )
+					inner join ptasks_types on ptasks_types.id_ptasks_type = j_id_ptasks_type_item
+    where :k_id_ptask = 0 and ptasks_types_grp.id_ptasks_types_grp = :k_id_ptasks_types_grp
+
+union all
+
+ SELECT 0  
+         ,1   
+         ,''
+         ,''
+         ,0
+         ,'+' 
+         ,0
+         ,'' b_task
+  
+" arguments=(("k_id_ptask", number),("k_id_ptasks_types_grp", number)) )
+text(band=header alignment="0" text="" border="0" color="128" x="9" y="8" height="64" width="114" html.valueishtml="0"  name=b_task_t visible="1"  font.face="Verdana" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="ATTIVITA'     " border="0" color="12632256" x="133" y="8" height="64" width="873" html.valueishtml="0"  name=descr_t visible="1"  font.face="Verdana" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+column(band=detail id=4 alignment="0" tabsequence=10 border="0" color="16777215" x="137" y="8" height="72" width="869" format="[general]" html.valueishtml="0" protect="0~tif ( k_add_minus = 'V', 0, 1)"  name=descr visible="1" height.autosize=yes  width.autosize=1 dddw.name=d_ptasks_types_l_1 dddw.displaycolumn=descr dddw.datacolumn=descr dddw.percentwidth=0 dddw.lines=15 dddw.limit=0 dddw.allowedit=no dddw.useasborder=no dddw.case=any dddw.hscrollbar=yes dddw.vscrollbar=yes dddw.autoretrieve=no  font.face="Verdana" font.height="-8" font.weight="400~tif (isSelected(getrow()), 800, 400)"  font.family="2" font.pitch="2" font.charset="0"font.strikethrough="0~tif (active = 1, 0, 1) "  background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~ttrim(descr) + '  (' + string( id_ptasks_type) + ')'" tooltip.transparency="0" transparency="0" )
+column(band=detail id=8 alignment="0" tabsequence=32766 border="0" color="128" x="14" y="12" height="64" width="110" format="[general]" html.valueishtml="0"  name=b_task visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_add_minus = 'V',  ~"Conferma l'attività~"
+,if ( k_add_minus = '-', ~"Rimuove l'attività~"
+,if ( k_add_minus = '+', ~"Aggiunge attività~", ~"già operativa~")))" tooltip.transparency="0" transparency="0" )
+bitmap(band=detail filename="maggioreyellow16.png" x="27" y="12" height="64" width="73" border="0" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_add_minus = 'V',  ~"Conferma l'attività~"
+,if ( k_add_minus = '-', ~"Rimuove l'attività~"
+,if ( k_add_minus = '+', ~"Aggiunge attività~", ~"già operativa~")))" tooltip.transparency="0"  name=b_task_go visible="1~tif (  k_add_minus = 'V ', 1 , 0) " transparency="0" )
+bitmap(band=detail filename="clear216.png" x="32" y="12" height="64" width="73" border="0" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_add_minus = 'V',  ~"Conferma l'attività~"
+,if ( k_add_minus = '-', ~"Rimuove l'attività~"
+,if ( k_add_minus = '+', ~"Aggiunge attività~", ~"già operativa~")))" tooltip.transparency="0"  name=b_task_minus visible="1~tif (  k_add_minus = '- ', 1 , 0) " transparency="0" )
+bitmap(band=detail filename="spunta16.png" x="27" y="12" height="64" width="73" border="0" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_add_minus = 'V',  ~"Conferma l'attività~"
+,if ( k_add_minus = '-', ~"Rimuove l'attività~"
+,if ( k_add_minus = '+', ~"Aggiunge attività~", ~"già operativa~")))" tooltip.transparency="0"  name=b_task_ok visible="1~tif (  k_add_minus = ' ', 1 , 0) " transparency="0" )
+bitmap(band=detail filename="piu16.png" x="27" y="12" height="64" width="73" border="0" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_add_minus = 'V',  ~"Conferma l'attività~"
+,if ( k_add_minus = '-', ~"Rimuove l'attività~"
+,if ( k_add_minus = '+', ~"Aggiunge attività~", ~"già operativa~")))" tooltip.transparency="0"  name=b_task_add visible="1~tif (  k_add_minus = '+ ', 1 , 0) " transparency="0" )
+compute(band=footer alignment="2" expression="if (count(  id_ptasks_type  for all ) > 0,  'n. ' +  string(count(  id_ptasks_type  for all ) -1), '0')"border="0" color="255" x="128" y="4" height="68" width="878" format="[GENERAL]" html.valueishtml="0"  name=k_count visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" font.italic="1" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+htmltable(border="1" )
+htmlgen(clientevents="1" clientvalidation="1" clientcomputedfields="1" clientformatting="0" clientscriptable="0" generatejavascript="1" encodeselflinkargs="1" netscapelayers="0" pagingmethod=0 generatedddwframes="1" )
+xhtmlgen() cssgen(sessionspecific="0" )
+xmlgen(inline="0" )
+xsltgen()
+jsgen()
+export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
+import.xml()
+export.pdf(method=2 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
+export.xhtml()
+ 

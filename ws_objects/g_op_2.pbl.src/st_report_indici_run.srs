@@ -1,0 +1,16 @@
+﻿$PBExportHeader$st_report_indici_run.srs
+global type st_report_indici_run from structure
+	integer		report		descriptor "comment" = "scelta report "
+	long		clie_3
+	long		num_int
+	long		id_meca_ini
+	date		data_da
+	date		data_a
+	integer		gru		descriptor "comment" = "codice gruppo"
+	integer		gru_flag		descriptor "comment" = "tipo estrazione 2=tutti i gruppi"
+	integer		gru_attiva		descriptor "comment" = "flag x attivare/disattivare estrazione dati gruppo"
+	string		non_entrati		descriptor "comment" = "S=estrae lotti senza la data_ent"
+	string		xcliente		descriptor "comment" = "1 = estrae dati clienti"
+	integer		anno
+end type
+

@@ -1,0 +1,9 @@
+﻿$PBExportHeader$st_barcode_mod_giri.srs
+global type st_barcode_mod_giri from structure
+	st_tab_barcode		ast_tab_barcode
+	string		a_modalita_modifica_file
+	integer		a_modif_tutto_riferimento
+	datawindow		adw_x_modifica_giri
+	datawindow		adw_barcode_da_non_modificare
+end type
+

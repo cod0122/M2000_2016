@@ -1,0 +1,22 @@
+﻿$PBExportHeader$d_report_18_memo_rtf_x_l.srd
+release 21;
+datawindow(units=2 timer_interval=0 color=1073741824 processing=7 print.printername ="" print.documentname="" print.orientation = 0 print.margin.left = 250 print.margin.right = 250 print.margin.top = 250 print.margin.bottom = 250 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes richtext.headerfooter=no richtext.wordwrap=no richtext.popmenu=no richtext.pictureframe=no richtext.inputfieldnamesvisible=no richtext.inputfieldsvisible=no richtext.tabsvisible=no richtext.returnsvisible=no richtext.spacesvisible=no richtext.inputfieldbackcolor=1073741824 richtext.backcolor=1073741824 richtext.tabbar=no richtext.rulerbar=no richtext.toolbar=no richtext.displayonly=yes )
+detail(text="{\rtf1\ansi\ansicpg1252\uc1\deff0\adeff0\deflang0\deflangfe0\adeflang0{\fonttbl
+{\f0\fswiss\fcharset0\fprq2{\*\panose 020B0604020202020204}Arial;}
+{\f1\froman\fcharset2\fprq2{\*\panose 05050102010706020507}Symbol;}}
+{\colortbl;\red0\green0\blue0;}
+{\stylesheet{\s0\ltrpar\itap0\nowidctlpar\ql\li0\ri0\lin0\rin0\cbpat0\rtlch\af0\afs24\ltrch\f0\fs24 Normal;}{\*\cs10\additive Default Paragraph Font;}{\s16\ltrpar\itap0\nowidctlpar\ql\li0\ri0\lin0\rin0\cbpat0\rtlch\af0\afs24\ltrch\f0\fs24 [Normal];}}
+{\info
+{\*\txInfo{\txVer 28.0.750.500}}}
+\paperw11905\paperh16838\margl0\margt0\margr0\margb0\deftab1134\widowctrl\trackmoves0\trackformatting1\lytexcttp\formshade\sectd
+\headery567\footery567\pgwsxn11905\pghsxn16838\marglsxn0\margtsxn0\margrsxn0\margbsxn0\pgbrdropt32\pard\ltrpar\itap0\nowidctlpar\ql\li0\ri0\lin0\rin0\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\tx9360\tx10080\plain\rtlch\af0\afs24\alang1040\acf1\ltrch\f0\fs24\lang1040\langnp1040\langfe1040\langfenp1040\cf1{\field{\*\fldinst{ \{MEMO\} }}{\fldrslt{\{MEMO\}}}}\plain\rtlch\af0\afs24\alang1040\ltrch\f0\fs24\lang1040\langnp1040\langfe1040\langfenp1040\par\pard\ltrpar\s16\itap0\nowidctlpar\ql\li0\ri0\lin0\rin0 }")
+header(text="")
+footer(text="")
+table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes name=id_memo dbname="memo.id_memo" dbalias=".id_memo" )
+ column=(type=char(32766) update=yes updatewhereclause=no name=memo dbname="memo.memo" dbalias=".memo" )
+ retrieve="PBSELECT( VERSION(400) TABLE(NAME=~"memo~" ) COLUMN(NAME=~"memo.id_memo~") COLUMN(NAME=~"memo.memo~")WHERE(    EXP1 =~"memo.id_memo~"   OP =~"=~"    EXP2 =~":k_id_memo~" ) ) ARG(NAME = ~"k_id_memo~" TYPE = number) " update="memo" updatewhere=1 updatekeyinplace=no arguments=(("k_id_memo", number)) )
+column(name=id_memo id=1 visible="1" lineremove=no multiline=no width.autosize=yes width="0" alignment="0" tabsequence=1 format="[general]" )
+column(name=memo id=2 visible="1" lineremove=no multiline=no width.autosize=yes width="0" alignment="0" tabsequence=1 format="[general]" )
+htmltable(border="1" cellpadding="0" cellspacing="0" generatecss="no" nowrap="yes")
+export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
+import.xml()

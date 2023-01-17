@@ -1,0 +1,7 @@
+﻿$PBExportHeader$st_printer.srs
+global type st_printer from structure
+	string		name
+	string		driver
+	string		port
+end type
+

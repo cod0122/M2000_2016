@@ -1,0 +1,7 @@
+﻿$PBExportHeader$st_proteggi.srs
+global type st_proteggi from structure
+	string		color		descriptor "comment" = "calcolo rgb del colore"
+	string		protect		descriptor "comment" = "1=protegge, 0=non protegge"
+	string		visible		descriptor "comment" = "1=visibile, 0=non visibile"
+end type
+

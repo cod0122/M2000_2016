@@ -1,0 +1,15 @@
+﻿$PBExportHeader$st_tab_s_avgtimeplant.srs
+global type st_tab_s_avgtimeplant from structure
+	long		id_avgtimeplant
+	long		annomese
+	integer		giri_f1
+	integer		giri_f1p
+	integer		giri_f2
+	integer		giri_f2p
+	integer		lav_fila		descriptor "comment" = "fila 1 o 2,  3=giri misti"
+	decimal{4}		time_io_minute		descriptor "comment" = "tempi medio in min da iniz e fine lavorazione"
+	decimal{4}		time_io_minute_x_giro		descriptor "comment" = "tempo medio x giro e file"
+	decimal{4}		time_plio_minute		descriptor "comment" = "tempo medio in minuti data di ins nel piano e data fine lavorazione"
+	integer		contati
+end type
+

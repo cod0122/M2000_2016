@@ -1,0 +1,15 @@
+﻿$PBExportHeader$st_pilota_giri_tempi.srs
+global type st_pilota_giri_tempi from structure
+	st_tab_g_0		st_tab_g_0
+	long		avg_time_io_minute_f1
+	long		avg_time_io_minute_f2
+	long		giri_f1_work_prev
+	long		giri_f2_work_prev
+	long		giri_f1_queue
+	long		giri_f2_queue
+	datetime		giri_f1_work_end_prev
+	datetime		giri_f2_work_end_prev
+	datetime		giri_f1_end_prev
+	datetime		giri_f2_end_prev
+end type
+

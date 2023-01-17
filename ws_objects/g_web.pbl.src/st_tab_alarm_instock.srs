@@ -1,0 +1,21 @@
+﻿$PBExportHeader$st_tab_alarm_instock.srs
+global type st_tab_alarm_instock from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_alarm_instock
+	string		attivo		descriptor "comment" = "S=attivo; N=disabilitato"
+	string		des
+	integer		id_cliente
+	long		contratto		descriptor "comment" = "id contratto co"
+	integer		calc_stocktime		descriptor "comment" = "tipo di giacenza da cui fare il conteggio: 1=da entrata materiale, 5=dalla data del Certificato (rilascio)"
+	integer		nday_instock
+	long		id_email_funzione		descriptor "comment" = "link alla comunicazione da fare "
+	string		oggetto		descriptor "comment" = "Oggetto della email se manca il id_email_funzione "
+	string		lettera		descriptor "comment" = "testo della Comunicazione della email se manca il id_email_funzione "
+	integer		email_nday_elapsed		descriptor "comment" = "giorni tra un email e l'altro"
+	datetime		email_sent		descriptor "comment" = "l'ultima email spedita di questo tipo"
+	string		sr_settore		descriptor "comment" = "indirizzi email collegati al settore"
+	string		email		descriptor "comment" = "indirizzi e-mail ulteriori"
+	datetime		x_datins
+	string		x_utente
+end type
+

@@ -1,0 +1,17 @@
+﻿$PBExportHeader$st_tab_e1_wo_f5537001.srs
+global type st_tab_e1_wo_f5537001 from structure
+	st_tab_g_0		st_tab_g_0
+	string		xxx		descriptor "comment" = "tabella di appoggio per scambio dati n. barcode trattati per lotto con posizione padre/figlio"
+	long		id_e1_wo_F5537001
+	long		MPDOCO		descriptor "comment" = "Work order"
+	string		MPAURST1		descriptor "comment" = "lane: "
+	string		MPMMCU		descriptor "comment" = "E1 Process work center will tie to cell: Tipo CILCI (27002=fila 1 (A)/27005=fila 2 (B)/27006=misti (C))"
+	integer		MPUORG		descriptor "comment" = "pallets: numero colli"
+	integer		MPMATH06		descriptor "comment" = "Number of passes: Numero di giri totale compresi di permuta"
+	long		MPMATH07		descriptor "comment" = "Cycle time: "
+	long		MPMATH08		descriptor "comment" = "number of parents: numero padri (per ora 1 o 0)"
+	datetime		e1updts		descriptor "comment" = "timestamp di aggiornamento su E1 - se non valorizzato è ancora da inviare a E1"
+	datetime		x_datins
+	string		x_utente
+end type
+

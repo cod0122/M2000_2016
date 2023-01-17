@@ -1,0 +1,10 @@
+﻿$PBExportHeader$st_tab_asdslpt.srs
+global type st_tab_asdslpt from structure
+	st_tab_g_0		st_tab_g_0
+	integer		id_asdslpt
+	integer		id_asddevice
+	string		cod_sl_pt
+	datetime		x_datins
+	string		x_utente
+end type
+

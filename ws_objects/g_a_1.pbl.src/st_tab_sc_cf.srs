@@ -1,0 +1,18 @@
+﻿$PBExportHeader$st_tab_sc_cf.srs
+global type st_tab_sc_cf from structure
+	st_tab_g_0		st_tab_g_0
+	string		codice
+	string		attivo		descriptor "comment" = "S=attivo"
+	string		sl_pt
+	date		data
+	date		data_scad
+	long		cod_cli
+	string		m_r_f
+	string		descr
+	string		sc_cv
+	string		sd_md
+	integer		magazzino
+	datetime		x_datins
+	string		x_utente
+end type
+

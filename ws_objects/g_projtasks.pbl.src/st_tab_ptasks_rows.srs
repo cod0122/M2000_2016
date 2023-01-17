@@ -1,0 +1,72 @@
+﻿$PBExportHeader$st_tab_ptasks_rows.srs
+global type st_tab_ptasks_rows from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_ptasks_row
+	long		id_ptask
+	integer		id_ptasks_type		descriptor "comment" = "codice Attività"
+	string		data_json		descriptor "comment" = "dati dell attività del progetto (formato json)"
+	datetime		x_datins
+	string		x_utente
+	integer		cs_qta
+	decimal { 2 }		cs_prezzo
+	string		cs_clienteddtn
+	long		cs_usdqta
+	decimal { 4 }		cs_usdprezzo
+	decimal { 4 }		cs_pesonettoxlottokg
+	string		cs_custcode
+	long		cs_qtabox
+	string		cs_trackitusn
+	string		cs_trackusitn
+	date		cs_speddata
+	date		cs_charlottedatain
+	long		cs_charlottewo
+	date		cs_charlottewodata
+	date		cs_datarientro
+	string		cs_e1so		descriptor "comment" = "SO di E1 anche più di uno"
+	long		cs_e1sofattura
+	string		cs_e1ancillary
+	long		cs_stgfatturan
+	date		cs_stgfatturadata
+	decimal { 2 }		cs_stgfatturaimporto
+	long		cs_stgddtn
+	date		cs_stgddtdata
+	string		cs_docfinen
+	string		cs_notefatt
+	integer		cs_invoicen		descriptor "comment" = "numero fattura (INVOICE)"
+	date		cs_invoicedata		descriptor "comment" = "data fattura"
+	integer		cs_invoice_id_cliente		descriptor "comment" = "id_cliente intestazione INVOICE"
+	date		cs_invoicefirmadata		descriptor "comment" = "fattura data firma in calce "
+	string		cs_invoicefirmanome		descriptor "comment" = "fattura nominativo firma in calce "
+	string		cs_invoicefirmaruolo		descriptor "comment" = "fattura ruolo firma in calce "
+	date		acc_arrivodata
+	long		acc_e1wo
+	decimal { 3 }		acc_pesolordoxlottokg
+	string		acc_dhlbox		descriptor "comment" = "codice dhl del box"
+	string		acc_boxdimcm		descriptor "comment" = "dimensioni del box in cm"
+	long		valid_modaccompn		descriptor "comment" = "numero del modulo"
+	string		valid_modaccomprogr		descriptor "comment" = "numero + anno es: 134/2021"
+	date		valid_modaccompdata		descriptor "comment" = "data di emissione mod report di Laboratorio"
+	string		valid_modaccompqtadescr		descriptor "comment" = "descrizione nel mod report di Laboratorio nella sezione CAMPIONI"
+	string		valid_proddescr		descriptor "comment" = "descrizione Prodotto"
+	string		valid_proddescr_eng		descriptor "comment" = "descrizione Prodotto in inglese (in stampa sul Modulo)"
+	string		valid_prodlotto
+	string		valid_laboratorio
+	string		valid_qaa
+	long		valid_campioniqta
+	string		valid_offertarif
+	string		valid_attivitacod
+	date		valid_speddata
+	date		valid_finepresuntadata
+	string		valid_laboratoriocertifn
+	date		valid_laboratoriocertifdata
+	string		valid_laboratoriocertif1n
+	date		valid_laboratoriocertif1data
+	decimal { 2 }		valid_dose
+	decimal { 2 }		valid_dose_min
+	decimal { 2 }		valid_dose_max
+	string		valid_notereport
+	string		valid_noterifpo
+	string		valid_notealtre		descriptor "comment" = "nore per report"
+	string		approvv_stgcharlfattinterc
+end type
+

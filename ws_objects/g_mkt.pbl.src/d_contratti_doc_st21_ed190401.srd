@@ -1,0 +1,39 @@
+﻿$PBExportHeader$d_contratti_doc_st21_ed190401.srd
+release 19;
+datawindow(units=3 timer_interval=0 color=16777215 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=0 HTMLDW=no print.printername="" print.documentname="" print.orientation = 2 print.margin.left = 500 print.margin.right = 500 print.margin.top = 132 print.margin.bottom = 132 print.paper.source = 0 print.paper.size = 9 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" )
+header(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+detail(height=4021 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" height.autosize=yes )
+table(column=(type=long updatewhereclause=yes name=id_contratto_doc dbname="v_contratti_doc.id_contratto_doc" )
+ column=(type=char(2) updatewhereclause=yes name=stampa_tradotta dbname="v_contratti_doc.stampa_tradotta" )
+ column=(type=char(4000) updatewhereclause=yes name=quotazione_cod dbname="v_contratti_doc.quotazione_cod" )
+ column=(type=char(4000) updatewhereclause=yes name=quotazione_tipo dbname="v_contratti_doc.quotazione_tipo" )
+ column=(type=char(4000) updatewhereclause=yes name=cliente_desprod dbname="v_contratti_doc.cliente_desprod" )
+ column=(type=char(4000) updatewhereclause=yes name=cliente_desprod_rid dbname="v_contratti_doc.cliente_desprod_rid" )
+ retrieve=" SELECT ctr.id_contratto_doc   
+		, ctr.stampa_tradotta  
+        , ctr.quotazione_cod
+	    , ctr.quotazione_tipo
+		, ctr.cliente_desprod
+		, ctr.cliente_desprod_rid
+		FROM v_contratti_doc ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+" arguments=(("k_id_contratto_doc", number)) )
+bitmap(band=detail filename="logo.png" x="370" y="106" height="1799" width="7011" border="0" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0"  name=p_img visible="1" transparency="0" )
+text(band=detail alignment="0" text="logo.png" border="0" color="0" x="4736" y="133" height="370" width="3386" html.valueishtml="0"  name=txt_p_img  tag="associata alla risorsa in: p_img" visible="0"  font.face="Arial" font.height="-8" font.weight="700"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=detail alignment="0" text="7.  Costi Progetto - Dettagli~tif ( stampa_tradotta = 'EN', '7.  Cost of the Project - Details', '7.  Costi Progetto - Dettagli') " border="0" color="33554432" x="185" y="3361" height="635" width="18838" html.valueishtml="0"  name=caratteristichetecniche visible="1"  font.face="Calibri" font.height="-11" font.weight="700"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=detail alignment="1" text="
+    ~tif(quotazione_tipo = 'VAL', string(~"Sterigenics Validation Proposal - ~"), string(~"Sterigenics Irradiation Proposal - ~")) +
+trim( quotazione_cod )" border="2~t0" color="33554432" x="8704" y="133" height="343" width="10212" html.valueishtml="0"  name=t_7 visible="1"  font.face="Calibri" font.height="-8" font.weight="700"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+htmltable(border="1" )
+htmlgen(clientevents="1" clientvalidation="1" clientcomputedfields="1" clientformatting="0" clientscriptable="0" generatejavascript="1" encodeselflinkargs="1" netscapelayers="0" pagingmethod=0 generatedddwframes="1" )
+xhtmlgen() cssgen(sessionspecific="0" )
+xmlgen(inline="0" )
+xsltgen()
+jsgen()
+export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
+import.xml()
+export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
+export.xhtml()
+ 

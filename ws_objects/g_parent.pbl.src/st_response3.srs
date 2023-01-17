@@ -1,0 +1,12 @@
+﻿$PBExportHeader$st_response3.srs
+global type st_response3 from structure
+	string		title		descriptor "comment" = "text head exlpanation elab"
+	integer		option_default		descriptor "comment" = "1,2,3  invece 0=nessuna scelta di default"
+	string		option_1		descriptor "comment" = "text first opt"
+	string		option_2		descriptor "comment" = "text second opt"
+	string		option_3		descriptor "comment" = "text third opt"
+	integer		option_choosed		descriptor "comment" = "option choosed"
+	string		b_cancel		descriptor "comment" = "text button cancel"
+	string		b_ok		descriptor "comment" = "text button ok"
+end type
+

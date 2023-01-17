@@ -1,0 +1,19 @@
+﻿$PBExportHeader$st_tab_ptasks.srs
+global type st_tab_ptasks from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_ptask
+	long		n_ptask		descriptor "comment" = "Numero progressivo del progetto"
+	string		status		descriptor "comment" = "O=Aperto, S=sospeso, A=annullato, D=chiuso"
+	integer		id_ptasks_types_grp
+	long		id_cliente
+	string		cntr_val		descriptor "comment" = "codice Contratto di Validazione"
+	string		cntr_descr		descriptor "comment" = "oggetto del Contratto"
+	date		cntr_expiry		descriptor "comment" = "data di scadenza del contratto"
+	long		id_meca		descriptor "comment" = "non sempre presente "
+	string		ptasks_types_json		descriptor "comment" = "elenco dei tipi attività da svolgere"
+	datetime		date_ins
+	string		user_ins
+	datetime		x_datins
+	string		x_utente
+end type
+

@@ -1,0 +1,14 @@
+﻿$PBExportHeader$st_listino_duplica.srs
+global type st_listino_duplica from structure
+	integer		sel		descriptor "comment" = "1=selezionata"
+	string		diprova		descriptor "comment" = "N=effettiva (aggiornamento); S=solo di prova"
+	long		id_listino
+	double		prezzo
+	double		prezzo_2
+	double		prezzo_3
+	datetime		esito_operazioni_ts_operazione		descriptor "comment" = "timestamp dell'esito nella tabella esito-operazioni"
+	string		attivo		descriptor "comment" = "D=da attivare, S=in vigoe"
+	date		dt_start		descriptor "comment" = "in vigore dal"
+	date		dt_end		descriptor "comment" = "in vigore al"
+end type
+

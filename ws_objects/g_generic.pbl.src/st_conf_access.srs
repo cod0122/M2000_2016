@@ -1,0 +1,10 @@
+﻿$PBExportHeader$st_conf_access.srs
+global type st_conf_access from structure
+	string		file_name_configuration		descriptor "comment" = "nome del file dove risiedono i dati"
+	string		domain		descriptor "comment" = "dominio del server rete x la connessione Active Directory / LDAP"
+	string		uid		descriptor "comment" = "utente di connessione al DB"
+	string		pwd		descriptor "comment" = "password criptata di accesso al db (Encrypt string with AES algorithm)"
+	string		dbparm		descriptor "comment" = "stringa di connessione"
+	string		AutoCommit		descriptor "comment" = "TRUE o FALSE"
+end type
+

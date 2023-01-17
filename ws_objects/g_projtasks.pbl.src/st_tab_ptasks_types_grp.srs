@@ -1,0 +1,10 @@
+﻿$PBExportHeader$st_tab_ptasks_types_grp.srs
+global type st_tab_ptasks_types_grp from structure
+	st_tab_g_0		st_tab_g_0
+	integer		id_ptasks_types_grp
+	string		descr
+	string		ptasks_types_json		descriptor "comment" = "elenco tipi di task (DSV, CVN, BBN ...) per il gruppo (task[DSV,CVN...])"
+	datetime		x_datins
+	string		x_utente
+end type
+

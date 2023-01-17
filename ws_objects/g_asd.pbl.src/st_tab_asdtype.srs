@@ -1,0 +1,10 @@
+﻿$PBExportHeader$st_tab_asdtype.srs
+global type st_tab_asdtype from structure
+	st_tab_g_0		st_tab_g_0
+	integer		id_asdtype
+	string		code
+	string		des
+	datetime		x_datins
+	string		x_utente
+end type
+

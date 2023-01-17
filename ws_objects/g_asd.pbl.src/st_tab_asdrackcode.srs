@@ -1,0 +1,11 @@
+﻿$PBExportHeader$st_tab_asdrackcode.srs
+global type st_tab_asdrackcode from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_asdrackcode		descriptor "comment" = "id rack del dispositivo ausiliario di schermatura/auxiliary shielding device"
+	string		rackcode		descriptor "comment" = "barcode del Rack"
+	integer		enabled		descriptor "comment" = "1=abilitato a essere associato ai barcode in trattamento"
+	long		id_asddevice		descriptor "comment" = "Dispositivo a cui appartiene il rack"
+	datetime		x_datins
+	string		x_utente
+end type
+

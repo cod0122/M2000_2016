@@ -1,0 +1,7 @@
+﻿$PBExportHeader$st_msg_replace_placeholder.srs
+global type st_msg_replace_placeholder from structure
+	st_tab_g_0		st_tab_g_0
+	string		msg		descriptor "comment" = "testo da sostituire i placeholder con i valori"
+	long		id_meca
+end type
+

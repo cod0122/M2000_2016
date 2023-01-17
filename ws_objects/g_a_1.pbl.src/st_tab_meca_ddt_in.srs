@@ -1,0 +1,10 @@
+﻿$PBExportHeader$st_tab_meca_ddt_in.srs
+global type st_tab_meca_ddt_in from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_meca_ddt_in
+	long		id_meca
+	long		id_memo
+	datetime		x_datins
+	string		x_utente
+end type
+

@@ -1,0 +1,11 @@
+﻿$PBExportHeader$st_tab_alarm_instock_email.srs
+global type st_tab_alarm_instock_email from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_alarm_instock_email
+	long		id_alarm_instock
+	long		id_meca
+	datetime		generated		descriptor "comment" = "ts email genarata"
+	datetime		x_datins
+	string		x_utente
+end type
+
