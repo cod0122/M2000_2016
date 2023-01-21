@@ -28,9 +28,8 @@ constant string TRACE="T" // x verifica flusso pgm da Trace
 constant string PWD_INSCAD="PWDINSCAD" // pwd in scadenza
 constant string PWD_SCADUTA="PWDSCAD" // pwd in scaduta
 constant string PWD_VUOTA="PWDVUOTA" // pwd vuota
-
+constant string LOGIN="LG" //Info di Entrata/Uscita Applicazione
 end variables
-
 on kkg_esito.create
 call super::create
 TriggerEvent( this, "constructor" )

@@ -1,13 +1,13 @@
-﻿$PBExportHeader$n_cst_login.sru
+﻿$PBExportHeader$n_login.sru
 $PBExportComments$SHEKAR
 forward
-global type n_cst_login from nonvisualobject
+global type n_login from nonvisualobject
 end type
 end forward
 
-global type n_cst_login from nonvisualobject
+global type n_login from nonvisualobject
 end type
-global n_cst_login n_cst_login
+global n_login n_login
 
 type prototypes
 // This function gets the network login userid
@@ -48,6 +48,7 @@ public function string xf_getdomain ()
 public function string xf_getusername ()
 public function integer of_validate (string as_username, string as_password, string as_domain)
 public function integer xf_validate (string as_username, string as_password, string as_domain)
+public function integer u_authentication (string a_user, string a_domain, string a_pwd, string a_type)
 end prototypes
 
 public function integer of_loginad (string as_username, string as_password, string as_domain);// SHEKAR - ActiveDirectory Authentication
@@ -408,12 +409,48 @@ RETURN 1		// All clear
 */
 end function
 
-on n_cst_login.create
+public function integer u_authentication (string a_user, string a_domain, string a_pwd, string a_type);/*
+Verifica l'utente con user e pwd
+inp: code user
+     password
+	  AD = Active Directory
+	  LDAP = LDAP Authentication
+Out: vedi C_LOGIN ... _SUCCESS = 1
+                      _FAILURE = 0 ....
+*/
+integer k_return
+string ls_Username, ls_Password, ls_Domain
+
+
+SetPointer( HourGlass! )
+a_type = Upper( Trim( a_type ))
+//
+IF a_type = '' THEN
+	a_type = 'LDAP'
+END IF
+
+ls_Domain   = a_domain
+ls_Username = a_user
+ls_Password = a_pwd
+
+IF a_type = 'LDAP' THEN
+	k_return = this.of_LoginLDAP( ls_Username, ls_Password, ls_Domain )
+ELSEIF a_type = 'AD' THEN
+	k_return = this.of_LoginAD(   ls_Username, ls_Password, ls_Domain )
+ELSE
+	k_return = this.C_LOGIN_FAILURE
+END IF
+
+RETURN k_return
+
+end function
+
+on n_login.create
 call super::create
 TriggerEvent( this, "constructor" )
 end on
 
-on n_cst_login.destroy
+on n_login.destroy
 TriggerEvent( this, "destructor" )
 call super::destroy
 end on

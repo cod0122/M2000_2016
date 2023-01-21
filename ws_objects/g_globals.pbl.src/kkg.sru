@@ -14,7 +14,7 @@ public:
 
 //--- Versione Procedura Major-release XX + YY.MMDD  (anno.mese e giorno)
 constant string VERSIONE_MAJOR_REL="13"
-constant dec{4} VERSIONE=23.0110
+constant dec{4} VERSIONE=23.0121
 
 //--- icone risorse grafiche
 constant string PATH_SEP ="\" 
@@ -46,7 +46,7 @@ constant int PWD_LIV_4=4  // privilegio magazzino entrate-uscite
 constant int PWD_QUERY=5  //privilegio operat consultativo
 
 //--- caratteri particolari
-constant string ACAPO="~r~n"
+constant string ACAPO="~n~r"
 
 //--- Icona principale
 constant string MAIN_ICON = "main.ico"
@@ -58,7 +58,6 @@ constant integer scrollbarX_height = 120
 
 
 end variables
-
 on kkg.create
 call super::create
 TriggerEvent( this, "constructor" )

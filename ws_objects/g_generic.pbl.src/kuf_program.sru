@@ -10,7 +10,7 @@ global kuf_program kuf_program
 
 type variables
 //
-kuf_data_base kiuf_data_base
+//kuf_data_base kiuf_data_base
 end variables
 
 forward prototypes
@@ -24,9 +24,9 @@ public function boolean u_if_chiudi_procedura ();//
 boolean k_return = true
 
 
-if not isnull(kiuf_data_base.prendi_win_la_ultima( )) then
-	if not isnull(kiuf_data_base.prendi_win_la_prima( )) then
-		if kiuf_data_base.prendi_win_la_ultima( ) <> kiuf_data_base.prendi_win_la_prima( ) then
+if not isnull(kguf_data_base.prendi_win_la_ultima( )) then
+	if not isnull(kguf_data_base.prendi_win_la_prima( )) then
+		if kguf_data_base.prendi_win_la_ultima( ) <> kguf_data_base.prendi_win_la_prima( ) then
 			k_return = false
 		end if
 	end if
@@ -127,7 +127,7 @@ try
 				kst_profilestring_ini.titolo = "ambiente"
 				kst_profilestring_ini.nome = "utente_login"
 				kst_profilestring_ini.valore = k_base
-				kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 			
 			//=== Legge il percorso di dove sono i programmi aggiornati
 				k_base = trim(mid(kuf1_base.prendi_dato_base("path_pgm_upd"), 2))
@@ -138,7 +138,7 @@ try
 				kst_profilestring_ini.titolo = "ambiente"
 				kst_profilestring_ini.nome = "path_pgm_upd"
 				kst_profilestring_ini.valore = k_base
-				kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 			
 			//=== Legge il percorso del root del server della Procedura
 				k_base = trim(mid(kuf1_base.prendi_dato_base("path_centrale"), 2))
@@ -149,7 +149,7 @@ try
 				kst_profilestring_ini.titolo = "ambiente"
 				kst_profilestring_ini.nome = "path_centrale"
 				kst_profilestring_ini.valore = k_base
-				kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 			
 				destroy kuf1_base 
 
@@ -213,7 +213,7 @@ try
 	kst_profilestring_ini.titolo = "ambiente"
 	kst_profilestring_ini.nome = "utente_login"
 	kst_profilestring_ini.valore = k_base
-	kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+	kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 
 //=== Legge il percorso di dove sono i programmi aggiornati
 	k_base = trim(mid(kuf1_base.prendi_dato_base("path_pgm_upd"), 2))
@@ -224,7 +224,7 @@ try
 	kst_profilestring_ini.titolo = "ambiente"
 	kst_profilestring_ini.nome = "path_pgm_upd"
 	kst_profilestring_ini.valore = k_base
-	kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+	kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 
 //=== Legge il percorso del root del server della Procedura
 	k_base = trim(mid(kuf1_base.prendi_dato_base("path_centrale"), 2))
@@ -235,7 +235,7 @@ try
 	kst_profilestring_ini.titolo = "ambiente"
 	kst_profilestring_ini.nome = "path_centrale"
 	kst_profilestring_ini.valore = k_base
-	kiuf_data_base.profilestring_ini ( kst_profilestring_ini )
+	kguf_data_base.profilestring_ini ( kst_profilestring_ini )
 
 	
 	if kst_profilestring_ini.esito = kkg_esito.ok then
@@ -264,11 +264,11 @@ return k_return
 end function
 
 event constructor;//
-kiuf_data_base = create kuf_data_base
+//kiuf_data_base = create kuf_data_base
 end event
 
 event destructor;//
-if isvalid(kiuf_data_base) then destroy kiuf_data_base
+//if isvalid(kiuf_data_base) then destroy kiuf_data_base
 
 end event
 

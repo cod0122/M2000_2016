@@ -37,8 +37,9 @@ constant string KK_st_uo_exception_tipo_noAUT=kkg_esito.NO_AUT
 constant string KK_st_uo_exception_tipo_not_fnd=kkg_esito.NOT_FND
 constant string KK_st_uo_exception_tipo_trace=kkg_esito.TRACE
 constant string KK_st_uo_exception_tipo_SINO="N"
+constant string KK_st_uo_exception_tipo_LOGIN=kkg_esito.LOGIN //Info di Entrata/Uscita Applicazione 
  
-uo_path kiuo_path
+//uo_path kiuo_path
 end variables
 
 forward prototypes
@@ -58,7 +59,6 @@ public subroutine setmessage (string a_titolo, string newmessage)
 public function integer messaggio_utente (string a_titolo, string a_msg)
 public function st_esito inizializza (string a_classname)
 public subroutine if_isnull (ref st_esito kst_esito)
-public subroutine u_set_kiuo_path ()
 public function boolean if_esito_grave (string k_esito)
 public function string u_add_esito_and_nwline (string a_esito)
 public function boolean if_esito_ok_wrn (string k_esito)
@@ -70,6 +70,7 @@ private function string u_write_error_touser ()
 private function string u_write_error_xml ()
 private subroutine u_set_ki_from_st_esito (st_esito ast_esito)
 public function string get_errtext (ref uo_d_std_1 adw_1)
+private subroutine u_set_uo_path ()
 end prototypes
 
 public subroutine messaggio_utente ();//---
@@ -589,17 +590,6 @@ if isnull(kst_esito.SQLsyntax) then kst_esito.SQLsyntax = ""
 
 end subroutine
 
-public subroutine u_set_kiuo_path ();//
-	if isvalid(kguo_path) then 
-		kiuo_path = kguo_path
-	end if
-	if trim(kiuo_path.get_base_del_server()) > " " then 
-	else
-		kiuo_path.set_path_base_del_server()
-	end if
-
-end subroutine
-
 public function boolean if_esito_grave (string k_esito);//
 if k_esito > " " and k_esito <> kkg_esito.ok and k_esito <> kkg_esito.db_wrn &
 			and k_esito <> kkg_esito.dati_wrn and k_esito <> kkg_esito.not_fnd then
@@ -678,7 +668,8 @@ setpointer(kkg.pointer_attesa)
 //			and kst_esito.esito <> kkg_esito.NOT_FND and kst_esito.esito <> kkg_esito.no_aut &
 //			and kst_esito.esito <> kkg_esito.dati_insuff and kst_esito.esito <> kkg_esito.no_esecuzione &
 //			and kst_esito.esito <> kkg_esito.ERR_LOGICO ) then 
-if (if_esito_grave(kist_esito.esito) and kist_esito.esito <> kkg_esito.dati_insuff) or kist_esito.scrivi_log then
+if (if_esito_grave(kist_esito.esito) and kist_esito.esito <> KK_st_uo_exception_tipo_dati_insufficienti1 and kist_esito.esito <> KK_st_uo_exception_tipo_dati_insufficienti) &
+					or kist_esito.scrivi_log or kist_esito.esito = KK_st_uo_exception_tipo_LOGIN then
 	k_ret1 = u_write_error_xml()
 end if
 
@@ -845,8 +836,8 @@ string k_record, k_return = "1", k_errore
 string k_path_nome_file
 long k_filesize
 
-	u_set_kiuo_path()
-	k_path_nome_file = kiuo_path.get_nome_file_errori_txt()
+	u_set_uo_path()
+	k_path_nome_file = kguo_path.get_nome_file_errori_txt()
 	if left(trim(k_path_nome_file), 1) = kkg.path_sep then
 		k_path_nome_file = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ") + trim(k_path_nome_file)
 		if left(trim(k_path_nome_file), 1) = kkg.path_sep then
@@ -960,8 +951,8 @@ try
 //	kpbdom_el_node1111 = create PBDOM_Element
 //	kpbdom_el_node11111 = create PBDOM_Element
 
-	u_set_kiuo_path()
-	k_path_nome_file = kiuo_path.get_nome_path_file_errori_xml_noext( )
+	u_set_uo_path()
+	k_path_nome_file = kguo_path.get_nome_path_file_errori_xml_noext( )
 	if left(trim(k_path_nome_file), 1) = kkg.path_sep then
 		k_path_nome_file = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ") + trim(k_path_nome_file)
 		if left(trim(k_path_nome_file), 1) = kkg.path_sep then
@@ -1175,6 +1166,17 @@ return k_return
 
 end function
 
+private subroutine u_set_uo_path ();//
+//	if isvalid(kguo_path) then 
+//		kiuo_path = kguo_path
+//	end if
+	if trim(kguo_path.get_base_del_server()) > " " then 
+	else
+		kguo_path.set_path_base_del_server()
+	end if
+
+end subroutine
+
 on uo_exception.create
 call super::create
 TriggerEvent( this, "constructor" )
@@ -1193,7 +1195,7 @@ st_uo_exception kist_uo_exception
 constant int kk_tipo_ex_generico = 1
 
 kiuf_file_explorer = create kuf_file_explorer
-kiuo_path = create uo_path
+//kiuo_path = create uo_path
 
 end event
 

@@ -47,8 +47,8 @@ public subroutine u_update_software ()
 public subroutine u_close ()
 public subroutine u_inizializza ()
 public subroutine u_start ()
-public function boolean u_authentication (string as_type)
 public function boolean if_connesso_db () throws uo_exception
+public function boolean u_authentication ()
 end prototypes
 
 event ue_open();//
@@ -516,7 +516,7 @@ st_tab_base kst_tab_base
 		
 	
 	if kiuf_sr_sicurezza.u_if_master(k_passwd) then
-		if not u_authentication("AD") then	
+		if not u_authentication() then	
 			kst_esito.esito = kkg_esito.ko
 		end if
 	end if
@@ -661,46 +661,53 @@ end if
 
 end subroutine
 
-public function boolean u_authentication (string as_type);// SHEKAR - LDAP Authentication
+public function boolean if_connesso_db () throws uo_exception;//
 boolean k_return
-integer	li_Result
+
+
+try
+
+	if kguo_sqlca_db_magazzino.if_connesso( ) then
+		k_return = true
+		dw_about.setitem(1, "st_conn_db", "ON")
+	else
+		dw_about.setitem(1, "st_conn_db", "OFF")
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+end try
+	
+
+return k_return
+end function
+
+public function boolean u_authentication ();// SHEKAR - LDAP Authentication
+boolean k_return
+int	li_Result
 long		ll_Color
 string	ls_Username, ls_Password, ls_Domain, ls_Message
-n_cst_login kn_cst_login
+n_login kn_login
 string sle_Username, sle_Password, sle_Domain   
 st_esito kst_esito
 kuf_utility kuf1_utility
 
 
 SetPointer( HourGlass! )
-as_Type = Upper( Trim( as_Type ))
-//
-IF as_Type = '' THEN
-	as_Type = 'LDAP'
-END IF
 
-kn_cst_login = create n_cst_login
+kn_login = create n_login
 
 ls_Domain   = kguo_utente.ki_domain
 ls_Username = trim(dw_about.getitemstring(1, "sle_utente"))
 ls_Password = trim(dw_about.getitemstring(1, "sle_password"))
 
-//st_Status.Text = " Please wait..."
-//st_Status.TextColor = 0			// Black
-//st_Status.BackColor = C_COLOR_YELLOW
-//
-IF as_Type = 'LDAP' THEN
-	li_Result = kn_cst_login.of_LoginLDAP( ls_Username, ls_Password, ls_Domain )
-ELSEIF as_Type = 'AD' THEN
-	li_Result = kn_cst_login.of_LoginAD(   ls_Username, ls_Password, ls_Domain )
-ELSE
-	li_Result = kn_cst_login.C_LOGIN_FAILURE
-END IF
+li_Result = kn_login.u_authentication(ls_Username, ls_Password, ls_Domain, "AD")
 //
 IF li_Result > 0 THEN		// 1
 	k_return = true
 //	ll_Color   = C_COLOR_GREEN
-	ls_Message = kn_cst_login.C_LOGIN_SUCCESS_MESSAGE
+	ls_Message = kn_login.C_LOGIN_SUCCESS_MESSAGE
 	// TODO: Go ahead and login into the database "implicitly", now...
 ELSE
 //	ll_Color = C_COLOR_RED
@@ -712,17 +719,17 @@ ELSE
 		ls_Message = "Accesso non Riuscito, problemi di connessione al Server di rete!"
 	else
 	
-		IF li_Result     = kn_cst_login.C_LOGIN_ERROR_USERNAME THEN	// -1
-			ls_Message    = kn_cst_login.C_LOGIN_ERROR_USERNAME_MESSAGE
+		IF li_Result     = kn_login.C_LOGIN_ERROR_USERNAME THEN	// -1
+			ls_Message    = kn_login.C_LOGIN_ERROR_USERNAME_MESSAGE
 	//		lsle_Control  = sle_Username
-		ELSEIF li_Result = kn_cst_login.C_LOGIN_ERROR_PASSWORD THEN	// -2
-			ls_Message    = kn_cst_login.C_LOGIN_ERROR_PASSWORD_MESSAGE
+		ELSEIF li_Result = kn_login.C_LOGIN_ERROR_PASSWORD THEN	// -2
+			ls_Message    = kn_login.C_LOGIN_ERROR_PASSWORD_MESSAGE
 	//		lsle_Control  = sle_Password
-		ELSEIF li_Result = kn_cst_login.C_LOGIN_ERROR_DOMAIN THEN		// -3
-			ls_Message    = kn_cst_login.C_LOGIN_ERROR_DOMAIN_MESSAGE
+		ELSEIF li_Result = kn_login.C_LOGIN_ERROR_DOMAIN THEN		// -3
+			ls_Message    = kn_login.C_LOGIN_ERROR_DOMAIN_MESSAGE
 	//		lsle_Control  = sle_Domain
 		ELSE		// 0
-			ls_Message    = kn_cst_login.C_LOGIN_FAILURE_MESSAGE
+			ls_Message    = kn_login.C_LOGIN_FAILURE_MESSAGE
 	//		lsle_Control  = sle_Username
 		END IF
 		
@@ -747,33 +754,11 @@ st_informa.text = ' ' + ls_Message
 st_informa.visible = true
 
 
-destroy kn_cst_login
+destroy kn_login
 destroy kuf1_utility		
 
 RETURN k_return
 
-end function
-
-public function boolean if_connesso_db () throws uo_exception;//
-boolean k_return
-
-
-try
-
-	if kguo_sqlca_db_magazzino.if_connesso( ) then
-		k_return = true
-		dw_about.setitem(1, "st_conn_db", "ON")
-	else
-		dw_about.setitem(1, "st_conn_db", "OFF")
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-end try
-	
-
-return k_return
 end function
 
 on w_about.create

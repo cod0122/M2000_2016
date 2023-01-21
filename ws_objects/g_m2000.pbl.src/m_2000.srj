@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.23.01.102
-PVN:13,23,1,102
-FVS:13.23.01.102
-FVN:13,23,1,102
+PVS:13.23.01.171
+PVN:13,23,1,171
+FVS:13.23.01.171
+FVN:13,23,1,171
 MAN:1,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -38,7 +38,6 @@ PBD:pb_calendario.pbl,,1
 PBD:g_generic.pbl,,1
 PBD:g_globals.pbl,,1
 PBD:dw2xls_pb126.pbl,,1
-OBJ:C:\Sterigenics\app32\G_m2000.PBL,m_2000,a
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_tab_email_invio,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,ds_contratti_co_select,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_cap,s
@@ -72,7 +71,6 @@ OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_data_base,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,s_powerfilter_parms,s
 OBJ:C:\Sterigenics\app32\g_listini.pbl,kuf_listino_pregruppo,u
 OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino_prezzi,s
-OBJ:C:\Sterigenics\app32\g_m2000.pbl,n_cst_login,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_ausiliari,u
 OBJ:C:\Sterigenics\app32\g_memo.pbl,kuf_memo_link,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_wo_f5548014,u
@@ -331,6 +329,7 @@ OBJ:C:\Sterigenics\app32\g_a_2.pbl,ds_pilota_pallet_out_l,d
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_convalida_calc,u
 OBJ:C:\Sterigenics\app32\g_treeview.pbl,st_tab_treeview_icone,s
 OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_dwr_workbook,u
+OBJ:C:\Sterigenics\app32\g_m2000.pbl,n_login,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_contratti,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuf_esito_operazioni,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_asn,u
@@ -420,9 +419,9 @@ OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_pilota_previsioni,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_certif_file,u
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,kuf_fatt_forza_mod,u
 OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_cst_hash_long_entry,u
+OBJ:C:\Sterigenics\app32\g_m2000.pbl,m_2000,a
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_link_zoom,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,u_powerfilter_monthopts,u
-OBJ:C:\Sterigenics\app32\g_m2000.pbl,m_2000,a
 OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_activedirectory,u
 OBJ:C:\Sterigenics\app32\g_web.pbl,kuf_alarm_instock,u
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,ds_contratti_rd_select,u

@@ -38,6 +38,8 @@ type variables
 	private boolean ki_quarantena_giaaperta = false
 
 	private string ki_flag_modalita_originale=""
+
+	private kuf_password kiuf_password
 end variables
 
 forward prototypes
@@ -62,6 +64,7 @@ private subroutine forza_convalida ()
 protected subroutine attiva_menu ()
 private subroutine sblocco_meca_non_conforme ()
 private function string get_blk_descr (integer k_stato)
+public subroutine u_richiesta_password_open ()
 end prototypes
 
 protected subroutine open_start_window ();//--- oggetto visibile in tutta la window
@@ -103,6 +106,14 @@ private subroutine autorizza_stampa_attestato_farma ();//
 st_tab_meca kst_tab_meca
 
 
+u_richiesta_password_open( )  // finestra di richiesta autenticazione
+	
+if not isvalid(kiuf_password) then kiuf_password = create kuf_password
+
+if not kiuf_password.ki_user_autenticato then
+	messagebox("Autorizza Lotto Farmaceutico", "Richiesta Autenticazione prima di procedere")
+else
+	
 	dw_dett_0.object.b_meca_cert_farma_st_ok.enabled = 0
 
 	kst_tab_meca.cert_farma_st_ok = dw_dett_0.object.meca_cert_farma_st_ok[1]
@@ -125,6 +136,7 @@ st_tab_meca kst_tab_meca
 
 	dw_dett_0.object.b_meca_cert_farma_st_ok.enabled = 1
 
+end if
 end subroutine
 
 private subroutine forza_stampa_attestato ();//
@@ -478,7 +490,6 @@ try
 		kGuo_exception.inizializza( )
 		kGuo_exception.messaggio_utente( "Operazione Interrotta", "Nessun Lotto indicato")
 	end if		
-		
 
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
@@ -841,6 +852,23 @@ end choose
 return k_return
 end function
 
+public subroutine u_richiesta_password_open ();//
+//--- Lancia richiesta password Autorizzazione Utente
+//
+st_open_w kst_open_w
+
+
+if not isvalid(kiuf_password) then kiuf_password = create kuf_password
+
+kiuf_password.ki_user_autenticato = false
+
+kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
+kst_open_w.key12_any = kiuf_password
+OpenWithParm(w_password, kst_open_w)
+
+
+end subroutine
+
 on w_meca_autorizza.create
 call super::create
 end on
@@ -855,7 +883,8 @@ event close;call super::close;//
 	if isvalid(kiuf_meca_qtna) then destroy kiuf_meca_qtna
 	if isvalid(kiuf_meca_fconv) then destroy kiuf_meca_fconv
 	if isvalid(kiuf_meca_dosim) then destroy kiuf_meca_dosim
-	
+	if isvalid(kiuf_password) then destroy kiuf_password 
+
 end event
 
 type dw_print_0 from w_g_tab0`dw_print_0 within w_meca_autorizza

@@ -25,7 +25,7 @@ global type st_open_w from structure
 	string		key9
 	w_g_tab		key10_window_chiamante		descriptor "comment" = "riferimento alla windows chiamante"
 	datastore		key11_ds		descriptor "comment" = "datastore"
-	any		key12_any		descriptor "comment" = "~r~n"
+	any		key12_any		descriptor "comment" = "qualsiasi oggetto~r~n"
 	string		settrans		descriptor "comment" = "= transaction object, se non indicato assume sqlca"
 	string		flag_where
 	string		campo_where

@@ -13,6 +13,11 @@ end forward
 global variables
 //--- Oggetti Globali ----------------------------------------------------------------------------------------------
 
+//--- oggetti contenenti le ex-VARIABILI Globali
+uo_g kguo_g
+uo_path kguo_path
+uo_utente kguo_utente
+
 //--- Oggetto x gestire le ECCEZIONI
 uo_exception kGuo_exception
 
@@ -54,11 +59,6 @@ kuf_menu_window kGuf_menu_window
 st_tab_menu_window kGst_tab_menu_window[300]
 st_tab_menu_window_anteprima kgst_tab_menu_window_anteprima[100]   // tab pilota x fare dallo zoom alla Visualizz/Modifica/ecc....
 
-
-//--- oggetti contenenti le ex-VARIABILI Globali
-uo_g kguo_g
-uo_path kguo_path
-uo_utente kguo_utente
 
 
 //--------------------------- OBSOLETO --------------------------------------------------------------------------------------------------------------------------------------------
@@ -285,15 +285,16 @@ end variables
 forward prototypes
 public subroutine u_allarme_utente ()
 public subroutine a_license ()
+private subroutine u_close_all ()
 end prototypes
 
 event ue_open();//
 kuf_utility kuf1_utility
 pointer oldpointer  // Declares a pointer variable
-
+st_open_w kst_open_w 
+ 
 
 kuf1_utility = create kuf_utility
-
 
 SetPointer(kkg.pointer_attesa)
 
@@ -421,6 +422,35 @@ public subroutine a_license ();//
 //
 end subroutine
 
+private subroutine u_close_all ();//
+//=== Chiudo tutte le windows children
+window wSheet, wSheetNEXT
+
+	if isvalid(kGuo_g.kgw_attiva) then
+		close(kGuo_g.kgw_attiva)
+	end if
+
+	if isvalid(w_main) then
+		wSheet = w_main.GetFirstSheet()
+		do WHILE IsValid(wSheet) //and wSheet.classname( ) <> "w_menu_tree"
+			close(wSheet)
+			wSheet = w_main.GetFirstSheet()
+		loop
+		if isvalid(wsheet) then
+			wSheetNEXT = wsheet
+		end if
+	
+		do while isvalid(wSheet)
+			wSheet = w_main.GetNextSheet(wSheetNEXT)
+			if IsValid (wSheet) then
+				close(wSheet)
+			end if
+		loop
+	end if
+
+
+end subroutine
+
 event open;//
 string k_esito="", k_rcx=""
 int k_rc
@@ -432,10 +462,7 @@ st_open_w kst_open_w
 
 //--- Oggetto variabili globali
 kguo_g = create uo_g
-
-//--- Creo oggetto userobject GLOBALE funzioni generali della procedura
 kGuf_data_base = create kuf_data_base
-
 kguo_path = create uo_path
 kguo_utente = create uo_utente
 
@@ -451,7 +478,8 @@ try
 	kguo_path.set_server_name()   // set nome SERVER dal confdb
 	kguo_path.set_file_access_name()  // set nome file di configurazione connessione ecc... DB dal confdb
 	KGuo_sqlca_db_magazzino = create Kuo_sqlca_db_magazzino
-	KGuo_sqlca_db_magazzino = SQLCA
+	SQLCA = KGuo_sqlca_db_magazzino
+	//KGuo_sqlca_db_magazzino = SQLCA
 	KGuo_sqlca_db_magazzino.inizializza( )   // recupera i dati di connessione al DB
 catch (uo_exception kuo_exception)
 	kuo_exception.scrivi_log( )
@@ -473,7 +501,7 @@ KGuf_menu_window = create Kuf_menu_window
 //--- Creo oggetto  x la Gestione degli ALLERT 
 KGuf_memo_allarme = create Kuf_memo_allarme
 //--- Creo oggetto  x la Gestione delle Docking Window
-KGuf_base_docking = create Kuf_base_docking
+//KGuf_base_docking = create Kuf_base_docking
 
 
 ////--- Controllo se procedura gia' lanciata se si .....
@@ -484,11 +512,10 @@ KGuf_base_docking = create Kuf_base_docking
 //kuf1_utility.u_toolbar_set_toolbartext()
 
 //--- Lancia il Logo iniziale x Connessione Autorizzazione Utente
-kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
-OpenWithParm(w_about_start, kst_open_w)
-//Open(w_about_start) 
+	kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
+	OpenWithParm(w_about_start, kst_open_w)
 
-post event ue_open( )
+	post event ue_open( )
 
 
 end event
@@ -500,7 +527,10 @@ st_esito kst_esito
 kuf_base kuf1_base
 //kuf_utility kuf1_utility
 //kuf_db kuf1_db
+ 
 
+//--- chiude tutte le window
+this.u_close_all( )
 
 //
 //=== Se DB-PILOTA connesso 
@@ -592,7 +622,6 @@ kuf1_base.metti_dato_base(kst_tab_base)
 kst_tab_base.key = "ultimo_utente_login_data" 
 kst_tab_base.key1 = string(now(), "dd/mm/yy  hh:mm")
 kuf1_base.metti_dato_base(kst_tab_base)
-
 destroy kuf1_base
 
 
@@ -601,14 +630,14 @@ if isvalid(kguf_memo_allarme) then destroy kguf_memo_allarme
 if isvalid(KGuo_sqlca_db_pilota) then destroy KGuo_sqlca_db_pilota 
 if isvalid(KGuo_sqlca_db_wm) then destroy KGuo_sqlca_db_wm
 if isvalid(KGuo_sqlca_db_e1) then destroy KGuo_sqlca_db_e1
-//if isvalid(kguo_sqlca_db_xweb ) then destroy KGuo_sqlca_db_xweb
-if isvalid(sqlca) then destroy sqlca
-if isvalid(kGuf_data_base) then destroy kGuf_data_base 
-if isvalid(KGuf_base_docking) then destroy KGuf_base_docking 
-if isvalid(kguo_path) then destroy kguo_path 
-if isvalid(kguo_g) then destroy kguo_g 
-if isvalid(kguo_utente) then destroy kguo_utente 
+//if isvalid(KGuf_base_docking) then destroy KGuf_base_docking 
 if isvalid(kGuo_exception) then destroy kGuo_exception 
+
+//if isvalid(sqlca) then destroy sqlca
+if isvalid(kGuf_data_base) then destroy kGuf_data_base 
+if isvalid(kguo_path) then destroy kguo_path 
+//if isvalid(kguo_g) then destroy kguo_g 
+if isvalid(kguo_utente) then destroy kguo_utente 
 
 end event
 

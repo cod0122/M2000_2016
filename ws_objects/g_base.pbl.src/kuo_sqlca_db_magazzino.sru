@@ -12,11 +12,10 @@ type variables
 //
 public string ki_user
 public string ki_password
-kuf_conf_access kiuf_conf_access
+public kuf_conf_access kiuf_conf_access
 
 
 end variables
-
 forward prototypes
 protected subroutine x_db_profilo () throws uo_exception
 public function boolean if_connesso_x ()
@@ -543,7 +542,7 @@ public subroutine inizializza () throws uo_exception;//
 ki_db_descrizione = "DB di Magazzino"
 ki_title_id = "db_magazzino"
 
-kiuf_conf_access = create kuf_conf_access
+if not isvalid(kiuf_conf_access) then kiuf_conf_access = create kuf_conf_access
 kiuf_conf_access.u_set_st_conf_access( ) 
 end subroutine
 

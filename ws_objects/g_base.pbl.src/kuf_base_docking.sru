@@ -4,9 +4,8 @@ global type kuf_base_docking from nonvisualobject
 end type
 end forward
 
-global type kuf_base_docking from nonvisualobject
+global type kuf_base_docking from nonvisualobject autoinstantiate
 end type
-global kuf_base_docking kuf_base_docking
 
 type variables
 //--- Array per il Docking
