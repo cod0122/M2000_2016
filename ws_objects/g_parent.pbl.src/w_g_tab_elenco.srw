@@ -61,7 +61,12 @@ private boolean ki_disattiva_exit = false
 private boolean ki_resize = true
 
 private int ki_tab_max
+private int ki_tab_max_dw
+private int ki_tab_max_web
+private string ki_tab_elenco_typeof[]  // nome del tipo
+private int ki_tab_selected[] // nr del tabpage selezionato per tipo a dw o wb 
 private uo_g_tab_elenco_tabpage kiuo_g_tab_elenco_tabpage[]
+private uo_g_tab_elenco_tabpage_web kiuo_g_tab_elenco_tabpage_web[]
 
 end variables
 
@@ -71,7 +76,6 @@ private subroutine smista_funz (string k_par_in)
 protected subroutine attiva_menu ()
 public function boolean u_riopen (st_open_w kst_open_w) throws uo_exception
 public subroutine u_close_tab ()
-protected function uo_d_std_1 u_get_dw ()
 protected subroutine stampa_esegui (st_stampe ast_stampe)
 protected subroutine open_start_window ()
 protected function string inizializza () throws uo_exception
@@ -82,30 +86,27 @@ public function integer u_get_tab_x_key ()
 protected subroutine u_win_show ()
 protected subroutine u_win_hide ()
 public function integer u_win_close ()
+protected subroutine u_set_dw_selezionata ()
 end prototypes
 
 protected subroutine inizializza_lista ();//
 //=== Routine override dello standard
 //
-string k_key
-int k_tab_selected
 
-
-	k_key = trim(ki_st_open_w.key1)
-	if trim(k_key) > " " then
+	ki_st_open_w.key1 = trim(ki_st_open_w.key1)
+	if trim(ki_st_open_w.key1) > " " then
 	else
-		k_key = ""
+		ki_st_open_w.key1 = ""
 	end if
-
-	ki_st_open_w.key1 = trim(k_key)
 
 	tab_1.selecttab(1)
 
 	if ki_st_open_w.flag_primo_giro = 'S' then
-//		k_tab_selected = setta_oggetti( )
-		k_tab_selected = tab_1.selectedtab
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.drag( Cancel! )
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_sel.drag( Cancel! )
+
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].dw_1.drag( Cancel! )
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].dw_sel.drag( Cancel! )
+		end if
 		
 	end if
 
@@ -119,49 +120,55 @@ private subroutine smista_funz (string k_par_in);//===
 //=== Par. input : k_par_in stringa
 //=== Ritorna ...: 0=tutto OK; 1=Errore
 //===
-int k_tab_selected
-
 
 choose case trim(k_par_in) 
 
 	case KKG_FLAG_RICHIESTA.refresh		//Aggiorna Liste
-//		setta_oggetti( )
-		k_tab_selected = tab_1.selectedtab
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].leggi_liste()
-
-//	case "ag"		//Aggiorna Liste
-//		inizializza()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].leggi_liste()
+		else
+			kiuo_g_tab_elenco_tabpage_web[ki_tab_selected[tab_1.selectedtab]].u_refresh()
+		end if
 
 	case KKG_FLAG_RICHIESTA.inserimento		//richiesta inserimento
-		if cb_inserisci.enabled = true then
-			cb_inserisci.postevent(clicked!)
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			if cb_inserisci.enabled = true then
+				cb_inserisci.postevent(clicked!)
+			end if
 		end if
 
 	case KKG_FLAG_RICHIESTA.cancellazione		//richiesta cancellazione
-		if cb_cancella.enabled = true then
-			cb_cancella.postevent(clicked!)
-			//post u_close_tab()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			if cb_cancella.enabled = true then
+				cb_cancella.postevent(clicked!)
+			end if
 		end if
 
 	case KKG_FLAG_RICHIESTA.conferma		//richiesta conferma
-		if cb_conferma.enabled = true then
-			cb_conferma.postevent(clicked!)
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			if cb_conferma.enabled = true then
+				cb_conferma.postevent(clicked!)
+			end if
 		end if
 
 	case KKG_FLAG_RICHIESTA.visualizzazione		//richiesta visualizz
-		if cb_visualizza.enabled = true then
-			cb_visualizza.postevent(clicked!)
-			//post u_close_tab()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			if cb_visualizza.enabled = true then
+				cb_visualizza.postevent(clicked!)
+			end if
 		end if
 
 	case KKG_FLAG_RICHIESTA.modifica		//richiesta modifica
-		if cb_modifica.enabled  then
-			cb_modifica.postevent(clicked!)
-			//post u_close_tab()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			if cb_modifica.enabled  then
+				cb_modifica.postevent(clicked!)
+			end if
 		end if
 
 	case KKG_FLAG_RICHIESTA.stampa		//richiesta stampa
-		stampa()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			stampa()
+		end if
 
 	case KKG_FLAG_RICHIESTA.esci		//richiesta uscita
 		if cb_ritorna.enabled = true then
@@ -172,113 +179,40 @@ choose case trim(k_par_in)
 		u_close_tab()
 		
 	case KKG_FLAG_RICHIESTA.libero2	//conferma selezionato come doppio-click
-		cb_conferma.event clicked( )
-//		if cb_conferma.enabled then
-//			conferma_selezione()
-//		end if
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			cb_conferma.event clicked( )
+		end if
 
 	case KKG_FLAG_RICHIESTA.libero3	//mostra nascondi elenco selezionati
-		k_tab_selected = tab_1.selectedtab
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].mostra_elenco_selezionati()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].mostra_elenco_selezionati()
+		end if
 
 	case KKG_FLAG_RICHIESTA.libero71	//zoom +
-		//u_zoom_piu(kidw_lista_elenco)
-		//kiuo_g_tab_elenco_tabpage = tab_1.control[tab_1.SelectedTab] 
-		k_tab_selected = tab_1.selectedtab
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].u_zoom_piu()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].u_zoom_piu()
+		end if
 	case KKG_FLAG_RICHIESTA.libero72	//zoom -
-		//u_zoom_meno(kidw_lista_elenco)
-		//kiuo_g_tab_elenco_tabpage = tab_1.control[tab_1.SelectedTab] 
-		k_tab_selected = tab_1.selectedtab
-		kiuo_g_tab_elenco_tabpage[k_tab_selected].u_zoom_meno()
+		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].u_zoom_meno()
+		end if
 
 	case else
 		super::smista_funz(k_par_in)
-//		messagebox("Operazione non Eseguita", &
-//					"Funzione richiesta non Abilitata")
 
 
 end choose
 
 
-//return k_return
-
 end subroutine
 
 protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 string k_lista, k_nome_controllo
+boolean k_attiva
 
 
 if ki_st_open_w.flag_primo_giro <> "S" then
 
-//--- imposta gli oggetti standard
-	//setta_oggetti()
-	//k_tab_selected = tab_1.selectedtab
-
-//if ki_st_open_w.flag_primo_giro = "S" then
-		
-//	if m_main.m_finestra.m_fin_stampa.enabled <> st_stampa.enabled then
-//		m_main.m_finestra.m_fin_stampa.enabled = st_stampa.enabled
-//	end if
-//	
-//	if m_main.m_trova.enabled <> st_ordina_lista.enabled then
-//		m_main.m_trova.enabled = st_ordina_lista.enabled 
-//	end if
-//	
-//	if m_main.m_trova.m_fin_ordina.enabled <> st_ordina_lista.enabled then
-//		m_main.m_trova.m_fin_ordina.enabled = st_ordina_lista.enabled 
-//	end if
-//
-//	if m_main.m_trova.m_fin_cerca.enabled <> st_ordina_lista.enabled then
-//		m_main.m_trova.m_fin_cerca.enabled = st_ordina_lista.enabled 
-//	end if
-//
-//	if m_main.m_trova.m_fin_cercaancora.enabled <> st_ordina_lista.enabled then
-//		m_main.m_trova.m_fin_cercaancora.enabled = st_ordina_lista.enabled 
-//	end if
-//	
-//	if m_main.m_trova.m_fin_filtra.enabled <> st_ordina_lista.enabled then
-//		m_main.m_trova.m_fin_filtra.enabled = st_ordina_lista.enabled 
-//	end if
-//	if m_main.m_filtro.enabled <> st_ordina_lista.enabled then
-//		m_main.m_filtro.enabled = st_ordina_lista.enabled 
-//	end if
-//
-//	if m_main.m_finestra.m_aggiornalista.enabled <> st_aggiorna_lista.enabled then
-//		m_main.m_finestra.m_aggiornalista.enabled = st_aggiorna_lista.enabled 
-//	end if
-//
-//	if m_main.m_finestra.m_riordinalista.enabled <> st_ordina_lista.enabled then
-//		m_main.m_finestra.m_riordinalista.enabled = st_ordina_lista.enabled 
-//	end if
-//
-//	if m_main.m_finestra.m_chiudifinestra.enabled <> cb_ritorna.enabled then 
-//		m_main.m_finestra.m_chiudifinestra.enabled = cb_ritorna.enabled
-//	end if
-//
-//	if m_main.m_finestra.m_layout_predefinito.enabled <> ki_personalizza_pos_controlli then
-//		m_main.m_finestra.m_layout_predefinito.enabled = ki_personalizza_pos_controlli
-//	end if
-//
-//	if m_main.m_trova.enabled <> st_aggiorna_lista.enabled  then
-//		m_main.m_trova.enabled = st_aggiorna_lista.enabled 
-//	end if
-//	if m_main.m_trova.m_fin_ordina.enabled <> st_aggiorna_lista.enabled  then
-//		m_main.m_trova.m_fin_ordina.enabled = st_aggiorna_lista.enabled  
-//	end if
-//	if m_main.m_trova.m_fin_cerca.enabled <> st_aggiorna_lista.enabled then 
-//		m_main.m_trova.m_fin_cercaancora.enabled = st_aggiorna_lista.enabled  
-//	end if
-////	if m_main.m_trova.m_fin_cercaancora.enabled <> st_aggiorna_lista.enabled then 
-////		m_main.m_trova.m_fin_filtra.enabled = st_aggiorna_lista.enabled  
-////	end if
-//	if m_main.m_finestra.m_aggiornalista.enabled <> st_aggiorna_lista.enabled  then
-//		m_main.m_finestra.m_aggiornalista.enabled = st_aggiorna_lista.enabled  
-//	end if
-//	if m_main.m_finestra.m_riordinalista.enabled <> st_aggiorna_lista.enabled then 
-//		m_main.m_finestra.m_riordinalista.enabled = st_aggiorna_lista.enabled 
-//	end if
-//
 	if m_main.m_finestra.m_gestione.m_fin_visualizza.enabled <> cb_visualizza.enabled then
 		m_main.m_finestra.m_gestione.m_fin_visualizza.enabled = cb_visualizza.enabled
 	end if
@@ -309,12 +243,14 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 	end if		
 	m_main.m_strumenti.m_fin_gest_libero1.visible = m_main.m_strumenti.m_fin_gest_libero1.enabled
 	
-//--- Visualizza elenco selezionati	
-//	if cb_conferma.enabled  then 	
-//		k_attiva = true
-//	else
-//		k_attiva= false
-//	end if
+//--- Accende/spegne le funzioni
+	if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then
+		k_attiva = true
+	else
+		k_attiva = false
+		cb_conferma.enabled = false
+	end if
+	m_main.m_strumenti.m_fin_gest_libero2.enabled = k_attiva
 	if m_main.m_strumenti.m_fin_gest_libero2.enabled  <> cb_conferma.enabled or not m_main.m_strumenti.m_fin_gest_libero2.visible then
 		m_main.m_strumenti.m_fin_gest_libero2.text = "Importa riga/righe Selezionata "
 		m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Importa riga/righe Selezionata "
@@ -329,6 +265,7 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 	m_main.m_strumenti.m_fin_gest_libero2.visible = m_main.m_strumenti.m_fin_gest_libero2.enabled
 
 //--- Come doppio-click
+	m_main.m_strumenti.m_fin_gest_libero3.enabled = k_attiva
 	if not m_main.m_strumenti.m_fin_gest_libero3.enabled  then 
 		m_main.m_strumenti.m_fin_gest_libero3.text = "Mostra/Nascondi elenco Righe già Selezonate "
 		m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Mostra Elenco Selezionati "
@@ -348,7 +285,7 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 //		m_main.m_strumenti.m_fin_gest_libero7.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero7.toolbaritemName = "zoom.png"
 		m_main.m_strumenti.m_fin_gest_libero7.visible = true
-		m_main.m_strumenti.m_fin_gest_libero7.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero7.enabled = k_attiva
 		m_main.m_strumenti.m_fin_gest_libero7.toolbaritemVisible = true
 
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.text = "Ingrandicse la scheda aperta (usa anche il tasto più)"
@@ -357,7 +294,7 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 //		m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemName = "zoompiu.png"
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.visible = true
-		m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled = k_attiva
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemVisible = true
 
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.text = "Diminuisce la scheda aperta (usa anche il tasto meno)"
@@ -366,12 +303,14 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 //		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemName = "zoommeno.png"
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = true
-		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled = k_attiva
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemVisible = true
+		
+		m_main.m_strumenti.m_fin_gest_libero7.visible = true
+
 	end if
-	m_main.m_strumenti.m_fin_gest_libero7.visible = m_main.m_strumenti.m_fin_gest_libero7.enabled
-	m_main.m_strumenti.m_fin_gest_libero7.libero1.visible = m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled
-	m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled
+	//m_main.m_strumenti.m_fin_gest_libero7.libero1.visible = m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled
+	//m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled
 
 //---
 	super::attiva_menu()
@@ -411,15 +350,31 @@ int k_tab_selected
 		if ki_tab_max = 1 then
 			cb_ritorna.POST event clicked( )
 		else
-			k_tab_selected = tab_1.selectedtab
+			
+			k_tab_selected = ki_tab_selected[tab_1.selectedtab]			
 			if k_tab_selected > 0 then
-				k_ctr = tab_1.closetab(kiuo_g_tab_elenco_tabpage[k_tab_selected])
+				if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+					k_ctr = tab_1.closetab(kiuo_g_tab_elenco_tabpage[k_tab_selected])
+					if k_ctr > 0  then
+						ki_tab_max --
+						ki_tab_max_dw --
+					//--- ricompatta i tab DW
+						for k_tab_idx = k_tab_selected to ki_tab_max_dw
+							kiuo_g_tab_elenco_tabpage[k_tab_idx] = kiuo_g_tab_elenco_tabpage[k_tab_idx + 1]
+						next
+					end if	
+				else
+					k_ctr = tab_1.closetab(kiuo_g_tab_elenco_tabpage_web[k_tab_selected])
+					if k_ctr > 0  then
+						ki_tab_max --
+						ki_tab_max_web --
+					//--- ricompatta i tab WEB
+						for k_tab_idx = k_tab_selected to ki_tab_max_dw
+							kiuo_g_tab_elenco_tabpage[k_tab_idx] = kiuo_g_tab_elenco_tabpage[k_tab_idx + 1]
+						next
+					end if	
+				end if		
 				if k_ctr > 0  then
-					ki_tab_max --
-					//--- ricompatta i tab
-					for k_tab_idx = k_tab_selected to ki_tab_max
-						kiuo_g_tab_elenco_tabpage[k_tab_idx] = kiuo_g_tab_elenco_tabpage[k_tab_idx + 1]
-					next
 					if k_tab_selected > 1 then
 						k_tab_selected --
 					else
@@ -433,49 +388,33 @@ int k_tab_selected
 
 end subroutine
 
-protected function uo_d_std_1 u_get_dw ();//---
-//--- get il DW attivo
-//---
-uo_d_std_1 kdw_x
-
-	kdw_x = kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].dw_1
-
-return kdw_x	
-
-
-
-end function
-
 protected subroutine stampa_esegui (st_stampe ast_stampe);//
 int k_tab_selected
 
 
-//--- imposta gli oggetti standard
-//		setta_oggetti()
-k_tab_selected = tab_1.selectedtab
-		
-//	ast_stampe.dw_print = kidw_lista_elenco
-//	ast_stampe.titolo = trim(kidw_lista_elenco.tag)
-//
-//	kGuf_data_base.stampa_dw(ast_stampe)
+	if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
 
-	if isvalid(kidw_selezionata) then
-		ast_stampe.dw_print = kidw_selezionata
-	else
-		if kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.visible then
-			ast_stampe.dw_print = kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1
-		end if
-	end if
+		k_tab_selected = ki_tab_selected[tab_1.selectedtab]
 	
-	if isvalid(ast_stampe.dw_print) then
-		if isvalid(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1) then
-			ast_stampe.titolo = trim(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.tag)
+		if isvalid(kidw_selezionata) then
+			ast_stampe.dw_print = kidw_selezionata
 		else
-			ast_stampe.titolo = trim(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.title)
+			if kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.visible then
+				ast_stampe.dw_print = kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1
+			end if
 		end if
-		kGuf_data_base.stampa_dw(ast_stampe)
-	else
-		messagebox("Richiesta Stampa", "Stampa non eseguita, funzione non attiva")
+		
+		if isvalid(ast_stampe.dw_print) then
+			if isvalid(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1) then
+				ast_stampe.titolo = trim(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.tag)
+			else
+				ast_stampe.titolo = trim(kiuo_g_tab_elenco_tabpage[k_tab_selected].dw_1.title)
+			end if
+			kGuf_data_base.stampa_dw(ast_stampe)
+		else
+			messagebox("Richiesta Stampa", "Stampa non eseguita, funzione non attiva")
+		end if
+		
 	end if
 
 end subroutine
@@ -495,6 +434,7 @@ protected subroutine open_start_window ();//
 //--- KEY5 = RISERVATO da non usare
 //--- KEY6 = nome campo che ha scatenato la chiamata a questo elenco
 //--- KEY7 = flag N= non chiudere lo ZOOM dopo il DOPPIO CLICK (kuf_elenco.ki_esci_dopo_scelta) 
+//--- KEY8 = da riempire SOLO se si vuole aprire il WebBrowser
 //--- KEY12_any = reference al datastore con i dati da visualizzare
 //---
 //--- Nell'evento chiamato questi altri valori, oltre a quelli di cui sopra:
@@ -513,31 +453,6 @@ try
 	u_open_tab( )
 	tab_1.visible = true
 	
-//	kidw_lista_elenco = kiuo_g_tab_elenco_tabpage.dw_1
-//	kidw_lista_elenco_sel =  kiuo_g_tab_elenco_tabpage.dw_sel
-
-//	set_window_size()
-
-////--- setta la directory di base
-//	kGuf_data_base.setta_path_default ()
-//
-//	set_titolo_window()
-//
-//
-////=== Imposta il titolo della wind. nella dw x la desc. in una eventuale stampa
-//	kidw_lista_elenco.tag = this.title
-//	
-//	
-////--- path per reperire le ico del drag e drop
-////	ki_path_risorse = trim(kGuf_data_base.profilestring_leggi_scrivi(1, "arch_graf", " "))
-//	
-////	if ki_utente_abilitato then
-//
-//		kiuf_g_tab_elenco = create kuf_g_tab_elenco
-//
-//		post inizializza_lista()
-//	
-////	end if
 
 catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -555,17 +470,20 @@ protected function string inizializza () throws uo_exception;//
 //======================================================================
 //
 string k_return="0 "
-int k_tab_selected
 
 
 	SetPointer(kkg.pointer_attesa)
 
 //--- imposta gli oggetti standard
-//	setta_oggetti()
-	k_tab_selected = tab_1.selectedtab
+	if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then
 
-	kiuo_g_tab_elenco_tabpage[k_tab_selected].inizializza()
-	//tab_1.tabpage_1.text = trim(ki_st_open_w.key1)
+		kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].inizializza()
+		
+	else
+		
+		kiuo_g_tab_elenco_tabpage_web[ki_tab_selected[tab_1.selectedtab]].inizializza()
+		
+	end if
 
 	
 	SetPointer(kkg.pointer_default)
@@ -644,10 +562,10 @@ cb_conferma.enabled = true
 end subroutine
 
 public subroutine u_resize_1 ();//
-int k_tab_selected
 int k_tabpage_i, k_i
 
 
+	this.classdefinition
 	super::u_resize_1()
 
 //--- Se tab_1 e visible oppure sono in prima volta
@@ -656,53 +574,69 @@ int k_tabpage_i, k_i
 //--- Dimensione dw nella window 
 	tab_1.resize(this.width - 1, this.height - 1)
 	
-//	k_tab_selected = tab_1.selectedtab
-//	kiuo_g_tab_elenco_tabpage[k_tab_selected].u_resize( )
-
 	k_tabpage_i = upperbound(tab_1.control[])
 	for k_i = 1 to k_tabpage_i
 		//tab_1.control[k_i].resize(tab_1.width - 80, tab_1.height - 180)
 		tab_1.control[k_i].event DYNAMIC resize(tab_1.width - 130, tab_1.height - 30)
 	next
 
-
-this.setredraw(true)
+	this.setredraw(true)
 
 
 
 end subroutine
 
 public function integer u_open_tab () throws uo_exception;//
-int k_return, k_rc
+int k_ind_tab, k_rc
 
 
 //--- tab già aperto?
-	k_return = u_get_tab_x_key()
-	if k_return > 0 then
+	k_ind_tab = u_get_tab_x_key()
+	
+	if k_ind_tab > 0 then
 
-		kiuo_g_tab_elenco_tabpage[k_return].kist_open_w = ki_st_open_w
-		kiuo_g_tab_elenco_tabpage[k_return].dw_1.reset()
-		kiuo_g_tab_elenco_tabpage[k_return].dw_sel.reset()
-		kiuo_g_tab_elenco_tabpage[k_return].kids_elenco_orig.reset()
-		tab_1.selecttab(k_return)
+		if ki_tab_elenco_typeof[k_ind_tab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[k_ind_tab]].kist_open_w = ki_st_open_w
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[k_ind_tab]].dw_1.reset()
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[k_ind_tab]].dw_sel.reset()
+			kiuo_g_tab_elenco_tabpage[ki_tab_selected[k_ind_tab]].kids_elenco_orig.reset()
+		else
+			kiuo_g_tab_elenco_tabpage_web[ki_tab_selected[k_ind_tab]].kist_open_w = ki_st_open_w // tab con il webBrowser
+		end if
+		tab_1.selecttab(k_ind_tab)
 
 		inizializza( )
 		
 	else
-		ki_tab_max++ //upperbound(tab_1.control[])
-	
-//		if isvalid(kiuo_g_tab_elenco_tabpage) then 
-//			destroy kiuo_g_tab_elenco_tabpage
-//			kiuo_g_tab_elenco_tabpage = create uo_g_tab_elenco_tabpage
-//		end if
-		k_rc = tab_1.OpenTabWithParm(kiuo_g_tab_elenco_tabpage[ki_tab_max],  trim(ki_st_open_w.key1), 0)
-		if k_rc > 0 then
-				
-			kiuo_g_tab_elenco_tabpage[ki_tab_max].backcolor = tab_1.backcolor
-			kiuo_g_tab_elenco_tabpage[ki_tab_max].kist_open_w = ki_st_open_w
-			kiuo_g_tab_elenco_tabpage[ki_tab_max].tag = this.title 
-			//kiuo_g_tab_elenco_tabpage[ki_tab_max].u_resize(tab_1.width, tab_1.height) 
-			kiuo_g_tab_elenco_tabpage[ki_tab_max].kitab_1 = tab_1
+		
+		ki_tab_max++ 
+		
+		if trim(ki_st_open_w.key8) > " " then // in questo caso apre un WebBrowser
+			ki_tab_max_web++
+			ki_tab_selected[ki_tab_max] = ki_tab_max_web
+			k_rc = tab_1.OpenTabWithParm(kiuo_g_tab_elenco_tabpage_web[ki_tab_max_web],  trim(ki_st_open_w.key1), 0)
+			if k_rc > 0 then	
+				ki_tab_elenco_typeof[ki_tab_max] = "uo_g_tab_elenco_tabpage_web"
+				kiuo_g_tab_elenco_tabpage_web[ki_tab_max_web].backcolor = tab_1.backcolor
+				kiuo_g_tab_elenco_tabpage_web[ki_tab_max_web].kist_open_w = ki_st_open_w
+				kiuo_g_tab_elenco_tabpage_web[ki_tab_max_web].tag = this.title 
+				kiuo_g_tab_elenco_tabpage_web[ki_tab_max_web].kitab_1 = tab_1
+			end if
+		else
+			ki_tab_max_dw++
+			ki_tab_selected[ki_tab_max] = ki_tab_max_dw
+			k_rc = tab_1.OpenTabWithParm(kiuo_g_tab_elenco_tabpage[ki_tab_max_dw],  trim(ki_st_open_w.key1), 0)
+			if k_rc > 0 then				
+				ki_tab_elenco_typeof[ki_tab_max] = "uo_g_tab_elenco_tabpage"
+				kiuo_g_tab_elenco_tabpage[ki_tab_max_dw].backcolor = tab_1.backcolor
+				kiuo_g_tab_elenco_tabpage[ki_tab_max_dw].kist_open_w = ki_st_open_w
+				kiuo_g_tab_elenco_tabpage[ki_tab_max_dw].tag = this.title 
+				kiuo_g_tab_elenco_tabpage[ki_tab_max_dw].kitab_1 = tab_1
+			end if
+		end if
+		
+		if k_rc > 0 then				
+			
 			tab_1.selecttab(ki_tab_max)
 
 			inizializza( )
@@ -711,15 +645,16 @@ int k_return, k_rc
 		
 			post attiva_tasti()
 
-//			kiuo_g_tab_elenco_tabpage[ki_tab_max].visible = true
-//			kiuo_g_tab_elenco_tabpage[ki_tab_max].enabled = true
-			k_return = ki_tab_max
+			k_ind_tab = ki_tab_max
+			
 		else
+			
 			ki_tab_max --
+			
 		end if
 	end if
 
-return k_return
+return k_ind_tab
 
 end function
 
@@ -730,69 +665,35 @@ public function integer u_get_tab_x_key ();//---
 //---            > 0 il numero del TAB
 //---
 int k_return
-int k_max_tab, k_ind_tab=1
+int k_max_tab, k_ind_tab
 
 
 k_max_tab = upperbound(tab_1.control[])
+
 if k_max_tab > 0 then
 
-	do while k_ind_tab <= k_max_tab and k_return = 0
+	for k_ind_tab = 1 to k_max_tab 
 
-		//kiuo_g_tab_elenco_tabpage = tab_1.control[k_ind_tab]
-		if kiuo_g_tab_elenco_tabpage[k_ind_tab].kist_open_w.key2 = ki_st_open_w.key2 &
-		     and  kiuo_g_tab_elenco_tabpage[k_ind_tab].kist_open_w.key1 =  ki_st_open_w.key1 then
-			  k_return = k_ind_tab  //--- trovato tab uguale
-		else
+		if ki_tab_elenco_typeof[k_ind_tab] = "uo_g_tab_elenco_tabpage" then
+
+			if kiuo_g_tab_elenco_tabpage[k_ind_tab].kist_open_w.key2 = ki_st_open_w.key2 &
+				  and  kiuo_g_tab_elenco_tabpage[k_ind_tab].kist_open_w.key1 =  ki_st_open_w.key1 then
+				k_return = k_ind_tab  //--- trovato tab uguale
+				exit
+			end if
 		
-			k_ind_tab ++
-			
+		else
+
+			if kiuo_g_tab_elenco_tabpage[k_ind_tab].kist_open_w.key8 = ki_st_open_w.key8 then
+			  	k_return = k_ind_tab  //--- trovato tab uguale
+				exit
+			end if
+		
 		end if
 
-//	if not tab_1.tabpage_1.dw_1.visible or kist1_open_w.key2 = kst_open_w.key2 then
-//		kidw_selezionata = tab_1.tabpage_1.dw_1
-//		kist1_open_w = kst_open_w 
-//		tab_1.tabpage_1.dw_1.reset( )
-//		tab_1.tabpage_1.dw_1_sel.reset( )
-//		if isvalid(kdsi1_elenco_orig) then kdsi1_elenco_orig.reset( )
-//		if isvalid(kdsi1_elenco) then kdsi1_elenco.reset( )
-//		tab_1.tabpage_1.dw_1.enabled = true
-//		tab_1.selecttab(1)
-//	else		
-//--- chiudo un tab x ri-occuparlo		
-//		k_return = false
-//		ki_tab_rioccupato ++
-//		choose case ki_tab_rioccupato
-//			case 1
-//				tab_1.tabpage_1.dw_1.visible = false
-//			case 2
-//				tab_1.tabpage_2.dw_2.visible = false
-//			case 3
-//				tab_1.tabpage_3.dw_3.visible = false
-//			case 4
-//				tab_1.tabpage_4.dw_4.visible = false
-//			case 5
-//				tab_1.tabpage_5.dw_5.visible = false
-//			case 6
-//				tab_1.tabpage_6.dw_6.visible = false
-//			case 7
-//				tab_1.tabpage_7.dw_7.visible = false
-//			case 8
-//				tab_1.tabpage_8.dw_8.visible = false
-//			case 9
-//				tab_1.tabpage_9.dw_9.visible = false
-//				ki_tab_rioccupato = 0
-//		end choose
-
-	loop
+	next
+	
 end if
-
-//if k_return then
-//	//--- forza un RESIZE del dw
-//	ki_resize = true   // abilita il RESIZE
-//	u_resize( )
-//
-//	//kidw_selezionata.visible = true
-//end if
 
 return k_return
 
@@ -814,15 +715,26 @@ int k_return
 
 k_return = super::u_win_close( )
 
-if isvalid(kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante) then
-
-	kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante.BringToTop = TRUE
-	kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante.setfocus()
-	
-end if
+//if isvalid(kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante) then
+//
+//	kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante.BringToTop = TRUE
+//	kiuo_g_tab_elenco_tabpage[tab_1.selectedtab].kist_open_w.key10_window_chiamante.setfocus()
+//	
+//end if
 
 return k_return
 end function
+
+protected subroutine u_set_dw_selezionata ();//---
+//--- Set il DW attivo
+//---
+
+	if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+		kidw_selezionata = kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].dw_1
+	end if
+
+
+end subroutine
 
 on w_g_tab_elenco.create
 int iCurrent
@@ -897,35 +809,20 @@ long k_ctr
 
 	setpointer(kkg.pointer_attesa)
 
-//	//--- Menu Window
-//	if this.windowtype = response! or this.windowtype = popup! then
-//	else
-//		post set_window_size()	
-//
-//		m_main = ki_menu_0
-// 		this.ChangeMenu (m_main)
-//		m_main.autorizza_menu( )
-//		m_main.u_inizializza( )
-//		m_main.u_espone_testo_delete(ki_menu_espone_tasto_delete)
-//			
-//	end if
-	
+
 //--- altre operazioni
 	post event u_open( )
 
-//	setpointer(kkg.pointer_default)		
+
 
 
 end event
 
 event u_open;call super::u_open;//
-//
 //--- setta la directory di base
 	kGuf_data_base.setta_path_default ()
 
 	set_titolo_window()
-
-//	kiuf_g_tab_elenco = create kuf_g_tab_elenco
 
 	inizializza_lista()
 	
@@ -1138,9 +1035,14 @@ this.backcolor = parent.backcolor
 end event
 
 event selectionchanged;//
-kidw_selezionata = u_get_dw( )
-
-attiva_tasti( )
-
+if upperbound(ki_tab_elenco_typeof) >= newindex then
+	if ki_tab_elenco_typeof[newindex] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+	
+		post u_set_dw_selezionata()
+	
+		post attiva_tasti( )
+		
+	end if
+end if
 end event
 

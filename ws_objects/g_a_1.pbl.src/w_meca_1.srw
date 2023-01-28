@@ -3456,10 +3456,10 @@ end try
 end event
 
 type dw_cambia_aperto from uo_d_std_1 within w_meca_1
-integer x = 1047
-integer y = 472
-integer width = 1152
-integer height = 652
+integer x = 1458
+integer y = 48
+integer width = 1317
+integer height = 740
 integer taborder = 60
 boolean bringtotop = true
 boolean enabled = true
@@ -3467,6 +3467,10 @@ boolean titlebar = true
 string title = "Chiude / Annulla Lotto"
 string dataobject = "d_meca_aperto"
 boolean controlmenu = true
+boolean hscrollbar = false
+boolean vscrollbar = false
+boolean hsplitscroll = false
+boolean livescroll = false
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false

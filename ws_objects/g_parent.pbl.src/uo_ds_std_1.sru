@@ -26,11 +26,11 @@ kist_esito.sqlsyntax = trim(sqlsyntax)
 kist_esito.sqlerrtext = trim(sqlerrtext)
 kist_esito.esito = kkg_esito.db_ko
 kist_esito.descrizione = "Errore nell'oggetto '" + this.classname( ) + "' riga " + string(row)
-if isvalid(parent) then 
-	kist_esito.nome_oggetto = parent.classname()
-else
+//if isvalid(parent) then 
+//	kist_esito.nome_oggetto = parent.classname()
+//else
 	kist_esito.nome_oggetto = classname()
-end if
+//end if
 kist_esito.nome_oggetto += " (dataobject: " + this.dataobject + ")"
 
 kuo1_exception.set_esito(kist_esito)

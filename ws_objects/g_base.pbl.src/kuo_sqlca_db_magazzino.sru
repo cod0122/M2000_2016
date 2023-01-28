@@ -16,6 +16,7 @@ public kuf_conf_access kiuf_conf_access
 
 
 end variables
+
 forward prototypes
 protected subroutine x_db_profilo () throws uo_exception
 public function boolean if_connesso_x ()
@@ -93,27 +94,12 @@ uo_exception kuo_exception
 //--- Recupera le info dal CONFDB.INI
 	this.DBMS = profilestring (k_file_ini, "Database", "DBMS", "MSOLEDBSQL SQL Server")  //"SNC SQL Native Client(OLE DB)")
 	this.DBParm = kiuf_conf_access.kist_conf_access.dbparm
-	//this.DBParm = profilestring (k_file_ini, "Database", "DbParm", "Identity='SCOPE_IDENTITY()',DateFormat='\''dd-mm-yyyy\''', DateTimeFormat='\''dd-mm-yyyy hh:mm:ss\'''") //"Provider='SQLNCLI11',Database='sterigenics270',TrustedConnection=1")
-	//this.Database = profilestring (k_file_ini, "Database", "Database", "'sterigenics270'")
-	//this.UserId = profilestring (k_file_ini, "Database", "UserId", "")  // NUN USATO X MS-SQL
-	//this.DBPass = profilestring (k_file_ini, "Database", "DBPass", "")  // NUN USATO X MS-SQL
-	
-//	if this.ki_user > " " then
-//		this.LogId = this.ki_user
-//	else
 	this.LogId = profilestring (k_file_ini, "Database", "LogId", "M2000")
-//	end if
-
-//	if this.ki_password > " " then
-//		this.LogPass = this.ki_password
-//	else
 	this.LogPass = profilestring (k_file_ini, "Database", "LogPass", "") //"start") 
 	if this.LogPass > " " then
 	else
 		this.LogPass = kiuf_conf_access.kist_conf_access.pwd
 	end if
-//	end if
-
 	this.ServerName = kguo_path.get_server_name( ) //profilestring (k_file_ini, "Database", "ServerName", "")
 	
 //	if (profilestring (k_file_ini, "Database", "AutoCommit", "false")) = "true" then
@@ -523,8 +509,6 @@ protected function boolean u_error_others (ref st_esito ast_esito);//
 	
 		ast_esito.esito = kkg_esito.db_ko
 		ast_esito.sqlerrtext = "Errore interno restituito dal DB '" + ki_db_descrizione + "' dovuto ad un nome errato (tabella o altro oggetto). " + ast_esito.sqlerrtext
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(ast_esito)
 		kguo_exception.messaggio_utente( )
 		
 		return true

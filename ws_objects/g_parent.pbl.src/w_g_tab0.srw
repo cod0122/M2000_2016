@@ -2140,8 +2140,8 @@ int k_errore=0
 
 
 //--- Salva le righe del dw (saveas)
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
-	kGuf_data_base.dw_saveas(trim(ki_syntaxquery), dw_lista_0)
+//	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
+//	kGuf_data_base.dw_saveas(trim(ki_syntaxquery), dw_lista_0)
 	
 return 0
  	

@@ -220,7 +220,7 @@ catch (uo_exception kuo_exception)
 
 		case kkg_esito.pwd_inscad 
 		
-			if messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext) + "~n~r" + "Vuoi cambiarla ora? ", Question!, yesno!, 1) = 1 then
+			if messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext) + kkg.acapo + "Vuoi cambiarla ora? ", Question!, yesno!, 1) = 1 then
 				imposta_password()
 			else
 				k_return = true  // OK lancia M2000
@@ -232,7 +232,7 @@ catch (uo_exception kuo_exception)
 			imposta_password()
 
 		case else
-			st_informa.text = "Accesso non Autorizzato" +CHAR(13) + CHAR(10)  + trim(kst_esito.sqlerrtext)
+			st_informa.text = "Accesso non Autorizzato " + kkg.acapo + trim(kst_esito.sqlerrtext)
 			st_informa.visible = true
 			//messagebox ("Controllo Password", trim(kst_esito.sqlerrtext), information!)
 						
@@ -514,77 +514,12 @@ st_tab_base kst_tab_base
 		
 	end try
 		
-	
-	if kiuf_sr_sicurezza.u_if_master(k_passwd) then
-		if not u_authentication() then	
-			kst_esito.esito = kkg_esito.ko
-		end if
-	end if
+//	if not kiuf_sr_sicurezza.u_if_master(k_passwd) then
+//		if not u_authentication() then	
+//			kst_esito.esito = kkg_esito.ko
+//		end if
+//	end if
 
-////--- acquisisce user e password per accedere al DB		
-//	k_utente = trim(dw_about.getitemstring(1, "sle_utente"))
-//	if k_utente > " " then
-//	else
-//		k_utente = ""
-//	end if
-//	k_passwd = trim(dw_about.getitemstring(1, "sle_password"))
-//	if k_passwd > " " then
-//	else
-//		k_passwd = ""
-//	end if
-////--- Se password del programmatore accede diversamente
-//	if kiuf_sr_sicurezza.u_if_master(k_passwd) then
-//		KGuo_sqlca_db_magazzino.ki_user = ""
-//		KGuo_sqlca_db_magazzino.ki_password = ""
-//	else
-//		KGuo_sqlca_db_magazzino.db_disconnetti()
-//		KGuo_sqlca_db_magazzino.ki_user = k_utente
-//		KGuo_sqlca_db_magazzino.ki_password = k_passwd
-//	end if		
-//
-////--- Se immessa Password e DB NON connesso: allora CONNESSIONE
-//	if KGuo_sqlca_db_magazzino.DBHandle ( ) <= 0 or not isvalid(KGuo_sqlca_db_magazzino) then
-//
-//		KGuo_sqlca_db_magazzino.db_connetti()
-//	
-////--- Segnala il tentativo di Start dell'applicazione (I=messaggio Informativo)
-//		kst_esito.esito = kkg_esito.ok
-//		kst_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
-//		kst_esito.sqlerrtext = "START Procedura M2000 - "  &
-//									+ ", Parametri DB Dbms.: " + trim(KGuo_sqlca_db_magazzino.dbparm) + ", "  &
-//									+ " Tentativo connessione al Server: " + KGuo_sqlca_db_magazzino.servername + ", " &
-//								   + " Utente presunto: " + kguo_utente.get_codice()
-//		kguo_exception.set_esito(kst_esito)
-//
-//		kguo_g.set_anno_procedura(integer(mid(kuf1_base.prendi_dato_base("anno"),2)))
-//		u_check_date( )  // controlla che la data di lavoro sia coerente
-//
-//		
-//	end if
-//
-//catch (uo_exception kuo_exception)
-//		
-//	setpointer(kkg.pointer_default)
-//	kuf1_utility = create kuf_utility
-//	
-//	kst_esito = kuo_exception.get_st_esito( )
-//
-//	kguo_exception.inizializza( )
-//	if kuf1_utility.u_check_network() then
-//		//kguo_exception.messaggio_utente("Problemi di connessione con il DB", trim(kst_esito.sqlerrtext ))
-//		st_informa.text = "Accesso non Riuscito controlla utente e password" + CHAR(13) + CHAR(10)  + trim(kst_esito.sqlerrtext)
-//	else
-//		//kguo_exception.messaggio_utente("Connessione al DB", "Attenzione connessione ai dati del Server di Rete fallita !")
-//		st_informa.text = "Accesso non Riuscito per problemi di connessione al Database Server"
-//	end if
-//	st_informa.visible = true
-//	destroy kuf1_utility		
-//
-//finally
-//
-//end try
-
-	
 if kst_esito.esito <> kkg_esito.ok then	
 
 	//KGuo_sqlca_db_magazzino.db_disconnetti()

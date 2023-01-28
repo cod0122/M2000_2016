@@ -2182,7 +2182,7 @@ try
 
 		ast_tab_sr_utenti.tentativi_ko ++
 		
-//--- controlli vari sull'utente, tipo i troppo tentativi o se non si colega da troppo tempo
+//--- controlli vari sull'utente, tipo i troppo tentativi o se non si collega da troppo tempo
 		check_user_dati(ast_tab_sr_utenti)
 
 //--- controlla PWD su ActiveDirectory di Windows se e Autenticazione NO solo su M2000

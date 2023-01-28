@@ -60,7 +60,7 @@ return "0"
 end function
 
 protected function string aggiorna ();//
-//
+int k_rc
 pointer kp_oldpointer
 
 
@@ -72,16 +72,26 @@ try
 	
 	dw_dett_0.accepttext( )
 	
-	dw_dett_0.update( )
+	k_rc = dw_dett_0.update( )
 	
-	//kiuf_meca_qtna.set_conferma_note( true)
-	//kiuf_meca_qtna.u_scrivi_note()	
-
+	if k_rc < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(dw_dett_0.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento 'Quarantena' " + kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext) 
+		throw kguo_exception
+	end if
+	
+	kguo_sqlca_db_magazzino.db_commit( )
+	
 catch(uo_exception kuo_exception)
+	kguo_sqlca_db_magazzino.db_rollback()
+	
 	kuo_exception.messaggio_utente( )
+	
 finally
 	cb_aggiorna.enabled = true
 	cb_ritorna.enabled = true	
+	
 end try
 
 
@@ -228,6 +238,9 @@ event closequery;call super::closequery;//if ki_permetti_chiusura = false then
 
  
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_meca_qtna_note
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_meca_qtna_note
 end type

@@ -731,11 +731,9 @@ end function
 
 on kuf_file_run.create
 call super::create
-TriggerEvent( this, "constructor" )
 end on
 
 on kuf_file_run.destroy
-TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 

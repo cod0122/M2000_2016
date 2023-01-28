@@ -114,7 +114,12 @@ return trim(ki_procedura)
 end function
 
 public function string get_base_del_server ();//
-return trim(ki_BASE_DEL_SERVER)
+if ki_base_del_server > " " then
+	return trim(ki_BASE_DEL_SERVER)
+else
+	// se non c'è nulla di impostato probailmente non è ancora connesso pertanto torna un default
+	return kkg.path_sep + kkg.path_sep + kguo_utente.ki_domain + kkg.path_sep + kkg.APP_NAME + kkg.path_sep + "server" + kkg.path_sep + "app"
+end if
 
 end function
 

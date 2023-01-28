@@ -11,10 +11,12 @@ global kkg kkg
 
 type variables
 public:
+//--- Nome Applicazione
+constant string APP_NAME = "M2000"
 
 //--- Versione Procedura Major-release XX + YY.MMDD  (anno.mese e giorno)
 constant string VERSIONE_MAJOR_REL="13"
-constant dec{4} VERSIONE=23.0121
+constant dec{4} VERSIONE=23.0124
 
 //--- icone risorse grafiche
 constant string PATH_SEP ="\" 

@@ -226,7 +226,8 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"clie_1_l" , "clie_2_l", "clie_3_l" &
 					,"sr_settore_utenti_l", "sr_settore", "id_sr_utente", "id_utenti" &
 					,"n_ptask", "n_ptask_x", "id_ptask" &
-					,"b_asdslpt_l", "p_add_asdtype"
+					,"b_asdslpt_l", "p_add_asdtype"  &
+					,"k_hyperlink"
 					
 					
 //--- se e' del tipo grid o tabular link sul valore alrimenti sul testo		
@@ -246,7 +247,7 @@ string k_num_colonne, k_nome, k_nome_orig
 									  ".Color = '" + string(kkg_colore.link)+"' ")
 						adw_1.Modify(k_nome + "_t" + trim(string(k_ctr,"###"))+&
 									  ".pointer = 'HyperLink!' " )
-					  end if
+					end if
 
 				case  "mc_co",  "contratti_codice", "id_contratto"
 					
@@ -495,6 +496,9 @@ choose case k_nome_link
 	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode"
 		kuf1_parent = create using "kuf_asd_zoom"
 		
+	case "k_hyperlink"
+		kuf1_parent = create using "kuf_webbrowser"
+
 	case else
 		k_return = false
 		
