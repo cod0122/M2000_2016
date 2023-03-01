@@ -284,7 +284,7 @@ public function integer u_add_email () throws uo_exception;//---
 //--- Carico email da inviare
 //---
 int k_return
-string k_nomefile_attach
+string k_attach_file, k_attached_full_name
 int k_rows, k_row, k_row_id_meca
 datetime k_today
 st_esito kst_esito
@@ -328,7 +328,7 @@ try
 	for k_row = 1 to k_rows
 		k_today = datetime(today(), now())
 		kst_tab_alarm_instock.id_alarm_instock = kds_pilota_avvisi.getitemnumber(k_row, "id_alarm_instock")
-		k_nomefile_attach = "Alarm" + string(kst_tab_alarm_instock.id_alarm_instock, "00000") + "_"+string(k_today, "yyyymmddhhmm")
+		k_attach_file = "Alarm" + string(kst_tab_alarm_instock.id_alarm_instock, "00000") + "_"+string(k_today, "yyyymmddhhmm")
 		
 		if kds_d_alarm_instock.retrieve(kst_tab_alarm_instock.id_alarm_instock) > 0 then  // legge dati del Alarm
 
@@ -343,7 +343,16 @@ try
 				if kst_tab_email_funzioni.id_email_funzione > 0 then
 					kst_tab_email.id_email = kuf1_email_funzioni.get_id_email(kst_tab_email_funzioni)	
 					kst_tab_email_invio.cod_funzione = kuf1_email_funzioni.get_cod_funzione(kst_tab_email_funzioni)
-					kuf1_email.get_riga(kst_tab_email)  // dati conf email
+					kuf1_email.get_riga(kst_tab_email)  // dati configurazione email
+					
+					if kst_tab_email.attached > " " then  // presenza allegato
+						if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+							kst_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
+						else
+							kst_tab_email_invio.allegati_pathfile = kst_tab_email.attached
+						end if
+					end if
+					
 				end if
 			end if
 			if trim(kst_tab_email_invio.cod_funzione) > " " then
@@ -371,7 +380,14 @@ try
 			
 			if kds_d_alarm_instocktosend_meca_l.retrieve(kst_tab_alarm_instock.id_alarm_instock) > 0 then
 	//--- genera allegato XLS
-				kst_tab_email_invio.allegati_pathfile = kuf1_utility.u_xls_create(kds_d_alarm_instocktosend_meca_l, ki_path_alarm, k_nomefile_attach, "Avviso" + string(kst_tab_alarm_instock.id_alarm_instock, "00000") + "_" + string(k_today, "yyyymmddhhmm"))
+				k_attached_full_name = kuf1_utility.u_xls_create(kds_d_alarm_instocktosend_meca_l, ki_path_alarm, k_attach_file, "Avviso" + string(kst_tab_alarm_instock.id_alarm_instock, "00000") + "_" + string(k_today, "yyyymmddhhmm"))
+				if k_attached_full_name > " " then
+					if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+						kst_tab_email_invio.allegati_pathfile += ";" + k_attached_full_name  // aggiunge allegato a un precedente
+					else
+						kst_tab_email_invio.allegati_pathfile = k_attached_full_name
+					end if
+				end if
 			end if
 			
 //--- run email
@@ -401,6 +417,7 @@ try
 	next
 
 catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
 	throw kuo_exception
 	
 finally

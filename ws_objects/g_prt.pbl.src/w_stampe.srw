@@ -2001,6 +2001,7 @@ kuf_utility kuf1_utility
 				SetPointer(kkg.pointer_attesa)
 				if right(trim(k_nome_file),4) = ".pdf" then k_nome_file = left(k_nome_file, len(trim(k_nome_file)) - 4) // toglie eventuale .pdf
 				dw_print.Object.DataWindow.Export.PDF.Method = NativePDF!
+				dw_print.Object.DataWindow.Export.PDF.NativePDF.ImageFormat = '2' 				
 				k_id_stampa = dw_print.saveas(k_pathnomefile,PDF!, false) 
 				SetPointer(kkg.pointer_default)
 			else

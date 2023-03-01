@@ -790,58 +790,85 @@ public function st_esito get_riga (ref st_tab_email_invio kst_tab_email_invio) t
 //=== 
 //====================================================================
 //
+int k_rc
 st_esito kst_esito
-
+uo_ds_std_1 kds_email_invio
 
 kst_esito = kguo_exception.inizializza(this.classname())
 
 if kst_tab_email_invio.id_email_invio > 0 then
 
-  SELECT 
-         email_invio.email,   
-         email_invio.note,   
-         email_invio.id_cliente,   
-         email_invio.data_ins,   
-         email_invio.data_inviato,   
-         email_invio.ora_inviato,   
-         email_invio.oggetto,   
-         email_invio.lettera,   
-         email_invio.link_lettera,   
-         email_invio.lang,   
-         email_invio.allegati_cartella,   
-         email_invio.allegati_pathfile,   
-         email_invio.flg_lettera_html,   
-         email_invio.flg_ritorno_ricev,  
-         email_invio.email_di_ritorno,  
-         email_invio.flg_allegati 
-    INTO 
-         :kst_tab_email_invio.email,   
-         :kst_tab_email_invio.note,   
-         :kst_tab_email_invio.id_cliente,   
-         :kst_tab_email_invio.data_ins,   
-         :kst_tab_email_invio.data_inviato,   
-         :kst_tab_email_invio.ora_inviato,   
-         :kst_tab_email_invio.oggetto,   
-         :kst_tab_email_invio.lettera,   
-         :kst_tab_email_invio.link_lettera,   
-         :kst_tab_email_invio.lang,   
-         :kst_tab_email_invio.allegati_cartella,   
-         :kst_tab_email_invio.allegati_pathfile,   
-         :kst_tab_email_invio.flg_lettera_html,   
-         :kst_tab_email_invio.flg_ritorno_ricev,  
-         :kst_tab_email_invio.email_di_ritorno,  
-         :kst_tab_email_invio.flg_allegati 
-    FROM email_invio  
-	where email_invio.id_email_invio = :kst_tab_email_invio.id_email_invio
-	using sqlca;
+//  SELECT 
+//         email_invio.email,   
+//         email_invio.note,   
+//         email_invio.id_cliente,   
+//         email_invio.data_ins,   
+//         email_invio.data_inviato,   
+//         email_invio.ora_inviato,   
+//         email_invio.oggetto,   
+//         email_invio.lettera,   
+//         email_invio.link_lettera,   
+//         email_invio.lang,   
+//         email_invio.allegati_cartella,   
+//         email_invio.allegati_pathfile,   
+//         email_invio.flg_lettera_html,   
+//         email_invio.flg_ritorno_ricev,  
+//         email_invio.email_di_ritorno,  
+//         email_invio.flg_allegati 
+//    INTO 
+//         :kst_tab_email_invio.email,   
+//         :kst_tab_email_invio.note,   
+//         :kst_tab_email_invio.id_cliente,   
+//         :kst_tab_email_invio.data_ins,   
+//         :kst_tab_email_invio.data_inviato,   
+//         :kst_tab_email_invio.ora_inviato,   
+//         :kst_tab_email_invio.oggetto,   
+//         :kst_tab_email_invio.lettera,   
+//         :kst_tab_email_invio.link_lettera,   
+//         :kst_tab_email_invio.lang,   
+//         :kst_tab_email_invio.allegati_cartella,   
+//         :kst_tab_email_invio.allegati_pathfile,   
+//         :kst_tab_email_invio.flg_lettera_html,   
+//         :kst_tab_email_invio.flg_ritorno_ricev,  
+//         :kst_tab_email_invio.email_di_ritorno,  
+//         :kst_tab_email_invio.flg_allegati 
+//    FROM email_invio  
+//	where email_invio.id_email_invio = :kst_tab_email_invio.id_email_invio
+//	using sqlca;
 
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Fallita lettura tab. Invio E-mail  ~n~r" + trim(sqlca.SQLErrText)
-		if sqlca.sqlcode = 100 then
+	kds_email_invio = create uo_ds_std_1
+	kds_email_invio.dataobject = "ds_email_invio"
+	kds_email_invio.settransobject(kguo_sqlca_db_magazzino )
+	
+	k_rc = kds_email_invio.retrieve(kst_tab_email_invio.id_email_invio)
+
+	if k_rc > 0 then
+		
+		kst_tab_email_invio.email              = kds_email_invio.getitemstring(1, "email")
+		kst_tab_email_invio.note               = kds_email_invio.getitemstring(1, "note")
+		kst_tab_email_invio.id_cliente         = kds_email_invio.getitemnumber(1, "id_cliente")
+		kst_tab_email_invio.data_ins           = kds_email_invio.getitemdate(1, "data_ins")
+		kst_tab_email_invio.data_inviato       = kds_email_invio.getitemdate(1, "data_inviato")
+		kst_tab_email_invio.ora_inviato        = kds_email_invio.getitemstring(1, "ora_inviato")
+		kst_tab_email_invio.oggetto            = kds_email_invio.getitemstring(1, "oggetto")
+		kst_tab_email_invio.lettera            = kds_email_invio.getitemstring(1, "lettera")
+		kst_tab_email_invio.link_lettera       = kds_email_invio.getitemstring(1, "link_lettera")
+		kst_tab_email_invio.lang               = kds_email_invio.getitemstring(1, "lang")
+		kst_tab_email_invio.allegati_cartella  = kds_email_invio.getitemstring(1, "allegati_cartella")
+		kst_tab_email_invio.allegati_pathfile  = kds_email_invio.getitemstring(1, "allegati_pathfile")
+		kst_tab_email_invio.flg_lettera_html   = kds_email_invio.getitemstring(1, "flg_lettera_html")
+		kst_tab_email_invio.flg_ritorno_ricev  = kds_email_invio.getitemstring(1, "flg_ritorno_ricev")
+		kst_tab_email_invio.email_di_ritorno   = kds_email_invio.getitemstring(1, "email_di_ritorno")
+		kst_tab_email_invio.flg_allegati       = kds_email_invio.getitemstring(1, "flg_allegati")		
+		
+	else
+		kst_esito.SQLErrText =  "Fallita lettura tab. Invio E-mail." + kkg.acapo+ "Esito: " + trim(kds_email_invio.kist_esito.SQLErrText)
+		kst_esito.sqlcode = kds_email_invio.kist_esito.sqlcode
+
+		if kst_esito.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
 		else
-			if sqlca.sqlcode > 0 then
+			if kst_esito.sqlcode > 0 then
 				kst_esito.esito = kkg_esito.db_wrn
 			else
 				
@@ -986,16 +1013,18 @@ Integer li_idx, li_max, k_pos_ini, k_pos_fin
 Boolean lb_html
 string k_esito=""
 string ls_Emp_Input
+string k_attached_files[]
 int k_idx, k_idx_max
 datastore kds_dirlist
+st_email_address kst_email_address
 st_tab_base kst_tab_base
 st_esito kst_esito
 kuf_base kuf1_base
 kuf_file_explorer kuf1_file_explorer
-n_smtp gn_smtp
 kuf_email kuf1_email
-st_email_address kst_email_address
- 
+kuf_utility kuf1_utility
+n_smtp gn_smtp
+
 
 try
 	//SetPointer(HourGlass!)
@@ -1004,6 +1033,7 @@ try
 	
 	kuf1_file_explorer = create kuf_file_explorer
 	kuf1_base = create kuf_base
+	kuf1_utility = create kuf_utility
 	//gn_smtp = create n_smtp
 	
 	
@@ -1245,9 +1275,29 @@ try
 			end if
 		end if
 		
-//--- invio di un singolo file se indicato
+//--- invio di singoli file separati da ';' se indicato
 		if trim(kst_tab_email_invio.allegati_pathfile) > " " then	
-			gn_smtp.of_AddFile(trim(kst_tab_email_invio.allegati_pathfile))  // aggiunge un file 
+			
+			k_attached_files[1] = trim(kst_tab_email_invio.allegati_pathfile)
+			li_max = kuf1_utility.u_stringa_split(k_attached_files[], ";")  // divide la stringa in più file separati da ';'
+			k_idx = 0
+			for li_idx = 1 to li_max
+				if k_attached_files[li_idx] > " " then
+					k_idx ++
+					if k_idx > 10 then 
+						kguo_exception.inizializza(this.classname())
+						kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_anomali
+						
+						kguo_exception.kist_esito.sqlerrtext = "Errore in Invio EMAIL id " + string(kst_tab_email_invio.id_email_invio) &
+											+ ". Superati i 10 file allegati, questo il primo dei non inviati: " + k_attached_files[li_idx] + ". Prego Verificare!!!" &
+											+ " Email inviata ugualmente ma non con tutti gli allegati." 
+						exit  // NON ALLEGA PIU' DI 10 FILE !!!!
+						
+					end if
+					gn_smtp.of_AddFile(k_attached_files[li_idx]) // aggiunge un file 
+				end if
+			end for
+
 		end if
 	//li_max = lb_attachments.TotalItems()
 	//For li_idx = 1 To li_max
@@ -1277,6 +1327,8 @@ finally
 	if isvalid(kds_dirlist) then destroy kds_dirlist
 	if isvalid(kuf1_base) then destroy kuf1_base
 	if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	
 	
 end try
 
@@ -1529,7 +1581,7 @@ try
 	if kst_tab_email_invio.id_email_invio > 0 then
 	
 	  SELECT 
-				email_invio.allegati_pathfile 
+				trim(email_invio.allegati_pathfile)
 		 INTO 
 				:kst_tab_email_invio.allegati_pathfile  
 		 FROM email_invio  
@@ -1542,7 +1594,7 @@ try
 			end if
 		else
 			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura posizione allegato in tab. Invio E-mail ~n~r" + trim(sqlca.SQLErrText)
+			kst_esito.SQLErrText = "Errore in lettura posizione allegato in tab. Invio E-mail. " + kkg.acapo + trim(sqlca.SQLErrText)
 			if sqlca.sqlcode = 100 then
 				kst_esito.esito = kkg_esito.not_fnd
 			else

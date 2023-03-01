@@ -56,6 +56,7 @@ private function long u_riposiziona_cursore ()
 public subroutine set_ki_conferma (boolean a_conferma)
 public subroutine u_resize (long a_width, long a_height)
 private function long u_set_kids_elenco () throws uo_exception
+private subroutine u_dw_1_settransobject ()
 end prototypes
 
 event resize(long a_w, long a_h);//
@@ -226,17 +227,7 @@ uo_datastore_0 kds_0
 		
 		u_set_kids_elenco( )
 
-		dw_1.dataobject = kids_elenco.dataobject
-		choose case trim(kist_open_w.settrans)
-			case kguo_sqlca_db_magazzino.ki_title_id 
-				dw_1.settrans (kguo_sqlca_db_magazzino)
-			case kguo_sqlca_db_pilota.ki_title_id 
-				dw_1.settrans (kguo_sqlca_db_pilota)
-			case kguo_sqlca_db_e1.ki_title_id 
-				dw_1.settrans (kguo_sqlca_db_e1)
-			case else
-				dw_1.settrans (kguo_sqlca_db_magazzino)
-		end choose
+		u_dw_1_settransobject()
 
 		dw_sel.dataobject = dw_1.dataobject
 
@@ -293,6 +284,7 @@ public subroutine leggi_liste ();//
 int k_rc
 long k_row
 
+	u_dw_1_settransobject()
 
 	if dw_1.rowcount( ) > 0 then
 		dw_1.reset()
@@ -542,6 +534,23 @@ return kids_elenco.rowcount()
 
 
 end function
+
+private subroutine u_dw_1_settransobject ();//
+	
+	dw_1.dataobject = kids_elenco.dataobject
+	choose case trim(kist_open_w.settrans)
+		case kguo_sqlca_db_magazzino.ki_title_id 
+			dw_1.settransobject (kguo_sqlca_db_magazzino)
+		case kguo_sqlca_db_pilota.ki_title_id 
+			dw_1.settrans (kguo_sqlca_db_pilota)
+		case kguo_sqlca_db_e1.ki_title_id 
+			dw_1.settransobject (kguo_sqlca_db_e1)
+		case else
+			dw_1.settransobject (kguo_sqlca_db_magazzino)
+	end choose
+
+
+end subroutine
 
 event constructor;//
 	if trim(message.stringparm) > " " then 

@@ -130,6 +130,8 @@ public function string u_stringa_spezza (string k_stringa)
 public subroutine u_dw_set_riga_new_color (ref uo_d_std_1 auo_d_std_1)
 private subroutine u_dw_set_column_color (ref datawindow k_dw)
 private subroutine u_dw_set_column_color (ref uo_d_std_1 k_dw)
+public function int u_open_app_files (string a_file) throws uo_exception
+public function integer u_stringa_split (ref string a_string[], string a_sep)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -5687,6 +5689,90 @@ long k_backgroundColor, k_n
 
 
 end subroutine
+
+public function int u_open_app_files (string a_file) throws uo_exception;//
+//---  Apre più file separati da ';' con l'applicazione del sistema
+//
+string k_files[]
+int k_idx_max, k_idx, k_n_files
+
+
+	if trim(a_file) > " " then
+		
+		k_files[1] = trim(a_file)
+		
+		k_idx_max = u_stringa_split(k_files[], ";")
+		
+		for k_idx = 1 to k_idx_max
+			
+			if k_files[k_idx] > " " then
+				
+				if u_open_app_file( k_files[k_idx] ) then
+					k_n_files++
+				end if
+				
+			end if
+			
+		next		
+		
+	end if
+
+return k_n_files
+end function
+
+public function integer u_stringa_split (ref string a_string[], string a_sep);/*
+ Splitta in diverse stringhe separate da un carattere
+     inp: array a_string[1] il primo elemento è la stringa da separare 
+	     : carattere separatore come ad esempio "," ";" ":"....
+     out: array a_string[] con i tronconi
+	  Ret: numero di spezzoni
+*/
+string k_string
+string k_str_split
+int k_pos_start, k_pos_end, k_len, k_str_split_idx
+
+
+if upperbound(a_string[]) > 0 then
+	
+	k_string = trim(a_string[1])
+
+	a_string[1] = ""
+
+//--- trova il primo spezzone	
+	k_pos_start = 1
+	k_pos_end = pos(k_string, a_sep, k_pos_start)
+	
+	do while k_pos_end > 1
+		
+		k_len = k_pos_end - k_pos_start  
+		k_str_split = trim(mid(k_string, k_pos_start, k_len))
+		if k_str_split > " " then
+			k_str_split_idx ++
+			a_string[k_str_split_idx] = k_str_split
+		end if
+		
+//--- legge il successivo spezzone		
+		k_pos_start = k_pos_end + 1
+		k_pos_end = pos(k_string, a_sep, k_pos_start)
+		
+	loop
+
+//--- accoda ultimo spezzone se non ha il separatore
+	k_pos_end = len(k_string)
+	if k_pos_end > k_pos_start then
+		k_len = k_pos_end - k_pos_start  + 1
+		k_str_split = trim(mid(k_string, k_pos_start, k_len))
+		if k_str_split > " " then
+			k_str_split_idx ++
+			a_string[k_str_split_idx] = k_str_split
+		end if
+	end if
+
+end if
+
+return k_str_split_idx
+
+end function
 
 on kuf_utility.create
 call super::create

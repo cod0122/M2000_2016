@@ -723,15 +723,13 @@ string k_titolo
 st_listino_duplica kst_listino_duplica[]
 st_tab_esito_operazioni kst_tab_esito_operazioni
 st_esito kst_esito
+uo_exception kuo_exception
 
 
 setpointer(kkg.pointer_attesa )
 
-kst_esito.esito = "0"
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kuo_exception = create uo_exception
+kst_esito = kuo_exception.inizializza(this.classname())
 
 try 
 	
@@ -811,18 +809,16 @@ try
 			end if
 			
 			if k_nr_duplicati = 0 then
-				kguo_exception.inizializza( )
-				kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_insufficienti )
-				kguo_exception.setmessage(k_titolo, " Nessun listino Duplicato ")
+				kuo_exception.set_tipo(kuo_exception.kk_st_uo_exception_tipo_dati_insufficienti )
+				kuo_exception.setmessage(k_titolo, " Nessun listino Duplicato ")
 				kiuf_esito_operazioni.tb_add_riga("-----------> Elaborazione Terminata nessun LISTINO duplicato <-----------", false)
 			else
 
-				kguo_exception.inizializza( )
-				kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ok )
+				kuo_exception.set_tipo(kuo_exception.kk_st_uo_exception_tipo_ok )
 				if k_nr_duplicati = 1 then
-					kguo_exception.setmessage(k_titolo, "Fine elaborazione, 1 Listino duplicato")
+					kuo_exception.setmessage(k_titolo, "Fine elaborazione, 1 Listino duplicato")
 				else
-					kguo_exception.setmessage(k_titolo, "Fine elaborazione, " + string(k_nr_duplicati) + " Listini duplicati")
+					kuo_exception.setmessage(k_titolo, "Fine elaborazione, " + string(k_nr_duplicati) + " Listini duplicati")
 				end if
 				kiuf_esito_operazioni.tb_add_riga("-----------> Elaborazione Terminata LISTINI duplicati: " + string(k_nr_duplicati) +" <-----------", false)
 			end if
@@ -842,15 +838,14 @@ try
 			end if
 		end if
 			
-		kguo_exception.messaggio_utente( )
+		kuo_exception.messaggio_utente( )
 
 	end if
 	
-catch (uo_exception kuo_exception)
-	
-	kiuf_esito_operazioni.tb_add_riga("-----------> Elaborazione interrotta per ERRORE: " + trim(kst_esito.sqlerrtext) + " - esito: " + string(kst_esito.esito) +" <-----------", true)
-	kGuf_data_base.errori_scrivi_esito("W", kst_esito)  //--- scrive il LOG
-	kuo_exception.messaggio_utente()
+catch (uo_exception kuo1_exception)
+	kiuf_esito_operazioni.tb_add_riga("-----------> Elaborazione interrotta per ERRORE: " + trim(kuo1_exception.kist_esito.sqlerrtext) + " - esito: " + string(kuo1_exception.kist_esito.esito) +" <-----------", true)
+	kGuf_data_base.errori_scrivi_esito("W", kuo1_exception.kist_esito)  //--- scrive il LOG
+	kuo1_exception.messaggio_utente()
 	
 finally
 	if this.rb_definitiva_si.checked then // è di simulazione?
@@ -862,6 +857,8 @@ finally
 	kst_tab_esito_operazioni.st_tab_g_0.esegui_commit = "S"
 	kst_listino_duplica[k_riga].esito_operazioni_ts_operazione = kiuf_esito_operazioni.tb_add(kst_tab_esito_operazioni)
 
+	if isvalid(kuo_exception) then destroy kuo_exception
+	
 	setpointer(kkg.pointer_default )
 	
 		

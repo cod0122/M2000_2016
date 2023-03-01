@@ -48,23 +48,24 @@ st_tab_menu_window_oggetti kst_tab_menu_window_oggetti
 return k_return
 end function
 
-public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//---------------------------------------------------------------------------------------------------------------------------
-//--- Controlla se funzione autorizzata
-//---
-//--- Inp: st_open_w   flag_modalita (se manca assume VISUALIZZAZIONE); id_programma (facoltativo); 
-//---							key1 = descriz.funzione (prima parte, facoltativo)  
-//--- Out: 
-//--- Ritorna: TRUE=autorizzata; FALSE=non autorizzata
-//---
-//---------------------------------------------------------------------------------------------------------------------------
-//
+public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;/*
+---------------------------------------------------------------------------------------------------------------------------
+  Controlla se funzione autorizzata
+
+    Inp: st_open_w   flag_modalita (se manca assume VISUALIZZAZIONE); id_programma (facoltativo); 
+							key1 = descriz.funzione (prima parte, facoltativo)  
+    Out: 
+    Ritorna: TRUE=autorizzata; FALSE=non autorizzata
+
+---------------------------------------------------------------------------------------------------------------------------
+*/
 boolean k_return = false
 string k_msg1
-st_esito kst_esito
 kuf_sicurezza kuf1_sicurezza
 
 
 try
+	kguo_exception.inizializza(this.classname())
 
 	if trim(ast_open_w.flag_modalita) > " " then
 	else
@@ -87,7 +88,7 @@ try
 
 //--- compone il msg di errore
 		k_msg1 = kguo_g.get_descrizione(ast_open_w.flag_modalita)
-		//k_msg1 = kGuf_data_base.prendi_modalita_descrizione(ast_open_w.flag_modalita)
+		
 		if trim(ast_open_w.key1) > " " then // qui eventuale descrizione della funzione
 			k_msg1 += " '" + trim(ast_open_w.key1) + "' "
 		end if
@@ -95,16 +96,19 @@ try
 			k_msg1 = ki_msgErrDescr + " (" + trim(k_msg1) + ") "
 		end if
 	
-		kst_esito.sqlcode = sqlca.sqlcode
+		if isnull(kuf1_sicurezza.ki_sr_titolo) then kuf1_sicurezza.ki_sr_titolo = ""
+	
+		//kguo_exception.st_esito.sqlcode = sqlca.sqlcode
 		if trim(ast_open_w.id_programma) > " " or trim(ast_open_w.flag_modalita) > " " then
-			kst_esito.SQLErrText =  "Utente non Autorizzato.  La funzione di " + k_msg1 + " non e' stata abilitata ~n~r('" + kuf1_sicurezza.ki_sr_titolo + "' id: " + trim(ast_open_w.id_programma) &
-		                         + "; Funz.: " + trim(ast_open_w.flag_modalita) + " '" + kguo_g.get_descrizione(ast_open_w.flag_modalita) + "'; Utente: " + kguo_utente.get_codice( ) + "). "
+			kguo_exception.kist_esito.SQLErrText =  "Utente non Autorizzato. " + kkg.acapo + "La funzione di " + k_msg1 + " non e' stata abilitata " &
+									+ kkg.acapo + "(" + kuf1_sicurezza.ki_sr_titolo + " id: " + trim(ast_open_w.id_programma)  &
+		                     + " in " + kguo_g.get_descrizione(ast_open_w.flag_modalita) + " - " + trim(ast_open_w.flag_modalita)  &
+									+ " per l'utente: " + kguo_utente.get_codice( ) + "). "
 		else
-			kst_esito.SQLErrText = "Utente non Autorizzato.  La funzione di " + k_msg1 + " non e' stata abilitata ~n~r(" + " Utente: " + kguo_utente.get_codice( ) + "). " 
+			kguo_exception.kist_esito.SQLErrText = "Utente non Autorizzato.  La funzione di " + k_msg1 + " non e' stata abilitata. " &
+									+ kkg.acapo + "(" + " Id utente: " + kguo_utente.get_codice( ) + "). " 
 		end if
-		kst_esito.esito = kkg_esito.no_aut
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_noAUT
 		throw kguo_exception	
 	end if  
 		

@@ -37,9 +37,11 @@ protected subroutine smista_funz (string k_par_in)
 protected function integer inserisci ()
 private function integer modifica ()
 protected subroutine open_start_window ()
-private subroutine run_app_lettera ()
 protected subroutine riempi_id ()
 private subroutine get_lettera ()
+private subroutine run_app_lettera ()
+private subroutine run_app_attached ()
+private subroutine get_attached ()
 end prototypes
 
 public function string inizializza ();//
@@ -612,43 +614,6 @@ kuf_base kuf1_base
 
 end subroutine
 
-private subroutine run_app_lettera ();//
-string k_file="", k_path_file="", k_path, k_ext
-boolean k_ret
-long ll_p
-kuf_file_explorer kuf1_file_explorer
-
-
-
-k_file = trim(dw_dett_0.getitemstring (1, "link_lettera"))
-if len(trim(k_file)) > 0 then
-	
-//	ll_p = lastPos(k_file, '.')
-//	k_ext = right(k_file, ll_p - 1)	
-//
-//	k_path = trim(ki_path_email) + trim(kiuf_email.kki_path_email) + "\" + trim(k_file)
-
-
-	kuf1_file_explorer = create kuf_file_explorer
-
-//	if not kuf1_file_explorer.of_execute( k_path, k_ext) then
-	if not kuf1_file_explorer.of_execute( k_file ) then
-		
-		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
-		kguo_exception.setmessage( "Il file non può essere aperto, forse estensione non riconosciuta: " + k_ext)
-		kguo_exception.messaggio_utente( )
-	end if
-
-	destroy kuf1_file_explorer
-
-else
-	k_file=""
-end if
-
-
-
-end subroutine
-
 protected subroutine riempi_id ();//
 
 if dw_dett_0.rowcount() > 0 then
@@ -707,6 +672,93 @@ end if
 
 end subroutine
 
+private subroutine run_app_lettera ();//
+string k_file="", k_path_file="", k_path, k_ext
+boolean k_ret
+long ll_p
+kuf_file_explorer kuf1_file_explorer
+
+
+
+k_file = trim(dw_dett_0.getitemstring (1, "link_lettera"))
+if len(trim(k_file)) > 0 then
+	
+	kuf1_file_explorer = create kuf_file_explorer
+
+	if not kuf1_file_explorer.of_execute( k_file ) then
+		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
+		kguo_exception.setmessage( "La comunicazione non può essere aperta, forse estensione non riconosciuta o file non raggiungibile: " &
+		 							+ kkg.acapo + k_file)
+		kguo_exception.messaggio_utente( )
+	end if
+
+	destroy kuf1_file_explorer
+
+else
+	k_file=""
+end if
+
+
+
+end subroutine
+
+private subroutine run_app_attached ();//
+string k_file="", k_path_file="", k_path //, k_ext
+boolean k_ret
+long ll_p
+kuf_file_explorer kuf1_file_explorer
+
+
+
+k_file = trim(dw_dett_0.getitemstring (1, "attached"))
+if len(trim(k_file)) > 0 then
+	
+	kuf1_file_explorer = create kuf_file_explorer
+
+	if not kuf1_file_explorer.of_execute( k_file ) then
+		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
+		kguo_exception.setmessage( "L'allegato non può essere aperto, forse estensione non riconosciuta o file non raggiungibile: " &
+		 							+ kkg.acapo + k_file)
+		kguo_exception.messaggio_utente( )
+	end if
+
+	destroy kuf1_file_explorer
+
+else
+	k_file=""
+end if
+
+
+
+end subroutine
+
+private subroutine get_attached ();//
+string k_file="", k_path_file="", k_path, k_path_rit
+int k_ret, k_sn
+long ll_p
+
+
+k_file = dw_dett_0.getitemstring (1, "attached")
+if len(trim(k_file)) > 0 then
+else
+	k_file=""
+end if
+
+k_path = ".."  //trim(ki_path_email) + trim(kiuf_email.kki_path_email)
+k_ret = GetFileOpenName ( "Scegli l'Allegato da una posizione condivisa per l'invio email", k_path_file, k_file, "pdf", " Comunicazioni (*.*),*.*" , k_path, 32784)
+
+if k_ret = 1 then
+	dw_dett_0.setitem(1, "attached", trim(ki_path_email+ kkg.path_sep +k_file))
+	setpointer(kkg.pointer_default)
+else
+	if k_ret < 0 then
+//--- ERRORE	
+	end if
+end if
+
+
+end subroutine
+
 on w_email.create
 call super::create
 end on
@@ -720,6 +772,9 @@ event close;call super::close;//
 if isvalid(kiuf_email) then destroy kiuf_email
 
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_email
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_email
 end type
@@ -779,8 +834,15 @@ event dw_dett_0::buttonclicked;call super::buttonclicked;//
 	     and (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
 		get_lettera()
 	end if
+	if dwo.name = "b_path_attached" & 
+	     and (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
+		get_attached()
+	end if
 	if dwo.name = "p_img_lettera_vedi" then
 		run_app_lettera()
+	end if
+	if dwo.name = "p_img_attached_vedi" then
+		run_app_attached()
 	end if
 
 end event

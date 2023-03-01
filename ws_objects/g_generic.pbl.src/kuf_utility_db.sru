@@ -2396,6 +2396,7 @@ uo_exception kuo_exception
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.cs.stgddtdata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.cs.stgddtdata'))  else null  end cs_stgddtdata " &
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.docfinen')) cs_docfinen " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.notefatt')) cs_notefatt " & 
+		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.ordine')) cs_ordine " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoice_id_cliente') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoice_id_cliente')) else 0 end cs_invoice_id_cliente " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicen') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicen')) else 0 end cs_invoicen " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicedata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicedata'))  else null  end cs_invoicedata " &

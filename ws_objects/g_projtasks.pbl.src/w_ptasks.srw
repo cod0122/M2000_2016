@@ -822,6 +822,7 @@ if tab_1.tabpage_2.dw_2.rowcount( ) > 0 then
 	kst_tab_ptasks_rows.cs_stgddtdata = tab_1.tabpage_2.dw_2.getitemdate( 1, "cs_stgddtdata")
 	kst_tab_ptasks_rows.cs_docfinen = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_docfinen")
 	kst_tab_ptasks_rows.cs_notefatt = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_notefatt")
+	kst_tab_ptasks_rows.cs_ordine = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_ordine")
 	kst_tab_ptasks_rows.cs_invoicen = tab_1.tabpage_2.dw_2.getitemnumber( 1, "cs_invoicen")
 	kst_tab_ptasks_rows.cs_invoice_id_cliente = tab_1.tabpage_2.dw_2.getitemnumber( 1, "cs_invoice_id_cliente")
 	kst_tab_ptasks_rows.cs_invoicedata = tab_1.tabpage_2.dw_2.getitemdate( 1, "cs_invoicedata")

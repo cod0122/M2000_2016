@@ -48,11 +48,12 @@ public function boolean get_dati_cliente (ref st_tab_clienti kst_tab_clienti)
 protected subroutine set_titolo_window_personalizza ()
 public function long invio_email ()
 protected subroutine riempi_id ()
-public subroutine u_open_file_allegato (string k_file)
 private subroutine get_allegati_file ()
 private subroutine u_vedi_lettera () throws uo_exception
 public subroutine u_placeholder_show ()
 private subroutine u_modifica_comunicazione () throws uo_exception
+public subroutine u_open_files_allegati (string k_files)
+public subroutine u_open_path_allegati (string k_path)
 end prototypes
 
 public function string inizializza ();//
@@ -896,30 +897,6 @@ if dw_dett_0.rowcount() > 0 then
 end if
 end subroutine
 
-public subroutine u_open_file_allegato (string k_file);//
-kuf_utility kuf1_utility
-
-					
-	try
-		kuf1_utility = create kuf_utility
-		if k_file > " " then
-			kuf1_utility.u_open_app_file(k_file)
-		end if
-		
-	catch(uo_exception kuo_exception)
-		kguo_exception.kist_esito = kuo_exception.get_st_esito()
-		kguo_exception.inizializza()
-		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito)
-		kguo_exception.setmessage( "Apertura documento Fallita. " +	"~n~r" + trim(kguo_exception.kist_esito.sqlerrtext))
-		kguo_exception.messaggio_utente( )
-
-	finally
-		if isvalid(kuf1_utility) then destroy kuf1_utility
-		
-	end try
-
-end subroutine
-
 private subroutine get_allegati_file ();//
 string k_file="", k_path_file="", k_path
 int k_ret
@@ -980,6 +957,52 @@ kst_tab_email_invio.link_lettera = trim(dw_dett_0.getitemstring(1, "link_lettera
 kiuf_email_invio.u_comunicazione_modifica(kst_tab_email_invio)
 
 
+
+end subroutine
+
+public subroutine u_open_files_allegati (string k_files);//
+kuf_utility kuf1_utility
+
+					
+	try
+		kuf1_utility = create kuf_utility
+		if k_files > " " then
+			kuf1_utility.u_open_app_files(k_files)
+		end if
+		
+	catch(uo_exception kuo_exception)
+		kguo_exception.kist_esito = kuo_exception.get_st_esito()
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito)
+		kguo_exception.setmessage( "Apertura documento Fallita: " +	kkg.acapo + k_files +	kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext))
+		kguo_exception.messaggio_utente( )
+
+	finally
+		if isvalid(kuf1_utility) then destroy kuf1_utility
+		
+	end try
+
+end subroutine
+
+public subroutine u_open_path_allegati (string k_path);//
+kuf_utility kuf1_utility
+
+					
+	try
+		kuf1_utility = create kuf_utility
+		if k_path > " " then
+			kuf1_utility.u_open_app_file(k_path)
+		end if
+		
+	catch(uo_exception kuo_exception)
+		kguo_exception.kist_esito = kuo_exception.get_st_esito()
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito)
+		kguo_exception.setmessage( "Apertura della cartella Fallita: " +	kkg.acapo + k_path +	kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext))
+		kguo_exception.messaggio_utente( )
+
+	finally
+		if isvalid(kuf1_utility) then destroy kuf1_utility
+		
+	end try
 
 end subroutine
 
@@ -1138,7 +1161,7 @@ try
 			u_modifica_comunicazione( )
 			
 		case "b_vedi_allegati_pathfile"
-			u_open_file_allegato(trim(this.getitemstring(1, "allegati_pathfile")))
+			u_open_files_allegati(trim(this.getitemstring(1, "allegati_pathfile")))
 	
 		case "b_segnaposto_l"
 			u_placeholder_show( )
@@ -1248,10 +1271,14 @@ end type
 event dw_lista_0::clicked;call super::clicked;//
 if row > 0 then
 	if mid(dwo.name,2,7) = "_attach" or dwo.name = "allegati_cartella" then
-		u_open_file_allegato(trim(this.getitemstring(row, "allegati_cartella")))
+		if trim(this.getitemstring(row, "allegati_cartella")) > " " then
+			u_open_path_allegati(trim(this.getitemstring(row, "allegati_cartella")))
+		end if
 	end if
 	if mid(dwo.name,2,7) = "_attach" or dwo.name = "allegati_pathfile" then
-		u_open_file_allegato(trim(this.getitemstring(row, "allegati_pathfile")))
+		if trim(this.getitemstring(row, "allegati_pathfile")) > " " then
+			u_open_files_allegati(trim(this.getitemstring(row, "allegati_pathfile")))
+		end if
 	end if
 end if
 

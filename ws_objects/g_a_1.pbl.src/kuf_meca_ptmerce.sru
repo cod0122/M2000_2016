@@ -614,9 +614,8 @@ try
 		kst_tab_email_funzioni.cod_funzione = kst_tab_email_invio.cod_funzione
 		kst_tab_email.id_email = kiuf_email_funzioni.get_id_email_xcodfunzione(kst_tab_email_funzioni)
 		if kst_tab_email.id_email = 0 then
-			kguo_exception.inizializza( )
+			kguo_exception.inizializza(this.classname() )
 			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_not_fnd )
-			kguo_exception.set_nome_oggetto(this.classname( ) )
 			kguo_exception.setmessage( "Impostare da 'Proprietà della Procedura' il Prototipo e-mail da utilizzare per l'invio codificato come '" &
 						+ trim(kst_tab_email_funzioni.cod_funzione) &
 						+ " '(" + kiuf_email_funzioni.get_des(kst_tab_email_funzioni) + ")")
@@ -624,24 +623,37 @@ try
 			throw kguo_exception
 		end if
 
-//--- Label da allegare alla email		
-//quiii		k_file_attached = u_build_email_attach_label(ast_tab_meca) 
+
+
+
+//quiii		k_file_attached = u_build_email_attach_label(ast_tab_meca) // Label da allegare alla email		
 		if trim(k_file_attached) > " " then
-			kst_tab_email_invio.flg_allegati = kiuf_email_invio.ki_allegati_si
 			kst_tab_email_invio.allegati_pathfile = trim(k_file_attached)
-		else
-			kst_tab_email_invio.flg_allegati = kiuf_email_invio.ki_allegati_no
-			kst_tab_email_invio.allegati_pathfile = ""
 		end if
-		
+	
 //--- recupero diversi dati x riempire la tab email-invio			
 		kiuf_email.get_riga(kst_tab_email)
+		
 		kst_tab_email_invio.oggetto = kst_tab_email.oggetto
 		kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
 		kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 		kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
 		kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
 		kst_tab_email_invio.id_oggetto = ast_tab_meca.id
+		if kst_tab_email.attached > " " then
+			if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+				kst_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
+			else
+				kst_tab_email_invio.allegati_pathfile = kst_tab_email.attached
+			end if
+		end if
+		
+		if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+			kst_tab_email_invio.flg_allegati = kiuf_email_invio.ki_allegati_si
+		else
+			kst_tab_email_invio.flg_allegati = kiuf_email_invio.ki_allegati_no
+		end if
+		
 		kiuf_email_invio.if_isnull(kst_tab_email_invio)
 
 //--- get del DDT mandante		
@@ -680,6 +692,7 @@ try
 	end if
 	
 catch (uo_exception kuo_exception)	
+	kuo_exception.scrivi_log()
 	throw kuo_exception
 	
 finally

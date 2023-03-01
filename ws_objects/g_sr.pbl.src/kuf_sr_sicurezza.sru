@@ -2290,7 +2290,7 @@ st_esito kst_esito, kst_esito1
 				kst_tab_sr_utenti.tentativi_max = 999
 			end if
 			if isnull(kst_tab_sr_utenti.tentativi_ko) then
-				kst_tab_sr_utenti.tentativi_ko = 0
+				kst_tab_sr_utenti.tentativi_ko = 1
 			end if
 			
 			if kst_tab_sr_utenti.tentativi_max >= kst_tab_sr_utenti.tentativi_ko then
@@ -2320,13 +2320,19 @@ st_esito kst_esito, kst_esito1
 					
 				end if
 			else
-				kst_esito.esito = kkg_esito.no_aut
-				kst_esito.SQLErrText = "Utente Bloccato, ~n~r" & 
-					 + "password errata per troppi tentativi (piu' di " &
-					 + string(kst_tab_sr_utenti.tentativi_max) + " volte). " 
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
+				
+				if kst_tab_sr_utenti.inutilizzo_sblocco = "1" then
+					kst_tab_sr_utenti.inutilizzo_sblocco = "0"
+					kst_tab_sr_utenti.tentativi_ko = 1
+				else
+					kst_esito.esito = kkg_esito.no_aut
+					kst_esito.SQLErrText = "Utente Bloccato, ~n~r" & 
+						 + "password errata per troppi tentativi (piu' di " &
+						 + string(kst_tab_sr_utenti.tentativi_max) + " volte). " 
+					kguo_exception.inizializza( )
+					kguo_exception.set_esito(kst_esito)
+					throw kguo_exception
+				end if
 				
 			end if
 			

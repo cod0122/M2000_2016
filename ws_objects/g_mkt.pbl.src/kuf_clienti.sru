@@ -1982,9 +1982,9 @@ kst_esito = kguo_exception.inizializza(this.classname())
 if isnumber(trim(kst_tab_clienti.cf))  then
 
 	k_cf =  trim(kst_tab_clienti.cf)
-	k_matr = integer(left(kst_tab_clienti.cf, 7))
-	k_uff = integer(mid(kst_tab_clienti.cf, 8,3))
-	k_cin = (mid(kst_tab_clienti.cf, 11,1))
+	k_matr = integer(left(k_cf, 7))
+	k_uff = integer(mid(k_cf, 8,3))
+	k_cin = (mid(k_cf, 11,1))
 	
 	if k_uff < 100 or (k_uff = 120) or (k_uff = 121) or (k_uff >= 151 and k_uff <= 245) or (k_uff >= 301 and k_uff <= 766) &
 			or (k_uff >= 900 and k_uff <= 950) or (k_uff = 999) then

@@ -447,17 +447,27 @@ try
 	
 //--- recupero diversi dati x riempire la tab email-invio			
 	kuf1_email.get_riga(kst_tab_email)
+	
 	kst_tab_email_invio.oggetto = kst_tab_email.oggetto
 	kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
 	kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 	kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
 	kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
+	if kst_tab_email.attached > " " then
+		if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+			kst_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
+		else
+			kst_tab_email_invio.allegati_pathfile = kst_tab_email.attached
+		end if
+	end if
+		
 	kuf1_email_invio.if_isnull(kst_tab_email_invio)
 	
 catch (uo_exception kuo_exception)	
 	kst_esito = kuo_exception.get_st_esito()
 	if kst_esito.esito = kkg_esito.no_esecuzione then
 	else
+		kuo_exception.scrivi_log()
 		throw kuo_exception
 	end if
 	

@@ -28,6 +28,10 @@ public boolean ki_conn_blk_msg_done
 
 //--- identifica il DB es. "db_magazzino"
 public string ki_title_id = ""
+
+//--- utile per salvare i dati sqlerr ... 
+protected kuo_sqlca_db_0 kiuo_sqlca_db_0_saved
+
 end variables
 
 forward prototypes
@@ -179,6 +183,13 @@ public function boolean if_connesso () throws uo_exception;//
 boolean k_return = false
 
 
+// salva i valori di errore
+	if not isvalid(kiuo_sqlca_db_0_saved) then kiuo_sqlca_db_0_saved = create kuo_sqlca_db_0
+	kiuo_sqlca_db_0_saved.sqlcode = this.sqlcode 
+	kiuo_sqlca_db_0_saved.sqldbcode = this.sqldbcode
+	kiuo_sqlca_db_0_saved.sqlerrtext = this.sqlerrtext
+	kiuo_sqlca_db_0_saved.sqlreturndata = this.sqlreturndata
+
 	if this.DBHandle ( ) > 0  then
 		
 		if if_connesso_x( ) then 
@@ -187,6 +198,12 @@ boolean k_return = false
 			db_disconnetti()
 		end if
 	end if
+
+// ripri i valori in entrata
+	this.sqlcode = kiuo_sqlca_db_0_saved.sqlcode
+	this.sqldbcode = kiuo_sqlca_db_0_saved.sqldbcode
+	this.sqlerrtext = kiuo_sqlca_db_0_saved.sqlerrtext
+	this.sqlreturndata = kiuo_sqlca_db_0_saved.sqlreturndata
 
 
 return k_return
@@ -1004,5 +1021,9 @@ end event
 event constructor;//
 ki_db_descrizione = "DB della Procedura"   // il default
 
+end event
+
+event destructor;//
+if isvalid(kiuo_sqlca_db_0_saved) then destroy kiuo_sqlca_db_0_saved
 end event
 

@@ -1259,8 +1259,8 @@ long k_ctr
 //		ki_menu.u_inizializza( )
 //	end if
 
-	this.height = 0	
-	this.width = 0
+	this.height = 1	
+	this.width = 1
 
 //--- assegna il puntatore alla Window x renderlo visibile negli script
 	kiw_this_window = this

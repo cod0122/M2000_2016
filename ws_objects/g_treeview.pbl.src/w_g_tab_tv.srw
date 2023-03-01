@@ -125,8 +125,8 @@ public subroutine u_resize_1 ()
 private subroutine u_set_data_certif_da_st ()
 protected subroutine stampa_anteprima ()
 public subroutine u_resize ()
-public subroutine u_resize_default ()
 private subroutine u_smista_lib1 ()
+public subroutine u_resize_init ()
 end prototypes
 
 protected function integer u_dammi_item_padre_da_list ();//
@@ -374,14 +374,20 @@ st_treeview_data kst_treeview_data
 		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemName = "iconlist16.png"
 		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritembarindex=2
 		
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.text = "Dettaglio"
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.microhelp = "Visualizza dettaglio"
+		if ki_st_orizzontal then
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.text = "Nasconde Anteprima"
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.microhelp = "Nasconde finestra anteprima"
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemText = "-Ant.,"+m_main.m_strumenti.m_fin_gest_libero7.libero4.text
+		else
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.text = "Anteprima"
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.microhelp = "Visualizza finestra anteprima"
+			m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemText = "+Ant.,"+m_main.m_strumenti.m_fin_gest_libero7.libero4.text
+		end if
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemName = "icondetail16.png"
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.visible = m_main.m_strumenti.m_fin_gest_libero2.visible
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.enabled = m_main.m_strumenti.m_fin_gest_libero2.enabled
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemVisible = m_main.m_strumenti.m_fin_gest_libero2.enabled
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemText = "dettagli,"+m_main.m_strumenti.m_fin_gest_libero7.libero4.text
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemName = "icondetail16.png"
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritembarindex=2
 	
 	end if
 
@@ -994,8 +1000,10 @@ try
 		case KKG_FLAG_RICHIESTA.libero73	//visualizzazione list 
 			lv_1.view = listviewlist!
 	
-		case KKG_FLAG_RICHIESTA.libero74	//visualizzazione list 
-			lv_1.view = listviewreport!
+		case KKG_FLAG_RICHIESTA.libero74	//Fa vedere il box di Anteprima //visualizzazione list 
+			ki_st_orizzontal = not ki_st_orizzontal //lv_1.view = listviewreport!
+			u_resize_init( )
+			attiva_tasti( )
 	
 		case KKG_FLAG_RICHIESTA.libero8 //Chiama Lotto x le Autorizzazioni
 			kiuf_treeview.u_open_riferimenti_autorizza( )
@@ -1004,7 +1012,8 @@ try
 			ki_st_vertical = true
 			ki_st_orizzontal = true
 			u_resize_predefinita( )
-			u_resize_default( )
+			u_resize_init( )
+			attiva_tasti( )
 	
 		case else
 			super::smista_funz(k_par_in)
@@ -1578,77 +1587,78 @@ kst_treeview_data = ast_treeview_data
 
 end subroutine
 
-public subroutine u_resize_1 ();//---
-long k_width_orig, k_height_orig
-
-
-	this.setredraw(false)
-
-	tv_root.x = 1 //15
-	tv_root.y = 1 //15
-	lv_1.y = 1
-	dw_anteprima.x = 1
-	st_vertical.y = 1
-	st_orizzontal.x = 1
-	st_vertical.width = 20
-	st_orizzontal.height = 20
-
-	st_vertical.visible = ki_st_vertical
-	st_orizzontal.visible = ki_st_orizzontal
-
-	if ki_st_orizzontal then
-		k_width_orig = st_orizzontal.width
-		k_height_orig = st_orizzontal.y + st_orizzontal.height + dw_anteprima.height
-	else
-		k_height_orig = tv_root.height
-		if ki_st_vertical then
-			k_width_orig = st_vertical.X + st_vertical.width + lv_1.width
-		else
-			k_width_orig = tv_root.width
-		end if
-	end if
-		
-	if k_width_orig > 0 then
-		
-		if ki_st_vertical then
-			st_vertical.X = this.width * (((100 / k_width_orig) * st_vertical.X) / 100)
-		end if
-		if ki_st_orizzontal then
-			st_orizzontal.Y = this.height * (((100 / k_height_orig) * st_orizzontal.y) / 100)
-		end if
-		
-		if st_vertical.visible then
-			tv_root.width = st_vertical.X - st_vertical.width 
-			lv_1.width =  this.width - st_vertical.X - st_vertical.width // -70 
-		else
-			lv_1.width = this.width //- 75 
-		end if
-
-		if st_vertical.visible then
-			lv_1.x = st_vertical.x + st_vertical.width 
-			st_vertical.bringtotop = true
-		end if
-		st_vertical.height = st_orizzontal.y
-		
-		if st_orizzontal.visible then
-			st_orizzontal.width = this.width
-			st_orizzontal.bringtotop = true
-			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
-			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
-			dw_anteprima.width = st_orizzontal.width 
-			 lv_1.height = this.height - st_orizzontal.y 
-		end if
-	
-		lv_1.height = st_vertical.height
-		tv_root.height = st_vertical.height 
-
-		//lv_1.visible = true
-	
-	end if
-	this.setredraw(true)
-
-
-
+public subroutine u_resize_1 ();////---
+//long k_width_orig, k_height_orig
+//
+//
+//	this.setredraw(false)
+//
+//	tv_root.x = 1 //15
+//	tv_root.y = 1 //15
+//	lv_1.y = 1
+//	dw_anteprima.x = 1
+//	st_vertical.y = 1
+//	st_orizzontal.x = 1
+//	st_vertical.width = 20
+//	st_orizzontal.height = 20
+//
+//	st_vertical.visible = ki_st_vertical
+//	st_orizzontal.visible = ki_st_orizzontal
+//
+//	if ki_st_orizzontal then
+//		if st_orizzontal.width < 50 then
+//			st_orizzontal.width = this.width 
+//		end if			
+//		k_width_orig = st_orizzontal.width
+//		k_height_orig = st_orizzontal.y + st_orizzontal.height + dw_anteprima.height
+//	else
+//		k_height_orig = tv_root.height
+//		if ki_st_vertical then
+//			k_width_orig = st_vertical.X + st_vertical.width + lv_1.width
+//		else
+//			k_width_orig = tv_root.width
+//		end if
+//	end if
+//		
+//	if k_width_orig > 0 then
+//		
+//		if ki_st_vertical then
+//			st_vertical.X = this.width * (((100 / k_width_orig) * st_vertical.X) / 100)
+//		end if
+//		if ki_st_orizzontal then
+//			st_orizzontal.Y = this.height * (((100 / k_height_orig) * st_orizzontal.y) / 100)
+//		end if
+//		
+//		if st_vertical.visible then
+//			tv_root.width = st_vertical.X - st_vertical.width 
+//			lv_1.width =  this.width - st_vertical.X - st_vertical.width // -70 
+//		else
+//			lv_1.width = this.width //- 75 
+//		end if
+//
+//		if st_vertical.visible then
+//			lv_1.x = st_vertical.x + st_vertical.width 
+//			st_vertical.bringtotop = true
+//		end if
+//		st_vertical.height = st_orizzontal.y
+//		
+//		if st_orizzontal.visible then
+//			st_orizzontal.width = this.width
+//			st_orizzontal.bringtotop = true
+//			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
+//			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
+//			dw_anteprima.width = st_orizzontal.width 
+//			lv_1.height = this.height - st_orizzontal.y 
+//		end if
+//	
+//		lv_1.height = st_vertical.height
+//		tv_root.height = st_vertical.height 
+//	
+//	end if
+//	this.setredraw(true)
+//
+//
+//
 end subroutine
 
 private subroutine u_set_data_certif_da_st ();//---
@@ -1721,73 +1731,7 @@ end subroutine
 public subroutine u_resize ();//
 super::u_resize( )
 
-u_resize_default()
-end subroutine
-
-public subroutine u_resize_default ();//---
-long k_width_orig, k_height_orig
-
-
-	this.setredraw(false)
-
-	if ki_st_orizzontal then
-		k_width_orig = st_orizzontal.width
-		k_height_orig = st_orizzontal.y + st_orizzontal.height + dw_anteprima.height
-	else
-		k_height_orig = tv_root.height
-		if ki_st_vertical then
-			k_width_orig = st_vertical.X + st_vertical.width + lv_1.width
-		else
-			k_width_orig = tv_root.width
-		end if
-	end if
-		
-	if k_width_orig > 0 then
-		
-		if ki_st_vertical then
-			st_vertical.X = this.width * (((100 / k_width_orig) * st_vertical.X) / 100)
-		end if
-		if ki_st_orizzontal then
-			st_orizzontal.Y = this.height * (((100 / k_height_orig) * st_orizzontal.y) / 100)
-		end if
-		
-		if st_vertical.visible then
-			tv_root.width = st_vertical.X - st_vertical.width 
-			lv_1.width =  this.width - st_vertical.X - st_vertical.width // -70 
-		else
-			lv_1.width = this.width //- 75 
-		end if
-
-		if st_vertical.visible then
-			lv_1.x = st_vertical.x + st_vertical.width 
-			st_vertical.bringtotop = true
-		end if
-		st_vertical.height = st_orizzontal.y
-		
-		if st_orizzontal.visible then
-			st_orizzontal.width = this.width
-			st_orizzontal.bringtotop = true
-			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
-			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
-			dw_anteprima.width = st_orizzontal.width 
-			lv_1.height = this.height - st_orizzontal.y 
-		end if
-	
-		lv_1.height = st_vertical.height
-		tv_root.height = st_vertical.height 
-
-		lv_1.visible = true
-		dw_anteprima.visible = st_orizzontal.visible
-	
-	end if
-
-	tv_root.visible = st_vertical.visible
-	dw_anteprima.visible = st_orizzontal.visible
-
-	this.setredraw(true)
-	this.visible = true
-
-
+u_resize_init()
 end subroutine
 
 private subroutine u_smista_lib1 ();//
@@ -1822,6 +1766,62 @@ try
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 end try
+
+end subroutine
+
+public subroutine u_resize_init ();//---
+long k_height
+
+	this.setredraw(false)
+	
+//		if ki_st_vertical then
+//			st_vertical.X = this.width * (((100 / k_width) * st_vertical.X) / 100)
+//		end if
+//		if ki_st_orizzontal then
+//			st_orizzontal.Y = this.height * (((100 / k_height) * st_orizzontal.y) / 100)
+//		end if
+		
+		if ki_st_vertical then
+			st_vertical.visible = true
+			tv_root.width = st_vertical.X - st_vertical.width 
+			lv_1.width =  this.width - tv_root.width
+			lv_1.x = st_vertical.x + st_vertical.width 
+			st_vertical.bringtotop = true
+		else
+			st_vertical.visible = false
+			lv_1.width = this.width //- 75 
+			lv_1.x = 1
+		end if
+		
+		if ki_st_orizzontal then
+			st_orizzontal.visible = true
+			if st_orizzontal.y <= this.height / 10 then st_orizzontal.y = this.height / 3
+			st_orizzontal.width = this.width
+			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
+			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
+			dw_anteprima.width = st_orizzontal.width 
+			lv_1.height = this.height - st_orizzontal.y 
+			st_vertical.height = st_orizzontal.y
+			st_orizzontal.bringtotop = true
+			k_height = st_vertical.height
+		else
+			st_orizzontal.visible = false
+			st_vertical.height = this.height
+			k_height = this.height
+		end if
+	
+		lv_1.height = k_height
+		tv_root.height = k_height
+
+		lv_1.visible = true
+		dw_anteprima.visible = st_orizzontal.visible
+	
+	lv_1.visible = ki_st_vertical
+	dw_anteprima.visible = ki_st_orizzontal
+
+	this.setredraw(true)
+	this.visible = true
+
 
 end subroutine
 

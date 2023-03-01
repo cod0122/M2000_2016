@@ -244,6 +244,7 @@ kuf_utility kuf1_utility
 			end if
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "docfinen"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_docfinen ))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "notefatt"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_notefatt ))
+			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "ordine"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_ordine ))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoicen"; if kst_tab_ptasks_rows.cs_invoicen > 0 then k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoicen))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoice_id_cliente"; if kst_tab_ptasks_rows.cs_invoice_id_cliente > 0 then k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoice_id_cliente))
 			if isdate(string(kst_tab_ptasks_rows.cs_invoicedata)) and kst_tab_ptasks_rows.cs_invoicedata > kkg.data_no then
@@ -332,11 +333,11 @@ kuf_utility kuf1_utility
 		end if
 		
 	catch	(uo_exception kuo_exception)
+		kuo_exception.scrivi_log( )
 		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
 			if kst_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
 				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
-			kguo_exception.scrivi_log( )
 		end if
 		throw kuo_exception
 	

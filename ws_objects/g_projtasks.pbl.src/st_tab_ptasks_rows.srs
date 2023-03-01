@@ -32,6 +32,7 @@ global type st_tab_ptasks_rows from structure
 	date		cs_stgddtdata
 	string		cs_docfinen
 	string		cs_notefatt
+	string		cs_ordine		descriptor "comment" = "31/01/2023  numeri ordini"
 	integer		cs_invoicen		descriptor "comment" = "numero fattura (INVOICE)"
 	date		cs_invoicedata		descriptor "comment" = "data fattura"
 	integer		cs_invoice_id_cliente		descriptor "comment" = "id_cliente intestazione INVOICE"
