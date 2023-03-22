@@ -1835,7 +1835,7 @@ int k_return = 0
 int k_file, k_rcn=0 
 int k_bytes, k_pos_start
 string k_path
-string k_nome_file, k_riga, k_argomenti
+string k_nome_file, k_riga, k_argomenti, k_file_completo
 st_open_w kst_open_w
 st_esito kst_esito
 pointer oldpointer  // Declares a pointer variable
@@ -1867,6 +1867,21 @@ kuf_file_explorer kuf1_file_explorer
 		kuf1_file_explorer.u_directory_create(k_path)
 	end if
 		 
+	if trim(kst_stampe.DataObject) > " " then
+	else
+		if (kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_dw_diretta or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datawindow &
+		                        or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_dw_rtf) &
+						and isvalid(kst_stampe.dw_print) then
+			kst_stampe.DataObject = kst_stampe.dw_print.dataobject
+		else
+			if (kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore &
+			                 or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_pdf_BATCH) &
+						and isvalid(kst_stampe.ds_print) then
+				kst_stampe.DataObject = kst_stampe.ds_print.dataobject
+			end if
+		end if
+	end if
+		
 	k_nome_file = trim(kst_stampe.DataObject)
 	k_nome_file = kuf1_utility.u_stringa_cmpnovocali(k_nome_file)   // cmpatta il nome file 
 
@@ -1921,18 +1936,20 @@ kuf_file_explorer kuf1_file_explorer
 			kGuo_exception.set_esito (kst_esito)
 
 		else
+			k_file_completo = trim(k_path) + k_nome_file + ".txt"
+
 			if kst_stampe.tipo <> kuf_stampe.ki_stampa_tipo_datastore and kst_stampe.tipo <> kuf_stampe.ki_stampa_tipo_datastore_diretta &
 			           and kst_stampe.tipo <> kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH and kst_stampe.tipo <> kuf_stampe.ki_stampa_tipo_datastore_pdf_BATCH then
 				
 				if isvalid(kst_stampe.dw_print) then
-					k_rcn = kst_stampe.dw_print.saveas( (trim(k_path)  + k_nome_file + ".txt"), text!, false) 
+					k_rcn = kst_stampe.dw_print.saveas(k_file_completo, text!, false) 
 					if k_rcn < 0 then
 						k_return = 1
 					end if
 				end if
 			else
 				if isvalid(kst_stampe.ds_print) then
-					k_rcn = kst_stampe.ds_print.saveas( (trim(k_path) + k_nome_file + ".txt"), text!, false)
+					k_rcn = kst_stampe.ds_print.saveas(k_file_completo, text!, false)
 					if k_rcn < 0 then
 						k_return = 1
 					end if
@@ -1940,7 +1957,7 @@ kuf_file_explorer kuf1_file_explorer
 			end if
 				
 			if k_return = 1 then
-				kst_esito.sqlerrtext ="Errore in scrittura file ~n~r" + trim(k_path) + k_nome_file + ".txt"
+				kst_esito.sqlerrtext ="Errore in scrittura file ~n~r" + k_file_completo
 				kst_esito.sqlcode = k_rcn
 				kGuo_exception.set_esito (kst_esito)
 			end if
@@ -1983,9 +2000,6 @@ kuf_file_explorer kuf1_file_explorer
 		kst_stampe.stampante_predefinita = ""
 	end if
 
-	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
-
 	if kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_pdf_BATCH then
 		kst_stampe.ds_print.modify("Print.documentname = '"+kst_stampe.titolo+"'")
 		if kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH then
@@ -2000,6 +2014,16 @@ kuf_file_explorer kuf1_file_explorer
 				end if
 			end if
 		end if
+
+		if k_return = 0 then
+			if kst_stampe.pathfile > " " and kst_stampe.ask_if_open then
+				if messagebox("Operazione terminata correttamente",  "Vuoi aprire subito il file " + kkg.acapo + trim(k_file_completo), Question!, yesno!, 1) = 1 then
+					SetPointer(kkg.pointer_attesa)
+					kuf1_file_explorer.of_execute(kst_stampe.pathfile)
+				end if
+			end if
+		end if
+		
 	else
 
 //=== Parametri : 
@@ -2020,7 +2044,9 @@ kuf_file_explorer kuf1_file_explorer
 		destroy kuf1_menu_window
 	end if
 	
-				
+	
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
 				
 return k_return
 

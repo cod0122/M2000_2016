@@ -38,7 +38,7 @@ w_g_tab kiw_this_window
 protected boolean ki_display_delete_key_on_menu = false
 
 protected boolean ki_esponi_msg_dati_modificati = true
-protected boolean ki_esponi_msg_dati_modificati_salvaauotom = false   // ha senso solo se ki_esponi_msg_dati_modificati=false
+protected boolean ki_esponi_msg_dati_modificati_salvaauotom = false   // Salva a SI senza chiedere ha senso solo se ki_esponi_msg_dati_modificati=false
 
 
 private boolean ki_toolbar_programmi_attiva_voce=true

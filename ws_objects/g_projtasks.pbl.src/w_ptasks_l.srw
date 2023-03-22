@@ -92,7 +92,7 @@ if k_row_delete > 0 then
 				dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
 				dw_lista_0.deleterow(k_riga)
 		
-				k_riga = dw_lista_0.getselectedrow(k_riga)	
+				k_riga = dw_lista_0.getselectedrow(0)	
 			loop
 			
 			kguo_sqlca_db_magazzino.db_commit()

@@ -255,6 +255,7 @@ kuf_utility kuf1_utility
 			end if
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoicefirmanome"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoicefirmanome))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoicefirmaruolo"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoicefirmaruolo))
+			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoiceorigin"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoiceorigin))
 
 			if isdate(string(kst_tab_ptasks_rows.acc_arrivodata)) and kst_tab_ptasks_rows.acc_arrivodata > kkg.data_no then
 				k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "arrivodata";	k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.acc_arrivodata))				
@@ -550,7 +551,7 @@ public function long get_id_ptasks_row (st_tab_ptasks_rows ast_tab_ptasks_rows) 
 //--- Torna id_ptasks_row per il Progetto id_ptasks inserito 
 //--- 
 //---  input: ID_PTASK + ID_PTASKS_TYPE
-//---  ret: max id_ptasks_row
+//---  ret: id_ptasks_row
 //---                                     
 //------------------------------------------------------------------
 //
@@ -573,7 +574,7 @@ st_esito kst_esito
 		kst_esito.SQLErrText = "Errore in lettura N. Attività del Progetto n. " + string(ast_tab_ptasks_rows.ID_PTASK) &
 										+ " Attività n. " + string(ast_tab_ptasks_rows.ID_PTASKS_TYPE) &
 										+ ", (ptasks_rows)." &
-									 	+ "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
+									 	+ kkg.acapo  + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception

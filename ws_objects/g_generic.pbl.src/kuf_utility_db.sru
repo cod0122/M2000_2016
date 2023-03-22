@@ -2403,6 +2403,7 @@ uo_exception kuo_exception
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmadata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmadata'))  else null  end cs_invoicefirmadata " &
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmanome')) cs_invoicefirmanome " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmaruolo')) cs_invoicefirmaruolo " & 
+		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoiceorigin')) cs_invoiceorigin " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata'))  else null  end accettazione_arrivodata  " &
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo')) else 0 end accettazione_e1wo " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg') > '0' then convert(decimal(8,3), JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg')) else 0.0000 end accettazione_pesolordoxlottokg " & 

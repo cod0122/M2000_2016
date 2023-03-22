@@ -95,6 +95,7 @@ try
 	if k_righe > 0 then
 		kst_stampe.titolo = "Stampa Lotto id " + string(ast_tab_meca.id)
 		kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH 
+		kst_stampe.ask_if_open = true
 		if kGuf_data_base.stampa_dw(kst_stampe) = 0 then
 			k_return = true
 		end if

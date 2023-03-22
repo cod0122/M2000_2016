@@ -1510,17 +1510,21 @@ st_proteggi kst_proteggi
 	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
 
 	if k_id_campo > 0 then
-		k_ctr=k_id_campo
+		// FACCIO solo 1 campo
+		k_ctr = k_id_campo
+		k_num_colonne_nr = k_id_campo
 	else
+		// FACCIO TUTTA LA DW
 		k_ctr=1
-	end if
 
-	k_num_colonne = k_dw.Object.DataWindow.Column.Count
-	if isnumber(k_num_colonne) then
-		k_num_colonne_nr = integer(k_num_colonne)
-	else
-		k_num_colonne_nr = 99
+		k_num_colonne = k_dw.Object.DataWindow.Column.Count
+		if isnumber(k_num_colonne) then
+			k_num_colonne_nr = integer(k_num_colonne)
+		else
+			k_num_colonne_nr = 99
+		end if
 	end if
+	
 	do 
 
 		k_campo = trim(string(k_ctr,"###"))
@@ -1862,62 +1866,68 @@ public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref
 //---    k_dw la datawindows da proteggere/sproteggere
 //---
 int k_rc
-string k_style
-string k_type
-string k_visible="1"
-int k_ctr
-string k_rcx, k_modify
-st_proteggi kst_proteggi
+string k_id_campox
+int k_id_campo
+//string k_style
+//string k_type
+//string k_visible="1"
+//int k_ctr
+//string k_rcx, k_modify
+//st_proteggi kst_proteggi
 
 
 if trim(k_txt_campo) > " " then
 
-	if k_operazione = "0" or k_operazione = "2" then  //proteggi 
-		k_modify = "DataWindow.ReadOnly=no "
-	end if
-	
-//--- imposta i campi Colore, Protetto ....
-	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
+	k_id_campox = trim(k_dw.Describe( trim(k_txt_campo) + ".ID"))
+	if IsNumber (k_id_campox) then
+		k_id_campo = integer(k_id_campox)
 
-	if trim(k_txt_campo) > " " then
-		k_ctr=0
-	else
-		k_ctr=1
-	end if
+		u_proteggi_dw(k_operazione, k_id_campo, k_dw)
+	end if 
 
-	k_type = trim(k_dw.Describe(" " + trim(k_txt_campo)+".Type"))
-	if k_type = "column" then
-		
-		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
-			k_modify += " " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'"
-		end if
-		//k_rc1=k_dw.Modify(" " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'")
-		
-		k_style=trim(k_dw.Describe(" " + trim(k_txt_campo)+".Edit.Style"))
-		if k_style <> "checkbox" and k_style <> "radiobuttons" then
-			
-			if k_operazione <> "2" and k_operazione <> "3" then  //fai senza mod il colore
-			
-				k_modify += trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" &
-				          + trim(k_txt_campo)+".Background.Transparency=1"
-				//k_rcx = k_dw.Modify(trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" + trim(k_txt_campo)+".Background.Transparency=1")
-			end if
-			
-		end if
-
-	else
-		
-		k_modify += " " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'"
-		//k_rc1=k_dw.Modify(" " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'")
-
-	end if
-	
-	if k_modify > " " then
-		
-		k_rcx = k_dw.Modify(k_modify)
-		u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne	
-		
-	end if
+//	if k_operazione = "0" or k_operazione = "2" then  //proteggi 
+//		k_modify = "DataWindow.ReadOnly=no "
+//	end if
+//	
+////--- imposta i campi Colore, Protetto ....
+//	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
+//
+//	if trim(k_txt_campo) > " " then
+//		k_ctr=0
+//	else
+//		k_ctr=1
+//	end if
+//
+//	k_type = trim(k_dw.Describe(" " + trim(k_txt_campo)+".Type"))
+//	if k_type = "column" then
+//		
+//		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
+//			k_modify += " " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'"
+//		end if
+//		
+//		k_style=trim(k_dw.Describe(" " + trim(k_txt_campo)+".Edit.Style"))
+//		if k_style <> "checkbox" and k_style <> "radiobuttons" then
+//			
+//			if k_operazione <> "2" and k_operazione <> "3" then  //fai senza mod il colore
+//			
+//				k_modify += trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" &
+//				          + trim(k_txt_campo)+".Background.Transparency=1"
+//			end if
+//			
+//		end if
+//
+//	else
+//		
+//		k_modify += " " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'"
+//
+//	end if
+//	
+//	if k_modify > " " then
+//		
+//		k_rcx = k_dw.Modify(k_modify)
+//		u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne	
+//		
+//	end if
 	
 else
 	u_proteggi_dw(k_operazione, 0, k_dw)

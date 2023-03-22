@@ -314,27 +314,9 @@ tab_1.tabpage_2.dw_2.setfocus()
 end subroutine
 
 protected subroutine attiva_menu ();//
-
-	choose case tab_1.selectedtab 
-		case 1
-			m_main.m_finestra.m_gestione.m_fin_inserimento.text = "Nuovo Utente"
-			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina Utente"
-			m_main.m_finestra.m_gestione.m_fin_inserimento.toolbaritemtext = "Nuovo," + m_main.m_finestra.m_gestione.m_fin_inserimento.text
-			m_main.m_finestra.m_gestione.m_fin_elimina.toolbaritemtext = "Elimina," + m_main.m_finestra.m_gestione.m_fin_elimina.text
-		case 2 
-			m_main.m_finestra.m_gestione.m_fin_inserimento.text = "Aggiunge Profilo"
-			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Toglie Profilo"
-			m_main.m_finestra.m_gestione.m_fin_inserimento.toolbaritemtext = "Aggiunge," + m_main.m_finestra.m_gestione.m_fin_inserimento.text
-			m_main.m_finestra.m_gestione.m_fin_elimina.toolbaritemtext = "Toglie," + m_main.m_finestra.m_gestione.m_fin_elimina.text
-	end choose
-	m_main.m_finestra.m_gestione.m_fin_inserimento.microhelp = m_main.m_finestra.m_gestione.m_fin_inserimento.text
-	m_main.m_finestra.m_gestione.m_fin_elimina.microhelp = m_main.m_finestra.m_gestione.m_fin_elimina.text
-
-
-//
 //--- Attiva/Dis. Voci di menu personalizzate
 //
-	if m_main.m_strumenti.m_fin_gest_libero1.visible then
+	if m_main.m_strumenti.m_fin_gest_libero1.visible <> cb_inserisci.enabled then
 		m_main.m_strumenti.m_fin_gest_libero1.text = "Importa Programmi"
 		m_main.m_strumenti.m_fin_gest_libero1.microhelp = &
 		"Carica le Funzioni mancanti da elenco Programmi"

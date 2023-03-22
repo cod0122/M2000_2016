@@ -1,5 +1,6 @@
 ﻿$PBExportHeader$st_stampe.srs
 global type st_stampe from structure
+	boolean		ask_if_open		descriptor "comment" = "TRUE = non richiede se aprire subito il doc stampato"
 	string		tipo
 	string		titolo
 	string		titolo_2

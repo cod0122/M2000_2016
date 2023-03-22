@@ -8,6 +8,7 @@ global type w_meca_qtna_note from w_g_tab0
 integer width = 2002
 integer height = 1412
 boolean ki_esponi_msg_dati_modificati = false
+boolean ki_esponi_msg_dati_modificati_salvaauotom = true
 boolean ki_exit_dopo_save_ok = true
 boolean ki_reset_dopo_save_ok = false
 end type

@@ -276,10 +276,10 @@ catch (uo_exception kuo_execption)
 	k_return = trim(kst_esito.esito) + trim(kst_esito.sqlerrtext)
 	if k_return > " " then
 		tab_1.tabpage_1.dw_1.event u_disp_avvertenze("Aggiornamento dati Progetto non completatato.")
-		messagebox("Aggiornamento in Errore", "Aggiornamento dati Progetto non completatato" +"~n~r"+ k_return)
+		messagebox("Aggiornamento in Errore", "Aggiornamento dati Progetto non completatato" + kkg.acapo + k_return)
 	else
-		tab_1.tabpage_1.dw_1.event u_disp_avvertenze("Errore in Aggiornamento Lotto, operazione non completata.")
-		k_return = "1Errore in Aggiornamento Lotto, operazione non completata."
+		tab_1.tabpage_1.dw_1.event u_disp_avvertenze("Errore in Aggiornamento Progetto, operazione non completata.")
+		k_return = "1Errore in Aggiornamento Progetto, operazione non completata."
 		messagebox("Aggiornamento in Errore", "Aggiornamento dati Progetto non completatato")
 	end if
 
@@ -829,6 +829,7 @@ if tab_1.tabpage_2.dw_2.rowcount( ) > 0 then
 	kst_tab_ptasks_rows.cs_invoicefirmadata = tab_1.tabpage_2.dw_2.getitemdate( 1, "cs_invoicefirmadata")
 	kst_tab_ptasks_rows.cs_invoicefirmanome = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoicefirmanome")
 	kst_tab_ptasks_rows.cs_invoicefirmaruolo = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoicefirmaruolo")
+	kst_tab_ptasks_rows.cs_invoiceorigin = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoiceorigin")
 end if
  
 if tab_1.tabpage_3.dw_3.rowcount( ) > 0 then
@@ -1629,11 +1630,14 @@ private subroutine u_protegge_sprotegge_dw ();//
 	end if
 
 //--- campo STATUS da abilitare se sono entrato in MODIFICA 
-	if ki_status_enable then
-		kiuf_utility.u_proteggi_dw("0", "status", tab_1.tabpage_1.dw_1)
-	else
-		kiuf_utility.u_proteggi_dw("1", "status", tab_1.tabpage_1.dw_1)
-	end if
+//	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
+//			or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+		if ki_status_enable then
+			kiuf_utility.u_proteggi_dw("0", "status", tab_1.tabpage_1.dw_1)
+		else
+			kiuf_utility.u_proteggi_dw("1", "status", tab_1.tabpage_1.dw_1)
+		end if
+//	end if
 
 
 end subroutine
@@ -2392,6 +2396,7 @@ event u_ddwc ( )
 event u_ddwc_invoicefirmanomeruolo ( )
 event u_ddwc_invoiceid_cliente ( )
 event u_ddwc_invoiceid_cliente_x_id_cliente ( integer k_id_cliente )
+event u_ddwc_invoiceorigin ( )
 boolean enabled = true
 string dataobject = "d_ptasks_row_cs"
 boolean hsplitscroll = false
@@ -2518,6 +2523,7 @@ event u_ddwc_ddt_out( )
 event u_ddwc_e1so( )
 event u_ddwc_invoicefirmanomeruolo()
 event u_ddwc_invoiceid_cliente()
+event u_ddwc_invoiceorigin()
 
 end event
 
@@ -2559,6 +2565,20 @@ datawindowchild kdwc_1
 	kdwc_1.settransobject( kguo_sqlca_db_magazzino )
 	if kdwc_1.rowcount() < 2 then
 		k_rc = kdwc_1.retrieve(k_id_cliente)
+		kdwc_1.insertrow(1)
+	end if
+	
+end event
+
+event dw_2::u_ddwc_invoiceorigin();//
+int k_rc
+datawindowchild kdwc_1
+
+
+	this.getchild("cs_invoiceorigin", kdwc_1)
+	kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+	if kdwc_1.rowcount() < 2 then
+		k_rc = kdwc_1.retrieve()
 		kdwc_1.insertrow(1)
 	end if
 	
@@ -2672,6 +2692,9 @@ long k_cs_invoicen
 			if k_cs_invoicen > 0 then
 				this.setitem(row, "cs_invoicen", k_cs_invoicen)
 			end if
+
+		case "invoiceorigin"
+			event u_ddwc_invoiceorigin()
 
 	end choose
 end event

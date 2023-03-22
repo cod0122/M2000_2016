@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.23.03.011
-PVN:13,23,3,11
-FVS:13.23.03.011
-FVN:13,23,3,11
+PVS:13.23.03.221
+PVN:13,23,3,221
+FVS:13.23.03.221
+FVN:13,23,3,221
 MAN:1,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -75,10 +75,10 @@ OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino_prezzi,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_ausiliari,u
 OBJ:C:\Sterigenics\app32\g_memo.pbl,kuf_memo_link,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_wo_f5548014,u
-OBJ:C:\Sterigenics\app32\g_a_2.pbl,d_att_stampa_ed1b01_2013,d
 OBJ:C:\Sterigenics\app32\g_e1.pbl,st_tab_f5537001,s
 OBJ:C:\Sterigenics\app32\g_wm.pbl,kuf_wm_pklist_web,u
 OBJ:C:\Sterigenics\app32\g_parent.pbl,st_tab_db_cfg,s
+OBJ:C:\Sterigenics\app32\g_a_2.pbl,d_att_stampa_ed1b01_2013,d
 OBJ:C:\Sterigenics\app32\g_parent.pbl,kuf_parent,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,d_powerfilter_monthopts,d
 OBJ:C:\Sterigenics\app32\g_parent.pbl,uo_d_std_trova,u
@@ -389,6 +389,7 @@ OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_cond_fatt,s
 OBJ:C:\Sterigenics\app32\g_xsmart.pbl,st_tab_docprod,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_clie_settori,s
 OBJ:C:\Sterigenics\app32\g_memo.pbl,kuf_memo_utenti,u
+OBJ:C:\Sterigenics\app32\g_a_2.pbl,d_att_stampa_ed1_05_2020,d
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_f5537001_ifesiste,u
 OBJ:C:\Sterigenics\app32\g_xsmart.pbl,st_web_pubblica,s
 OBJ:C:\Sterigenics\app32\g_op_2.pbl,st_int_artr,s

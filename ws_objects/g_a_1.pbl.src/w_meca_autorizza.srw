@@ -478,8 +478,9 @@ try
 		if messagebox("Apre Quarantena", "Apertura QUARANTENA per questo Lotto, confermare l'operazione !", stopsign!, yesno!, 2) = 1 then
 			if kiuf_meca_qtna.apri(kst_tab_meca_qtna) then
 				inizializza_lista()
-				kGuo_exception.inizializza( )
-				kGuo_exception.messaggio_utente( "Operazione Riusciuta", "Quarantena Aperta")	
+				u_call_quarantena_note( )  // apre la finestra delle NOTE
+				//kGuo_exception.inizializza( )
+				//kGuo_exception.messaggio_utente( "Operazione Riusciuta", "Quarantena Aperta")	
 			else
 				kGuo_exception.inizializza( )
 				kGuo_exception.messaggio_utente( "Operazione Fallita", "Quarantena non Aperta")	

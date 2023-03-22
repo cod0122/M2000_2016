@@ -498,11 +498,19 @@ try
 	
 
 		case "X"   // stampa dati lotto selezionati
-			kuf1_meca_stampa = create kuf_meca_stampa
 			k_riga = dw_lista_0.getselectedrow(0)
+			if k_riga = 0 and dw_lista_0.rowcount( ) > 0 then
+				k_riga = dw_lista_0.getrow( )
+				if k_riga = 0 then
+					k_riga = 1
+				end if
+				dw_lista_0.selectrow(k_riga, true)
+			end if
+					
 			do while k_riga > 0
 				kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
 				if kst_tab_meca.id > 0 then
+					kuf1_meca_stampa = create kuf_meca_stampa
 					kuf1_meca_stampa.u_stampa(kst_tab_meca)
 				end if
 				k_riga = dw_lista_0.getselectedrow(k_riga)
