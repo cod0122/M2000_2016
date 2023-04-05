@@ -47,6 +47,8 @@ protected subroutine pulizia_righe ()
 protected subroutine u_pulizia_righe_dosimpos ()
 protected subroutine inizializza_3 () throws uo_exception
 protected subroutine inizializza_2 () throws uo_exception
+private subroutine u_get_path_packingformin_file ()
+private subroutine u_open_packingformin_file ()
 end prototypes
 
 private function integer inserisci ();//
@@ -807,7 +809,7 @@ string k_errore = "0"
 long k_nr_righe
 int k_riga, k_num_file=0, k_num_file_p=0, k_num_diff_giri_fila1, k_num_diff_giri_fila2
 int k_nr_errori
-string k_key_str
+string k_key_str, k_rcx
 string k_stato, k_tipo
 string k_key
 
@@ -872,6 +874,15 @@ string k_key
 			           + "~n~r" 
 			k_errore = "1"
 			k_nr_errori++
+		end if
+	end if
+
+//--- il file deve iniziare con il BARRA di inizio cartella, se non c'è l'aggiunge
+	k_rcx = trim(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "packingformin_file"))
+   if k_rcx> " " then
+	   if left(k_rcx, 1) = kkg.path_sep then
+		else
+	      tab_1.tabpage_1.dw_1.setitem( k_riga, "packingformin_file", (kkg.path_sep + k_rcx)) 
 		end if
 	end if
 
@@ -1392,6 +1403,88 @@ string k_show_all
 
 end subroutine
 
+private subroutine u_get_path_packingformin_file ();//
+string k_root, k_path_file, k_file, k_path
+int k_ret
+int k_pos
+
+
+k_root = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "dir_cust_packing_in"))
+if k_root > " " then
+
+	k_path = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "packingformin_file"))
+	if k_path > " " then
+		k_path = k_root + kkg.path_sep + k_path
+	else
+		k_path = k_root
+	end if
+		
+	k_ret = GetFileOpenName ( "Scegliere il documento con il formato del packing del Lotto in entrata", k_path_file, k_file, "pdf", " Tutti i file (*.*),*.*" , k_path, 32784)
+	
+	if k_ret = 1 then
+		k_pos = pos(k_path_file, k_root)
+		if k_pos > 0 then
+// rimuove la ROOT dalla scelta
+			k_file = trim(mid(k_path_file, len(k_root) + 1))
+			
+			if k_file > " " then
+				tab_1.tabpage_1.dw_1.setitem(1, "packingformin_file", trim(k_file))
+			end if
+			
+		else
+			messagebox("Scelta Errata", "Il Documento deve essere all'interno della cartella '" + k_root + "', operazione scartata", stopsign!)
+		end if		
+	else
+		if k_ret < 0 then
+	//--- ERRORE	
+		end if
+	end if
+
+else
+	messagebox("Scelta Documento", "Manca l'indicazione della cartella radice sulle Proprietà Azienda, operazione bloccata", stopsign!)
+	k_path=".."
+end if
+
+
+
+end subroutine
+
+private subroutine u_open_packingformin_file ();//
+string k_file_path, k_root
+boolean k_ret
+long ll_p
+kuf_file_explorer kuf1_file_explorer
+
+
+k_file_path = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "packingformin_file"))
+
+if k_file_path > " " then
+
+	if left(k_file_path, 1) = kkg.path_sep then
+	else
+		k_file_path = kkg.path_sep + k_file_path
+	end if
+
+	k_root = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "dir_cust_packing_in"))
+	k_file_path = k_root + k_file_path
+
+	kuf1_file_explorer = create kuf_file_explorer
+
+	if not kuf1_file_explorer.of_execute( k_file_path ) then
+		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
+		kguo_exception.setmessage( "Il documento non può essere aperto, forse estensione non riconosciuta o file non raggiungibile: " &
+		 							+ kkg.acapo + k_file_path)
+		kguo_exception.messaggio_utente( )
+	end if
+
+	destroy kuf1_file_explorer
+
+end if
+
+
+
+end subroutine
+
 on w_sl_pt.create
 int iCurrent
 call super::create
@@ -1614,6 +1707,13 @@ choose case dwo.name
 		
 	case "p_img_dosimesempio"
 		u_open_esempio_st_dosim( )
+
+	case "b_packingformin_file" 
+	   if (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
+			u_get_path_packingformin_file()
+		end if
+	case "p_img_packingformin_file_vedi" 
+		u_open_packingformin_file()
 		
 end choose
 	

@@ -171,7 +171,16 @@ protected subroutine open_start_window ();//
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 		
 		ki_status_enable = true
-
+	else
+		
+		if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
+			try
+				kiuf_ptasks.if_sicurezza(kkg_flag_modalita.modifica)
+		   	ki_status_enable = true
+			catch (uo_exception kuo_exception)
+			end try
+		end if
+		
 	end if
 
 end subroutine

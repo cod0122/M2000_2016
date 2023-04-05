@@ -4121,7 +4121,7 @@ try
 			if trim(kdw_1.describe("id_meca.x")) <> "!" then
 				kst_tab_meca.id = kdw_1.getitemnumber(k_row, "id_meca")
 				if kst_tab_meca.id > 0 then
-					k_title += " (id=" + string(kst_tab_meca.id) + ") "
+					k_title += " (Id/ASN=" + string(kst_tab_meca.id) + ") "
 				else
 					k_return = false
 				end if
@@ -4132,7 +4132,7 @@ try
 		case "id_meca", "meca_id", "lotto_id"
 			kst_tab_meca.id = kdw_1.getitemnumber(k_row, k_campo_link)
 			if kst_tab_meca.id > 0 then
-				k_title = " (id=" + string(kst_tab_meca.id) + ") "
+				k_title = " (Id/ASN=" + string(kst_tab_meca.id) + ") "
 			else
 				k_return = false
 			end if
@@ -4176,6 +4176,14 @@ try
 			else
 				k_return = false
 			end if
+			
+		case "meca_1_print"
+			kst_tab_meca.id = kdw_1.getitemnumber(k_row, "id_meca")
+			if kst_tab_meca.id > 0 then
+				k_title = " (Id/ASN=" + string(kst_tab_meca.id) + ") "
+			else
+				k_return = false
+			end if
 	
 	end choose
 	
@@ -4210,6 +4218,9 @@ try
 
 			case "meca_id"
 				kst_esito = kiuf_armo.anteprima_testa ( kdsi_elenco_output, kst_tab_meca )
+
+			case "meca_1_print"
+				kst_esito = kiuf_armo.anteprima_meca_print ( kdsi_elenco_output, kst_tab_meca )
 
 			case else				
 				kst_esito = kiuf_armo.anteprima_riga ( kdsi_elenco_output, kst_tab_armo )

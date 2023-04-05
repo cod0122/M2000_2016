@@ -197,6 +197,10 @@ try
 		kst_esito = kiuf_sr_sicurezza.tb_select(kst_tab_sr_utenti)
 		if kst_esito.esito = kkg_esito.ok then 
 			st_informa.text = "Accesso non Autorizzato, password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi."
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.kist_esito.esito = kkg_esito.ko
+			kguo_exception.kist_esito.sqlerrtext = st_informa.text
+			kguo_exception.scrivi_log( )
 			//messagebox("Accesso non Autorizzato", "Password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.", information!)
 		else
 			st_informa.text = "Accesso non Autorizzato, provare a ripetere le credenziali di accesso"

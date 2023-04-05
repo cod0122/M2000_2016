@@ -1898,6 +1898,26 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	if isnull(kst_tab_base.smart_pickup_lots_file) then
 		kst_tab_base.smart_pickup_lots_file = ""
 	end if
+	if isnull(kst_tab_base.dir_cust_packing_in) then
+		kst_tab_base.dir_cust_packing_in = ""
+	end if
+
+	kst_tab_base.dir_fatt 			= trim(kst_tab_base.dir_fatt)   
+	kst_tab_base.dir_ddt 			= trim(kst_tab_base.dir_ddt)   
+	kst_tab_base.doc_root 			= trim(kst_tab_base.doc_root)   
+	kst_tab_base.esolver_expanag_dir = trim(kst_tab_base.esolver_expanag_dir)
+	kst_tab_base.esolver_expanag_nome = trim(kst_tab_base.esolver_expanag_nome)
+	kst_tab_base.esolver_fidi_dir	 = trim(kst_tab_base.esolver_fidi_dir)
+	kst_tab_base.esolver_expfidi_nome = trim(kst_tab_base.esolver_expfidi_nome)
+	kst_tab_base.esolver_inpfidi_nome = trim(kst_tab_base.esolver_inpfidi_nome)
+	kst_tab_base.dir_report_pilota   = trim(kst_tab_base.dir_report_pilota)
+	kst_tab_base.report_export_dir   = trim(kst_tab_base.report_export_dir)
+	kst_tab_base.aco_exp_regcdp_dir  = trim(kst_tab_base.aco_exp_regcdp_dir)
+	kst_tab_base.e1_certif_saved_dir = trim(kst_tab_base.e1_certif_saved_dir)
+	kst_tab_base.smart_pickup_lots_dir = trim(kst_tab_base.smart_pickup_lots_dir)
+	kst_tab_base.smart_pickup_lots_file = trim(kst_tab_base.smart_pickup_lots_file)
+	kst_tab_base.dir_cust_packing_in = trim(kst_tab_base.dir_cust_packing_in)
+
 	
 	k_rcn = 0
 	select count(*)
@@ -1927,6 +1947,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 					e1_certif_saved_dir = :kst_tab_base.e1_certif_saved_dir,
 					smart_pickup_lots_dir = :kst_tab_base.smart_pickup_lots_dir
 					,smart_pickup_lots_file = :kst_tab_base.smart_pickup_lots_file
+					,dir_cust_packing_in = :kst_tab_base.dir_cust_packing_in
 					,x_datins = :kst_tab_base.x_datins
 					,x_utente = :kst_tab_base.x_utente  
 				WHERE id_base = :kst_tab_base.id_base 
@@ -1950,6 +1971,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  e1_certif_saved_dir,
 						  smart_pickup_lots_dir,
 						  smart_pickup_lots_file,
+					     dir_cust_packing_in, 
 						  x_datins,   
 						  x_utente )  
 				  VALUES ( :kst_tab_base.id_base,   
@@ -1967,6 +1989,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  :kst_tab_base.e1_certif_saved_dir,
 						  :kst_tab_base.smart_pickup_lots_dir,
 						  :kst_tab_base.smart_pickup_lots_file,
+						  :kst_tab_base.dir_cust_packing_in,
 						  :kst_tab_base.x_datins,   
 						  :kst_tab_base.x_utente )  
 				using kguo_sqlca_db_magazzino;

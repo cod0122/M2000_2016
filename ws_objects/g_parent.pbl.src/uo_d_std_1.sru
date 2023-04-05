@@ -1847,6 +1847,13 @@ if ki_attiva_standard_select_row  and not ki_d_std_1_primo_giro then
 	end if
 end if
 
+if this.Object.DataWindow.Processing = kki_tipo_processing_form and this.getrow() > 0 &
+			and (this.ki_flag_modalita = kkg_flag_modalita.modifica or this.ki_flag_modalita = kkg_flag_modalita.inserimento) then
+
+	kguo_g.use_col_background_input_field(kidw_this, this.getcolumnname())
+	
+end if
+
 end event
 
 event rbuttondown;//
@@ -1983,125 +1990,125 @@ event itemchanged;//
 //2 Reject the data value but allow the focus to change (triggers itemerror)
 //
 int k_return=0
-string k_codice, k_data_x
-date k_data, k_dataoggi
-string k_style, k_ddw_campo, k_type, k_valore
-long k_find_riga=0, K_RC 
-datawindowchild  kdwc_1
-
-
-//--- sui campi data tento correzioni --------------------------------------------
-	if dwo.coltype = "date" then 
-		k_dataoggi = kguo_g.get_dataoggi( )
-		k_data_x = trim(data)
-//--- se è una data ok prosegue		
-		if isdate(k_data_x) then
-			
-//--- se a spazio metto data 01.01.1899		
-		elseif k_data_x = "" then
-			k_data_x = string(date(0))
-//--- se è una dattipo yyyy-mm-dd è bella e fatta
-		elseif isnumber(left(k_data_x,4)) and isnumber(mid(k_data_x,6,2)) and isnumber(mid(k_data_x,9,2)) then
-			k_data_x = mid(k_data_x,9,2) + "/" + mid(k_data_x,6,2) + "/" +  left(k_data_x,4)
-//--- se a ZERO metto data 01.01.1899		
-		elseif left(k_data_x,2) = '00' then
-			k_data_x = string(date(0))
-//--- se a indicato un numero tipo 5 o 23 metto lo considero il giorno
-		elseif len(k_data_x) < 3 and isnumber(k_data_x) then
-			k_data_x = string(date(string(k_dataoggi, "yyyy/mm/") + k_data_x))
-		elseif len(k_data_x) = 4 and isnumber(k_data_x) then
-			k_data_x = string(date(string(k_dataoggi, "yyyy/") + mid(k_data_x,3,2) + "/" + left(k_data_x,2)))
-		elseif len(k_data_x) = 5 and not isnumber(mid(k_data_x,3,1)) then 
-			k_data_x = string(date(string(k_dataoggi, "yyyy/") + mid(k_data_x,4,2) + "/" + left(k_data_x,2)))
-		else
-			k_data_x = string(date(0))
-		end if			
-		if isdate(k_data_x) then
-			k_data = date(k_data_x)
-		else
-			k_data = date(0)
-		end if
-		k_rc=this.setitem(row, integer(dwo.id), k_data)
-	end if			
-//-----------------------------------------------------------------------------------------------------------
-
-//--- sui campi Numerici se vuoto forza ZERO --------------------------------------------
-	if dwo.coltype = "Int" or dwo.coltype = "Long" or dwo.coltype = "Number" or left(dwo.coltype,3) = "Dec" or dwo.coltype = "Ulong" then
-		if trim(data) = "" then
-			this.setitem(row, integer(dwo.id), 0)
-		end if
-	end if
-//-----------------------------------------------------------------------------------------------------------
-
-
-//--- Controllo se valori immessi nella ddw
-//--- Sono su un campo DDW?
-//	k_style=this.Describe("#" + trim(dwo.id)+".Edit.Style")
-//	if k_style = "dddw" and trim(data) > " " then
-//		
-////--- Attivo dw 
-//		this.getchild(dwo.name, kdwc_1)
-//		if isvalid(kdwc_1) then 
-//	
-//			if ki_db_conn_standard then
-//				kdwc_1.settransobject(sqlca)
-//			end if
-//		
-//			if kdwc_1.rowcount() > 0 then
-//	
-//				k_type = dwo.coltype
-//				
-//	//--- se i campi "data" e "display" della dddw sono uguali procede 		
-//				if this.Describe(dwo.name +".DDDW.DataColumn") = this.Describe(dwo.name +".DDDW.DisplayColumn") then
-//					k_return = 1
-//					
-//					k_ddw_campo = this.Describe(dwo.name +".DDDW.DataColumn")
-//					if trim(k_ddw_campo) > " " then
-//		//--- cerco se c'e' un valore simile a quello digitato
-//						if Left(k_type,2) <> "ch" then
-//							if isnull(data) then 
-//								k_valore = "0"
-//							else
-//								k_valore = trim(data)
-//							end if
-//							k_find_riga=kdwc_1.Find ( k_ddw_campo + "="+k_valore, 1, kdwc_1.rowcount() )
-//		//--- se non ho trovato un valore allora cerco per approssimazione
-//							if k_find_riga <= 0 then
-//								k_find_riga=kdwc_1.Find ( k_ddw_campo + ">="+k_valore, 1, kdwc_1.rowcount() )
-//							end if
-//						else
-//							if isnull(data) then 
-//								k_valore = " "
-//							else
-//								k_valore = trim(data)
-//							end if
-//							k_find_riga=kdwc_1.Find( k_ddw_campo + "=~""+k_valore+"~"", 1, kdwc_1.rowcount() )
-//		//--- se non ho trovato un valore allora cerco per approssimazione
-//							if k_find_riga <= 0 then
-//								k_find_riga=kdwc_1.Find( k_ddw_campo + ">=~""+k_valore+"~"", 1, kdwc_1.rowcount() )
-//							end if
-//						end if
-//		//--- se ho trovato un valore allora ok
-//						if k_find_riga > 0 then
-//							k_return = 2
-//							if LeftA(k_type,2) <> "ch" then
-//								k_rc=this.settext(trim(string(kdwc_1.getitemnumber(k_find_riga, k_ddw_campo))))
-//								k_rc=this.setitem(row, integer(dwo.id), kdwc_1.getitemnumber(k_find_riga, k_ddw_campo))
-//							else
-//								k_valore = trim(kdwc_1.getitemstring(k_find_riga, k_ddw_campo))
-//								k_rc=this.setitem(row, integer(dwo.id), k_valore)
-//								k_rc=this.settext(k_valore)
-//							end if
-//						end if
-//					end if
-//				end if
-//			end if
-//			
-//		end if
+//string k_codice, k_data_x
+//date k_data, k_dataoggi
+//string k_style, k_ddw_campo, k_type, k_valore
+//long k_find_riga=0, K_RC 
+//datawindowchild  kdwc_1
 //
+//
+////--- sui campi data tento correzioni --------------------------------------------
+//	if dwo.coltype = "date" then 
+//		k_dataoggi = kguo_g.get_dataoggi( )
+//		k_data_x = trim(data)
+////--- se è una data ok prosegue		
+//		if isdate(k_data_x) then
+//			
+////--- se a spazio metto data 01.01.1899		
+//		elseif k_data_x = "" then
+//			k_data_x = string(date(0))
+////--- se è una dattipo yyyy-mm-dd è bella e fatta
+//		elseif isnumber(left(k_data_x,4)) and isnumber(mid(k_data_x,6,2)) and isnumber(mid(k_data_x,9,2)) then
+//			k_data_x = mid(k_data_x,9,2) + "/" + mid(k_data_x,6,2) + "/" +  left(k_data_x,4)
+////--- se a ZERO metto data 01.01.1899		
+//		elseif left(k_data_x,2) = '00' then
+//			k_data_x = string(date(0))
+////--- se a indicato un numero tipo 5 o 23 metto lo considero il giorno
+//		elseif len(k_data_x) < 3 and isnumber(k_data_x) then
+//			k_data_x = string(date(string(k_dataoggi, "yyyy/mm/") + k_data_x))
+//		elseif len(k_data_x) = 4 and isnumber(k_data_x) then
+//			k_data_x = string(date(string(k_dataoggi, "yyyy/") + mid(k_data_x,3,2) + "/" + left(k_data_x,2)))
+//		elseif len(k_data_x) = 5 and not isnumber(mid(k_data_x,3,1)) then 
+//			k_data_x = string(date(string(k_dataoggi, "yyyy/") + mid(k_data_x,4,2) + "/" + left(k_data_x,2)))
+//		else
+//			k_data_x = string(date(0))
+//		end if			
+//		if isdate(k_data_x) then
+//			k_data = date(k_data_x)
+//		else
+//			k_data = date(0)
+//		end if
+//		k_rc=this.setitem(row, integer(dwo.id), k_data)
+//	end if			
+////-----------------------------------------------------------------------------------------------------------
+//
+////--- sui campi Numerici se vuoto forza ZERO --------------------------------------------
+//	if dwo.coltype = "Int" or dwo.coltype = "Long" or dwo.coltype = "Number" or left(dwo.coltype,3) = "Dec" or dwo.coltype = "Ulong" then
+//		if trim(data) = "" then
+//			this.setitem(row, integer(dwo.id), 0)
+//		end if
 //	end if
-
-
+////-----------------------------------------------------------------------------------------------------------
+//
+//
+////--- Controllo se valori immessi nella ddw
+////--- Sono su un campo DDW?
+////	k_style=this.Describe("#" + trim(dwo.id)+".Edit.Style")
+////	if k_style = "dddw" and trim(data) > " " then
+////		
+//////--- Attivo dw 
+////		this.getchild(dwo.name, kdwc_1)
+////		if isvalid(kdwc_1) then 
+////	
+////			if ki_db_conn_standard then
+////				kdwc_1.settransobject(sqlca)
+////			end if
+////		
+////			if kdwc_1.rowcount() > 0 then
+////	
+////				k_type = dwo.coltype
+////				
+////	//--- se i campi "data" e "display" della dddw sono uguali procede 		
+////				if this.Describe(dwo.name +".DDDW.DataColumn") = this.Describe(dwo.name +".DDDW.DisplayColumn") then
+////					k_return = 1
+////					
+////					k_ddw_campo = this.Describe(dwo.name +".DDDW.DataColumn")
+////					if trim(k_ddw_campo) > " " then
+////		//--- cerco se c'e' un valore simile a quello digitato
+////						if Left(k_type,2) <> "ch" then
+////							if isnull(data) then 
+////								k_valore = "0"
+////							else
+////								k_valore = trim(data)
+////							end if
+////							k_find_riga=kdwc_1.Find ( k_ddw_campo + "="+k_valore, 1, kdwc_1.rowcount() )
+////		//--- se non ho trovato un valore allora cerco per approssimazione
+////							if k_find_riga <= 0 then
+////								k_find_riga=kdwc_1.Find ( k_ddw_campo + ">="+k_valore, 1, kdwc_1.rowcount() )
+////							end if
+////						else
+////							if isnull(data) then 
+////								k_valore = " "
+////							else
+////								k_valore = trim(data)
+////							end if
+////							k_find_riga=kdwc_1.Find( k_ddw_campo + "=~""+k_valore+"~"", 1, kdwc_1.rowcount() )
+////		//--- se non ho trovato un valore allora cerco per approssimazione
+////							if k_find_riga <= 0 then
+////								k_find_riga=kdwc_1.Find( k_ddw_campo + ">=~""+k_valore+"~"", 1, kdwc_1.rowcount() )
+////							end if
+////						end if
+////		//--- se ho trovato un valore allora ok
+////						if k_find_riga > 0 then
+////							k_return = 2
+////							if LeftA(k_type,2) <> "ch" then
+////								k_rc=this.settext(trim(string(kdwc_1.getitemnumber(k_find_riga, k_ddw_campo))))
+////								k_rc=this.setitem(row, integer(dwo.id), kdwc_1.getitemnumber(k_find_riga, k_ddw_campo))
+////							else
+////								k_valore = trim(kdwc_1.getitemstring(k_find_riga, k_ddw_campo))
+////								k_rc=this.setitem(row, integer(dwo.id), k_valore)
+////								k_rc=this.settext(k_valore)
+////							end if
+////						end if
+////					end if
+////				end if
+////			end if
+////			
+////		end if
+////
+////	end if
+//
+//
 
 	return k_return
 
@@ -2364,7 +2371,8 @@ if ki_abilita_ddw_proposta then
 	if isvalid(kiuf_ddw_grid) then kiuf_ddw_grid.u_itemfocuschanged(row, dwo)
 end if
 
-if this.Object.DataWindow.Processing = kki_tipo_processing_form and row > 0 then
+if this.Object.DataWindow.Processing = kki_tipo_processing_form and row > 0 &
+			and (this.ki_flag_modalita = kkg_flag_modalita.modifica or this.ki_flag_modalita = kkg_flag_modalita.inserimento) then
 
 	kguo_g.use_col_background_input_field(kidw_this, dwo.name)
 	

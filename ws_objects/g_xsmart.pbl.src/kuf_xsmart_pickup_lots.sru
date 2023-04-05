@@ -63,7 +63,7 @@ public subroutine _readme ();//
 //"mandante_nome":"BIODUE S.P.A."    nome del mandante del materiale
 //"ricevente_cod":710       codice di M2000 (il gestionale) del ricevente (presunto) del materiale trattato
 //"ricevente_nome":"BIODUE S.P.A."    nome del ricevente
-//"certificate_allegato_num":0        numero dell'allegato al Certificate of Processing - Se maggiore di ZERO allora il materiale è stato Rilasciato e quindi è proprio pronto al Ritiro;
+//"certificate_allegato_num":0        numero Attestato M2000 (allegato al Certificate of Processing E1) - Se maggiore di ZERO allora il materiale è stato Rilasciato e quindi è proprio pronto al Ritiro;
 //"pklist_cod":"WWW_710_71170"        nome del packing-list importato
 //"pklist_note":"NR. 2 BANCALI CON 13.334 STRIP ALUNEB IPER MONO 1 STR LOTTO 0608"        Note caricate dal cliente nel pklist caricato
 //"cliente_cod":710       codice di M2000 (il gestionale) del cliente che sarà poi quello a cui mostrare il RITIRO

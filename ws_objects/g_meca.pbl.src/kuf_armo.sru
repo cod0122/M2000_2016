@@ -209,6 +209,7 @@ public function string get_aperto (ref st_tab_meca kst_tab_meca) throws uo_excep
 public function boolean if_lotto_annullato (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function string get_meca_blk_descrizione (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function string get_stato_descrizione (ref st_tab_meca_stato ast_tab_meca_stato) throws uo_exception
+public function st_esito anteprima_meca_print (ref datastore kdw_anteprima, st_tab_meca kst_tab_meca)
 end prototypes
 
 public function st_esito setta_errore_lav (st_tab_meca kst_tab_meca);//
@@ -9820,6 +9821,53 @@ st_esito kst_esito
 	end if
 
 return k_return 
+
+end function
+
+public function st_esito anteprima_meca_print (ref datastore kdw_anteprima, st_tab_meca kst_tab_meca);//====================================================================
+//=== Operazione di Anteprima 
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: come Standard
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+st_esito kst_esito
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+try 
+	if_sicurezza(kkg_flag_modalita.anteprima)
+
+	if isvalid(kdw_anteprima)  then
+		if kst_tab_meca.id > 0 then
+	
+			kdw_anteprima.dataobject = "d_meca_1_print"		
+			kdw_anteprima.settransobject(sqlca)
+	
+			k_rc=kdw_anteprima.retrieve(kst_tab_meca.id)
+	
+		else
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = "Nessun Riferimento da visualizzare: " + kkg.acapo + "nessun codice ID indicato"
+			kst_esito.esito = kkg_esito.bug
+			
+		end if
+		
+	end if
+
+catch (uo_exception kuo_eception)
+	kst_esito = kuo_eception.get_st_esito()
+
+end try
+
+return kst_esito
 
 end function
 

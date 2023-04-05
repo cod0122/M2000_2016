@@ -327,7 +327,7 @@ try
 	k_path_orig = k_path
 	
 	do
-		k_nrc = GetFileSaveName("Nome del file per esportare '" + a_titolo + "' nel formato 'csv'" &
+		k_nrc = GetFileSaveName("Nome del file di esportazione dati '" + a_titolo + "' nel formato 'csv'" &
                				, k_path, k_file, "csv", "Testo (*.csv),*.csv", k_path)
 		if k_nrc <= 0 then
 		else
@@ -612,6 +612,8 @@ string k_errore="0"
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_contratti_xsmart
+integer x = 0
+integer y = 0
 integer width = 3040
 integer height = 1396
 integer taborder = 0
@@ -668,8 +670,6 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_d_std_1_primo_giro = true
 string ki_dragdrop_display = ""
 end type
@@ -715,8 +715,6 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_d_std_1_primo_giro = true
 string ki_dragdrop_display = ""
 end type
@@ -765,8 +763,6 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""

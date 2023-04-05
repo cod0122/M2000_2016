@@ -2366,24 +2366,19 @@ destroy(this.tabpage_8)
 destroy(this.tabpage_9)
 end on
 
-event key;//
-//=== Controllo quale tasto da tastiera ha premuto
+event key;/*
+ Controllo quale tasto da tastiera ha premuto
+
+ keyflags: 1 Shift key; 2 Ctrl key; 3 Shift and Ctrl keys
+
+*/
 int k_ind
-boolean k_fai_paginate
+
 
 if ki_st_open_w.flag_primo_giro <> "S" then
 
-	//--- se ho più di 5 righe non faccio tab avanti/indietro con pagGiù o pagSu ma lascio come paginata 
-	if not isvalid(kidw_selezionata) then 
-		k_fai_paginate = true
-	else
-		if kidw_selezionata.rowcount( ) < 6 then
-			k_fai_paginate = true
-		end if
-	end if
+	if keyflags = 2 then  // CTRL KEY
 	
-	if k_fai_paginate then
-		
 		choose case key
 				
 			case keypagedown!
@@ -2418,6 +2413,7 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 		end choose
 		
 	end if
+
 end if	
 
 end event

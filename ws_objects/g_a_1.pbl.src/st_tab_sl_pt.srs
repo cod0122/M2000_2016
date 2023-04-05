@@ -53,6 +53,7 @@ global type st_tab_sl_pt from structure
 	string		cert_st_data_fin		descriptor "comment" = "flag Attestato: in stampa la data di fine lavorazione"
 	decimal { 1 }		unitwork		descriptor "comment" = "unità di trattamento: simile a occupazione impianto ma più rivolto al materiale in trattamento solitamente è 100% (se vuoto) o 50% "
 	integer		savedosimeter		descriptor "comment" = "1=risparmia il dosimetro sull'ultimo pallet quando ad esempio è già su quello precedente"
+	string		packingformin_file		descriptor "comment" = "nome file (anche co path parziale x quello completo è da unire al dir_cust_packing_in della tabella base_dir) che contiene la foto del packing del lotto di come deve entrare "
 	datetime		x_datins
 	string		x_utente
 end type

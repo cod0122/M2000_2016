@@ -732,24 +732,58 @@ string k_rc, k_style
 
 if isvalid(adw) then
 	
-	if ki_column_focus_before_name_colbck[1] > " " then 
+//	if ki_column_focus_before_name_colbck[1] > " " then 
+//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
+//		else
+//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
+//		end if
+//	end if
+//	if a_col_name > " " then
+//		//k_rc = adw.Describe("DataWindow.ReadOnly") 
+//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+//		else
+//			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
+//				k_style = trim(adw.Describe(a_col_name + ".Edit.Style"))
+//				if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+//					ki_column_focus_before_name_colbck[1] = a_col_name
+//					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
+//					adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
+//					//--- ripristina autoselect se impostato
+//					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
+//					if k_rc = 'yes' or k_rc = "?" then
+//						adw.SelectText(1, Len(adw.GetText()))
+//					end if
+//				end if
+//			end if
+//		end if
+//	end if
+//--- Riristino del colore di sfondo originale della colonna precedente
+	if ki_column_focus_before_name_colbck[1] > " " and ki_column_focus_before_name_colbck[1] <> a_col_name then 
 		if adw.Describe("DataWindow.ReadOnly") = "yes" then
 			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
 		else
 			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
 		end if
 	end if
+	
 	if a_col_name > " " then
 		//k_rc = adw.Describe("DataWindow.ReadOnly") 
 		if adw.Describe("DataWindow.ReadOnly") = "yes" then
 		else
 			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
-				k_style = trim(adw.Describe(a_col_name + ".Edit.Style"))
-				if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+				
+//--- Salva colore di sfondo originale
+ 				if ki_column_focus_before_name_colbck[1] <> a_col_name then
 					ki_column_focus_before_name_colbck[1] = a_col_name
 					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
-					adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
-					//--- ripristina autoselect se impostato
+				end if
+				
+				adw.modify(a_col_name + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
+
+				k_style = trim(adw.Describe(a_col_name  + ".Edit.Style"))
+				if k_style = "edit" then
+				//--- ripristina autoselect se impostato, ma solo se EDIT altrimenti blocca il riempimento come nel dropdowncalendar
 					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
 					if k_rc = 'yes' or k_rc = "?" then
 						adw.SelectText(1, Len(adw.GetText()))
@@ -758,6 +792,8 @@ if isvalid(adw) then
 			end if
 		end if
 	end if
+	
+	
 end if
 
 end subroutine

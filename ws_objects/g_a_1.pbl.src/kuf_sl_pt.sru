@@ -293,6 +293,7 @@ if isnull(kst_tab_sl_pt.magazzino) then kst_tab_sl_pt.magazzino = 0
 if isnull(kst_tab_sl_pt.composizione) then kst_tab_sl_pt.composizione = ""
 if isnull(kst_tab_sl_pt.unitwork) then kst_tab_sl_pt.unitwork = 0
 if isnull(kst_tab_sl_pt.savedosimeter) then kst_tab_sl_pt.savedosimeter = 0
+if isnull(kst_tab_sl_pt.packingformin_file) then kst_tab_sl_pt.packingformin_file = ""
 
 if isnull(kst_tab_sl_pt.dosim_x_bcode) then kst_tab_sl_pt.dosim_x_bcode = 0
 if isnull(kst_tab_sl_pt.dosim_delta_bcode) then kst_tab_sl_pt.dosim_delta_bcode = 0

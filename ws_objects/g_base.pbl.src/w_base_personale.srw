@@ -228,6 +228,7 @@ private subroutine get_path_e1_certif_saved_dir ()
 public subroutine u_resize_1 ()
 private subroutine get_path_smart_pickup_lots_dir ()
 private function st_esito u_base_update ()
+private subroutine get_path_dir_cust_packing_in ()
 end prototypes
 
 protected subroutine pulizia_righe ();////
@@ -2316,6 +2317,7 @@ try
 	kst_tab_base.dir_ddt = ""
 	kst_tab_base.e1dtlav_allineagg = tab_1.tabpage_4.dw_4.getitemnumber(1, "e1dtlav_allineagg")
 	kst_tab_base.dir_report_pilota = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_report_pilota")
+	kst_tab_base.dir_cust_packing_in = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_cust_packing_in")
 	kst_tab_base.report_export_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "report_export_dir")
 	kst_tab_base.aco_exp_regcdp_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "aco_exp_regcdp_dir")
 	kst_tab_base.e1_certif_saved_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "e1_certif_saved_dir")
@@ -2359,6 +2361,30 @@ end try
 return kst_esito
 
 end function
+
+private subroutine get_path_dir_cust_packing_in ();//
+string k_path=".."
+int k_ret
+
+
+k_path = tab_1.tabpage_4.dw_4.getitemstring (1, "dir_cust_packing_in")
+if len(trim(k_path)) > 0 then
+else
+	k_path=".."
+end if
+
+k_ret = GetFolder ( "Scegliere la Cartella dove cercare i documenti con il formato del packing del Lotto in entrata", k_path )
+
+if k_ret = 1 then
+	tab_1.tabpage_4.dw_4.setitem(1, "dir_cust_packing_in", trim(k_path))
+else
+	if k_ret < 0 then
+//--- ERRORE	
+	end if
+end if
+
+
+end subroutine
 
 on w_base_personale.create
 int iCurrent
@@ -2793,6 +2819,8 @@ elseif dwo.name = "b_e1_certif_saved_dir" then
 	get_path_e1_certif_saved_dir()
 elseif dwo.name = "b_smart_pickup_lots_dir" then
 	get_path_smart_pickup_lots_dir()
+elseif dwo.name = "b_dir_cust_packing_in" then
+	get_path_dir_cust_packing_in()
 end if
 
 

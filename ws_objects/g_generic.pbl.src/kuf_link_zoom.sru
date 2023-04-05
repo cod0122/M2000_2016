@@ -218,7 +218,7 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"dir_report_pilota" &
 					,"report_export_dir" &
 					,"aco_exp_regcdp_dir" &
-					,"e1_certif_saved_dir" &
+					,"e1_certif_saved_dir", "dir_cust_packing_in", "k_packingformin_pathfile" &
 					,"smart_pickup_lots_dir" &
 					,"path_centrale" &
 					,"dir_fatt" &
@@ -358,7 +358,8 @@ choose case k_nome_link
 		kuf1_parent = create using "kuf_barcode_tree"
 		
 	case "num_int", "num_int_t", "id_meca", "b_armo", "id_armo", "id_meca_righe", "b_armo_prezzi", "id_armo_prezzo", "p_meca_memo_elenco" &
-			, "b_armo_prezzi_xstato", "meca_id", "lotto_id"
+			, "b_armo_prezzi_xstato", "meca_id", "lotto_id" &
+			, "meca_1_print"
 		kuf1_parent = create using "kuf_armo_tree"
 
 	case "b_qtna_note"
@@ -476,7 +477,7 @@ choose case k_nome_link
 			,"report_export_dir" &
 			,"aco_exp_regcdp_dir" &
 			,"e1_certif_saved_dir" &
-			,"smart_pickup_lots_dir" &
+			,"smart_pickup_lots_dir", "dir_cust_packing_in", "k_packingformin_pathfile" &
 			,"path_centrale" &
 			,"dir_fatt" &
 			,"path_file" &
