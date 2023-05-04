@@ -75,9 +75,11 @@ event ue_buttonclicked(dwo.name)
 end event
 
 event getfocus;//
+this.modify(this.getcolumnname() + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")  // colore in background  
+//kguo_g.use_col_background_input_field(kidw_this, this.getcolumnname()) // colore in background  
 this.SelectText( 1, Len( String( GetItemString( 1, 1 ) ) ))  // selezione intera del testo 
 
-kguo_g.use_col_background_input_field(kidw_this, this.getcolumnname()) // colore in background  
+
 end event
 
 event editchanged;//
@@ -94,8 +96,10 @@ event itemchanged;//
 end event
 
 event itemfocuschanged;//
-kguo_g.use_col_background_input_field(kidw_this, dwo.name) // colore in background  
+//kguo_g.use_col_background_input_field(kidw_this, dwo.name) // colore in background  
+	this.modify(dwo.name + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")  // colore in background  
 
+	this.SelectText( 1, Len( String( GetItemString( 1, 1 ) ) ))  // selezione intera del testo 
 
 end event
 
@@ -105,7 +109,8 @@ kidw_this = this
 end event
 
 event losefocus;//
-kguo_g.use_col_background_input_field(kidw_this, "") // toglie colore in background  
+//kguo_g.use_col_background_input_field(kidw_this, "") // toglie colore in background  
+this.modify(this.getcolumnname() + ".Background.Color=" + kkg_colore.BIANCOX + " ")  // toglie colore in background  
 
 end event
 

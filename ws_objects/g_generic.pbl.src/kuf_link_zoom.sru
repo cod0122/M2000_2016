@@ -218,7 +218,7 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"dir_report_pilota" &
 					,"report_export_dir" &
 					,"aco_exp_regcdp_dir" &
-					,"e1_certif_saved_dir", "dir_cust_packing_in", "k_packingformin_pathfile" &
+					,"e1_certif_saved_dir", "dir_cust_packing_in", "url_cust_packing_in", "k_packingformin_pathfile" &
 					,"smart_pickup_lots_dir" &
 					,"path_centrale" &
 					,"dir_fatt" &
@@ -227,7 +227,8 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"sr_settore_utenti_l", "sr_settore", "id_sr_utente", "id_utenti" &
 					,"n_ptask", "n_ptask_x", "id_ptask" &
 					,"b_asdslpt_l", "p_add_asdtype"  &
-					,"k_hyperlink"
+					,"id_asddevice" &
+					,"k_hyperlink", "url"
 					
 					
 //--- se e' del tipo grid o tabular link sul valore alrimenti sul testo		
@@ -497,7 +498,7 @@ choose case k_nome_link
 	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode"
 		kuf1_parent = create using "kuf_asd_zoom"
 		
-	case "k_hyperlink"
+	case "k_hyperlink", "url_cust_packing_in", "url"
 		kuf1_parent = create using "kuf_webbrowser"
 
 	case else

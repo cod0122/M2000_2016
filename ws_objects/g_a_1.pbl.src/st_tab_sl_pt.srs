@@ -18,8 +18,8 @@ global type st_tab_sl_pt from structure
 	integer		proposta_fila_2p
 	datetime		proposta_fila_2p_datins
 	string		proposta_fila_2p_utente
-	string		densita		descriptor "comment" = "densità minimo"
-	string		densitamax		descriptor "comment" = "densità massimo"
+	decimal { 3 }		densita		descriptor "comment" = "densità minimo"
+	decimal { 3 }		densitamax		descriptor "comment" = "densità massimo"
 	decimal { 2 }		dose
 	decimal { 2 }		dose_min
 	decimal { 2 }		dose_max

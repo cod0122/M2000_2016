@@ -635,7 +635,7 @@ else
 end if
 
 k_path = ".."  //trim(ki_path_email) + trim(kiuf_email.kki_path_email)
-k_ret = GetFileOpenName ( "Scegli la Comunicazione", k_path_file, k_file, "txt", " Comunicazioni (*.*),*.*" , k_path, 32784)
+k_ret = GetFileOpenName ( "Scegli la Comunicazione", k_path_file, k_file, "txt", " Comunicazioni (*.*),*.*" , k_path, 18) //32784)
 
 if k_ret = 1 then
 	ll_p = lastPos(k_path_file, kkg.path_sep)
@@ -745,7 +745,7 @@ else
 end if
 
 k_path = ".."  //trim(ki_path_email) + trim(kiuf_email.kki_path_email)
-k_ret = GetFileOpenName ( "Scegli l'Allegato da una posizione condivisa per l'invio email", k_path_file, k_file, "pdf", " Comunicazioni (*.*),*.*" , k_path, 32784)
+k_ret = GetFileOpenName ( "Scegli l'Allegato da una posizione condivisa per l'invio email", k_path_file, k_file, "pdf", " Comunicazioni (*.*),*.*" , k_path, 18) //32784)
 
 if k_ret = 1 then
 	dw_dett_0.setitem(1, "attached", trim(ki_path_email+ kkg.path_sep +k_file))

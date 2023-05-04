@@ -53,21 +53,21 @@ protected function string inizializza ();//=====================================
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-int k_rc
-
+long k_rows, k_row
+string k_url, k_file_name
+kuf_utility kuf1_utility
 
 
 	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 	
 		tab_1.tabpage_1.text = " Elenco Contratti attivi al " + string(ki_data_estrazione)
-		k_rc = tab_1.tabpage_1.dw_1.retrieve(ki_data_estrazione) 
+		k_rows = tab_1.tabpage_1.dw_1.retrieve(ki_data_estrazione) 
 		
-		choose case k_rc
+		choose case k_rows
 
 			case is < 0				
 				messagebox("Operazione fallita", &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"~n~r" )
+					"Mi spiace ma si e' verificato un errore interno al programma")
 				cb_ritorna.postevent(clicked!)
 
 			case 0
@@ -75,13 +75,31 @@ int k_rc
 				tab_1.tabpage_1.dw_1.reset()
 				attiva_tasti()
 
+			case is > 0
+				kuf1_utility = create kuf_utility
+				for k_row = 1 to k_rows 
+					
+					k_url = tab_1.tabpage_1.dw_1.getitemstring(k_row, "url")
+					if k_url > " " then
+						
+						//--- URL-encode del solo nome file 
+						k_file_name = kuf1_utility.u_url_sep_path_by_name( k_url )
+						k_file_name = kuf1_utility.u_url_encode(k_file_name, true)
+						k_url += k_file_name  // riattacca tutto path+nome file
+						
+						tab_1.tabpage_1.dw_1.setitem(k_row, "url", k_url)
+						
+					end if
+					
+				next
+
 		end choose
 
 		tab_1.tabpage_1.dw_1.event getfocus( )
 		
 	end if
 
-
+	if isvalid(kuf1_utility) then destroy kuf1_utility
 	
 return "0"
 

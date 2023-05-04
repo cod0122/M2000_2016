@@ -58,53 +58,46 @@ int k_importa = 0
 pointer oldpointer  // Declares a pointer variable
 
 
-
-//	if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento then 
-//		
-//		cb_inserisci.postevent(clicked!)
-//		
-//	else
-
 //=== Legge le righe del dw salvate l'ultima volta (importfile)
-		if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima 
-	
-			k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
-	
-		end if
-			
+	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima 
+
+		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
+
+	end if
 		
-		if k_importa <= 0 then // Nessuna importazione eseguita
 	
-			if u_retrieve_dw() < 1 then
-				
-				k_return = "1Non trovati Capitolati di Fornitura "
-	
-				SetPointer(oldpointer)
-				messagebox("Lista 'Capitolati' Vuota", &
-						"Nesun Codice Trovato per la richiesta fatta")
-			else
-				
-				if ki_st_open_w.flag_primo_giro = "S" then 
-					k_riga = 1
+	if k_importa <= 0 then // Nessuna importazione eseguita
+
+		if u_retrieve_dw() < 1 then
+			
+			k_return = "1Non trovati Capitolati di Fornitura "
+
+			SetPointer(oldpointer)
+			messagebox("Lista 'Capitolati' Vuota", &
+					"Nesun Codice Trovato per la richiesta fatta")
+		else
+			
+			if ki_st_open_w.flag_primo_giro = "S" then 
+				k_riga = 1
 //--- se ho passato anche il codice contratto allora....
-					if len(trim(ki_st_tab_contratti_arg.sc_cf)) > 0 then
-						k_riga = dw_lista_0.find( "codice = '" + string(ki_st_tab_contratti_arg.sc_cf) + "' ", 1, dw_lista_0.rowcount( ) )
-					end if
-					if k_riga > 0 then 
-						dw_lista_0.selectrow( 0, false)
-						dw_lista_0.scrolltorow( k_riga)
-						dw_lista_0.setrow( k_riga)
-						dw_lista_0.selectrow( k_riga, true)
-					end if
-					
-//--- se entro per modificare allora....
-					if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
-						cb_modifica.postevent(clicked!)
-					end if
+				if len(trim(ki_st_tab_contratti_arg.sc_cf)) > 0 then
+					k_riga = dw_lista_0.find( "codice = '" + string(ki_st_tab_contratti_arg.sc_cf) + "' ", 1, dw_lista_0.rowcount( ) )
 				end if
-	
-			end if		
-		end if
+				if k_riga > 0 then 
+					dw_lista_0.selectrow( 0, false)
+					dw_lista_0.scrolltorow( k_riga)
+					dw_lista_0.setrow( k_riga)
+					dw_lista_0.selectrow( k_riga, true)
+				end if
+				
+//--- se entro per modificare allora....
+				if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
+					cb_modifica.postevent(clicked!)
+				end if
+			end if
+
+		end if		
+	end if
 	
 return k_return
 
@@ -671,7 +664,7 @@ datawindowchild  kdwc_clienti, kdwc_clienti_des, kdwc_sl_pt_d
 //	else
 		ki_mostra_nascondi_in_lista = "*"
 //	end if
-	if Len(trim(ki_st_open_w.key3)) = 0 or isnull(trim(ki_st_open_w.key3)) then  // CODICE CONTRATTO 
+	if Len(trim(ki_st_open_w.key3)) = 0 or isnull(trim(ki_st_open_w.key3)) then  // CODICE CAPITOLATO 
 		ki_st_tab_contratti_arg.sc_cf = ""
 	else
 		ki_st_tab_contratti_arg.sc_cf  = trim(trim(ki_st_open_w.key3))
@@ -781,7 +774,7 @@ long k_return
 	SetPointer(kkg.pointer_attesa )
 
 
-	k_return = dw_lista_0.retrieve(ki_st_tab_contratti_arg.cod_cli, ki_mostra_nascondi_in_lista ) 
+	k_return = dw_lista_0.retrieve(ki_st_tab_contratti_arg.cod_cli, ki_mostra_nascondi_in_lista, ki_st_tab_contratti_arg.sc_cf  ) 
 			
 	
 	SetPointer(kkg.pointer_default)
@@ -805,6 +798,9 @@ call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
 destroy(this.dw_dis_attiva)
 end on
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_sc_cf
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_sc_cf
 end type
@@ -989,7 +985,7 @@ type dw_lista_0 from w_g_tab0`dw_lista_0 within w_sc_cf
 integer y = 32
 integer width = 2866
 integer height = 864
-string dataobject = "d_sc_cf_l"
+string dataobject = "d_sc_cf_l_1"
 end type
 
 type dw_guida from w_g_tab0`dw_guida within w_sc_cf

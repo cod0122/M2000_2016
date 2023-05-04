@@ -61,6 +61,7 @@ global type st_tab_base from structure
 	string		dir_fatt		descriptor "comment" = "cartella dove salvare le fatture in pdf e inviarle via email"
 	string		dir_report_pilota		descriptor "comment" = "path report generati dal PILOTA"
 	string		dir_cust_packing_in		descriptor "comment" = "path dove mettere i documenti pdf (foto) con il formato del packinga cui il clinete deve attenersi"
+	string		url_cust_packing_in		descriptor "comment" = "path (in formato URI) dove mettere i documenti pdf (foto) con il formato del packinga cui il clinete deve attenersi"
 	string		doc_root		descriptor "comment" = "path radice assoluto dove salvare tutti i doc della procedura"
 	string		dosimetro_barcode_mask		descriptor "comment" = "maskera i primi 3 char del barcode al posto del codice cliente"
 	string		dosimetro_ult_barcode		descriptor "comment" = "ultimo codice per il dosimetro caricato - utile quando genero il nuovo"

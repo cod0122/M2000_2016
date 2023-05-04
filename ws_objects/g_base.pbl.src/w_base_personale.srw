@@ -2318,6 +2318,7 @@ try
 	kst_tab_base.e1dtlav_allineagg = tab_1.tabpage_4.dw_4.getitemnumber(1, "e1dtlav_allineagg")
 	kst_tab_base.dir_report_pilota = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_report_pilota")
 	kst_tab_base.dir_cust_packing_in = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_cust_packing_in")
+	kst_tab_base.url_cust_packing_in = tab_1.tabpage_4.dw_4.getitemstring(1, "url_cust_packing_in")
 	kst_tab_base.report_export_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "report_export_dir")
 	kst_tab_base.aco_exp_regcdp_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "aco_exp_regcdp_dir")
 	kst_tab_base.e1_certif_saved_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "e1_certif_saved_dir")

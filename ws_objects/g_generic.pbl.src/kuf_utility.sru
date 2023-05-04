@@ -132,6 +132,8 @@ private subroutine u_dw_set_column_color (ref datawindow k_dw)
 private subroutine u_dw_set_column_color (ref uo_d_std_1 k_dw)
 public function int u_open_app_files (string a_file) throws uo_exception
 public function integer u_stringa_split (ref string a_string[], string a_sep)
+public function string u_url_sep_path_by_name (ref string a_url)
+public function string u_url_encode (string a_url, boolean a_replace_puls_sign)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -5782,6 +5784,59 @@ end if
 
 return k_str_split_idx
 
+end function
+
+public function string u_url_sep_path_by_name (ref string a_url);/*
+  Separa dal URL il path dal nome 
+  Inp: url completo
+  Out: url senza nome
+  Ret: nome file
+*/
+string k_return_name
+string k_trova_str
+int k_start_pos, k_pos
+
+
+		a_url = trim(a_url)
+		k_start_pos = 1
+		k_pos = 1
+		k_trova_str = "/"
+		k_start_pos = pos(a_url, k_trova_str, k_start_pos)
+		DO WHILE k_start_pos > 0
+			k_pos = k_start_pos + 1
+			k_start_pos = pos(a_url, k_trova_str, k_pos )
+		LOOP
+
+		k_return_name = trim(mid(a_url, k_pos, len(a_url) - k_pos + 1))
+		a_url = trim(left(a_url, k_pos - 1))
+
+return k_return_name
+
+end function
+
+public function string u_url_encode (string a_url, boolean a_replace_puls_sign);/*
+ Codifica URL 
+ Inp: url da decodificare
+      TRUE = per sostituire il '+' con '%20' che sembra più corretto nella maggior parte dei casi  
+*/
+
+Blob k_blob
+String k_url_encode
+
+k_blob = Blob(a_url, EncodingUTF8!) //, EncodingANSI!)
+
+CoderObject lnv_CoderObject
+lnv_CoderObject = Create CoderObject
+
+k_url_encode = lnv_CoderObject.UrlEncode(k_blob)
+
+if a_replace_puls_sign then
+	
+	k_url_encode = u_replace( k_url_encode, "+", "%20")
+	
+end if
+
+return k_url_encode
 end function
 
 on kuf_utility.create

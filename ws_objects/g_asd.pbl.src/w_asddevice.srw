@@ -60,7 +60,7 @@ public function string inizializza ();//
 //======================================================================
 //
 string k_return="0 "
-//string k_key
+long k_key
 long k_riga
 int k_importa = 0
 
@@ -76,12 +76,16 @@ int k_importa = 0
 		
 	if k_importa <= 0 then // Nessuna importazione eseguita
 	
-		if dw_lista_0.retrieve() < 1 then
+		if isnumber(ki_st_open_w.key1) then
+			k_key = long(ki_st_open_w.key1)
+		end if
+	
+		if dw_lista_0.retrieve(k_key) < 1 then
 				
 			k_return = "1Nessun Dispositivo Ausiliario trovato"
 
 			setpointer(kkg.pointer_default)
-			messagebox("Lista 'Dispositivi Ausiliarii' Vuota", "Nesun Codice Trovato per la richiesta fatta")
+			messagebox("Lista 'Dispositivi Ausiliari' Vuota", "Nesun Codice Trovato per la richiesta fatta")
 			
 		else
 				

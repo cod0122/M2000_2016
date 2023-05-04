@@ -135,13 +135,13 @@ public function datetime get_datetime_current_old ()
 public function integer set_anno_procedura (integer a_anno)
 public subroutine set_flagzoomctrl (boolean a_flag)
 public function boolean get_flagzoomctrl ()
-public subroutine use_col_background_input_field (ref datawindow adw, string a_col_name)
 public function string u_replace (string k_str, string k_str_old, string k_str_new)
 public function w_super window_aperta_get_last ()
 public function integer get_anno_procedura ()
 public function string get_app_release ()
 public subroutine set_idprocedura (longlong a_handle)
 public function longlong get_idprocedura ()
+public subroutine xxxuse_col_background_input_field (ref datawindow adw, string a_col_name)
 end prototypes
 
 public subroutine set_attiva_suoni (boolean a_attiva_suoni);
@@ -722,82 +722,6 @@ return flagZOOMctrl
 
 end function
 
-public subroutine use_col_background_input_field (ref datawindow adw, string a_col_name);//
-//--- usa il backgrond color de default per segnalare il cursore sul campo
-//--- Da chiamare dal event itemfocuschanged di un dw
-//--- Inp: datawindow reference + nome colonna su cui si trova il cursore
-//
-string k_rc, k_style
-
-
-if isvalid(adw) then
-	
-//	if ki_column_focus_before_name_colbck[1] > " " then 
-//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
-//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
-//		else
-//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
-//		end if
-//	end if
-//	if a_col_name > " " then
-//		//k_rc = adw.Describe("DataWindow.ReadOnly") 
-//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
-//		else
-//			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
-//				k_style = trim(adw.Describe(a_col_name + ".Edit.Style"))
-//				if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
-//					ki_column_focus_before_name_colbck[1] = a_col_name
-//					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
-//					adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
-//					//--- ripristina autoselect se impostato
-//					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
-//					if k_rc = 'yes' or k_rc = "?" then
-//						adw.SelectText(1, Len(adw.GetText()))
-//					end if
-//				end if
-//			end if
-//		end if
-//	end if
-//--- Riristino del colore di sfondo originale della colonna precedente
-	if ki_column_focus_before_name_colbck[1] > " " and ki_column_focus_before_name_colbck[1] <> a_col_name then 
-		if adw.Describe("DataWindow.ReadOnly") = "yes" then
-			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
-		else
-			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
-		end if
-	end if
-	
-	if a_col_name > " " then
-		//k_rc = adw.Describe("DataWindow.ReadOnly") 
-		if adw.Describe("DataWindow.ReadOnly") = "yes" then
-		else
-			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
-				
-//--- Salva colore di sfondo originale
- 				if ki_column_focus_before_name_colbck[1] <> a_col_name then
-					ki_column_focus_before_name_colbck[1] = a_col_name
-					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
-				end if
-				
-				adw.modify(a_col_name + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
-
-				k_style = trim(adw.Describe(a_col_name  + ".Edit.Style"))
-				if k_style = "edit" then
-				//--- ripristina autoselect se impostato, ma solo se EDIT altrimenti blocca il riempimento come nel dropdowncalendar
-					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
-					if k_rc = 'yes' or k_rc = "?" then
-						adw.SelectText(1, Len(adw.GetText()))
-					end if
-				end if
-			end if
-		end if
-	end if
-	
-	
-end if
-
-end subroutine
-
 public function string u_replace (string k_str, string k_str_old, string k_str_new);//
 //--- ricopre nella stringa k_str i caratteri k_str_old con k_str_new 
 //
@@ -877,6 +801,82 @@ end subroutine
 public function longlong get_idprocedura ();
 return idprocedura 
 end function
+
+public subroutine xxxuse_col_background_input_field (ref datawindow adw, string a_col_name);//
+//--- usa il backgrond color de default per segnalare il cursore sul campo
+//--- Da chiamare dal event itemfocuschanged di un dw
+//--- Inp: datawindow reference + nome colonna su cui si trova il cursore
+//
+string k_rc, k_style
+
+
+if isvalid(adw) then
+	
+//	if ki_column_focus_before_name_colbck[1] > " " then 
+//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
+//		else
+//			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
+//		end if
+//	end if
+//	if a_col_name > " " then
+//		//k_rc = adw.Describe("DataWindow.ReadOnly") 
+//		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+//		else
+//			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
+//				k_style = trim(adw.Describe(a_col_name + ".Edit.Style"))
+//				if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+//					ki_column_focus_before_name_colbck[1] = a_col_name
+//					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
+//					adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
+//					//--- ripristina autoselect se impostato
+//					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
+//					if k_rc = 'yes' or k_rc = "?" then
+//						adw.SelectText(1, Len(adw.GetText()))
+//					end if
+//				end if
+//			end if
+//		end if
+//	end if
+//--- Riristino del colore di sfondo originale della colonna precedente
+	if ki_column_focus_before_name_colbck[1] > " " and ki_column_focus_before_name_colbck[1] <> a_col_name then 
+		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " ")
+		else
+			adw.modify(ki_column_focus_before_name_colbck[1] + ".Background.Color=" + ki_column_focus_before_name_colbck[2] + " ")
+		end if
+	end if
+	
+	if a_col_name > " " then
+		//k_rc = adw.Describe("DataWindow.ReadOnly") 
+		if adw.Describe("DataWindow.ReadOnly") = "yes" then
+		else
+			if adw.Describe(a_col_name + ".TabSequence") > "0" and adw.Describe(a_col_name + ".Protect") <> "1" then
+				
+//--- Salva colore di sfondo originale
+ 				if ki_column_focus_before_name_colbck[1] <> a_col_name then
+					ki_column_focus_before_name_colbck[1] = a_col_name
+					ki_column_focus_before_name_colbck[2] = adw.Describe(a_col_name + ".Background.Color")
+				end if
+				
+				adw.modify(a_col_name + ".Background.Color=" + kkg_colore.INPUT_FIELD + " ")
+
+				k_style = trim(adw.Describe(a_col_name  + ".Edit.Style"))
+				if k_style = "edit" then
+				//--- ripristina autoselect se impostato, ma solo se EDIT altrimenti blocca il riempimento come nel dropdowncalendar
+					k_rc = adw.describe(a_col_name + ".Edit.AutoSelect")
+					if k_rc = 'yes' or k_rc = "?" then
+						adw.SelectText(1, Len(adw.GetText()))
+					end if
+				end if
+			end if
+		end if
+	end if
+	
+	
+end if
+
+end subroutine
 
 on uo_g.create
 call super::create

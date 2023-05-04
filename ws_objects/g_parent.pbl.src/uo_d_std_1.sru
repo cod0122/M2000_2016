@@ -160,9 +160,9 @@ private kuf_menu_popup kiuf_menu_popup
 
 private uo_exception kiuo_exception
 
+private string ki_column_background_before_active[2]     // colore sfondo colonna appena prime del focus (salva nome e colore background)
 
 end variables
-
 forward prototypes
 public function boolean u_filtra_record (string k_filtro)
 public function long u_get_riga_atpointer (string k_nome_campo)
@@ -187,6 +187,8 @@ public function boolean u_sort (readonly string a_name_header)
 private function string u_sort_get_type (readonly string k_colname, string k_coltype)
 private subroutine u_set_riga_new ()
 public function boolean if_link_enabled ()
+public subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake)
+public function string u_get_evaluate (string a_field, string a_field_describe)
 end prototypes
 
 event ue_dwnkey;//
@@ -1692,6 +1694,123 @@ else
 end if
 end function
 
+public subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake);/*
+ usa il backgrond color di default per segnalare il cursore sul campo
+      Da chiamare dal event itemfocuschanged di un dw
+      Inp: a_col_name = nome colonna su cui si trova il cursore
+		     a_remake = TRUE se rifa la colonna come Attiva 
+*/
+string k_rc
+string k_style, k_modify
+
+
+	if a_remake then
+		if ki_column_background_before_active[1] > " " then
+			a_col_name = ki_column_background_before_active[1]
+			ki_column_background_before_active[1] = ""
+		else
+			return
+		end if
+	else
+		if ki_column_background_before_active[1] = a_col_name then
+			return
+		end if
+	end if
+
+//--- fa solo se ci sono le condizioni altrimenti via!
+	if this.rowcount() = 0 or this.Describe("DataWindow.ReadOnly") = "yes" or (this.ki_flag_modalita <> kkg_flag_modalita.modifica and this.ki_flag_modalita <> kkg_flag_modalita.inserimento) then
+		return 
+	end if
+
+//--- fa solo se ci sono le condizioni altrimenti via!
+//	if this.Object.DataWindow.Processing <> kki_tipo_processing_form then
+//		return 
+//	end if
+
+//--- Riristino del colore di sfondo originale della colonna precedente
+	if ki_column_background_before_active[1] > " " and ki_column_background_before_active[1] <> a_col_name then 
+		if this.Describe("DataWindow.ReadOnly") = "yes" then
+			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " "
+		else
+			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + ki_column_background_before_active[2] + " "
+		end if
+	end if
+
+	if this.Describe("DataWindow.ReadOnly") = "yes" then
+	else
+
+		if a_col_name > " " then
+			if this.Describe(a_col_name + ".TabSequence") > "0" and this.Describe("Evaluate("+a_col_name + ".Protect"+")") <> "1" then
+					
+	//--- Salva colore di sfondo originale
+				if ki_column_background_before_active[1] <> a_col_name then
+					ki_column_background_before_active[1] = a_col_name
+					ki_column_background_before_active[2] = u_get_evaluate( a_col_name, "Background.Color")
+				end if
+			
+				k_modify += a_col_name + ".Background.Mode='0' " + a_col_name + ".Background.Color='" + ki_column_background_before_active[2] &
+								+ "~t IF ( getrow() = currentRow()," + kkg_colore.INPUT_FIELD + "," + ki_column_background_before_active[2] + ")'"   
+				
+				if k_modify > " " then
+					k_rc = this.modify(k_modify)
+					k_modify = ""
+				end if	
+				
+				k_style = trim(this.Describe(a_col_name  + ".Edit.Style"))
+				if k_style = "edit" then
+				//--- ripristina autoselect se impostato, ma solo se EDIT altrimenti blocca il riempimento come nel dropdowncalendar
+					k_rc = this.describe(a_col_name + ".Edit.AutoSelect")
+					if k_rc = 'yes' or k_rc = "?" then
+						this.SelectText(1, Len(this.GetText()))
+					end if
+				end if
+			end if
+		end if
+	end if
+
+	if k_modify > " " then
+		k_rc = this.modify(k_modify)
+	end if
+end subroutine
+
+public function string u_get_evaluate (string a_field, string a_field_describe);/*
+   torna il valore dopo si un EXPRESSION
+*/
+
+string ls_value, ls_eval
+long ll_row
+
+ll_row = this.GetRow()
+ls_value = this.describe(a_field + "." + a_field_describe)
+
+IF NOT IsNumber(ls_value) THEN   
+
+	if ll_row > 0 then
+	// Get the expression following the tab (~t)   
+		ls_value = Right(ls_value, Len(ls_value) - Pos(ls_value, "~t"))   
+	
+	// Build string for Describe. Include a leading   
+	// quote to match the trailing quote that remains
+		ls_eval = "Evaluate(~"" + ls_value + ", " + String(ll_row) + ")"   
+
+		ls_value = this.Describe(ls_eval)
+		
+		IF NOT IsNumber(ls_value) THEN   
+			ls_value = "0" //"!"
+		end if
+		
+	else
+		
+		ls_value = "0" //"!"
+		
+	end if
+
+END IF
+
+return ls_value
+
+end function
+
 on uo_d_std_1.create
 end on
 
@@ -1850,7 +1969,8 @@ end if
 if this.Object.DataWindow.Processing = kki_tipo_processing_form and this.getrow() > 0 &
 			and (this.ki_flag_modalita = kkg_flag_modalita.modifica or this.ki_flag_modalita = kkg_flag_modalita.inserimento) then
 
-	kguo_g.use_col_background_input_field(kidw_this, this.getcolumnname())
+//	kguo_g.use_col_background_input_field(kidw_this, this.getcolumnname())
+	u_set_color_column_on_cursor(this.getcolumnname(), false)  // imposta colore di sfondo della colonna
 	
 end if
 
@@ -2374,7 +2494,7 @@ end if
 if this.Object.DataWindow.Processing = kki_tipo_processing_form and row > 0 &
 			and (this.ki_flag_modalita = kkg_flag_modalita.modifica or this.ki_flag_modalita = kkg_flag_modalita.inserimento) then
 
-	kguo_g.use_col_background_input_field(kidw_this, dwo.name)
+	u_set_color_column_on_cursor(dwo.name, false)  // imposta colore di sfondo della colonna
 	
 end if
 	

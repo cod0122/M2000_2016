@@ -18,6 +18,7 @@ public function boolean link_call (ref datawindow adw_link, string a_campo_link)
 public subroutine if_isnull (ref st_tab_sc_cf kst_tab_sc_cf)
 public function boolean if_scaduto_sc_cf (st_tab_sc_cf kst_tab_sc_cf) throws uo_exception
 public function st_esito set_attivo_x_data (ref date k_data_da, date k_data_a, string k_attivo)
+public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception
 end prototypes
 
 public function date get_data_scad (ref st_tab_sc_cf kst_tab_sc_cf) throws uo_exception;//
@@ -489,6 +490,64 @@ st_esito kst_esito
 
 
 return kst_esito
+
+end function
+
+public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception;//
+//--- Chiama la OPEN con nel key11 il ds con dentro i dati e key9 in nime del campo "id" della tabella 
+//--- (se ci sono particolarità è meglio ereditarla e modificarla)
+//---
+//--- Input: st_open_w
+//---
+//
+boolean k_return = false
+boolean k_sicurezza = false 
+long k_riga = 0
+string k_type
+//kuf_menu_window kuf1_menu_window
+
+
+ast_open_w.id_programma = get_id_programma(ast_open_w.flag_modalita) //trim(ast_open_w.id_programma)
+
+if ast_open_w.id_programma > " " then
+	
+	k_sicurezza = if_sicurezza(ast_open_w)
+	if k_sicurezza then
+		
+		if ast_open_w.key9 > " " and ast_open_w.key11_ds.rowcount() > 0 then
+			if ast_open_w.flag_modalita <> kkg_flag_modalita.inserimento then
+				k_riga = ast_open_w.key11_ds.getrow()
+				if k_riga = 0 then k_riga = 1
+				k_type = left(ast_open_w.key11_ds.Describe( trim(ast_open_w.key9) + ".ColType"),4)
+				if k_type = "!" then  //campo trovato?
+					ast_open_w.key1 = ""
+				else
+					if k_type = "char" then  //tipo di dato, alfanum o numerico?
+						ast_open_w.key3 = ast_open_w.key11_ds.getitemstring(k_riga, trim(ast_open_w.key9))
+					else
+						ast_open_w.key3 = string(ast_open_w.key11_ds.getitemnumber(k_riga, trim(ast_open_w.key9)))
+					end if
+				end if
+			end if
+		end if
+		if ast_open_w.key3 > " " or ast_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+				
+			k_return = true
+			
+			ast_open_w.flag_primo_giro = "S"
+			
+			//kuf1_menu_window = create kuf_menu_window 
+			kGuf_menu_window.open_w_tabelle(ast_open_w)
+				
+		end if
+		
+	end if
+end if
+
+
+return k_return
+
+
 
 end function
 

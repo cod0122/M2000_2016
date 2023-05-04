@@ -44,7 +44,7 @@ long k_rc
 boolean k_return=true
 string k_title, k_rcx
 st_tab_asdrackbarcode kst_tab_asdrackbarcode
-st_tab_asddevice kst_tab_asddevice 
+//st_tab_asddevice kst_tab_asddevice 
 st_tab_asdrackcode kst_tab_asdrackcode
 st_esito kst_esito
 kuf_asdrackcode kuf1_asdrackcode
@@ -96,20 +96,20 @@ try
 					if k_rcx = "!" or k_rcx = "?" then
 					else
 						kst_tab_asdrackbarcode.id_asdrackbarcode = adw_link.getitemnumber(adw_link.getrow(), a_campo_link)
-						kst_tab_asddevice.id_asddevice = kuf1_asdrackcode.get_id_asddevice_from_id_asdrackbarcode(kst_tab_asdrackbarcode.id_asdrackbarcode)
+						kst_tab_asdrackcode.id_asddevice = kuf1_asdrackcode.get_id_asddevice_from_id_asdrackbarcode(kst_tab_asdrackbarcode.id_asdrackbarcode)
 					end if
 				else
 					kst_tab_asdrackcode.id_asdrackcode = adw_link.getitemnumber(adw_link.getrow(), a_campo_link)
-					kst_tab_asddevice.id_asddevice = kuf1_asdrackcode.get_id_asddevice(kst_tab_asdrackcode)
+					kst_tab_asdrackcode.id_asddevice = kuf1_asdrackcode.get_id_asddevice(kst_tab_asdrackcode)
 				end if
 			else
-				kst_tab_asddevice.id_asddevice = adw_link.getitemnumber(adw_link.getrow(), a_campo_link)
+				kst_tab_asdrackcode.id_asddevice = adw_link.getitemnumber(adw_link.getrow(), a_campo_link)
 			end if			
 
-			if kst_tab_asddevice.id_asddevice > 0 then
+			if kst_tab_asdrackcode.id_asddevice > 0 then
 			
 				anteprima_x_asddevice ( kdsi_elenco_output, kst_tab_asdrackcode )
-				k_title = "Rack del Dispositivo id: " + string(kst_tab_asddevice.id_asddevice) 
+				k_title = "Rack del Dispositivo id: " + string(kst_tab_asdrackcode.id_asddevice) 
 					
 			else
 				k_return = false

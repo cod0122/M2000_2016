@@ -1414,12 +1414,16 @@ if k_root > " " then
 
 	k_path = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "packingformin_file"))
 	if k_path > " " then
-		k_path = k_root + kkg.path_sep + k_path
+		if left(k_path, 1) = kkg.path_sep then // se ha già il barrra non lo aggiungo
+		else
+			k_path = kkg.path_sep + k_path
+		end if
+		k_path = k_root + k_path
 	else
 		k_path = k_root
 	end if
 		
-	k_ret = GetFileOpenName ( "Scegliere il documento con il formato del packing del Lotto in entrata", k_path_file, k_file, "pdf", " Tutti i file (*.*),*.*" , k_path, 32784)
+	k_ret = GetFileOpenName ( "Scegliere il documento con il formato del packing del Lotto in entrata", k_path_file, k_file, "pdf", " Tutti i file (*.*),*.*" , k_root, 18) //32784)
 	
 	if k_ret = 1 then
 		k_pos = pos(k_path_file, k_root)
