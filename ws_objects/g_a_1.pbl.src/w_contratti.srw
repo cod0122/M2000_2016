@@ -2018,7 +2018,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.k_titolo_t.x) + long(this.object.k_titolo_t.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) * 1.5 + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) * 1.5 + 260
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

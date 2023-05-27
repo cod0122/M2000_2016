@@ -15,6 +15,8 @@ end type
 end forward
 
 global type w_lotto from w_g_tab_3
+integer width = 5038
+integer height = 4180
 string title = "Documento "
 boolean ki_toolbar_window_presente = true
 boolean ki_esponi_msg_dati_modificati = false
@@ -1307,6 +1309,8 @@ try
 		kst_tab_armo.id_armo = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "id_armo" )
 		kst_tab_armo.art = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "art" )
 		kst_tab_armo.campione = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "campione" )
+		kst_tab_armo.campionecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "campionecolli" )
+		kst_tab_armo.parzialecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "parzialecolli" )
 		kst_tab_prodotti.des = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "des")
 		kst_tab_armo.magazzino = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "magazzino")
 		kst_tab_armo.dose = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "dose" )
@@ -1702,7 +1706,7 @@ finally
 			k_errore = "2"
 		case kkg_esito.DATI_INSUFF
 			k_errore = "3"
-		case kkg_esito.DB_WRN
+		case kkg_esito.DB_WRN 
 			k_errore = "4"
 			set_stato_ok()
 		case kkg_esito.DATI_WRN
@@ -2050,7 +2054,6 @@ private subroutine riga_modifica_display_art (st_tab_armo kst_tab_armo, st_tab_p
 //=== 
 //======================================================================
 
-		tab_1.tabpage_4.dw_riga_0.setitem( 1, "campione", kst_tab_armo.campione )
 		tab_1.tabpage_4.dw_riga_0.setitem( 1, "art", kst_tab_armo.art )
 		tab_1.tabpage_4.dw_riga_0.setitem( 1, "larg_2", kst_tab_armo.larg_2 )
 		tab_1.tabpage_4.dw_riga_0.setitem( 1, "lung_2", kst_tab_armo.lung_2 )
@@ -2060,6 +2063,9 @@ private subroutine riga_modifica_display_art (st_tab_armo kst_tab_armo, st_tab_p
 		tab_1.tabpage_4.dw_riga_0.setitem( 1, "magazzino", kst_tab_armo.magazzino )
 		tab_1.tabpage_4.dw_riga_0.setitem( 1, "des", kst_tab_prodotti.des )
 
+		tab_1.tabpage_4.dw_riga_0.setitem( 1, "campione", kst_tab_armo.campione )
+		tab_1.tabpage_4.dw_riga_0.setitem( 1, "campionecolli", kst_tab_armo.campionecolli )
+		tab_1.tabpage_4.dw_riga_0.setitem( 1, "parzialecolli", kst_tab_armo.parzialecolli )
 	
 end subroutine
 
@@ -2188,7 +2194,9 @@ try
 	 	kst_tab_listino.m_cubi_f = (kst_tab_listino.mis_x * kst_tab_listino.mis_y * kst_tab_listino.mis_z) / 1000000000 
 
 	 	ast_tab_armo.colli_fatt = 0
-
+	 	ast_tab_armo.campionecolli = 0
+	 	ast_tab_armo.parzialecolli = 0
+		 
 //	 	ast_tab_armo.peso_kg = kst_tab_listino.peso_kg
 //	 	ast_tab_armo.m_cubi = kst_tab_armo.larg_2 * kst_tab_armo.alt_2 * kst_tab_armo.lung_2 / 1000000000 
 
@@ -2387,7 +2395,6 @@ st_esito kst_esito
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "data_int"  ,ast_tab_armo.data_int )
 
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "magazzino"  ,ast_tab_armo.magazzino )
-	tab_1.tabpage_4.dw_4.setitem(a_riga, "campione"  ,ast_tab_armo.campione )
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "art"  ,ast_tab_armo.art )
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "dose"  ,ast_tab_armo.dose )
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "des"  ,ast_tab_prodotti.des )
@@ -2404,6 +2411,10 @@ st_esito kst_esito
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "id_meca"  ,ast_tab_armo.id_meca )
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "id_armo"  ,ast_tab_armo.id_armo )
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "colli_fatt"  ,ast_tab_armo.colli_fatt )
+
+	tab_1.tabpage_4.dw_4.setitem(a_riga, "campione"  ,ast_tab_armo.campione )
+	tab_1.tabpage_4.dw_4.setitem(a_riga, "campionecolli"  ,ast_tab_armo.campionecolli )
+	tab_1.tabpage_4.dw_4.setitem(a_riga, "parzialecolli"  ,ast_tab_armo.parzialecolli )
 
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "note_1"  ,trim(ast_tab_armo.note_1))
 	tab_1.tabpage_4.dw_4.setitem(a_riga, "note_2"  ,trim(ast_tab_armo.note_2))
@@ -2686,6 +2697,9 @@ try
 //--- Carica / Aggiorna la testata
 		kst_tab_meca.st_tab_g_0.esegui_commit = "N"
 		kst_tab_meca.id = kiuf_armo.tb_update_meca( kst_tab_meca )
+
+		kguo_sqlca_db_magazzino.db_commit( )    // Commit della TESTATA (meca)
+		
 		if kst_tab_meca.id > 0 then
 			kist_tab_meca.id = kst_tab_meca.id
 			
@@ -2702,12 +2716,16 @@ try
 				kst_tab_meca.meca_blk_rich_autorizz = trim(kst_tab_meca_causali.rich_autorizz)
 			end if
 			if kiuf_armo.if_esiste_blk(kst_tab_meca) then // verifica esistenza in tab Blocco
-				kiuf_armo.set_meca_blk_descrizione(kst_tab_meca)
-				kiuf_armo.set_meca_blk_rich_autorizz(kst_tab_meca)
+				//kiuf_armo.set_meca_blk_descrizione(kst_tab_meca)
+				//kiuf_armo.set_meca_blk_rich_autorizz(kst_tab_meca)
+				kiuf_armo.set_meca_blk_descr_rich_autorizz(kst_tab_meca)
 			else
 //			if kst_tab_meca.id_meca_causale > 0 or kst_tab_meca.meca_blk_descrizione > " " then
 				kiuf_armo.tb_update_meca_blk(kst_tab_meca)  // aggiorna MECA_BLK
 			end if
+			
+			kguo_sqlca_db_magazzino.db_commit( )    // Commit del Blocco Testata (meca_blk)
+
 			tab_1.tabpage_1.dw_1.setitem (k_riga, "id_meca", kst_tab_meca.id )
 		else
 			kst_esito.sqlcode = 0
@@ -2739,6 +2757,8 @@ try
 		k_riga++
 	loop
 
+	kguo_sqlca_db_magazzino.db_commit( )    // Commit delle Righe Cancellate (armo)
+
 //--- carica le righe sul DB	
 	kuf1_armo_inout = create kuf_armo_inout
 	k_riga = 1
@@ -2760,6 +2780,8 @@ try
 		kst_tab_armo.magazzino = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "magazzino") 
 		kst_tab_armo.art = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "art") 
 		kst_tab_armo.campione = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "campione") 
+		kst_tab_armo.campionecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "campionecolli") 
+		kst_tab_armo.parzialecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "parzialecolli") 
 		kst_tab_armo.dose = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "dose") 
 		kst_tab_armo.colli_1 = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "colli_2") 
 		kst_tab_armo.colli_2 = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "colli_2") 
@@ -2797,7 +2819,9 @@ try
 		catch (uo_exception kuo1_exception)
 			kuo1_exception.messaggio_utente()
 		end try					
-							
+				
+		kguo_sqlca_db_magazzino.db_commit( )    // Commit delle Righe (armo+armo_nt+armo_prezzi)
+				
 //--- riga successiva 
 		k_riga = tab_1.tabpage_4.dw_4.getnextmodified(k_riga, primary!)
 
@@ -4552,7 +4576,8 @@ end subroutine
 
 public subroutine u_write_avvertenze (string a_avvertenze);//
 if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
-	tab_1.tabpage_1.dw_1.setitem(1, "k_avvertenze", a_avvertenze)
+	tab_1.tabpage_1.dw_1.setitem(1, "k_avvertenze", a_avvertenze + " " + kkg.acapo &
+								+ trim(tab_1.tabpage_1.dw_1.getitemstring(1, "k_avvertenze")))
 	tab_1.tabpage_1.dw_1.SetItemStatus(1, "k_avvertenze", primary!, NotModified!) 
 end if
 
@@ -5091,8 +5116,6 @@ try
 		end if
 	end if
 
-	k_esito = Left(k_return, 1)
-
 	if Left(k_return, 1) = "0" then // OK aggiornamento
 	
 		k_nr_barcode = u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
@@ -5373,6 +5396,8 @@ type cb_inserisci from w_g_tab_3`cb_inserisci within w_lotto
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_lotto
+integer x = 0
+integer y = 0
 end type
 
 on tab_1.create
@@ -6187,6 +6212,9 @@ try
 			kst_tab_armo.note_1 = this.getitemstring(k_riga, "note_1")
 			kst_tab_armo.note_2 = this.getitemstring(k_riga, "note_2")
 			kst_tab_armo.note_3 = this.getitemstring(k_riga, "note_3")
+			kst_tab_armo.campione = this.getitemstring(k_riga, "campione")
+			kst_tab_armo.campionecolli = this.getitemnumber(k_riga, "campionecolli")
+			kst_tab_armo.parzialecolli = this.getitemnumber(k_riga, "parzialecolli")
 
 			kst_tab_armo_nt.note[1] = this.getitemstring(k_riga, "armo_nt_note_1")
 
@@ -6265,16 +6293,25 @@ try
 		if kuf1_sped.get_colli_x_id_armo(kst_tab_arsp) > 0 then
 			kiuf_utility.u_proteggi_dw("1", "colli_2", tab_1.tabpage_4.dw_riga_0)
 			kiuf_utility.u_proteggi_dw("1", "pedane", tab_1.tabpage_4.dw_riga_0)
+			kiuf_utility.u_proteggi_dw("1", "campione", tab_1.tabpage_4.dw_riga_0)
+			kiuf_utility.u_proteggi_dw("1", "campionecolli", tab_1.tabpage_4.dw_riga_0)
+			kiuf_utility.u_proteggi_dw("1", "parzialecolli", tab_1.tabpage_4.dw_riga_0)
 			this.setcolumn("note_1")
 		else	
 //--- se riga pianificata non possiamo cambiare il numero colli	
 			if kiuf_armo.if_lotto_pianificato_xriga(kst_tab_armo) then
 				kiuf_utility.u_proteggi_dw("1", "colli_2", tab_1.tabpage_4.dw_riga_0)
 				kiuf_utility.u_proteggi_dw("1", "pedane", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("1", "campione", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("1", "campionecolli", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("1", "parzialecolli", tab_1.tabpage_4.dw_riga_0)
 				this.setcolumn("note_1")
 			else
 				kiuf_utility.u_proteggi_dw("0", "colli_2", tab_1.tabpage_4.dw_riga_0)
 				kiuf_utility.u_proteggi_dw("0", "pedane", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("0", "campione", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("0", "campionecolli", tab_1.tabpage_4.dw_riga_0)
+				kiuf_utility.u_proteggi_dw("0", "parzialecolli", tab_1.tabpage_4.dw_riga_0)
 				this.setcolumn("colli_2")
 			end if
 		end if
@@ -6582,7 +6619,6 @@ st_tab_armo kst_tab_armo
 	k_nome = lower(trim(dwo.name))
 	choose case k_nome
 
-
 //--- torna con agg riga
 		case "b_ok"
 			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita =  kkg_flag_modalita.modifica then
@@ -6596,7 +6632,6 @@ st_tab_armo kst_tab_armo
 			event u_resize(false)
 		
 	end choose
-
 
 	post attiva_tasti()
 

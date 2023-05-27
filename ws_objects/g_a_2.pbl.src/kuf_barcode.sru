@@ -1090,10 +1090,10 @@ kuf_base kuf1_base
 							 x_utente = :kst_tab_barcode.x_utente
 						where barcode = :kst_tab_barcode.barcode
 						using kguo_sqlca_db_magazzino;
-					else
-						kst_esito.esito = kkg_esito.no_esecuzione
-						kst_esito.sqlerrtext = "Errore Interno, manca il codice barcode per impostare la data Convalida"
-					end if
+				else
+					kst_esito.esito = kkg_esito.no_esecuzione
+					kst_esito.sqlerrtext = "Errore Interno, manca il codice barcode per impostare la data Convalida"
+				end if
 	
 
 			case "data_lav_ok_x_id_meca_barcode_altri"
@@ -5564,7 +5564,7 @@ long k_righe_barcode
 int k_ctr, k_nr_dosimetri
 string K_barcode_update=""
 st_esito kst_esito 
-datastore kds_1
+uo_ds_std_1 kds_1
 
 
 try
@@ -5577,7 +5577,7 @@ try
 	if ast_tab_barcode.id_meca > 0 then 
                
 //--- 20/7/15 leggo i barcode del lotto x impostare il flag del dosimetro
-		kds_1 = create datastore
+		kds_1 = create uo_ds_std_1
 		kds_1.dataobject = "ds_barcode_set_flg_dosimetro"
 		kds_1.settransobject(kguo_sqlca_db_magazzino)
 		k_righe_barcode = kds_1.retrieve(ast_tab_barcode.id_meca)
@@ -5604,13 +5604,12 @@ try
 					kst_esito = kguo_sqlca_db_magazzino.db_commit()
 				end if
 			else
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = k_ctr
-				kst_esito.sqlerrtext = "Errore in aggiornamento indicatori Dosimetro sui Barcode per Id Lotto: " + string(ast_tab_barcode.id_meca) 
+				kst_esito = kds_1.kist_esito
+				kst_esito.sqlerrtext = "Errore in aggiornamento indicatori presenza Dosimetro sui Barcode per Id Lotto: " + string(ast_tab_barcode.id_meca) + " " &
+				                        + kkg.acapo + kst_esito.sqlerrtext
 				if ast_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_barcode.st_tab_g_0.esegui_commit) then
 					kguo_sqlca_db_magazzino.db_rollback()
 				end if
-				kguo_exception.inizializza()
 				kguo_exception.set_esito(kst_esito)
 				throw kguo_exception
 			end if

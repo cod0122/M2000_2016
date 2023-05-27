@@ -32,6 +32,8 @@ public function boolean if_barcode_same_asddevice (st_tab_asdrackbarcode ast_tab
 public function boolean if_barcode_is_associated (ref st_tab_asdrackbarcode ast_tab_asdrackbarcode) throws uo_exception
 public function boolean if_asddevice_barcode_associated (st_tab_asdrackbarcode ast_tab_asdrackbarcode) throws uo_exception
 public function boolean if_barcode_only_existing_father (ref st_tab_asdrackbarcode ast_tab_asdrackbarcode) throws uo_exception
+public function boolean if_add_barcode_x_barcode (st_tab_asdrackbarcode ast_tab_asdrackbarcode, st_tab_asdrackbarcode ast_tab_asdrackbarcode_1) throws uo_exception
+public function integer get_id_asdrackcode (ref st_tab_asdrackbarcode ast_tab_asdrackbarcode[]) throws uo_exception
 end prototypes
 
 public subroutine _readme ();/*
@@ -141,10 +143,10 @@ try
 		
 //--- Verifica che il Barcode non sia già Pianificato!
 		kst_tab_barcode.barcode = ast_tab_asdrackbarcode[k_row_rack].barcode
-		if kuf1_barcode.if_barcode_in_pl(kst_tab_barcode) then
+		if kuf1_barcode.if_barcode_in_pl_chiuso(kst_tab_barcode) then
 			kst_esito.esito = kkg_esito.no_esecuzione
 			kst_esito.SQLErrText = "Attenzione il Barcode '" + string(ast_tab_asdrackbarcode[k_row_rack].barcode) + "' è già stato messo in Pianificazione. " &
-										 + kkg.acapo + "Associazione al Rack in " + string(ast_tab_asdrackbarcode[k_row_rack].id_asdrackcode) + " non consentita!" 
+										 + kkg.acapo + "Associazione al Rack id " + string(ast_tab_asdrackbarcode[k_row_rack].id_asdrackcode) + " non consentita!" 
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
@@ -168,7 +170,7 @@ try
 				if k_ctr < 1 then
 					kst_esito = kuo_ds_std_2.kist_esito
 					kst_esito.SQLErrText = "Errore in riassegnazione in tabella associazioni del rackcode del Dispositivo Ausiliario per il Barcode di trattamento (asdrackbarcode) " &
-										+ kkg.acapo + "~n~rAssociazione non riassegnata a id Rack " + string(ast_tab_asdrackbarcode[k_row_rack].id_asdrackcode) &
+										+ kkg.acapo + "~n~rAssociazione non riassegnata al Rack id " + string(ast_tab_asdrackbarcode[k_row_rack].id_asdrackcode) &
 														+ " Barcode di lav. " + string(ast_tab_asdrackbarcode[k_row_rack].barcode) &
 										+ kkg.acapo + "Errore: " + trim(kuo_ds_std_2.kist_esito.SQLErrText) &
 									   + " (" + kuo_ds_std_2.dataobject + ")"
@@ -379,9 +381,9 @@ try
 //	kds_1.dataobject = "ds_asdrackbarcode_x_barcode"
 //	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	
-	k_nr_righe =ads_inp.rowcount()
+	k_nr_righe = ads_inp.rowcount()
 	k_errori = 0
-	k_riga =ads_inp.getnextmodified(0, primary!)
+	k_riga = ads_inp.getnextmodified(0, primary!)
 
 	do while k_riga > 0  and k_errori < 99
 
@@ -399,7 +401,6 @@ try
 			end if
 		end if
 		
-		k_riga++
 		k_riga = ads_inp.getnextmodified(k_riga, primary!)
 
 	loop
@@ -823,6 +824,118 @@ finally
 end try
 
 return k_return 
+
+end function
+
+public function boolean if_add_barcode_x_barcode (st_tab_asdrackbarcode ast_tab_asdrackbarcode, st_tab_asdrackbarcode ast_tab_asdrackbarcode_1) throws uo_exception;/*
+Verifica se Barcode può essere aggiunto al Rack insieme ad altro Barcode
+inp: ast_tab_asdrackbarcode.barcode     (non ancora associato) 
+     ast_tab_asdrackbarcode_1.barcode   (già associato)
+rit: true = può sessere aggiunto allo stesso RACK
+*/
+boolean k_return
+int k_rows
+uo_ds_std_1 kds_1
+
+
+try
+
+	if trim(ast_tab_asdrackbarcode.barcode) > " " &
+					and trim(ast_tab_asdrackbarcode_1.barcode) > " " then
+		
+		kds_1 = create uo_ds_std_1
+		kds_1.dataobject = "ds_if_barcode_in_rackcode_x_barcode"
+		kds_1.settransobject( kguo_sqlca_db_magazzino )
+		
+		k_rows = kds_1.retrieve(ast_tab_asdrackbarcode.barcode, ast_tab_asdrackbarcode_1.barcode)
+		
+		//--- se ci sono righe allora si può aggiungere
+		if k_rows > 0 then
+			
+			k_return = true				
+				
+		else
+			
+			if k_rows < 0 then
+				
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.kist_esito.esito = kkg_esito.db_ko
+				kguo_exception.kist_esito.sqlerrtext = "Errore in Verifica associazione Barcode '" + ast_tab_asdrackbarcode.barcode + "' allo stesso Rack del Barcode " &
+								+ trim(ast_tab_asdrackbarcode_1.barcode) + ") " &
+								+ kkg.acapo +kds_1.kist_esito.sqlerrtext + " (" + string(kds_1.kist_esito.sqlcode) + ")"
+				throw kguo_exception
+
+			end if
+			
+		end if
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+		throw kuo_exception
+	
+finally
+	if isvalid(kds_1) then destroy kds_1
+	
+end try
+
+return k_return 
+
+end function
+
+public function integer get_id_asdrackcode (ref st_tab_asdrackbarcode ast_tab_asdrackbarcode[]) throws uo_exception;/*
+Get i id_asdrackcode (uno o più Rack) associati al Barcode
+inp: st_tab_asdrackbarcode[1].barcode
+out: st_tab_asdrackbarcode[n].id_asdrackcode 
+rit: numero Rack trovati
+*/
+int k_return
+int k_rows, k_row
+uo_ds_std_1 kds_1
+
+
+try
+
+	if trim(ast_tab_asdrackbarcode[1].barcode) > " " then
+		
+		kds_1 = create uo_ds_std_1
+		kds_1.dataobject = "ds_asdrackbarcode_x_barcode"
+		kds_1.settransobject( kguo_sqlca_db_magazzino )
+		
+		k_rows = kds_1.retrieve(ast_tab_asdrackbarcode[1].barcode)
+		
+		if k_rows >= 0 then
+			for k_row = 1 to k_rows
+			
+				ast_tab_asdrackbarcode[k_row].barcode = kds_1.getitemstring(k_row, "barcode")  
+				ast_tab_asdrackbarcode[k_row].id_asdrackcode = kds_1.getitemnumber(k_row, "id_asdrackcode")
+				
+				k_return ++
+				
+			next
+				
+		else
+			
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.kist_esito.esito = kkg_esito.db_ko
+			kguo_exception.kist_esito.sqlerrtext = "Errore in recupero Rack associati al Barcode '" + ast_tab_asdrackbarcode[1].barcode + "' " + kkg.acapo &
+							+ kds_1.kist_esito.sqlerrtext + " (" + string(kds_1.kist_esito.sqlcode) + ")"
+			throw kguo_exception
+
+			
+		end if
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+		throw kuo_exception
+	
+finally
+	if isvalid(kds_1) then destroy kds_1
+	
+end try
+
+return k_return
 
 end function
 

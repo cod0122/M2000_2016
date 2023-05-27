@@ -221,7 +221,7 @@ return "0"
 end function
 
 protected subroutine open_start_window ();//
-	kiw_this_window.icon = kGuo_path.get_risorse() + "\sicurezza.ico" 
+	kiw_this_window.icon = "sicurezza.ico" 
 
 end subroutine
 
@@ -338,6 +338,9 @@ on w_sr_sicurezza.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
 end on
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_sr_sicurezza
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_sr_sicurezza
 end type

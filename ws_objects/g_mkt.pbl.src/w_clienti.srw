@@ -4305,6 +4305,8 @@ end type
 type dw_periodo from uo_dw_periodo within w_clienti
 integer x = 279
 integer y = 1240
+integer width = 1074
+integer height = 636
 integer taborder = 40
 boolean bringtotop = true
 end type

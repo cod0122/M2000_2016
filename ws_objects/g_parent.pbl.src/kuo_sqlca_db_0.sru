@@ -135,7 +135,7 @@ st_esito kst_esito
 	
 	connect using this;
 	
-	if this.sqlcode = 0 then
+	if this.sqldbcode = 0 then
 	
 		x_db_connetti_post_ok()
 		

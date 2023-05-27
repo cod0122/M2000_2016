@@ -54,6 +54,7 @@ public function st_esito anteprima (datastore kdw_anteprima, st_tab_sl_pt kst_ta
 public function long get_id_sl_pt_memo_max () throws uo_exception
 public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
+public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 end prototypes
 
 public function st_esito select_riga (ref st_tab_sl_pt k_st_tab_sl_pt);//
@@ -274,7 +275,7 @@ public subroutine if_isnull (st_tab_sl_pt kst_tab_sl_pt);//---
 
 if isnull(kst_tab_sl_pt.cod_sl_pt) then kst_tab_sl_pt.cod_sl_pt = ""
 if isnull(kst_tab_sl_pt.descr) then	kst_tab_sl_pt.descr = ""
-if isnull(kst_tab_sl_pt.densita) then kst_tab_sl_pt.densita = ""
+if isnull(kst_tab_sl_pt.densita) then kst_tab_sl_pt.densita = 0.0
 if isnull(kst_tab_sl_pt.dose) then	kst_tab_sl_pt.dose = 0
 if isnull(kst_tab_sl_pt.dose_min) then	kst_tab_sl_pt.dose_min = 0
 if isnull(kst_tab_sl_pt.dose_max) then	kst_tab_sl_pt.dose_max = 0
@@ -1331,6 +1332,50 @@ st_esito kst_esito
 
 return k_return 
 end function
+
+public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;//
+//====================================================================
+//=== Torna dati DENSITA 
+//=== 
+//=== Input: st_tab_sl_pt.cod_sl_pt
+//=== Output: st_tab_sl_pt.densita/densitamax
+//===             
+//=== Lancia un ECCEZIONE se Errore grave
+//====================================================================
+//
+boolean k_return=false
+st_esito kst_esito
+
+
+	if kst_tab_sl_pt.cod_sl_pt > " " then
+		kst_esito = kguo_exception.inizializza(this.classname())
+	
+		SELECT 
+			isnull(densita, 0.0)
+			,isnull(densitamax, 0.0)
+		 into 
+			:kst_tab_sl_pt.densita  
+			,:kst_tab_sl_pt.densitamax  
+		FROM sl_pt
+		WHERE (cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	
+	
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+		else
+			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+			kst_esito.SQLErrText = "Errore in lettura dati Densità del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt) &
+								+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.inizializza( )
+			kguo_exception.set_esito (kst_esito)
+			throw kguo_exception
+		end if
+	end if
+
+
+
+end subroutine
 
 on kuf_sl_pt.create
 call super::create

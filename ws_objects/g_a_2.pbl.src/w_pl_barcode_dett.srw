@@ -6014,11 +6014,13 @@ st_tab_clienti kst_tab_clienti
 st_tab_prodotti kst_tab_prodotti
 st_tab_armo kst_tab_armo
 st_tab_asdrackbarcode kst_tab_asdrackbarcode
+st_tab_sl_pt kst_tab_sl_pt
 uo_ds_std_1 kds_1
 //kuf_barcode kuf1_barcode
 //kuf_armo kuf1_armo
 kuf_clienti kuf1_clienti
 kuf_prodotti kuf1_prodotti
+kuf_sl_pt kuf1_sl_pt
 
 
 ki_lista_0_modifcato = true
@@ -6028,6 +6030,7 @@ ki_lista_0_modifcato = true
 //		kuf1_armo = create kuf_armo
 		kuf1_clienti = create kuf_clienti
 		kuf1_prodotti = create kuf_prodotti
+		kuf1_sl_pt = create kuf_sl_pt
 
 		kds_1 = kiuf_barcode.get_figli_barcode(kst_tab_barcode)  //get figli del barcode per aggiungerli
 		if kds_1.rowcount( ) > 0 then
@@ -6053,13 +6056,19 @@ ki_lista_0_modifcato = true
 					kiuf_barcode.select_barcode( kst_tab_barcode )
 					kst_tab_armo.id_armo = kst_tab_barcode.id_armo
 					kiuf_armo.leggi_riga( " ", kst_tab_armo )
+					
 					kst_tab_armo.peso_kg = kst_tab_armo.peso_kg / kst_tab_armo.colli_2 // ricavo il peso x collo
 					kst_tab_meca.id = kst_tab_armo.id_meca
 					kiuf_armo.leggi_testa("P", kst_tab_meca )
+					
 					kst_tab_clienti.codice = kst_tab_meca.clie_2
 					kuf1_clienti.leggi_rag_soc( kst_tab_clienti )
 					kst_tab_prodotti.codice = kst_tab_armo.art
 					kuf1_prodotti.select_riga( kst_tab_prodotti )
+					
+					kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt
+					kuf1_sl_pt.get_densita(kst_tab_sl_pt)
+					
 					kst_tab_asdrackbarcode.barcode = kst_tab_barcode.barcode
 					if not kiuf_asdrackbarcode.if_barcode_is_associated(kst_tab_asdrackbarcode) then // get di almeno un id rack se c'è
 						kst_tab_asdrackbarcode.id_asdrackcode = 0
@@ -6097,8 +6106,10 @@ ki_lista_0_modifcato = true
 					dw_groupage.setitem(k_rows_grp, "e1ancodrs",kst_tab_clienti.e1ancodrs)
 					dw_groupage.setitem(k_rows_grp, "id_asdrackcode",kst_tab_asdrackbarcode.id_asdrackcode)
 					
-             	if kst_tab_armo.alt_2 > 0 and kst_tab_armo.lung_2 > 0 and kst_tab_armo.larg_2 > 0 and kst_tab_armo.peso_kg > 0 then
-	               dw_groupage.setitem(k_rows_grp, "k_densita", ((kst_tab_armo.peso_kg / kst_tab_armo.colli_2 / (kst_tab_armo.alt_2 / 1000 * kst_tab_armo.lung_2 / 1000 * kst_tab_armo.larg_2 / 1000)) / 1000)  )
+             	if kst_tab_sl_pt.densitamax > 0 then
+	               dw_groupage.setitem(k_rows_grp, "k_densita", kst_tab_sl_pt.densitamax )
+					else
+	               dw_groupage.setitem(k_rows_grp, "k_densita", kst_tab_sl_pt.densita )
 					end if
 				end if
 				
@@ -6113,7 +6124,7 @@ ki_lista_0_modifcato = true
 	finally
 		dw_groupage.setredraw(true)
 	//	if isvalid(kuf1_barcode) then destroy kuf1_barcode
-	//	if isvalid(kuf1_armo) then destroy kuf1_armo 
+		if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt 
 		if isvalid(kuf1_clienti) then destroy kuf1_clienti
 		if isvalid(kuf1_prodotti) then destroy kuf1_prodotti
 		if isvalid(kds_1) then destroy kds_1

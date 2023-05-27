@@ -147,7 +147,7 @@ end subroutine
 
 public subroutine u_esporta ();//
 string k_file, k_rcx
-integer k_nr_rec
+long k_nr_rec, k_rows
 string k_titolo
 datawindow kdw_1
 DataStore kds_1
@@ -183,15 +183,18 @@ try
 			SetPointer(kkg.pointer_attesa)
 			kds_1 = create DataStore
 			kds_1.dataobject = kdw_1.dataobject
-			kdw_1.ROWscopy( 1, kdw_1.rowcount( ) , primary!, kds_1, 1, primary!)
+			k_rows = kdw_1.rowcount( )
+			kdw_1.ROWscopy( 1, k_rows, primary!, kds_1, 1, primary!)
+	
+			k_rows = kds_1.rowcount( )
 	
 			choose case tab_1.selectedtab 
 				case 1 
 	//--- Filtra solo le righe con il Listino E1
 					kds_1.setfilter("e1litm > ' '")
 					if kds_1.filter( ) > 0 then
-	//--- queste colonne non voglio che escano in CSV		
 						k_rcx = kds_1.Modify("cod_cli_t.text='Id_cliente'")
+	//--- queste colonne non voglio che escano in CSV		
 						k_rcx = kds_1.Modify("data.visible='0'")
 						k_rcx = kds_1.Modify("attivo.visible='0'")
 						k_rcx = kds_1.Modify("e1litm.visible='0'")
@@ -955,7 +958,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.kdata.x) + long(this.object.kdata.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 260
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

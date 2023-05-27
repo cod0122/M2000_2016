@@ -13,7 +13,7 @@ table(column=(type=char(12) update=yes updatewhereclause=yes key=yes name=cod_pt
  column=(type=long update=yes updatewhereclause=yes name=fila_1p dbname="crm_pt.fila_1p" )
  column=(type=long update=yes updatewhereclause=yes name=fila_2p dbname="crm_pt.fila_2p" )
  column=(type=decimal(2) update=yes updatewhereclause=yes name=dose dbname="crm_pt.dose" )
- column=(type=char(20) update=yes updatewhereclause=yes name=densita dbname="crm_pt.densita" )
+ column=(type=decimal(2) update=yes updatewhereclause=yes name=densita dbname="crm_pt.densita" )
  column=(type=decimal(2) update=yes updatewhereclause=yes name=dose_min dbname="crm_pt.dose_min" )
  column=(type=decimal(2) update=yes updatewhereclause=yes name=dose_max dbname="crm_pt.dose_max" )
  column=(type=char(80) update=yes updatewhereclause=yes name=composizione dbname="crm_pt.composizione" )
@@ -74,4 +74,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" )
 export.xhtml()
- 

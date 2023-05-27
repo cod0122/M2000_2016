@@ -210,16 +210,8 @@ end on
 
 on w_sr_utenti_password_change.destroy
 call super::destroy
+if IsValid(MenuID) then destroy(MenuID)
 end on
-
-event open;call super::open;//
-
-
-
-dw_pwd.object.p_key.filename = kGuo_path.get_risorse() + "\Chiave.gif"
-
-
-end event
 
 type cb_ritorna from w_sr_utenti_password`cb_ritorna within w_sr_utenti_password_change
 integer x = 2071

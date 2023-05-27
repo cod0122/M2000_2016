@@ -163,6 +163,7 @@ private uo_exception kiuo_exception
 private string ki_column_background_before_active[2]     // colore sfondo colonna appena prime del focus (salva nome e colore background)
 
 end variables
+
 forward prototypes
 public function boolean u_filtra_record (string k_filtro)
 public function long u_get_riga_atpointer (string k_nome_campo)
@@ -1012,7 +1013,7 @@ long k_len_max=0, k_oggettiTrovati=0, k_ctr, k_ctr1, k_ctr2, k_ctr3, k_ctr4
 				k_ctr4 = pos(k_dw_syntax, "~"", k_ctr2) - k_ctr2   // piglia len del "p_img_" es. "p_img_lente" se carattere doppi apici
 				k_ctr3 = pos(k_dw_syntax, " ", k_ctr2) - k_ctr2   // piglia len del "p_img_" es. "p_img_lente"
 				if k_ctr3 > k_ctr4 then k_ctr3 = k_ctr4  // se c'e' prima doppi apici allora sistema la posizione
-				k_nome_oggetto = mid(k_dw_syntax, k_ctr2, k_ctr3 ) // carica il nime del file jpg o bmp o ecc....
+				k_nome_oggetto = mid(k_dw_syntax, k_ctr2, k_ctr3 ) // carica il nome del file jpg o bmp o ecc....
 //--- recupera il nome dell'immagine
 				k_filename = trim(this.Describe('txt_' + k_nome_oggetto + ".Text"))
 				if k_filename > " " and k_filename <> "!" and k_filename <> "?"  then

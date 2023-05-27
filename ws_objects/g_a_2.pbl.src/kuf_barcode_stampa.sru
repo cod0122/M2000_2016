@@ -41,11 +41,11 @@ public function boolean stampa_etichetta_riferimento_x_2xpag (st_barcode_stampa 
 public subroutine u_set_font_default ()
 public function boolean stampa_etichetta_riferimento_x_1_4xpaold (st_barcode_stampa kst_barcode_stampa)
 public function integer stampa_etichetta_riferimento (string k_barcode, long k_id_meca)
-private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa)
 public function integer stampa_etichetta_riferimento_ristampa (string k_barcode, long k_id_meca)
 private subroutine stampa_testo_verticale (string a_testo_verticale, integer a_inizio_riga, integer a_inizio_col, integer a_col_riga, integer a_col_col)
-private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos)
 public function boolean stampa_etichetta_riferimento_1_4xpag_old (st_barcode_stampa kst_barcode_stampa)
+private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
+private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
 end prototypes
 
 private subroutine stampa_barcode (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb);//
@@ -1535,7 +1535,7 @@ string k_nessuna_elab="N"
 string k_barcode_x
 int k_barcode_altezza=0, k_barcode_coord_x, k_barcode_coord_y
 int k_barcode_tot_lotto, k_conta_barcode=0, k_barcode_gia_stampati=0, k_etichette_stampate=0
-int k_ctr=0, k_ctr1=0, k_ctr2=0, k_rec_mod=0, k_tot_dosimetri
+int k_ctr=0, k_ctr1=0, k_ctr2=0, k_rec_mod=0 //, k_tot_dosimetri
 date k_dataoggi 
 constant int k_num_righe_giu=5800 
 constant int k_num_righe_giu_x4=4020  
@@ -1561,6 +1561,7 @@ st_tab_prodotti kst_tab_prodotti
 st_tab_base kst_tab_base
 st_barcode_stampa kst_barcode_stampa
 st_esito kst_esito
+uo_ds_std_1 kds_meca_dosim_barcode_prg
 
 
 SetPointer(HourGlass!)
@@ -1648,12 +1649,9 @@ declare kc_listview cursor for
 	k_barcode_tot_lotto = 0
 	k_etichette_stampate=0
 	kst_tab_barcode.barcode = trim(k_barcode)
-//	kst_tab_barcode.num_int = k_num_int
-//	kst_tab_barcode.data_int = k_data_int
 
-//
+
 //=== Controlla se funzione Autorizzata o meno 
-//
 	if not ki_stampa_etichetta_autorizza then 
 		
 		stampa_etichetta_riferimento_autorizza()
@@ -1690,13 +1688,13 @@ declare kc_listview cursor for
 		 using kguo_sqlca_db_magazzino;
 
 //--- conta il numero tot di dosimetri
-		try
-			kst_tab_barcode.id_meca = k_id_meca
-			k_tot_dosimetri = kuf1_barcode.get_conta_dosimetri(kst_tab_barcode)
-		catch (uo_exception kuo_exception)
-			k_tot_dosimetri = 0
-			kuo_exception.messaggio_utente()
-		end try
+//		try
+//			kst_tab_barcode.id_meca = k_id_meca
+//			k_tot_dosimetri = kuf1_barcode.get_conta_dosimetri(kst_tab_barcode)
+//		catch (uo_exception kuo_exception)
+//			k_tot_dosimetri = 0
+//			kuo_exception.messaggio_utente()
+//		end try
 		
 //--- Stampa dell'intero riferimento ?
 		k_barcode = trim(k_barcode)
@@ -1725,7 +1723,6 @@ declare kc_listview cursor for
 //--- se query ok e funzione Abilitata
 	if kguo_sqlca_db_magazzino.sqlcode = 0 and ki_stampa_etichetta_autorizza then
 
-//
 //--- individuo il tipo modulo x etichette codici a barre da stampare (2 o 4 o ... etich x modulo)
 		kst_tab_base.barcode_modulo = kGuf_data_base.ki_barcode_modulo  // trim(MidA(kuf1_base.prendi_dato_base( "barcode_modulo"),2))
 
@@ -1837,7 +1834,13 @@ declare kc_listview cursor for
 					end if
 				end if
 
-				kst_barcode_stampa.flg_dosimetro_stampati = 0   //contatore dosimetri stampati
+				if kguo_sqlca_db_magazzino.sqlcode = 0 then
+					//--- recupera le etichette dosimetro per il conteggio
+					kds_meca_dosim_barcode_prg = create uo_ds_std_1
+					kds_meca_dosim_barcode_prg.dataobject = "ds_meca_dosim_barcode_prg"
+					kds_meca_dosim_barcode_prg.settransobject(kguo_sqlca_db_magazzino)
+					kds_meca_dosim_barcode_prg.retrieve(kst_tab_barcode.id_meca)
+				end if
 				
 //------------------------------------------------------------------------------------------------------------------------------------ CICLO LETTURE
 				do while kguo_sqlca_db_magazzino.sqlcode = 0 and k_nessuna_elab <> "S"
@@ -1947,7 +1950,7 @@ declare kc_listview cursor for
 						kst_barcode_stampa.id_meca = kst_tab_barcode.id_meca	
 						kst_barcode_stampa.e1doco = kst_tab_meca.e1doco
 						kst_barcode_stampa.e1rorn = kst_tab_meca.e1rorn
-						kst_barcode_stampa.flg_dosimetro_contati = k_tot_dosimetri 
+						//kst_barcode_stampa.flg_dosimetro_contati = k_tot_dosimetri 
 						
 //--- STAMPA ETICHETTA						
 //						if kst_barcode_stampa.magazzino = kuf1_armo.kki_magazzino_datrattare then
@@ -2102,7 +2105,7 @@ declare kc_listview cursor for
 						kst_barcode_stampa.id_meca = kst_tab_barcode.id_meca	
 						kst_barcode_stampa.e1doco = kst_tab_meca.e1doco
 						kst_barcode_stampa.e1rorn = kst_tab_meca.e1rorn
-						kst_barcode_stampa.flg_dosimetro_contati = k_tot_dosimetri 
+						//kst_barcode_stampa.flg_dosimetro_contati = k_tot_dosimetri 
 
 //--- STAMPA ETICHETTA						
 						if kst_barcode_stampa.magazzino = kuf1_armo.kki_magazzino_datrattare then
@@ -2181,8 +2184,9 @@ declare kc_listview cursor for
 
 //--- Stampare l'etichetta x il DOSIMETRO?					
 					if kst_tab_barcode.flg_dosimetro = kuf1_barcode.ki_flg_dosimetro_SI then
+						
 						k_barcode_etichetta_dosimetro_stampata = true
-						if stampa_etichetta_dosimetro( kst_tab_barcode, kst_tab_base, kst_tab_sl_pt, kst_barcode_stampa) then
+						if stampa_etichetta_dosimetro(kst_tab_barcode, kst_tab_base, kst_tab_sl_pt, kst_barcode_stampa, kds_meca_dosim_barcode_prg) then
 //--- contatore delle etichette stampate
 							k_etichette_stampate++
 						end if
@@ -2264,6 +2268,8 @@ declare kc_listview cursor for
 //--- close del CURSORE			
 			close kc_listview;
 	
+			if isvalid(kds_meca_dosim_barcode_prg) then destroy kds_meca_dosim_barcode_prg
+	
 		end if
 		
 
@@ -2281,122 +2287,6 @@ declare kc_listview cursor for
 	
 
 	return k_etichette_stampate
-
-
-
-end function
-
-private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa);//
-// stampa Etichetta Barcode x il Dosimetro da accompagnare a un Barcode di Trattamento
-// return:  TRUE = OK stampato
-//
-boolean k_return=false
-int k_rc=0, k_nr_bcode=0, k_ind, k_nr_dosimpos, k_riga
-kuf_meca_dosim kuf1_meca_dosim
-st_tab_meca_dosim kst_tab_meca_dosim[]
-st_esito kst_esito
-datastore kds_sl_pt_dosimpos_l
-datastore kdd_dosim_tipo, kdd_flg_tipo_dose
-st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
-
-
-	kuf1_meca_dosim = create kuf_meca_dosim
-
-	kds_sl_pt_dosimpos_l = create datastore
-	kds_sl_pt_dosimpos_l.dataobject = "ds_sl_pt_dosimpos_l"
-	kds_sl_pt_dosimpos_l.settransobject(kguo_sqlca_db_magazzino)
-
-	kdd_dosim_tipo = create datastore
-	kdd_dosim_tipo.dataobject = "dd_dosim_tipo"
-	kdd_dosim_tipo.retrieve( )
-
-	kdd_flg_tipo_dose = create datastore
-	kdd_flg_tipo_dose.dataobject = "dd_flg_tipo_dose"
-	kdd_flg_tipo_dose.retrieve( )
-
-	try
-		
-//--- Genera il barcode di dosimetria da stampare 
-		kst_tab_meca_dosim[1].id_meca = kst_tab_barcode_padre.id_meca
-		kst_tab_meca_dosim[1].barcode_lav = kst_tab_barcode_padre.barcode
-		k_nr_bcode = kuf1_meca_dosim.get_barcode(kst_tab_meca_dosim[])   // piglia il bcode da stampare (se c'e' gia')
-
-		if k_nr_bcode > 0 then
-			k_nr_dosimpos = kds_sl_pt_dosimpos_l.retrieve(kst_tab_sl_pt.cod_sl_pt)   // recupera le descrizioni 
-		end if
-
-		for k_ind = 1 to k_nr_bcode
-
-//--- sostituisce descrizione sl-pt etichetta con quelle impostate nella posizione 
-			kst_barcode_stampa.dosimpos_codice=""
-			kst_barcode_stampa.dosim_tipo_des = ""
-			kst_barcode_stampa.tipo_dose_des = ""
-			if k_nr_dosimpos >= k_ind then 
-				
-				kst_barcode_stampa.dosim_tipo = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "dosim_tipo"))  // tipo dosimetro AMBER, RED....
-				if trim(kst_barcode_stampa.dosim_tipo) > " " then
-					k_riga = kdd_dosim_tipo.find( "codice = '" + trim(kst_barcode_stampa.dosim_tipo) + "'", 1, kdd_dosim_tipo.rowcount( )) // cerca il codice ...
-					if k_riga > 0 then
-						kst_barcode_stampa.dosim_tipo_des = trim(kdd_dosim_tipo.getitemstring( k_riga, "descr"))  // descrizione tipo dosimetro AMBER, RED....
-					end if
-				end if
-
-				kst_barcode_stampa.tipo_dose_des = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "dosim_flg_tipo_dose"))  // tipo dose MASSIMA, MINIMA...
-				if trim(kst_barcode_stampa.tipo_dose_des) > " " then
-					k_riga = kdd_flg_tipo_dose.find( "stato = '" + trim(kst_barcode_stampa.tipo_dose_des) + "'", 1, kdd_flg_tipo_dose.rowcount( )) // cerca il codice ...
-					if k_riga > 0 then
-						kst_barcode_stampa.tipo_dose_des = trim(kdd_flg_tipo_dose.getitemstring( k_riga, "descr"))  // descrizione tipo dose MASSIMA, MINIMA...
-					end if
-				end if
-				
-				kst_barcode_stampa.dosimpos_codice = trim(kds_sl_pt_dosimpos_l. getitemstring( k_ind, "dosimpos_codice"))  // codice posizione dosimetro
-				if kst_barcode_stampa.dosimpos_codice > " " then
-				else
-					kst_tab_sl_pt.dosim_et_descr = "00"
-				end if
-
-//--- 19-4-2018 REZIO: le note in stampèa devono essere sia quelle su SL-PT in orizzontale che quelle su DOSIMPOS in verticale!!				
-				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr")) > " " then
-					kst_tab_sl_pt_dosimpos.descr = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr"))
-				else
-					kst_tab_sl_pt_dosimpos.descr = ""
-				end if
-				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1")) > " " then
-					kst_tab_sl_pt_dosimpos.descr1 = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1"))
-				else
-					kst_tab_sl_pt_dosimpos.descr1 = ""
-				end if
-					
-//				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr")) > " " then
-//					kst_tab_sl_pt.dosim_et_descr = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr")) + space(48)  //devo comporre la descrizione 40+40 (x compatibilità vecchia)
-//				end if
-//				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1")) > " " then
-//					kst_tab_sl_pt.dosim_et_descr = left(kst_tab_sl_pt.dosim_et_descr, 48) + trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1")) + space(48)  //devo comporre la descrizione 40+40 (x compatibilità vecchia)
-//				end if
-				
-			end if
-
-			kst_barcode_stampa.flg_dosimetro_stampati ++    //incrementa il contatore dosimetri stampati
-
-			stampa_etichetta_dosimetro_1(kst_tab_meca_dosim[k_ind], kst_tab_barcode_padre, kst_tab_base, kst_tab_sl_pt, kst_barcode_stampa, kst_tab_sl_pt_dosimpos) 
-			
-		next
-		
-	catch (uo_exception kuo_exception)
-		kst_esito = kuo_exception.get_st_esito( )
-		kuo_exception.messaggio_utente( "Barcode Dosimetria non Stampato", kst_esito.SQLErrText + " ~n~rLotto: " &
-		                               + string(kst_tab_barcode_padre.num_int) + " del " + string(kst_tab_barcode_padre.data_int))
-
-	finally 
-		if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
-		if isvalid(kds_sl_pt_dosimpos_l) then destroy kds_sl_pt_dosimpos_l
-		if isvalid(kdd_flg_tipo_dose) then destroy kdd_flg_tipo_dose
-		
-		
-	end try
-	
-
-	return k_return
 
 
 
@@ -2488,303 +2378,6 @@ int k_len, k_ind
 	next
 
 end subroutine
-
-private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos);//
-// stampa Etichetta Barcode x il Dosimetro da accompagnare a un Barcode di Trattamento
-// return:  TRUE = OK stampato
-//
-boolean k_return=true
-boolean k_flacapo=true
-//string k_barcode_x
-int k_barcode_altezza=0, k_barcode_coord_x, k_barcode_coord_y
-//date k_dataoggi 
-constant int k_num_righe_giu=5800 
-constant int k_num_righe_giu_x4=4020  
-constant int k_num_col_dx_x4=5450 
-boolean k_monoetichetta = false
-int k_num_righe = 1, k_inizio_riga=0, k_inizio_col=0, k_avanza_col=0, k_righe=1
-int k_num_colonne = 0
-string k_testo_verticale = ""
-int k_len, k_ind
-
-
-			
-	if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
-
-		k_barcode_coord_x = (2.0 / 2.54) * 520   //--- (Xcm / coeff di conv x pollici) * migliaia
-		k_barcode_coord_y = (7.0 / 2.54) * 660   //--- (Xcm / coeff di conv x pollici) * migliaia
-		k_barcode_altezza = (0.6 / 2.54) * 1200   //--- (Xcm / coeff di conv x pollici) * migliaia
-	
-	else		
-
-		k_barcode_coord_x = (2.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
-		k_barcode_coord_y = (7.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
-		k_barcode_altezza = (0.6 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
-
-
-	end if
-
-	
-//--- contatore delle etichette stampate
-//	k_etichette_stampate++
-
-
-	ki_num_etichetta_in_pag ++
-					
-					
-//--- MODULO A 4 ETICHETTE OPPURE 1 SU ETICHETTATRICE ----------------------------------------------------------------------------------------------------------------------------------- 
-	if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
-
-
-//--- a rottura di riferimento se 4 etichette  salta pagina 
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
-			if kist_tab_barcode_stampa_save.num_int <> kst_tab_barcode_padre.num_int	 then
-				kist_tab_barcode_stampa_save.num_int = kst_tab_barcode_padre.num_int	
-				if ki_num_etichetta_in_pag > 1 then
-					ki_num_etichetta_in_pag = 5         //--- forza salto pagina 			
-				end if
-			end if
-		end if
-
-//--- Numero etichetta?
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
-			choose case ki_num_etichetta_in_pag
-					
-				case 1
-					k_num_colonne = -300
-					k_num_righe = 0
-					
-				case 2
-					k_num_colonne = -300
-					k_num_righe = k_num_righe_giu_x4
-					
-				case 3
-					k_num_colonne = k_num_col_dx_x4
-					k_num_righe = 0
-					
-				case 4
-					k_num_colonne = k_num_col_dx_x4
-					k_num_righe = k_num_righe_giu_x4
-					
-				case else
-//--- salto pagina 
-						PrintPage ( ki_id_print_etichette )
-						ki_num_etichetta_in_pag = 1
-						k_num_colonne = -300
-						k_num_righe = 0
-			end choose
-		end if
-
-//--- se sono su etichettatrice 
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
-			k_num_colonne = -150
-			k_num_righe = 200
-		end if
-
-// stampa il logo ad inizio foglio
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
-			//PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro_x4.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
-			//PrintBitmap(ki_id_print_etichette, "et_bcode_dosimetro_x4.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
-		else
-			PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro_x1.jpg", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
-			//PrintBitmap(ki_id_print_etichette, "et_bcode_dosimetro_x1.jpg", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
-		end if
-		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500)  //2500, 500)
-		//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500)  //2500, 500)
-
-//--- Descrizione
-		k_inizio_riga = 690
-		k_inizio_col = 450
-		printtext (ki_id_print_etichette, "ETICHETTA DOSIMETRO", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-
-//--- Sezione Riferimento al PADRE 
-		k_inizio_riga = 870
-		k_inizio_col = 400
-		printtext (ki_id_print_etichette, "Associato al collo: ", k_inizio_col + k_num_colonne, k_inizio_riga + 120 + k_num_righe, kist_barcode_stampa.font[1,1])
-		printtext (ki_id_print_etichette, string(trim(kst_tab_barcode_padre.barcode), "@@@ @@@@@@@@@@@@@") , k_inizio_col+850+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[4,1])
-		printtext (ki_id_print_etichette, "RIF: ", k_inizio_col+k_num_colonne, k_inizio_riga + 550 + k_num_righe, kist_barcode_stampa.font[1,1])
-		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.num_int,"####0") , k_inizio_col+500+k_num_colonne, k_inizio_riga + 400 + k_num_righe, kist_barcode_stampa.font[5,1])
-		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.data_int) , k_inizio_col+2400+k_num_colonne, k_inizio_riga + 550 + k_num_righe, kist_barcode_stampa.font[1,1])
-
-
-//--- Sezione BARCODE 
-		k_inizio_riga = 2730
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
-			
-			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@ @@@@@"), 300+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
-			
-		else							
-			if isnumber(LeftA(kst_tab_meca_dosim.barcode,1)) then
-				printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 260+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
-			else							
-				printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 260+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
-			end if
-		end if
-
-		kst_tab_sl_pt.dosim_et_descr += space(100)
-
-//--- Espone testo avvertenze da PT
-		if trim(kst_tab_sl_pt.dosim_et_descr) > " " then
-			k_inizio_riga = 3250 //3500
-			k_inizio_col = 500 //200
-			printtext (ki_id_print_etichette, left(trim(kst_tab_sl_pt.dosim_et_descr),48), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-			k_inizio_riga = 3450 //3500
-			k_inizio_col = 500 //200
-			printtext (ki_id_print_etichette, mid(trim(kst_tab_sl_pt.dosim_et_descr),49,48), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-		end if
-
-		//--- Sezione codice modulo e revisione 
-		k_inizio_riga = 3680
-		k_inizio_col = 350
-		printtext (ki_id_print_etichette, "Tag# MN-LT-OPS-002 Rev.2 del 21MAR2018", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, kist_barcode_stampa.font[1,1])
-
-//--- Stampa testo in VERTICALE
-		k_inizio_col = 3950 
-		k_avanza_col = 190 
-		k_testo_verticale = "POS:" + trim(kst_barcode_stampa.dosimpos_codice)			// codice posizione dosimetro es.  POS: 79
-		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
-		
-		k_testo_verticale = trim(kst_barcode_stampa.dosim_tipo_des)							// Tipo Dosimetro AMBER, RED ....
-		stampa_testo_verticale(k_testo_verticale, 2300, k_inizio_col, k_num_righe, k_num_colonne)
-
-		k_testo_verticale = trim(kst_barcode_stampa.tipo_dose_des)							// Tipo Dose MASSIMA, MINIMA ....
-		k_inizio_col += k_avanza_col 
-		stampa_testo_verticale(k_testo_verticale, 2300, k_inizio_col, k_num_righe, k_num_colonne)
-		//stampa_testo_verticale(k_testo_verticale, 1100, k_inizio_col, k_num_righe, k_num_colonne)
-		
-		k_testo_verticale = left(trim(kst_tab_sl_pt_dosimpos.descr), 20)     // I'  riga  della descrizione posizione dosimetri
-		k_inizio_col += k_avanza_col 
-		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
-		if len(trim(kst_tab_sl_pt_dosimpos.descr)) > 20 then
-			k_testo_verticale = trim(mid(trim(kst_tab_sl_pt_dosimpos.descr), 21))     // I'  riga  della descrizione posizione dosimetri
-			k_inizio_col += k_avanza_col 
-			stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
-		end if
-		
-		k_testo_verticale = trim(kst_tab_sl_pt_dosimpos.descr1)     // I'  riga  della descrizione posizione dosimetri
-		k_inizio_col += k_avanza_col 
-		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
-
-//--- stampa il nr dosimetro + nr tot dosimetri da stampare
-		k_testo_verticale = trim("Dosim.: " + string(kst_barcode_stampa.flg_dosimetro_stampati,"#") + "/" + string (kst_barcode_stampa.flg_dosimetro_contati,"#"))
-		stampa_testo_verticale(k_testo_verticale, 2800, 4900, k_num_righe, k_num_colonne)
-
-//--- stampa 3 righe VERTICALI:l NUM.RIF + WO + COLLI in modo sfasato
-		k_inizio_col = 5200 //5320 
-		k_avanza_col = 190 
-		for k_righe = 1 to 3
-			choose case k_righe
-				case 1
-					k_testo_verticale = trim("N:" + string(kst_tab_barcode_padre.num_int) + " WO:" + string(kst_barcode_stampa.e1doco) &
-						  + " C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#"))
-				case 2
-					k_testo_verticale = trim("C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#") &
-							+ " N:" + string(kst_tab_barcode_padre.num_int) + " WO:" + string(kst_barcode_stampa.e1doco))
-				case else
-					k_testo_verticale = trim("WO:" + string(kst_barcode_stampa.e1doco) &
-						  + " C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#") &
-						  + " N:" + string(kst_tab_barcode_padre.num_int) )
-			end choose
-			stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
-//			k_len = len(k_testo_verticale)
-//			k_inizio_riga = 3630
-//			for k_ind = 1 to k_len 
-	//--- alla 20' lettera se frase lunga va a capo verticalmente al primo spazio				
-//				if k_flacapo and k_len > 28 and k_ind > 24 and mid(k_testo_verticale, k_ind, 1) = " " then   
-//					k_flacapo = false
-//					k_inizio_riga = 3630
-//					k_inizio_col += k_avanza_col 
-//				end if
-//				k_inizio_riga -= 140
-//				printtext (ki_id_print_etichette, mid(k_testo_verticale, k_ind, 1), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, 8)  // 8=VERTICALE
-//			next
-			k_inizio_col += k_avanza_col 
-		next
-
-//--- Sezione BARCODE il codice a BARRE
-		k_inizio_col = 50
-		stampa_barcode_f ( kst_tab_meca_dosim.barcode, ki_id_print_etichette, k_inizio_col +(k_barcode_coord_x+k_num_colonne), (k_barcode_coord_y + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
-//		PrintDefineFont(ki_id_print_etichette, kist_barcode_stampa.font[1,1], "Arial", kist_barcode_stampa.font[1,2], kist_barcode_stampa.font[1,3], Fixed!, Modern!, FALSE, FALSE) //ripristino il font
-
-//--- se Etichettatrice (1 etich) allora stampa
-		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
-			
-			PrintPage ( ki_id_print_etichette )  //--- FORZA salto pagina 
-			ki_num_etichetta_in_pag = 1
-			
-		end if
-
-					
-	else	
-		
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
-//--- MODULO A 2 ETICHETTE  
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
-
-		if ki_num_etichetta_in_pag = 2 then
-			k_num_righe = k_num_righe_giu
-		else
-			k_num_righe = 0
-//--- salto pagina 
-			if ki_num_etichetta_in_pag > 2 then
-				PrintPage ( ki_id_print_etichette )
-				ki_num_etichetta_in_pag = 1
-			end if
-		end if
-			
-			
-// stampa il logo ad inizio foglio
-		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro.bmp", 300, 1 + k_num_righe, 7800, 5750)
-		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "logo_barcode.jpg", 400, 1 + k_num_righe,  2400, 800) //0, 0)
-		//PrintBitmap(ki_id_print_etichette, "et_bcode_dosimetro.bmp", 300, 1 + k_num_righe, 7800, 5750)
-		//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400, 1 + k_num_righe,  2400, 800) //0, 0)
-
-
-		k_inizio_riga = 1000
-		k_inizio_col = 500
-		printtext (ki_id_print_etichette, "ETICHETTA DOSIMETRO", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-
-
-//--- Sezione Riferimento al PADRE 
-		k_inizio_riga = 1370
-		k_inizio_col = 500
-		printtext (ki_id_print_etichette, "Associato al collo: ", k_inizio_col + k_num_colonne, k_inizio_riga + 120 + k_num_righe, kist_barcode_stampa.font[1,1])
-		printtext (ki_id_print_etichette, string(trim(kst_tab_barcode_padre.barcode), "@@@ @@@@@@@@@@@@@") , k_inizio_col+950+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[4,1])
-		printtext (ki_id_print_etichette, "RIF: ", k_inizio_col+k_num_colonne, k_inizio_riga + 700 + k_num_righe, kist_barcode_stampa.font[1,1])
-		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.num_int,"####0") , k_inizio_col+500+k_num_colonne, k_inizio_riga + 600 + k_num_righe, kist_barcode_stampa.font[5,1])
-		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.data_int) , k_inizio_col+2400+k_num_colonne, k_inizio_riga + 700 + k_num_righe, kist_barcode_stampa.font[1,1])
-
-
-//--- Sezione BARCODE il codice, se il barcode inizia con una lettera debbo togliere lo spazio in mezzo 
-		k_inizio_riga = 3950
-		if isnumber(LeftA(kst_tab_meca_dosim.barcode,1)) then
-			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@ @@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
-		else
-			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
-		end if
-
-//--- Espone testo avvertenze da PT
-		if trim(kst_tab_sl_pt.dosim_et_descr) > " " then
-			k_inizio_riga = 4800
-			k_inizio_col = 300
-			printtext (ki_id_print_etichette, left(trim(kst_tab_sl_pt.dosim_et_descr),40), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-			k_inizio_riga = 5000
-			printtext (ki_id_print_etichette, mid(trim(kst_tab_sl_pt.dosim_et_descr),41), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
-		end if
-		
-//--- Sezione BARCODE il codice a BARRE
-		stampa_barcode_f ( kst_tab_meca_dosim.barcode, ki_id_print_etichette, k_barcode_coord_x, (k_barcode_coord_y + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
-//		PrintDefineFont(ki_id_print_etichette, kist_barcode_stampa.font[1,1], "Arial", kist_barcode_stampa.font[1,2], kist_barcode_stampa.font[1,3], Fixed!, Modern!, FALSE, FALSE) //ripristino il font
-
-	end if
-			
-
-
-	return k_return
-
-
-
-end function
 
 public function boolean stampa_etichetta_riferimento_1_4xpag_old (st_barcode_stampa kst_barcode_stampa);//
 // stampa 4 etichette di TRATTAMENTO con il codice a barre  
@@ -2955,6 +2548,418 @@ kuf_armo kuf1_armo
 	k_return = true
 
 return k_return
+
+
+
+end function
+
+private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, ref uo_ds_std_1 ads_meca_dosim_barcode_prg);//
+// stampa Etichetta Barcode x il Dosimetro da accompagnare a un Barcode di Trattamento
+// return:  TRUE = OK stampato
+//
+boolean k_return=false
+int k_rc=0, k_nr_bcode=0, k_ind, k_nr_dosimpos, k_riga
+kuf_meca_dosim kuf1_meca_dosim
+st_tab_meca_dosim kst_tab_meca_dosim[]
+st_esito kst_esito
+uo_ds_std_1 kds_sl_pt_dosimpos_l
+uo_ds_std_1 kdd_dosim_tipo, kdd_flg_tipo_dose
+st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
+
+	
+	try
+
+		kuf1_meca_dosim = create kuf_meca_dosim
+	
+		kds_sl_pt_dosimpos_l = create uo_ds_std_1
+		kds_sl_pt_dosimpos_l.dataobject = "ds_sl_pt_dosimpos_l"
+		kds_sl_pt_dosimpos_l.settransobject(kguo_sqlca_db_magazzino)
+	
+		kdd_dosim_tipo = create uo_ds_std_1
+		kdd_dosim_tipo.dataobject = "dd_dosim_tipo"
+		kdd_dosim_tipo.retrieve( )
+	
+		kdd_flg_tipo_dose = create uo_ds_std_1
+		kdd_flg_tipo_dose.dataobject = "dd_flg_tipo_dose"
+		kdd_flg_tipo_dose.retrieve( )
+		
+//--- Genera il barcode di dosimetria da stampare 
+		kst_tab_meca_dosim[1].id_meca = kst_tab_barcode_padre.id_meca
+		kst_tab_meca_dosim[1].barcode_lav = kst_tab_barcode_padre.barcode
+		k_nr_bcode = kuf1_meca_dosim.get_barcode(kst_tab_meca_dosim[])   // piglia il bcode da stampare (se c'e' gia')
+
+		if k_nr_bcode > 0 then
+			k_nr_dosimpos = kds_sl_pt_dosimpos_l.retrieve(kst_tab_sl_pt.cod_sl_pt)   // recupera le descrizioni 
+		end if
+
+		for k_ind = 1 to k_nr_bcode
+
+//--- sostituisce descrizione sl-pt etichetta con quelle impostate nella posizione 
+			kst_barcode_stampa.dosimpos_codice=""
+			kst_barcode_stampa.dosim_tipo_des = ""
+			kst_barcode_stampa.tipo_dose_des = ""
+			if k_nr_dosimpos >= k_ind then 
+				
+				kst_barcode_stampa.dosim_tipo = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "dosim_tipo"))  // tipo dosimetro AMBER, RED....
+				if trim(kst_barcode_stampa.dosim_tipo) > " " then
+					k_riga = kdd_dosim_tipo.find( "codice = '" + trim(kst_barcode_stampa.dosim_tipo) + "'", 1, kdd_dosim_tipo.rowcount( )) // cerca il codice ...
+					if k_riga > 0 then
+						kst_barcode_stampa.dosim_tipo_des = trim(kdd_dosim_tipo.getitemstring( k_riga, "descr"))  // descrizione tipo dosimetro AMBER, RED....
+					end if
+				end if
+
+				kst_barcode_stampa.tipo_dose_des = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "dosim_flg_tipo_dose"))  // tipo dose MASSIMA, MINIMA...
+				if trim(kst_barcode_stampa.tipo_dose_des) > " " then
+					k_riga = kdd_flg_tipo_dose.find( "stato = '" + trim(kst_barcode_stampa.tipo_dose_des) + "'", 1, kdd_flg_tipo_dose.rowcount( )) // cerca il codice ...
+					if k_riga > 0 then
+						kst_barcode_stampa.tipo_dose_des = trim(kdd_flg_tipo_dose.getitemstring( k_riga, "descr"))  // descrizione tipo dose MASSIMA, MINIMA...
+					end if
+				end if
+				
+				kst_barcode_stampa.dosimpos_codice = trim(kds_sl_pt_dosimpos_l. getitemstring( k_ind, "dosimpos_codice"))  // codice posizione dosimetro
+				if kst_barcode_stampa.dosimpos_codice > " " then
+				else
+					kst_tab_sl_pt.dosim_et_descr = "00"
+				end if
+
+//--- 19-4-2018 REZIO: le note in stampa devono essere sia quelle su SL-PT in orizzontale che quelle su DOSIMPOS in verticale!!				
+				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr")) > " " then
+					kst_tab_sl_pt_dosimpos.descr = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr"))
+				else
+					kst_tab_sl_pt_dosimpos.descr = ""
+				end if
+				if trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1")) > " " then
+					kst_tab_sl_pt_dosimpos.descr1 = trim(kds_sl_pt_dosimpos_l.getitemstring( k_ind, "descr1"))
+				else
+					kst_tab_sl_pt_dosimpos.descr1 = ""
+				end if
+					
+			end if
+
+			//kst_barcode_stampa.flg_dosimetro_stampati ++    //incrementa il contatore dosimetri stampati
+
+			stampa_etichetta_dosimetro_1(kst_tab_meca_dosim[k_ind], kst_tab_barcode_padre, kst_tab_base, kst_tab_sl_pt &
+													,kst_barcode_stampa, kst_tab_sl_pt_dosimpos, ads_meca_dosim_barcode_prg) 
+			
+		next
+		
+	catch (uo_exception kuo_exception)
+		kst_esito = kuo_exception.get_st_esito( )
+		kuo_exception.messaggio_utente( "Etichetta Barcode Dosimetro non Stampato ", kst_esito.SQLErrText + kkg.acapo + "Lotto: " &
+		                               + string(kst_tab_barcode_padre.num_int) + " del " + string(kst_tab_barcode_padre.data_int))
+
+	finally 
+		if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
+		if isvalid(kds_sl_pt_dosimpos_l) then destroy kds_sl_pt_dosimpos_l
+		if isvalid(kdd_flg_tipo_dose) then destroy kdd_flg_tipo_dose
+		
+		
+	end try
+	
+
+	return k_return
+
+
+
+end function
+
+private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos, ref uo_ds_std_1 ads_meca_dosim_barcode_prg);//
+// stampa Etichetta Barcode x il Dosimetro da accompagnare a un Barcode di Trattamento
+// return:  TRUE = OK stampato
+//
+boolean k_return=true
+boolean k_flacapo=true
+//string k_barcode_x
+int k_barcode_altezza=0, k_barcode_coord_x, k_barcode_coord_y
+//date k_dataoggi 
+constant int k_num_righe_giu=5800 
+constant int k_num_righe_giu_x4=4020  
+constant int k_num_col_dx_x4=5450 
+boolean k_monoetichetta = false
+int k_num_righe = 1, k_inizio_riga=0, k_inizio_col=0, k_avanza_col=0, k_righe=1
+int k_num_colonne = 0, k_row_barcode
+int k_dosimetro_stampati, k_dosimetro_contati
+string k_testo_verticale = ""
+int k_len, k_ind
+
+
+			
+	if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+
+		k_barcode_coord_x = (2.0 / 2.54) * 520   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_coord_y = (7.0 / 2.54) * 660   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_altezza = (0.6 / 2.54) * 1200   //--- (Xcm / coeff di conv x pollici) * migliaia
+	
+	else		
+
+		k_barcode_coord_x = (2.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_coord_y = (7.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_altezza = (0.6 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+
+
+	end if
+
+	
+//--- contatore delle etichette stampate
+//	k_etichette_stampate++
+
+
+	ki_num_etichetta_in_pag ++
+					
+					
+//--- MODULO A 4 ETICHETTE OPPURE 1 SU ETICHETTATRICE ----------------------------------------------------------------------------------------------------------------------------------- 
+	if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+
+
+//--- a rottura di riferimento se 4 etichette  salta pagina 
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
+			if kist_tab_barcode_stampa_save.num_int <> kst_tab_barcode_padre.num_int	 then
+				kist_tab_barcode_stampa_save.num_int = kst_tab_barcode_padre.num_int	
+				if ki_num_etichetta_in_pag > 1 then
+					ki_num_etichetta_in_pag = 5         //--- forza salto pagina 			
+				end if
+			end if
+		end if
+
+//--- Numero etichetta?
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
+			choose case ki_num_etichetta_in_pag
+					
+				case 1
+					k_num_colonne = -300
+					k_num_righe = 0
+					
+				case 2
+					k_num_colonne = -300
+					k_num_righe = k_num_righe_giu_x4
+					
+				case 3
+					k_num_colonne = k_num_col_dx_x4
+					k_num_righe = 0
+					
+				case 4
+					k_num_colonne = k_num_col_dx_x4
+					k_num_righe = k_num_righe_giu_x4
+					
+				case else
+//--- salto pagina 
+						PrintPage ( ki_id_print_etichette )
+						ki_num_etichetta_in_pag = 1
+						k_num_colonne = -300
+						k_num_righe = 0
+			end choose
+		end if
+
+//--- se sono su etichettatrice 
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+			k_num_colonne = -150
+			k_num_righe = 200
+		end if
+
+// stampa il logo ad inizio foglio
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
+			//PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro_x4.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
+			//PrintBitmap(ki_id_print_etichette, "et_bcode_dosimetro_x4.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
+		else
+			//PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro_x1.jpg", 300+k_num_colonne, 1+ k_num_righe, 0, 0) 
+		end if
+		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500)  //2500, 500)
+		//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500)  //2500, 500)
+
+//--- Descrizione
+		k_inizio_riga = 690
+		k_inizio_col = 450
+		printtext (ki_id_print_etichette, "ETICHETTA DOSIMETRO", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+
+//--- Sezione Riferimento al PADRE 
+		k_inizio_riga = 870
+		k_inizio_col = 400
+		printtext (ki_id_print_etichette, "Associato al collo: ", k_inizio_col + k_num_colonne, k_inizio_riga + 120 + k_num_righe, kist_barcode_stampa.font[1,1])
+		printtext (ki_id_print_etichette, string(trim(kst_tab_barcode_padre.barcode), "@@@ @@@@@@@@@@@@@") , k_inizio_col+850+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[4,1])
+		printtext (ki_id_print_etichette, "RIF: ", k_inizio_col+k_num_colonne, k_inizio_riga + 550 + k_num_righe, kist_barcode_stampa.font[1,1])
+		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.num_int,"####0") , k_inizio_col+500+k_num_colonne, k_inizio_riga + 400 + k_num_righe, kist_barcode_stampa.font[5,1])
+		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.data_int) , k_inizio_col+2400+k_num_colonne, k_inizio_riga + 550 + k_num_righe, kist_barcode_stampa.font[1,1])
+
+
+//--- Sezione BARCODE 
+		k_inizio_riga = 2730
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+			
+			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@ @@@@@"), 300+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			
+		else							
+			if isnumber(LeftA(kst_tab_meca_dosim.barcode,1)) then
+				printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 260+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			else							
+				printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 260+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			end if
+		end if
+
+		kst_tab_sl_pt.dosim_et_descr += space(100)
+
+//--- Espone testo avvertenze da PT
+		if trim(kst_tab_sl_pt.dosim_et_descr) > " " then
+			k_inizio_riga = 3250 //3500
+			k_inizio_col = 500 //200
+			printtext (ki_id_print_etichette, left(trim(kst_tab_sl_pt.dosim_et_descr),48), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+			k_inizio_riga = 3450 //3500
+			k_inizio_col = 500 //200
+			printtext (ki_id_print_etichette, mid(trim(kst_tab_sl_pt.dosim_et_descr),49,48), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+		end if
+
+		//--- Sezione codice modulo e revisione 
+		k_inizio_riga = 3680
+		k_inizio_col = 350
+		printtext (ki_id_print_etichette, "Tag# MN-LT-OPS-002 Rev.2.1 del 22MAY2023", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, kist_barcode_stampa.font[1,1])
+
+//--- Stampa testo in VERTICALE
+		k_inizio_col = 3950 
+		k_avanza_col = 190 
+		k_testo_verticale = "POS:" + trim(kst_barcode_stampa.dosimpos_codice)			// codice posizione dosimetro es.  POS: 79
+		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
+		
+		k_testo_verticale = trim(kst_barcode_stampa.dosim_tipo_des)							// Tipo Dosimetro AMBER, RED ....
+		stampa_testo_verticale(k_testo_verticale, 2300, k_inizio_col, k_num_righe, k_num_colonne)
+
+		k_testo_verticale = trim(kst_barcode_stampa.tipo_dose_des)							// Tipo Dose MASSIMA, MINIMA ....
+		k_inizio_col += k_avanza_col 
+		stampa_testo_verticale(k_testo_verticale, 2300, k_inizio_col, k_num_righe, k_num_colonne)
+		//stampa_testo_verticale(k_testo_verticale, 1100, k_inizio_col, k_num_righe, k_num_colonne)
+		
+		k_testo_verticale = left(trim(kst_tab_sl_pt_dosimpos.descr), 20)     // I'  riga  della descrizione posizione dosimetri
+		k_inizio_col += k_avanza_col 
+		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
+		if len(trim(kst_tab_sl_pt_dosimpos.descr)) > 20 then
+			k_testo_verticale = trim(mid(trim(kst_tab_sl_pt_dosimpos.descr), 21))     // I'  riga  della descrizione posizione dosimetri
+			k_inizio_col += k_avanza_col 
+			stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
+		end if
+		
+		k_testo_verticale = trim(kst_tab_sl_pt_dosimpos.descr1)     // I'  riga  della descrizione posizione dosimetri
+		k_inizio_col += k_avanza_col 
+		stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
+
+//--- stampa il nr dosimetro + nr tot dosimetri da stampare
+		k_row_barcode = ads_meca_dosim_barcode_prg.find("barcode='" + trim(kst_tab_meca_dosim.barcode) + "'", 1, ads_meca_dosim_barcode_prg.rowcount())
+		if k_row_barcode > 0 then
+			k_dosimetro_stampati = ads_meca_dosim_barcode_prg.getitemnumber(k_row_barcode, "k_progressivo")
+			k_dosimetro_contati = ads_meca_dosim_barcode_prg.getitemnumber(k_row_barcode, "k_contati")
+			k_testo_verticale = trim("Dosim.: " + string(k_dosimetro_stampati,"#") + "/" + string (k_dosimetro_contati,"#"))
+			stampa_testo_verticale(k_testo_verticale, 2800, 4900, k_num_righe, k_num_colonne)
+		end if
+		
+//--- stampa 3 righe VERTICALI:l NUM.RIF + WO + COLLI in modo sfasato
+		k_inizio_col = 5200 //5320 
+		k_avanza_col = 190 
+		for k_righe = 1 to 3
+			choose case k_righe
+				case 1
+					k_testo_verticale = trim("N:" + string(kst_tab_barcode_padre.num_int) + " WO:" + string(kst_barcode_stampa.e1doco) &
+						  + " C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#"))
+				case 2
+					k_testo_verticale = trim("C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#") &
+							+ " N:" + string(kst_tab_barcode_padre.num_int) + " WO:" + string(kst_barcode_stampa.e1doco))
+				case else
+					k_testo_verticale = trim("WO:" + string(kst_barcode_stampa.e1doco) &
+						  + " C:" + string(kst_barcode_stampa.conta_barcode,"#") + "/" + string (kst_barcode_stampa.barcode_tot_lotto,"#") &
+						  + " N:" + string(kst_tab_barcode_padre.num_int) )
+			end choose
+			stampa_testo_verticale(k_testo_verticale, 3630, k_inizio_col, k_num_righe, k_num_colonne)
+//			k_len = len(k_testo_verticale)
+//			k_inizio_riga = 3630
+//			for k_ind = 1 to k_len 
+	//--- alla 20' lettera se frase lunga va a capo verticalmente al primo spazio				
+//				if k_flacapo and k_len > 28 and k_ind > 24 and mid(k_testo_verticale, k_ind, 1) = " " then   
+//					k_flacapo = false
+//					k_inizio_riga = 3630
+//					k_inizio_col += k_avanza_col 
+//				end if
+//				k_inizio_riga -= 140
+//				printtext (ki_id_print_etichette, mid(k_testo_verticale, k_ind, 1), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, 8)  // 8=VERTICALE
+//			next
+			k_inizio_col += k_avanza_col 
+		next
+
+//--- Sezione BARCODE il codice a BARRE
+		k_inizio_col = 50
+		stampa_barcode_f ( kst_tab_meca_dosim.barcode, ki_id_print_etichette, k_inizio_col +(k_barcode_coord_x+k_num_colonne), (k_barcode_coord_y + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
+//		PrintDefineFont(ki_id_print_etichette, kist_barcode_stampa.font[1,1], "Arial", kist_barcode_stampa.font[1,2], kist_barcode_stampa.font[1,3], Fixed!, Modern!, FALSE, FALSE) //ripristino il font
+
+//--- se Etichettatrice (1 etich) allora stampa
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+			
+			PrintPage ( ki_id_print_etichette )  //--- FORZA salto pagina 
+			ki_num_etichetta_in_pag = 1
+			
+		end if
+
+					
+	else	
+		
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+//--- MODULO A 2 ETICHETTE  
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+
+		if ki_num_etichetta_in_pag = 2 then
+			k_num_righe = k_num_righe_giu
+		else
+			k_num_righe = 0
+//--- salto pagina 
+			if ki_num_etichetta_in_pag > 2 then
+				PrintPage ( ki_id_print_etichette )
+				ki_num_etichetta_in_pag = 1
+			end if
+		end if
+			
+			
+// stampa il logo ad inizio foglio
+		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "et_bcode_dosimetro.bmp", 300, 1 + k_num_righe, 7800, 5750)
+		PrintBitmap(ki_id_print_etichette, kguo_path.get_risorse( )+ KKG.PATH_SEP + "logo_barcode.jpg", 400, 1 + k_num_righe,  2400, 800) //0, 0)
+		//PrintBitmap(ki_id_print_etichette, "et_bcode_dosimetro.bmp", 300, 1 + k_num_righe, 7800, 5750)
+		//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400, 1 + k_num_righe,  2400, 800) //0, 0)
+
+
+		k_inizio_riga = 1000
+		k_inizio_col = 500
+		printtext (ki_id_print_etichette, "ETICHETTA DOSIMETRO", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+
+
+//--- Sezione Riferimento al PADRE 
+		k_inizio_riga = 1370
+		k_inizio_col = 500
+		printtext (ki_id_print_etichette, "Associato al collo: ", k_inizio_col + k_num_colonne, k_inizio_riga + 120 + k_num_righe, kist_barcode_stampa.font[1,1])
+		printtext (ki_id_print_etichette, string(trim(kst_tab_barcode_padre.barcode), "@@@ @@@@@@@@@@@@@") , k_inizio_col+950+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[4,1])
+		printtext (ki_id_print_etichette, "RIF: ", k_inizio_col+k_num_colonne, k_inizio_riga + 700 + k_num_righe, kist_barcode_stampa.font[1,1])
+		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.num_int,"####0") , k_inizio_col+500+k_num_colonne, k_inizio_riga + 600 + k_num_righe, kist_barcode_stampa.font[5,1])
+		printtext (ki_id_print_etichette, string(kst_tab_barcode_padre.data_int) , k_inizio_col+2400+k_num_colonne, k_inizio_riga + 700 + k_num_righe, kist_barcode_stampa.font[1,1])
+
+
+//--- Sezione BARCODE il codice, se il barcode inizia con una lettera debbo togliere lo spazio in mezzo 
+		k_inizio_riga = 3950
+		if isnumber(LeftA(kst_tab_meca_dosim.barcode,1)) then
+			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@ @@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+		else
+			printtext (ki_id_print_etichette, string(trim(kst_tab_meca_dosim.barcode),"@@@@@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+		end if
+
+//--- Espone testo avvertenze da PT
+		if trim(kst_tab_sl_pt.dosim_et_descr) > " " then
+			k_inizio_riga = 4800
+			k_inizio_col = 300
+			printtext (ki_id_print_etichette, left(trim(kst_tab_sl_pt.dosim_et_descr),40), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+			k_inizio_riga = 5000
+			printtext (ki_id_print_etichette, mid(trim(kst_tab_sl_pt.dosim_et_descr),41), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+		end if
+		
+//--- Sezione BARCODE il codice a BARRE
+		stampa_barcode_f ( kst_tab_meca_dosim.barcode, ki_id_print_etichette, k_barcode_coord_x, (k_barcode_coord_y + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
+//		PrintDefineFont(ki_id_print_etichette, kist_barcode_stampa.font[1,1], "Arial", kist_barcode_stampa.font[1,2], kist_barcode_stampa.font[1,3], Fixed!, Modern!, FALSE, FALSE) //ripristino il font
+
+	end if
+			
+
+
+	return k_return
 
 
 

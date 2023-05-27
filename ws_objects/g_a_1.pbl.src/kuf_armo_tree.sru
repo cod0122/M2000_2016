@@ -2017,7 +2017,7 @@ st_profilestring_ini kst_profilestring_ini
 									 + " " + trim(kst_tab_sl_pt.descr) &
 									 + "   dose min-max: " + string(kst_tab_sl_pt.dose_min) &
 									 + " - " + string(kst_tab_sl_pt.dose_max) &
-									 + "   densita': " + trim(kst_tab_sl_pt.densita) &
+									 + "   densita': " + string(kst_tab_sl_pt.densita, "#,##0.00" ) &
 									 )
 			else
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, "---")

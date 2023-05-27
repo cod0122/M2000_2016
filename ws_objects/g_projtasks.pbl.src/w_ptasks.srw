@@ -7,6 +7,8 @@ end type
 end forward
 
 global type w_ptasks from w_g_tab_3
+integer width = 3035
+integer height = 5180
 boolean ki_sincronizza_window_consenti = false
 boolean ki_filtra_attivo = false
 boolean ki_fai_nuovo_dopo_update = false
@@ -73,6 +75,8 @@ public subroutine u_stampa_mod ()
 public subroutine u_stampa_mod_invoice (long a_row)
 public subroutine u_stampa_mod_laboratorio (long a_row)
 protected subroutine attiva_tasti_0 ()
+protected function integer cancella ()
+public function long u_cancella_attivita ()
 end prototypes
 
 protected subroutine u_resize_1 ();//
@@ -1439,7 +1443,16 @@ protected subroutine attiva_menu ();//
 	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemVisible = true
 	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemText = "Moduli,"+m_main.m_strumenti.m_fin_gest_libero9.text
 	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemName = "printa16.png"
-	
+
+		
+if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.visualizzazione then
+	if tab_1.selectedtab > 1 and tab_1.selectedtab < 6 then
+		m_main.m_finestra.m_gestione.m_fin_elimina.text = "Cancella Attività"
+		m_main.m_finestra.m_gestione.m_fin_elimina.microhelp = "Cancella dal Progetto i dati dell'Attività"
+		m_main.m_finestra.m_gestione.m_fin_elimina.toolbaritemText = "Canc," + m_main.m_finestra.m_gestione.m_fin_elimina.text
+	end if
+end if
+
 //---
 	super::attiva_menu()
 
@@ -2023,8 +2036,107 @@ if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.visualizzazione then
 		cb_inserisci.default = false
 	end if
 	
+	if tab_1.selectedtab > 1 and tab_1.selectedtab < 6 then
+		cb_cancella.enabled = true
+	else
+		cb_cancella.enabled = false
+	end if
+	
 end if
 end subroutine
+
+protected function integer cancella ();//
+int k_return = 1
+
+try
+	
+	if tab_1.selectedtab = 1 then
+	//--- cancella intero PROGETTO
+	//	if u_cancella_project( ) then
+	//		k_return = 0
+	//	end if
+	elseif tab_1.selectedtab > 1 and tab_1.selectedtab < 6 then
+		//--- cancella solo l'ATTIVITA'
+		if u_cancella_attivita( ) > 0 then
+			k_return = 0
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+end try
+
+return k_return
+
+
+end function
+
+public function long u_cancella_attivita ();//
+long k_return
+int k_rc
+st_tab_ptasks_types kst_tab_ptasks_types
+st_tab_ptasks_rows kst_tab_ptasks_rows
+st_tab_ptasks kst_tab_ptasks
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+	if kidw_selezionata.rowcount( ) > 0 then
+		
+		kst_tab_ptasks_rows.id_ptasks_row = kidw_selezionata.getitemnumber(1, "id_ptasks_row") 
+		kst_tab_ptasks_rows.id_ptask = kidw_selezionata.getitemnumber(1, "id_ptask") 
+		kst_tab_ptasks_types.id_ptasks_type = kidw_selezionata.getitemnumber(1, "id_ptasks_type") 
+		kst_tab_ptasks_types.descr = trim(kidw_selezionata.getitemstring(1, "ptasks_types_descr")) 
+		kst_tab_ptasks.n_ptask = kidw_selezionata.getitemnumber(1, "n_ptask")
+
+		if messagebox("Rimozione Attività", &
+		              "Rimuovere dal Progetto '" + string(kst_tab_ptasks.n_ptask) &
+								+ "'  l'Attività " + string(kst_tab_ptasks_types.id_ptasks_type, "#") &
+								+ " " + kst_tab_ptasks_types.descr + " Id: " + string(kst_tab_ptasks_rows.id_ptasks_row) & 
+								+ "?", question!, yesno!, 2) = 1 then
+
+
+			if kst_tab_ptasks_rows.id_ptasks_row > 0 then
+				
+				if kiuf_ptasks_rows.tb_delete(kst_tab_ptasks_rows) then
+
+					kguo_sqlca_db_magazzino.db_commit( )
+					
+					k_return = kst_tab_ptasks_rows.id_ptasks_row
+					
+					inizializza( )
+					tab_1.selecttab(1)
+					
+					tab_1.tabpage_2.dw_2.reset() 
+					tab_1.tabpage_3.dw_3.reset() 
+					tab_1.tabpage_4.dw_4.reset() 
+					tab_1.tabpage_5.dw_5.reset() 
+					
+					tab_1.tabpage_1.dw_task.event u_retrieve( )
+				end if	
+			end if
+		end if
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	kguo_sqlca_db_magazzino.db_rollback( )
+	tab_1.tabpage_1.dw_1.event u_disp_avvertenze("Errore in Rimozione dati Attività '" &
+	                             + kst_tab_ptasks_types.descr + " Id: " + string(kst_tab_ptasks_rows.id_ptasks_row) &
+										  + kst_tab_ptasks_types.descr &
+										  + " (" + string(kst_tab_ptasks_types.id_ptasks_type, "#") + ") " &
+										   + ". Progetto " + string(kst_tab_ptasks.n_ptask) + "' " )
+	throw kuo_exception
+	
+end try
+
+return k_return
+
+
+end function
 
 on w_ptasks.create
 int iCurrent
@@ -2081,6 +2193,8 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_ptasks
+integer x = 0
+integer y = 0
 end type
 
 on tab_1.create

@@ -32,23 +32,19 @@ public function long u_set_data_ent () throws uo_exception;//
 //--------------------------------------------------------------------------------------------------------------
 long k_return=0
 long k_riga, k_righe
+string k_msg_warning
 datetime k_datetime
-datastore kds_1
+uo_ds_std_1 kds_1
 kuf_e1_asn kuf1_e1_asn
 st_tab_e1_asn kst_tab_e1_asn
 st_tab_meca kst_tab_meca
 st_esito kst_esito
 
 
-//setpointer()
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
 try
-	kds_1 = create datastore
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_meca_senza_data_ent"
 	kds_1.settrans(kguo_sqlca_db_magazzino)
 	k_datetime = datetime(date(0),time(0))
@@ -63,20 +59,34 @@ try
 		if kst_tab_e1_asn.wadoco > 0 or trim(kst_tab_e1_asn.warorn) > " " then
 			kst_tab_meca.data_ent = kuf1_e1_asn.u_get_date_received(kst_tab_e1_asn)	
 			if kst_tab_meca.data_ent > datetime(kkg.data_zero, time(0)) then
-				kst_tab_meca.id = kds_1.getitemnumber( k_riga, "id")
-				kst_tab_meca.st_tab_g_0.esegui_commit = "S"
-				kiuf_armo.set_data_ent(kst_tab_meca)
+				
+				kds_1.setitem(k_riga, "data_ent", kst_tab_meca.data_ent)
+
+				k_msg_warning = kiuf_armo.u_get_consegna_tempi(kst_tab_meca)
+				if trim(k_msg_warning) > " " then
+					kguo_exception.inizializza( )
+					kguo_exception.setmessage(k_msg_warning)
+				else
+					kds_1.setitem(k_riga, "consegna_data", kst_tab_meca.consegna_data)
+					kds_1.setitem(k_riga, "consegna_ora", kst_tab_meca.consegna_ora)
+				end if
+				
+//				kst_tab_meca.id = kds_1.getitemnumber( k_riga, "id")
+//				kst_tab_meca.st_tab_g_0.esegui_commit = "S"
+//				kiuf_armo.set_data_ent(kst_tab_meca)
 				k_return ++
 
-				kst_tab_meca.clie_3 = kds_1.getitemnumber( k_riga, "clie_3")
-				u_set_consegna_data_ora(kst_tab_meca)
-				
+//				kst_tab_meca.clie_3 = kds_1.getitemnumber( k_riga, "clie_3")
+//				u_set_consegna_data_ora(kst_tab_meca)
 				
 			end if
 		end if
 		
 	next
-	kguo_sqlca_db_magazzino.db_commit( )
+	if k_return > 0 then
+		kds_1.update()       // AGGIORNA LE RIGHE CON DATA ENTRATA E DI CONSEGNA
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
 
 	
 catch (uo_exception kuo_exception) 
@@ -116,10 +126,7 @@ st_esito kst_esito
 
 //setpointer()
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 try
 	if ast_tab_meca.id > 0 then

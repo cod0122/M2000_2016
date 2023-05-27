@@ -25,6 +25,8 @@ end type
 end forward
 
 global type w_g_tab0 from w_g_tab
+integer width = 37
+integer height = 180
 string title = "..."
 cb_visualizza cb_visualizza
 cb_modifica cb_modifica
@@ -130,6 +132,7 @@ protected function string check_dati ();//======================================
 //
 string k_return = " "
 string k_errore = "0"
+long k_row
 st_esito kst_esito,kst_esito1
 datastore kds_inp
 
@@ -143,6 +146,12 @@ try
 	if dw_dett_0.rowcount() > 0 then
 		kds_inp.dataobject = dw_dett_0.dataobject
 		dw_dett_0.rowscopy( 1,dw_dett_0.rowcount( ) ,primary!, kds_inp, 1, primary!)
+		kds_inp.resetupdate( )
+		k_row = dw_dett_0.getnextmodified( 0, primary!)
+		do while k_row > 0 
+			kds_inp.setitemstatus( k_row, 0, primary!, dw_dett_0.getitemstatus(k_row, 0, primary!) )
+			k_row = dw_dett_0.getnextmodified( k_row, primary!)
+		loop
 		kst_esito = kiuf_parent.u_check_dati(kds_inp)
 	end if
 
@@ -2415,10 +2424,10 @@ u_lancia_funzione_imvc(kst_open_w)
 end event
 
 type dw_dett_0 from uo_d_std_1 within w_g_tab0
-integer x = 30002
-integer y = 30000
-integer width = 2446
-integer height = 684
+integer x = 50
+integer y = 1152
+integer width = 2770
+integer height = 720
 integer taborder = 40
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
@@ -2502,10 +2511,8 @@ end event
 
 type dw_lista_0 from uo_d_std_1 within w_g_tab0
 event u_reselect_row_on_focus ( )
-integer x = 30002
-integer y = 30000
-integer width = 2793
-integer height = 420
+integer width = 2784
+integer height = 816
 integer taborder = 110
 boolean enabled = true
 end type

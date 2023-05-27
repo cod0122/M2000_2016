@@ -484,7 +484,7 @@ end subroutine
 protected subroutine open_start_window ();//
 kiuf_e1_conn_cfg = create kuf_e1_conn_cfg
 
-kiw_this_window.icon = kGuo_path.get_risorse() + "\pklist.ico"
+kiw_this_window.icon = "pklist.ico" 
 tab_1.tabpage_1.dw_1.SetPosition("cfg_dbms_scelta", "", false)
 tab_1.tabpage_1.dw_1.SetPosition("b_odbc", "", true)
 
@@ -721,7 +721,7 @@ end on
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 32435950
 string text = "Configurazione"
 long tabtextcolor = 0
@@ -744,10 +744,7 @@ string ki_icona_normale = ""
 string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
@@ -813,7 +810,7 @@ end type
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 boolean visible = false
 integer width = 3003
-integer height = 1264
+integer height = 1268
 boolean enabled = false
 long backcolor = 31909606
 string text = ""
@@ -837,10 +834,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -895,7 +889,7 @@ end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 31909606
 string text = ""
 long tabtextcolor = 0
@@ -916,10 +910,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -948,7 +939,7 @@ end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 33544171
 string text = ""
 long tabtextcolor = 0
@@ -985,10 +976,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -1024,7 +1012,7 @@ end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 31909606
 string text = ""
 long tabtextcolor = 0
@@ -1047,10 +1035,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -1073,7 +1058,7 @@ end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 0
 string text = ""
 long tabtextcolor = 0
@@ -1111,10 +1096,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -1122,7 +1104,7 @@ end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 0
 string text = ""
 long tabtextcolor = 0
@@ -1160,10 +1142,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -1171,7 +1150,7 @@ end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 0
 string text = ""
 long tabtextcolor = 0
@@ -1209,10 +1188,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""
@@ -1220,7 +1196,7 @@ end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer width = 3003
-integer height = 1264
+integer height = 1268
 long backcolor = 0
 string text = ""
 long tabtextcolor = 0
@@ -1258,10 +1234,7 @@ string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
 boolean ki_button_standard_attivi = false
-string ki_ultima_dataobject = ""
 boolean ki_colora_riga_aggiornata = false
-string ki_sqlsyntax = ""
-string ki_sqlerrtext = ""
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 string ki_dragdrop_display = ""

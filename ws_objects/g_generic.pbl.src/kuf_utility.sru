@@ -4488,7 +4488,9 @@ if k_filenum > 0 then
 					case "tim"
 						k_data = string(a_ds.getitemtime(k_ind_r, k_ind_c))
 				end choose
-				k_record += trim(k_data) 
+				if k_data > " " then // evita i NULL che azzerano il rec
+					k_record += trim(k_data) 
+				end if
 			end if
 		next
 		if k_ind_r = 1 then  // se sono sul primo rec scrive anche la testata

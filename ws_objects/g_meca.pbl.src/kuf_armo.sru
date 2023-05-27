@@ -162,7 +162,6 @@ public subroutine set_consegna_data (st_tab_meca kst_tab_meca) throws uo_excepti
 public function string get_cod_sl_pt_x_id_meca (ref st_tab_armo ast_tab_armo) throws uo_exception
 public subroutine get_dati_certif (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function boolean set_err_lav_ok (ref st_tab_meca ast_tab_meca) throws uo_exception
-public function boolean set_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function long get_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function long get_id_wm_pklist (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function integer get_colli_entrati_riga_datrattare (st_tab_armo kst_tab_armo) throws uo_exception
@@ -210,6 +209,9 @@ public function boolean if_lotto_annullato (ref st_tab_meca kst_tab_meca) throws
 public function string get_meca_blk_descrizione (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function string get_stato_descrizione (ref st_tab_meca_stato ast_tab_meca_stato) throws uo_exception
 public function st_esito anteprima_meca_print (ref datastore kdw_anteprima, st_tab_meca kst_tab_meca)
+public function boolean set_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception
+public function boolean set_e1doco_rorn_stato_in_attenzione (ref st_tab_meca kst_tab_meca) throws uo_exception
+public subroutine set_meca_blk_descr_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception
 end prototypes
 
 public function st_esito setta_errore_lav (st_tab_meca kst_tab_meca);//
@@ -1058,7 +1060,7 @@ st_esito kst_esito
 					armo.id_listino,   
 					armo.art,   
 					armo.dose,   
- 			      	armo.cod_sl_pt, 
+ 			     	armo.cod_sl_pt, 
 					armo.note_1,   
 					armo.note_2,   
 					armo.note_3,   
@@ -5723,6 +5725,8 @@ if kst_tab_armo.id_meca > 0 then
 						  magazzino,   
 						  pedane,   
 						  campione,   
+						  campionecolli,   
+						  parzialecolli,   
 						  cod_sl_pt,   
 						  stato,   
 						  x_datins,   
@@ -5752,6 +5756,8 @@ if kst_tab_armo.id_meca > 0 then
 						  :kst_tab_armo.magazzino,   
 						  :kst_tab_armo.pedane,   
 						  :kst_tab_armo.campione,   
+						  :kst_tab_armo.campionecolli,   
+						  :kst_tab_armo.parzialecolli,   
 						  :kst_tab_armo.cod_sl_pt,   
 						  :kst_tab_armo.stato,   
 						  :kst_tab_armo.x_datins,   
@@ -5791,6 +5797,8 @@ if kst_tab_armo.id_meca > 0 then
 							magazzino =  :kst_tab_armo.magazzino,   
 							pedane =  :kst_tab_armo.pedane,   
 							campione =  :kst_tab_armo.campione,   
+						   campionecolli = :kst_tab_armo.campionecolli,   
+						   parzialecolli = :kst_tab_armo.parzialecolli,   
 							cod_sl_pt =  :kst_tab_armo.cod_sl_pt,   
 							stato =  :kst_tab_armo.stato,   
 							x_datins =  :kst_tab_armo.x_datins,   
@@ -7132,75 +7140,6 @@ catch (uo_exception kuo_exception)
 finally
 	
 end try
-
-return k_return
-
-end function
-
-public function boolean set_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception;//
-//====================================================================
-//=== Imposta Work Order di E1 (id Lotto riconosciuto su E1)
-//=== 
-//=== Input : kst_tab_meca.id e e1doco
-//=== boolean  TRUE=aggiornato; FALSE=nessun aggiornamento
-//=== Exception se errore con st_esito valorizzato
-//===					
-//===   
-//====================================================================
-boolean k_return = false
-st_tab_meca kst_tab_meca_appo
-st_esito kst_esito
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	if kst_tab_meca.id > 0 then
-	else
-		kst_esito.esito = kkg_esito.no_esecuzione  
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Errore in aggiornamento del Work Order di E1 in testata Lotto ('e1doco'). Manca ID Lotto"
-		kGuo_exception.set_esito( kst_esito )
-		throw kGuo_exception
-	end if
-
-	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
-
-	if isnull(kst_tab_meca.e1doco) then
-		kst_tab_meca.e1doco = 0
-	end if
-
-//--- aggiorna la testa del lotto
-	update meca
-				set e1doco = :kst_tab_meca.e1doco
-					,x_datins = :kst_tab_meca.x_datins
-					,x_utente = :kst_tab_meca.x_utente
-				where ID = :kst_tab_meca.ID
-			using kguo_sqlca_db_magazzino;
-		
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko  
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento del Work Order di E1 in testata Lotto ('e1doco'=" + string(kst_tab_meca.e1doco)+ "), ID: " + string(kst_tab_meca.ID) + "~n~r" + trim(sqlca.SQLErrText)
-		kGuo_exception.set_esito( kst_esito )
-		throw kGuo_exception
-	end if
-		
-//--- se arriva qui tutto OK	
-	k_return = true
-	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_commit( )
-	end if
-	
-catch (uo_exception kuo_exception)
-	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
-	throw kuo_exception
-	
-end try
-
 
 return k_return
 
@@ -9559,7 +9498,7 @@ end function
 
 public subroutine set_meca_blk_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception;//
 //----------------------------------------------------------------------------------------------------
-//--- Aggiunge/Aggiorna descrizione in tabella DATI CAUSALI LOTTO
+//--- Aggiorna Richiesta Autorizzazione
 //--- 
 //--- Input: st_tab_meca id
 //---
@@ -9870,6 +9809,257 @@ end try
 return kst_esito
 
 end function
+
+public function boolean set_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception;//
+//====================================================================
+//=== Imposta Work Order di E1 (id Lotto riconosciuto su E1)
+//=== 
+//=== Input : kst_tab_meca.id e e1doco
+//=== boolean  TRUE=aggiornato; FALSE=nessun aggiornamento
+//=== Exception se errore con st_esito valorizzato
+//===					
+//===   
+//====================================================================
+boolean k_return = false
+st_tab_meca kst_tab_meca_appo
+st_esito kst_esito
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if kst_tab_meca.id > 0 then
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione  
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Errore in aggiornamento del Work Order di E1 in testata Lotto ('e1doco'). Manca ID Lotto"
+		kGuo_exception.set_esito( kst_esito )
+		throw kGuo_exception
+	end if
+
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
+
+	if isnull(kst_tab_meca.e1doco) then
+		kst_tab_meca.e1doco = 0
+	end if
+
+//--- aggiorna la testa del lotto
+	update meca
+				set e1doco = :kst_tab_meca.e1doco
+					,x_datins = :kst_tab_meca.x_datins
+					,x_utente = :kst_tab_meca.x_utente
+				where ID = :kst_tab_meca.ID
+			using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kst_esito.esito = kkg_esito.db_ko  
+		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+		kst_esito.SQLErrText = "Errore in aggiornamento del Work Order di E1 in testata Lotto ('e1doco'=" + string(kst_tab_meca.e1doco)+ "), ID: " + string(kst_tab_meca.ID) + "~n~r" + trim(sqlca.SQLErrText)
+		kGuo_exception.set_esito( kst_esito )
+		throw kGuo_exception
+	end if
+		
+//--- se arriva qui tutto OK	
+	k_return = true
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+	
+catch (uo_exception kuo_exception)
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+end try
+
+
+return k_return
+
+end function
+
+public function boolean set_e1doco_rorn_stato_in_attenzione (ref st_tab_meca kst_tab_meca) throws uo_exception;//
+//====================================================================
+//=== Imposta Work e Sales Order di E1 (id Lotto univoci su E1)
+//=== 
+//=== Input : kst_tab_meca.id e e1doco + e1rorn + stato_in_attenzione
+//=== boolean  TRUE=aggiornato; FALSE=nessun aggiornamento
+//=== Exception se errore con st_esito valorizzato
+//===					
+//===   
+//====================================================================
+boolean k_return = false
+st_tab_meca kst_tab_meca_appo
+st_esito kst_esito
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if kst_tab_meca.id > 0 then
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione  
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Errore in aggiornamento del Work e Sales Order di E1 e STATO in Attenzione in testata Lotto ('e1doco'). Manca ID Lotto"
+		kGuo_exception.set_esito( kst_esito )
+		throw kGuo_exception
+	end if
+
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
+
+	if isnull(kst_tab_meca.e1doco) then
+		kst_tab_meca.e1doco = 0
+	end if
+	if isnull(kst_tab_meca.e1rorn) then
+		kst_tab_meca.e1rorn = 0
+	end if
+
+//--- aggiorna la testa del lotto
+	update meca
+				set e1doco = :kst_tab_meca.e1doco
+				   ,e1rorn = :kst_tab_meca.e1rorn
+					,stato_in_attenzione   = :kst_tab_meca.stato_in_attenzione
+					,x_datins = :kst_tab_meca.x_datins
+					,x_utente = :kst_tab_meca.x_utente
+				where ID = :kst_tab_meca.ID
+			using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kst_esito.esito = kkg_esito.db_ko  
+		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+		kst_esito.SQLErrText = "Errore in aggiornamento del Work e Sales Order di E1 e STATO in Attenzione in testata Lotto " &
+						+ "('e1doco'=" + string(kst_tab_meca.e1doco) + " 'e1rorn'=" + string(kst_tab_meca.e1rorn) &
+						+ "), ID: " + string(kst_tab_meca.ID) + " " &
+						+ kkg.acapo + trim(sqlca.SQLErrText)
+		kGuo_exception.set_esito( kst_esito )
+		throw kGuo_exception
+	end if
+		
+//--- se arriva qui tutto OK	
+	k_return = true
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+	
+catch (uo_exception kuo_exception)
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+end try
+
+
+return k_return
+
+end function
+
+public subroutine set_meca_blk_descr_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception;//
+//----------------------------------------------------------------------------------------------------
+//--- Aggiunge/Aggiorna descrizione e Richiesta in tabella DATI CAUSALI LOTTO
+//--- 
+//--- Input: st_tab_meca id
+//---
+//--- Ritorna: 
+//--- 
+//---------------------------------------------------------------------------------------------------
+boolean k_rc
+int k_len_max
+st_esito kst_esito
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+try
+	
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
+
+	//verifica le lunghezza massima della colonna su db
+	kst_tab_meca.meca_blk_descrizione = trim(kst_tab_meca.meca_blk_descrizione)
+	if kst_tab_meca.meca_blk_descrizione > " " then
+		k_len_max = kguo_sqlca_db_magazzino.u_get_col_len( "meca_blk", "descrizione") 
+		if len(kst_tab_meca.meca_blk_descrizione) > k_len_max then
+			kst_esito.SQLErrText = "Anomalia in aggiorn. Tab. dati Lotto 'meca_blk' id " + string(kst_tab_meca.id) &
+					+ ". Descrizione troppo lunga '" + kst_tab_meca.meca_blk_descrizione + "' " &
+					+ " troncata a " + string(k_len_max) + " caratteri: '" + left(kst_tab_meca.meca_blk_descrizione, k_len_max) + "'" 
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.set_esito(kst_esito)
+	
+			kst_tab_meca.meca_blk_descrizione = left(kst_tab_meca.meca_blk_descrizione, k_len_max)  // tronca se troppo lungo pr il DB
+		end if
+	else
+		kst_tab_meca.meca_blk_descrizione = ""
+	end if
+
+	kst_tab_meca.meca_blk_rich_autorizz = trim(kst_tab_meca.meca_blk_rich_autorizz)
+	if kst_tab_meca.meca_blk_rich_autorizz > " " then
+	else
+		kst_tab_meca.meca_blk_rich_autorizz = ""
+	end if
+	
+
+//--- se rec non esiste allora faccio INSERT
+	if NOT if_esiste_blk(kst_tab_meca) then
+		
+		kst_tab_meca.id_meca_causale = 0
+
+		INSERT INTO meca_blk  
+					( id_meca,   
+					  id_meca_causale,   
+					  descrizione,   
+					  rich_autorizz,   
+					  x_datins,   
+					  x_utente )  
+			  VALUES 
+						( :kst_tab_meca.id,   
+						  :kst_tab_meca.id_meca_causale,   
+						  :kst_tab_meca.meca_blk_descrizione,   
+					  	  :kst_tab_meca.meca_blk_rich_autorizz,   
+						  :kst_tab_meca.x_datins,   
+						  :kst_tab_meca.x_utente )  
+						using kguo_sqlca_db_magazzino;
+
+	else
+
+		UPDATE meca_blk  
+					  SET 
+					  descrizione = :kst_tab_meca.meca_blk_descrizione ,   
+					  rich_autorizz = :kst_tab_meca.meca_blk_rich_autorizz ,   
+					  x_datins = :kst_tab_meca.x_datins ,   
+					  x_utente = :kst_tab_meca.x_utente
+					WHERE id_meca =  :kst_tab_meca.id  
+					using kguo_sqlca_db_magazzino;
+					
+//					  x_datins = :kst_tab_meca.x_datins_blk ,   
+//					  x_utente = :kst_tab_meca.x_utente_blk,
+	end if	
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+		kst_esito.SQLErrText = "Errore in aggiornamento Descrizione e Rich.Autorizzazione in Tab. Blocchi Lotto 'meca_blk' id " + string(kst_tab_meca.id) &
+										+ " Descrizione: " + trim(kst_tab_meca.meca_blk_descrizione) &
+										+ " Rich.Autor.: " + trim(kst_tab_meca.meca_blk_rich_autorizz) + " " &
+										+ kkg.acapo + "Errore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.esito = kkg_esito.db_ko
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+		
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		kst_esito = kguo_sqlca_db_magazzino.db_commit( )
+	end if
+	
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+end try	
+
+
+end subroutine
 
 on kuf_armo.create
 call super::create

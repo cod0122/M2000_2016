@@ -740,8 +740,6 @@ int k_ctr=0
 end subroutine
 
 protected subroutine open_start_window ();//
-tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\edit16.png" 
-
 kiuf_stat_invent = create kuf_stat_invent
 
 //---- imposta i nomi dei DW da utilizzare
@@ -1267,6 +1265,9 @@ if isvalid(kiuf_stat_invent  ) then destroy kiuf_stat_invent
 
 end event
 
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_stat_invent
+end type
+
 type st_ritorna from w_g_tab_3`st_ritorna within w_stat_invent
 end type
 
@@ -1311,7 +1312,6 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_stat_invent
-boolean visible = true
 integer width = 3589
 integer height = 1472
 end type
@@ -1339,7 +1339,7 @@ integer width = 3552
 integer height = 1280
 long backcolor = 553648127
 string text = "Parametri"
-string picturename = "InkEdit!"
+string picturename = "edit16.png"
 end type
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1

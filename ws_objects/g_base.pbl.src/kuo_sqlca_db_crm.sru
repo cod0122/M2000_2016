@@ -665,7 +665,7 @@ try
 	  + ",  descr  nvarchar(50)  " &
 	  + ",  tipo_cicli  nvarchar(16) " & 
 	  + ",  fila_1  integer ,  fila_2  integer ,  fila_1p  smallint ,  fila_2p  smallint  " &
-	  + ",  dose  numeric(6,2) ,  densita  nvarchar(20) ,  dose_min  numeric(6,2) ,  dose_max  numeric(6,2)  " &
+	  + ",  dose  numeric(6,2) ,  densita  numeric(7,3) ,  dose_min  numeric(6,2) ,  dose_max  numeric(6,2)  " &
 	  + ",  composizione  nvarchar(80)  " &
 	  + ",  peso  nvarchar(20)  " &
 	  + ",  routine  char(1)  " &

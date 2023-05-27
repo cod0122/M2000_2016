@@ -88,6 +88,8 @@ st_tab_asdrackcode kst_tab_asdrackcode
 			
 		else
 				
+			dw_dett_0.resetupdate( )
+			
 			if ki_st_open_w.flag_primo_giro = "S" then 
 				k_riga = 1
 				//if len(trim(ki_st_tab_contratti_arg.sc_cf)) > 0 then
@@ -98,12 +100,13 @@ st_tab_asdrackcode kst_tab_asdrackcode
 					dw_dett_0.scrolltorow( k_riga)
 					dw_dett_0.setrow( k_riga)
 					dw_dett_0.selectrow( k_riga, true)
+					
 				//end if
 				
 //--- se entro per modificare allora....
-				if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
-					cb_modifica.postevent(clicked!)
-				end if
+//				if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
+//					cb_modifica.postevent(clicked!)
+//				end if
 			end if
 
 		end if		

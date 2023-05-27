@@ -185,14 +185,12 @@ try
 		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
 		kiuf_meca_dosim.set_convalida_x_barcode(kst_tab_meca_dosim)    // AGGIORNA MECA_DOSIM
 
+		kguo_sqlca_db_magazzino.db_commit()
+
 //--- rilegge la riga appena aggiornata
 		u_retrieve(kst_tab_meca_dosim)
 
-
 	end if
-
-//--- Se tutto OK faccio la COMMIT
-	kguo_sqlca_db_magazzino.db_commit()
 	
 //--- TUTTO OK resetto il buffer di aggiornamento			
 	tab_1.tabpage_1.dw_1.resetupdate()
@@ -1056,7 +1054,7 @@ try
 	
 	SetPointer(kkg.pointer_attesa)
 
-	tab_1.tabpage_1.dw_1.accepttext()
+	tab_1.tabpage_1.dw_1.accepttext() 
 
 	k_riga = tab_1.tabpage_1.dw_1.getrow()
 	kst_tab_meca_dosim.barcode = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "meca_dosim_barcode_1")
@@ -1065,7 +1063,7 @@ try
 	kst_tab_meca_dosim.dosim_rapp_a_s = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "dosim_rapp_a_s")
 	kst_tab_meca_dosim.dosim_flg_tipo_dose = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "dosim_flg_tipo_dose")
 
-	kst_tab_meca_dosim = kiuf_meca_dosim.convalida_dosim(kst_tab_meca_dosim)
+	kst_tab_meca_dosim = kiuf_meca_dosim.get_st_tab_meca_dosim(kst_tab_meca_dosim)
 
 //	tab_1.tabpage_1.dw_1.setitem(k_riga, "data_int", kst_tab_meca_dosim.data_int)
 	tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kst_tab_meca_dosim.err_lav_ok)
@@ -1271,6 +1269,9 @@ if isvalid(kiuf_armo) then destroy kiuf_armo
 
 end event
 
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_convalida_dett
+end type
+
 type st_ritorna from w_g_tab_3`st_ritorna within w_convalida_dett
 integer x = 562
 integer y = 1700
@@ -1408,8 +1409,6 @@ super::event u_constructor( )
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
-integer width = 2866
-integer height = 1488
 string text = "Dosimetria"
 end type
 
@@ -1558,8 +1557,6 @@ end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 boolean visible = false
-integer width = 2866
-integer height = 1488
 boolean enabled = false
 string text = "Normale"
 long tabtextcolor = 0
@@ -1581,8 +1578,6 @@ type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
 end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
-integer width = 2866
-integer height = 1488
 string text = "Anomalie"
 end type
 
@@ -1602,8 +1597,6 @@ type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
 end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
@@ -1613,8 +1606,6 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
@@ -1624,8 +1615,6 @@ type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
 end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -1635,8 +1624,6 @@ type dw_6 from w_g_tab_3`dw_6 within tabpage_6
 end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
@@ -1646,8 +1633,6 @@ type dw_7 from w_g_tab_3`dw_7 within tabpage_7
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
@@ -1657,8 +1642,6 @@ type dw_8 from w_g_tab_3`dw_8 within tabpage_8
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
-integer width = 2866
-integer height = 1488
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9

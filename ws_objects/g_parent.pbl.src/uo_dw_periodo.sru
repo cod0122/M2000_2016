@@ -62,7 +62,7 @@ event ue_visible();//
 int k_rc
 
 	this.width = long(this.object.data_al.x) + long(this.object.data_al.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 260
 
 	this.x = (kiw_parent.width  - this.width) / 4
 	this.y = (kiw_parent.height - this.height) / 4

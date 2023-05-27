@@ -918,9 +918,9 @@ kuf_clienti kuf1_clienti
 datastore kds_id_armo_x_id_meca
 kds_e1_asn_get_barcode kds1_e1_asn_get_barcode
 
+
 try
 	
-
 	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if ast_tab_barcode.id_meca > 0 or ast_tab_barcode.id_armo > 0 then
@@ -956,14 +956,29 @@ try
 	kds1_e1_asn_get_barcode = kuf1_e1_asn.get_barcode(kst_get_e1barcode)
 	k_nr_righe = kds1_e1_asn_get_barcode.rowcount( )
 
-//--- aggiorna su MECA il WO/SO di E1
+//--- recupera da E1 il WO/SO da mettere su MECA
 	if k_nr_righe > 0 then
 		kst_tab_meca.id = ast_tab_barcode.id_meca
 		kst_tab_meca.e1doco = kds1_e1_asn_get_barcode.getitemnumber(1, "f4801_adt_wadoco")  // get WO
 		kst_tab_meca.e1rorn = kds1_e1_asn_get_barcode.getitemnumber(1, "f4211_e1rorn")  // get SO
+		kst_tab_meca.stato_in_attenzione = kuf1_armo.kki_STATO_IN_ATTENZIONE_ON  // setta lo STATO in ATTENZIONE
 		kst_tab_meca.st_tab_g_0.esegui_commit = "S"
-		kuf1_armo.set_e1doco(kst_tab_meca)		
-		kuf1_armo.set_e1rorn(kst_tab_meca)		
+		kuf1_armo.set_e1doco_rorn_stato_in_attenzione(kst_tab_meca)	
+		
+	else
+		
+//--- Imposta solo lo stato 'IN ATTENZIONE'
+		kst_tab_meca.id = ast_tab_barcode.id_meca
+		kst_tab_meca.st_tab_g_0.esegui_commit = "S"
+		kst_esito = kuf1_armo.set_stato_in_attenzione_on(kst_tab_meca)
+		if kst_esito.esito <> kkg_esito.ok then
+			kst_esito.esito = kkg_esito.ko
+			kst_esito.SQLErrText = "Stato 'In Attenzione' non impostato sul Lotto, procedere manualmente" + "~n~r"   + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kguo_exception.inizializza( )
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception
+		end if
+		
 	end if
 
 	kst_esito.SQLErrText = ""
@@ -1040,17 +1055,6 @@ try
 		
 	end if
 
-//--- Imposta stato 'IN ATTENZIONE'
-	kst_tab_meca.id = ast_tab_barcode.id_meca
-	kst_tab_meca.st_tab_g_0.esegui_commit = "S"
-	kst_esito = kuf1_armo.set_stato_in_attenzione_on(kst_tab_meca)
-	if kst_esito.esito <> kkg_esito.ok then
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.SQLErrText = "Stato 'In Attenzione' non impostato sul Lotto, procedere manualmente" + "~n~r"   + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
 	 
 catch (uo_exception kuo_exception)
 	throw kuo_exception

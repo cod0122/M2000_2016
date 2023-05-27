@@ -1020,6 +1020,9 @@ event u_open;call super::u_open;//
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_meca_l_armo
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_meca_l_armo
 integer x = 2821
 integer y = 980
@@ -1372,7 +1375,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.kdata.x) + long(this.object.kdata.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 260
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

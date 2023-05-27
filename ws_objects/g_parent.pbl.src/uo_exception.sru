@@ -14,7 +14,7 @@ type variables
 private st_uo_exception ki_st_uo_exception
 public st_esito kist_esito
 
-private kuf_file_explorer kiuf_file_explorer
+//private kuf_file_explorer kiuf_file_explorer
 
 private string ki_titolo = "" // titolo del messaggio 
 
@@ -834,7 +834,7 @@ int k_file
 int k_bytes, k_ctr, k_ctr_1, k_bytes_f, k_righe
 string k_record, k_return = "1", k_errore
 string k_path_nome_file
-long k_filesize
+longlong k_filesize
 
 	u_set_uo_path()
 	k_path_nome_file = kguo_path.get_nome_file_errori_txt()
@@ -851,8 +851,8 @@ long k_filesize
 		k_errore = "Esito cod. (sqlcode)= " + string(kist_esito.sqlcode) + " - " + trim(kist_esito.SQLErrText) + " - oggetto: " + trim(kist_esito.nome_oggetto)
 	end if	
 //--- Se file troppo grosso lo Salvo e AZZERO il FILE
-	k_filesize = kiuf_file_explorer.u_get_filesize(k_path_nome_file)
-	if k_filesize > 36000000 or k_filesize = 0 then
+	k_filesize = FileLength64(k_path_nome_file) //kiuf_file_explorer.u_get_filesize(k_path_nome_file)
+	if k_filesize > 160000 or k_filesize = 0 then
 		k_file = fileopen( trim(k_path_nome_file), linemode!, write!, lockreadwrite!, Replace!)
 		if k_file > 0 then
 			if LenA(trim(k_return)) = 0 then
@@ -927,11 +927,11 @@ private function string u_write_error_xml ();//---------------------------------
 //---			
 //-------------------------------------------------------------------------------------------------
 //---			
-int k_file 
-int k_bytes, k_ctr, k_ctr_1, k_bytes_f, k_start_pos
+long k_file, k_file_copy
+long k_bytes, k_bytes1, k_ctr, k_ctr_1, k_bytes_f, k_start_pos
 //, k_righe
-long k_filesize
-string k_record, k_return = "1", k_errore, k_path_nome_file
+longlong k_filesize
+string k_record, k_record1, k_return = "1", k_errore, k_path_nome_file
 st_esito kst_esito
 
 PBDOM_Document kpbdom_doc
@@ -975,18 +975,40 @@ try
 	LOOP
 
 //--- Se file troppo grosso lo Salvo e AZZERO il FILE
-	k_filesize = kiuf_file_explorer.u_get_filesize(k_path_nome_file + ".xml")
+	k_filesize = FileLength64(k_path_nome_file + ".xml") // kiuf_file_explorer.u_get_filesize(k_path_nome_file + ".xml")
 //	k_righe = errori_conta_righe(k_path_nome_file)
 //	if k_righe > 15000 or k_righe = 0 then 
 	if k_filesize > 16000000 or k_filesize = 0 then
 		filecopy(trim(k_path_nome_file) + ".xml", trim(k_path_nome_file) + ".save.xml", true)   
+		
 		k_file = fileopen( trim(k_path_nome_file + ".xml"), linemode!, write!, lockreadwrite!, Replace!, EncodingUTF8!)
 		if k_file > 0 then
 			if LenA(trim(k_return)) = 0 then
 				k_return = " "
 			end if
-			k_bytes = filewrite(k_file, "<FileLOGcreato>" + string(today()) + "  " +  string(now()) + "</FileLOGcreato>") //La prima riga!!!
+			k_bytes = filewriteex(k_file, "<FileLOGcreato>" + string(today()) + "  " +  string(now()) + "</FileLOGcreato>") //La prima riga!!!
+		
+		// copio le ultime righe del vecchio sul nuovo file
+			k_file_copy = fileopen(trim(k_path_nome_file) + ".save.xml", linemode!, read!, LockRead!, Replace!, EncodingUTF8!)
+			FileSeek64(k_file_copy, -160000, FromEnd!)		
+			k_bytes = FileReadEx(k_file_copy, k_record) // la prima riga la butto!
+			if k_bytes > 0 then
+				k_bytes = FileReadEx(k_file_copy, k_record)
+				if k_bytes > 0 then
+					k_bytes1 = FileReadEx(k_file_copy, k_record1)  // leggo una seconda riga per evitare di scrivere l'ultima che contiene EOF
+				end if
+				do while k_bytes > 0 and k_bytes1 > 0
+					k_bytes = filewriteex(k_file, k_record) //scrivo la data dell'errore
+					k_bytes = filewriteex(k_file, k_record1) //scrivo la data dell'errore
+					k_bytes = FileReadEx(k_file_copy, k_record)
+					if k_bytes > 0 then
+						k_bytes1 = FileReadEx(k_file_copy, k_record1)   // leggo una seconda riga per evitare di scrivere l'ultima che contiene EOF
+					end if
+				loop			
+			end if
+			fileClose(k_file_copy)
 			fileClose(k_file)
+			
 		end if
 	end if
 	
@@ -1052,7 +1074,7 @@ try
 		end if	
 		kpbdom_el_node111.setattribute("sqlcode", string(kst_esito.sqlcode))
 		if trim(kist_esito.descrizione) > " " then
-			k_errore += k_errore + ". Descr.: " +  trim(kist_esito.descrizione)
+			k_errore += k_errore + ". Descr.: " +  trim(kist_esito.descrizione) + " - Dbcode " + string(kst_esito.sqldbcode)
 		end if
 		kpbdom_el_node111.addcontent(trim(k_errore))
 		kpbdom_el_node11.addcontent(kpbdom_el_node111)
@@ -1070,7 +1092,7 @@ try
 		k_record = kpbdom_doc.SaveDocumentIntoString() 
 		k_record = mid(k_record, 4, len(k_record) - 8)  // salta il tag iniziale <x> e finale </x>
 
-		k_bytes = filewrite(k_file, k_record) //scrivo la data dell'errore
+		k_bytes = filewriteex(k_file, k_record) //scrivo la data dell'errore
 		k_return = "W"
 
 	end if
@@ -1149,7 +1171,6 @@ else
 end if
 
 
-
 end subroutine
 
 public function string get_errtext (ref uo_d_std_1 adw_1);//
@@ -1196,13 +1217,13 @@ st_uo_exception kist_uo_exception
 //--- costanti x valori del tipo di errore
 constant int kk_tipo_ex_generico = 1
 
-kiuf_file_explorer = create kuf_file_explorer
+//kiuf_file_explorer = create kuf_file_explorer
 //kiuo_path = create uo_path
 
 end event
 
 event destructor;//
-	if isvalid(kiuf_file_explorer) then destroy kiuf_file_explorer
+//	if isvalid(kiuf_file_explorer) then destroy kiuf_file_explorer
 //	if isvalid(kiuo_path) then destroy kiuo_path   NON LO DISTRUGGO ALTRIMENTI DISTRUGGE IL KGUO_PATH!!!! NON LA SUA COPIA
 
 end event

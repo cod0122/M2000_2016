@@ -7,9 +7,7 @@ end type
 end forward
 
 global type w_convalida from w_g_tab0
-integer width = 3634
-integer height = 2100
-string title = "Elenco CO"
+string title = "Convalida"
 long backcolor = 32501743
 boolean ki_toolbar_window_presente = true
 boolean ki_sincronizza_window_ok = true
@@ -873,7 +871,7 @@ try
 					kst_tab_meca_dosim.dosim_lotto_dosim = kds_1.getitemstring(1, "dosim_lotto_dosim")
 					kst_tab_meca_dosim.dosim_rapp_a_s = kds_1.getitemnumber(1, "dosim_rapp_a_s")
 	
-					kst_tab_meca_dosim = kiuf_meca_dosim.convalida_dosim(kst_tab_meca_dosim)  // CONVALIDA
+					kst_tab_meca_dosim = kiuf_meca_dosim.get_st_tab_meca_dosim(kst_tab_meca_dosim)  // CONVALIDA
 	
 					kst_tab_meca_dosim.dosim_data = date(kGuf_data_base.prendi_x_datins()) //kguo_g.get_dataoggi( )
 					kst_tab_meca_dosim.dosim_ora = time(kGuf_data_base.prendi_x_datins())
@@ -883,7 +881,7 @@ try
 					kst_tab_meca_dosim.dosim_umidita = kds_1.getitemnumber(1, "dosim_umidita")
 					kst_tab_meca_dosim.dosim_dose = kds_1.getitemnumber(1, "dosim_dose")
 	
-					kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
+					kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
 					kiuf_meca_dosim.set_convalida_x_barcode(kst_tab_meca_dosim)    // AGGIORNA MECA_DOSIM
 					
 					dw_lista_0.deleterow(k_riga)
@@ -902,9 +900,9 @@ try
 			
 		next
 
-		if (k_nr_ok + k_nr_ko) > 0 then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
+//		if (k_nr_ok + k_nr_ko) > 0 then
+//			kguo_sqlca_db_magazzino.db_commit( )
+//		end if
 		
 		SetPointer(kkg.pointer_default)
 		
@@ -1146,6 +1144,9 @@ return k_return
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_convalida
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_convalida
 integer x = 2821
 integer y = 980
@@ -1196,10 +1197,6 @@ inserisci( )
 end event
 
 type dw_dett_0 from w_g_tab0`dw_dett_0 within w_convalida
-integer x = 5
-integer y = 792
-integer width = 2784
-integer height = 1148
 boolean enabled = true
 string dataobject = "d_convalida_dosimbozza_l"
 boolean ki_colora_riga_aggiornata = false
@@ -1359,9 +1356,6 @@ integer y = 744
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_convalida
-integer x = 23
-integer width = 3291
-integer height = 732
 string dataobject = "d_mecadosim_l_da_conv"
 end type
 
@@ -1538,7 +1532,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.kdata.x) + long(this.object.kdata.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 260
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

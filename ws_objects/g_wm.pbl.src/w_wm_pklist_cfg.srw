@@ -446,7 +446,7 @@ end subroutine
 protected subroutine open_start_window ();//
 kiuf_wm_pklist_cfg = create kuf_wm_pklist_cfg
 
-kiw_this_window.icon = kGuo_path.get_risorse() + "\pklist.ico"
+kiw_this_window.icon = "pklist.ico" 
 tab_1.tabpage_1.dw_1.SetPosition("cfg_dbms_scelta", "", false)
 tab_1.tabpage_1.dw_1.SetPosition("b_odbc", "", true)
 
@@ -840,6 +840,9 @@ event close;call super::close;//
 if isvalid(kiuf_wm_pklist_cfg) then destroy kiuf_wm_pklist_cfg
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_wm_pklist_cfg
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_wm_pklist_cfg
 end type

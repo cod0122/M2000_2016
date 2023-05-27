@@ -1207,12 +1207,12 @@ uo_exception kuo_exception
          + " meca.data_int,    " & 
          + " meca.num_int,    " & 
          + " meca.contratto,    " & 
-         + " meca.area_mag,     " & 
+         + " isnull(meca.area_mag, ''),     " & 
 			+ " substring(meca.area_mag, 5, 1), "  &
          + " contratti.mc_co,    " & 
-         + " contratti.sc_cf,    " & 
+         + " isnull(contratti.sc_cf, ''),    " & 
          + " contratti.sl_pt,    " & 
-         + " contratti.descr,  "   & 
+         + " trim(contratti.descr),  "   & 
          + " meca.clie_1,    " & 
          + " meca.clie_2,    " & 
          + " meca.clie_3,    " & 
@@ -1225,7 +1225,7 @@ uo_exception kuo_exception
          + " barcode.fila_2,    " & 
          + " barcode.fila_1p,    " & 
          + " barcode.fila_2p,    " & 
-         + " max(barcode.groupage) as grp " & 
+         + " isnull(max(barcode.groupage), '') as grp " & 
          + " ,meca.stato_in_attenzione " & 
          + " ,meca.id " & 
          + " ,'' as barcode_dosimetro" & 
@@ -1690,10 +1690,12 @@ uo_exception kuo_exception
    	+ " alarm_instock.attivo = '" + trim(kuf1_alarm_instock.kki_attivo_si) +"' " &
    	+ " and (alarm_instock.id_cliente = 0 OR alarm_instock.id_cliente = meca.clie_3) " &
    	+ " and (alarm_instock.contratto = 0 OR alarm_instock.contratto = meca.contratto) " &
-	  	+ " and ((kcal_start_stock.cal_date = meca.data_ent and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_data_ent) + ")" &
+	  	+ " and ((kcal_start_stock.cal_date = (CONVERT (date, meca.data_ent )) and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_data_ent) + ")" &
   	        + " or (kcal_start_stock.cal_date = certif.data and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_certif_data) + "))" &
 		+ " and meca.data_ent > '01.01.1990' " &
-		+ " and (kcal_today.workday - kcal_start_stock.workday - 1) > alarm_instock.nday_instock " &
+		+ " and ((alarm_instock.workday = 1 " &
+		+ "         and (kcal_today.workday - kcal_start_stock.workday - 1) > alarm_instock.nday_instock) " &
+		+ "      or (DATEDIFF(day, kcal_start_stock.cal_date, kcal_today.cal_date) - 1) > alarm_instock.nday_instock ) " &
    	+ " and not exists " &
 	         + "(select " &
 	      	+ " alarm_instock_email.id_alarm_instock_email " &

@@ -1,4 +1,4 @@
-﻿$PBExportHeader$ds_if_barcode_in_rackcode.srd
+﻿$PBExportHeader$ds_if_barcode_in_rackcode_x_barcode.srd
 release 22;
 datawindow(units=0 timer_interval=0 color=20132659 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 )
 header(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
@@ -11,16 +11,16 @@ table(column=(type=char(13) updatewhereclause=yes name=barcode dbname="barcode.b
  column=(type=long updatewhereclause=yes name=id_meca dbname="barcode.id_meca" dbalias=".id_meca" )
  retrieve="select barcode, armo.cod_sl_pt, barcode.id_armo, barcode.id_meca
   from barcode inner join armo on barcode.id_armo = armo.id_armo
-where barcode.barcode = :k_barcode
+where barcode.barcode = :k_barcode_1
    and (barcode.data_lav_ini < '1990.01.01' or barcode.data_lav_ini is null) and barcode.causale <> 'T' 
    and armo.cod_sl_pt in
     (SELECT asdslpt.cod_sl_pt 
         FROM asdrackcode inner join asdslpt on asdrackcode.id_asddevice = asdslpt.id_asddevice
 		where 
-         asdrackcode.id_asdrackcode = :k_id_asdrackcode
---or :k_id_asdrackcode = 0
-)
-" arguments=(("k_barcode", string),("k_id_asdrackcode", number)) )
+         asdrackcode.id_asdrackcode in
+      (select asdrackbarcode.id_asdrackcode from asdrackbarcode where asdrackbarcode.barcode = :k_barcode_2)
+    )
+" arguments=(("k_barcode_1", string),("k_barcode_2", string)) )
 text(band=header alignment="0" text="Barcode" border="0" color="0" x="5" y="4" height="60" width="293" html.valueishtml="0"  name=barcode_t visible="1"  font.face="Arial" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="0" text="Armo Cod Sl Pt" border="0" color="0" x="306" y="4" height="60" width="411" html.valueishtml="0"  name=armo_cod_sl_pt_t visible="1"  font.face="Arial" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="0" text="Barcode Id Armo" border="0" color="0" x="727" y="4" height="60" width="457" html.valueishtml="0"  name=barcode_id_armo_t visible="1"  font.face="Arial" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )

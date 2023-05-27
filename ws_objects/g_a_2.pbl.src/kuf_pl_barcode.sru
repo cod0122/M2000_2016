@@ -4643,9 +4643,9 @@ public function boolean if_pianificazione_figli_ok (ds_pl_barcode_dett kds_pl_ba
 boolean k_return = false
 boolean k_errore=false
 long k_riga, k_pl_barcode_progr, k_riga_find, k_riga_find_1, k_righe
-int k_nr_errori
-st_tab_barcode kst_tab_barcode, kst_tab_barcode_figlio, kst_tab_barcode_padre
-st_tab_asdrackbarcode kst_tab_asdrackbarcode, kst_tab_asdrackbarcode_1
+int k_nr_errori, k_nrack, k_ind
+st_tab_barcode kst_tab_barcode_figlio, kst_tab_barcode_padre
+st_tab_asdrackbarcode kst_tab_asdrackbarcode_figlio, kst_tab_asdrackbarcode_padre, kst_tab_asdrackbarcode[], kst_tab_asdrackbarcode_add[]
 st_esito kst_esito
 kuf_barcode kuf1_barcode
 kuf_asdrackbarcode kuf1_asdrackbarcode
@@ -4663,87 +4663,119 @@ try
 	for k_riga = 1 to k_righe
 
 		
-		kst_tab_barcode.barcode = string(kds_pl_barcode_dett_grp.getitemstring ( k_riga, "barcode"))
-				
-//--- non devono avere il flag 'DA NON TRATTARE' o essere già trattati
-      if a_operazione = "modifica" then 
-			if kuf1_barcode.if_da_trattare_no_pl_barcode(kst_tab_barcode) then
-			else
-				kst_esito.SQLErrText +=  & 
-						  + "Figlio " + trim(string(trim(kst_tab_barcode.barcode), "@@@@@@@@@@@")) &
-						  + " non è da 'Trattare' (impostato sul barcode come 'da non trattare' oppure già trattato) " + ";~n~r" 
-				k_errore = true
-				k_nr_errori++
-			end if
-		else
-			if kuf1_barcode.if_da_trattare(kst_tab_barcode) then
-			else
-				kst_esito.SQLErrText +=  & 
-						  + "Figlio " + trim(string(trim(kst_tab_barcode.barcode), "@@@@@@@@@@@")) &
-						  + " non è da 'Trattare' (impostato sul barcode come 'da non trattare' o gia' Trattato o già Pianificato) " + ";~n~r" 
-				k_errore = true
-				k_nr_errori++
-			end if
-		end if
 
-//--- Il barcode è stato associato al RACK? (se necessario)
-		kst_tab_asdrackbarcode.barcode = kst_tab_barcode.barcode
-		if not kuf1_asdrackbarcode.if_barcode_is_associated(kst_tab_asdrackbarcode) then
-			kst_esito.SQLErrText +=  & 
-						  + "Figlio " + trim(string(trim(kst_tab_barcode.barcode), "@@@@@@@@@@@")) &
-						  + " deve prima essere associato al Rack " + ";~n~r" 
-			k_errore = true
-			k_nr_errori++
-		end if
+//--- controllo se il barcode padre puo' essere associato a questo Figlio
+		kst_tab_barcode_figlio.barcode = trim(kds_pl_barcode_dett_grp.object.barcode[k_riga])
+		kst_tab_barcode_padre.barcode = trim(kds_pl_barcode_dett_grp.object.barcode_lav[k_riga])  // barcode di lavorazione (padre)
 
-//--- Controllo codici doppi
-		if k_riga < kds_pl_barcode_dett_grp.rowcount() then
-			kst_tab_barcode.barcode = string(kds_pl_barcode_dett_grp.getitemstring ( k_riga, "barcode"))
-			k_riga_find = kds_pl_barcode_dett_grp.find("barcode = '" + trim(kst_tab_barcode.barcode) + "' ", k_riga + 1, kds_pl_barcode_dett_grp.rowcount()) 
-			if k_riga_find > 0  then
-				kst_esito.SQLErrText += & 
-							  + "Stesso 'Figlio' presente su più righe, "  &
-							  + "(Codice " + trim(kst_tab_barcode.barcode) + ") vedi alla riga " + string(k_riga_find) + "; ~n~r"
-				k_errore = true
-				k_nr_errori++
-			end if
-		end if
-			
 //--- Tolgo valori a null dai giri
 		if isnull(kds_pl_barcode_dett_grp.getitemnumber(k_riga, "fila_1")) then	kds_pl_barcode_dett_grp.setitem(k_riga, "fila_1", 0)
 		if isnull(kds_pl_barcode_dett_grp.getitemnumber(k_riga, "fila_1p")) then kds_pl_barcode_dett_grp.setitem(k_riga, "fila_1p", 0)
 		if isnull(kds_pl_barcode_dett_grp.getitemnumber(k_riga, "fila_2")) then	kds_pl_barcode_dett_grp.setitem(k_riga, "fila_2", 0)
 		if isnull(kds_pl_barcode_dett_grp.getitemnumber(k_riga, "fila_2p")) then kds_pl_barcode_dett_grp.setitem(k_riga, "fila_2p", 0)
 	
-//--- controllo se il barcode padre puo' essere associato a questo Figlio
-		kst_tab_barcode_figlio.barcode = trim(kds_pl_barcode_dett_grp.object.barcode[k_riga])
-		kst_tab_barcode_padre.barcode = trim(kds_pl_barcode_dett_grp.object.barcode_lav[k_riga])  // barcode di lavorazione (padre)
-
-		if kst_tab_barcode_padre.barcode > " " then
-		else
-			kst_esito.SQLErrText +=  & 
-								  + "Manca il Barcode Padre al Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
-								  + "!;~n~r" 
-			k_errore = true
-			k_nr_errori++
-		end if
-			
-//--- Verifica se i barcode hanno lo stesso Dispositivo Ausiliario 
-		if kst_tab_barcode_padre.barcode > " " and kst_tab_barcode_figlio.barcode > " " then
-			kst_tab_asdrackbarcode.barcode = kst_tab_barcode_figlio.barcode
-			kst_tab_asdrackbarcode_1.barcode = kst_tab_barcode_padre.barcode
-			if not kuf1_asdrackbarcode.if_barcode_same_asddevice(kst_tab_asdrackbarcode, kst_tab_asdrackbarcode_1) then
+//--- non devono avere il flag 'DA NON TRATTARE' o essere già trattati
+      if a_operazione = "modifica" then 
+			if kuf1_barcode.if_da_trattare_no_pl_barcode(kst_tab_barcode_figlio) then
+			else
 				kst_esito.SQLErrText +=  & 
-									  + "I barcode Padre " + trim(string(trim(kst_tab_barcode_padre.barcode), "@@@@@@@@@@@")) &
-									  + " e Figlio "+  trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) & 
-									  + " non hanno lo stesso Dispositivo Ausiliario!" &
-									  + ";~n~r" 
+						  + "Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
+						  + " non è da 'Trattare' (impostato sul barcode come 'da non trattare' oppure già trattato) " + ";~n~r" 
+				k_errore = true
+				k_nr_errori++
+			end if
+		else
+			if kuf1_barcode.if_da_trattare(kst_tab_barcode_figlio) then
+			else
+				kst_esito.SQLErrText +=  & 
+						  + "Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
+						  + " non è da 'Trattare' (impostato sul barcode come 'da non trattare' o gia' Trattato o già Pianificato) " + ";~n~r" 
 				k_errore = true
 				k_nr_errori++
 			end if
 		end if
-		
+
+//--- Controllo codici doppi
+		if k_riga < kds_pl_barcode_dett_grp.rowcount() then
+			k_riga_find = kds_pl_barcode_dett_grp.find("barcode = '" + trim(kst_tab_barcode_figlio.barcode) + "' ", k_riga + 1, kds_pl_barcode_dett_grp.rowcount()) 
+			if k_riga_find > 0  then
+				kst_esito.SQLErrText += & 
+							  + "Stesso 'Figlio' presente su più righe, "  &
+							  + "(Codice " + trim(kst_tab_barcode_figlio.barcode) + ") vedi alla riga " + string(k_riga_find) + "; ~n~r"
+				k_errore = true
+				k_nr_errori++
+			end if
+		end if
+	
+		if kst_tab_barcode_padre.barcode > " " then
+		else
+			kst_esito.SQLErrText +=  & 
+								  + "Manca il Barcode Padre sul Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
+								  + "!;~n~r" 
+			k_errore = true
+			k_nr_errori++
+		end if
+
 		if not k_errore then
+
+//--- Il barcode è stato associato al RACK? (se necessario)
+			kst_tab_asdrackbarcode_padre.barcode = kst_tab_barcode_padre.barcode
+			kst_tab_asdrackbarcode_figlio.barcode = kst_tab_barcode_figlio.barcode
+			if not kuf1_asdrackbarcode.if_barcode_is_associated(kst_tab_asdrackbarcode_figlio) then
+				//--- Verifica che il barcode figlio può essere aggiunto allo stesso RACK del Padre
+				if not kuf1_asdrackbarcode.if_add_barcode_x_barcode(kst_tab_asdrackbarcode_figlio, kst_tab_asdrackbarcode_padre) then
+					kst_esito.SQLErrText +=  & 
+								  + "Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode))) &
+								  + " non può essere aggiunto al Rack del barcode Padre " + trim(string(trim(kst_tab_barcode_padre.barcode))) &
+								  + " deve essere tolto dal Groupage; " + kkg.acapo 
+					k_errore = true
+					k_nr_errori++
+				else
+				//--- Aggiunge i/il Rack del Padre al figlio 
+					kst_tab_asdrackbarcode[1].barcode = trim(kst_tab_asdrackbarcode_padre.barcode)
+					k_nrack = kuf1_asdrackbarcode.get_id_asdrackcode(kst_tab_asdrackbarcode[]) 
+					for k_ind = 1 to k_nrack
+						kst_tab_asdrackbarcode_add[1].barcode = trim(kst_tab_asdrackbarcode_figlio.barcode)
+						kst_tab_asdrackbarcode_add[1].id_asdrackcode = kst_tab_asdrackbarcode[k_ind].id_asdrackcode
+						kuf1_asdrackbarcode.u_add_barcode(kst_tab_asdrackbarcode_add[]) 
+					next
+	
+				end if
+//				kst_esito.SQLErrText +=  & 
+//							  + "Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
+//							  + " deve prima essere associato al Rack" + "; "  + kkg.acapo  
+//				k_errore = true
+//				k_nr_errori++
+			end if
+
+//--- Il barcode hanno lo stato associato tipo RACK? (se necessario)
+			kst_tab_asdrackbarcode_padre.barcode = kst_tab_barcode_padre.barcode
+			kst_tab_asdrackbarcode_figlio.barcode = kst_tab_barcode_figlio.barcode
+			if not kuf1_asdrackbarcode.if_barcode_same_asddevice(kst_tab_asdrackbarcode_padre, kst_tab_asdrackbarcode_figlio) then
+				kst_esito.SQLErrText +=  & 
+							  + "Barcode Padre " + trim(string(trim(kst_tab_barcode_padre.barcode), "@@@@@@@@@@@")) &
+							  + "e Figlio " + trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) &
+							  + " hanno differenti tipi Rack associati" + "; " + kkg.acapo  
+				k_errore = true
+				k_nr_errori++
+			end if
+			
+//--- Verifica se i barcode hanno lo stesso Dispositivo Ausiliario 
+			if kst_tab_barcode_padre.barcode > " " and kst_tab_barcode_figlio.barcode > " " then
+				kst_tab_asdrackbarcode_figlio.barcode = kst_tab_barcode_figlio.barcode
+				kst_tab_asdrackbarcode_padre.barcode = kst_tab_barcode_padre.barcode
+				if not kuf1_asdrackbarcode.if_barcode_same_asddevice(kst_tab_asdrackbarcode_figlio, kst_tab_asdrackbarcode_padre) then
+					kst_esito.SQLErrText +=  & 
+										  + "I barcode Padre " + trim(string(trim(kst_tab_barcode_padre.barcode), "@@@@@@@@@@@")) &
+										  + " e Figlio "+  trim(string(trim(kst_tab_barcode_figlio.barcode), "@@@@@@@@@@@")) & 
+										  + " non hanno lo stesso Dispositivo Ausiliario!" &
+										  + ";~n~r" 
+					k_errore = true
+					k_nr_errori++
+				end if
+			end if
+			
+			
 //--- Cerca il BARCODE PADRE in Lista
 			k_riga_find_1 = kds_pl_barcode_dett_padri.find("barcode = '" + trim(kst_tab_barcode_padre.barcode) + "' ", 1, kds_pl_barcode_dett_padri.rowcount()) 
 			if k_riga_find_1 > 0  then

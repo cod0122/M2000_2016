@@ -28,8 +28,6 @@ global type st_barcode_stampa from structure
 	long		id_meca		descriptor "comment" = "ID_MECA"
 	long		e1doco		descriptor "comment" = "id Work Order E1"
 	long		e1rorn		descriptor "comment" = "id Sales Order E1"
-	integer		flg_dosimetro_contati		descriptor "comment" = "numero dosimetri totali presenti nel Lotto"
-	integer		flg_dosimetro_stampati		descriptor "comment" = "numero dosimetri già stampati per questo Lotto"
 	string		dosim_tipo		descriptor "comment" = "tipo del dosimetro (R=RED, A=AMBER...)"
 	string		dosim_tipo_des		descriptor "comment" = "descrizione del tipo del dosimetro (RED, AMBER...)"
 	string		tipo_dose_des		descriptor "comment" = "tipo dose: MASSIMA, MINIMA..."

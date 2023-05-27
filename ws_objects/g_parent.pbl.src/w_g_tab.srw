@@ -1088,9 +1088,8 @@ return k_return
 end function
 
 protected subroutine attiva_menu_reset ();//
-//
 
-kGuo_g.kgw_attiva = this
+//kGuo_g.kgw_attiva = this
 
 //--- se non c'e' alcun menu non faccio sta roba
 if isvalid(m_main) then
@@ -1264,7 +1263,7 @@ long k_ctr
 
 //--- assegna il puntatore alla Window x renderlo visibile negli script
 	kiw_this_window = this
-	kGuo_g.kgw_attiva = this
+	//kGuo_g.kgw_attiva = this
 	
 //--- setta la directory di base
 	kGuf_data_base.setta_path_default ()

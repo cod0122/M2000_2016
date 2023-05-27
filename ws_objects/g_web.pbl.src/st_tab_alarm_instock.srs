@@ -7,6 +7,7 @@ global type st_tab_alarm_instock from structure
 	integer		id_cliente
 	long		contratto		descriptor "comment" = "id contratto co"
 	integer		calc_stocktime		descriptor "comment" = "tipo di giacenza da cui fare il conteggio: 1=da entrata materiale, 5=dalla data del Certificato (rilascio)"
+	integer		workday		descriptor "comment" = "0=calcolo su tutti i giorni, 1=calcolo sui giorni lavorativi"
 	integer		nday_instock
 	long		id_email_funzione		descriptor "comment" = "link alla comunicazione da fare "
 	string		oggetto		descriptor "comment" = "Oggetto della email se manca il id_email_funzione "

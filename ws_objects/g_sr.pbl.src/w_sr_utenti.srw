@@ -487,9 +487,6 @@ end if
 //--- inabilito le modifiche sulla dw
 if k_errore = 0 then
 
-//--- imposto il BMP sulla dw
-	k_rcx=tab_1.tabpage_1.dw_1.Modify("b_password.Filename='" + kGuo_path.get_risorse() + "\Chiave.gif" + "' ")
-
 //--- Inabilita campi alla modifica se Vsualizzazione
 	kuf1_utility = create kuf_utility 
 	if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.visualizzazione &
@@ -893,6 +890,9 @@ event open;call super::open;////
 //
 //	ki_fai_nuovo_dopo_update = false
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_sr_utenti
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_sr_utenti
 integer x = 101

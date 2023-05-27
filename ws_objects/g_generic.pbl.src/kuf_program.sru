@@ -144,6 +144,7 @@ public function boolean u_update_dev_version (boolean a_update_ask);//
 boolean k_return
 boolean k_db_connesso
 string k_base, k_path_centrale
+int k_aggiorna
 kuf_base kuf1_base
 st_profilestring_ini kst_profilestring_ini
 pointer 	kpointer_orig 
@@ -171,82 +172,86 @@ try
 	end if	
 
 	if a_update_ask then
-		if messagebox ("Richiesta di Aggiornamento", "Aggiornare alla versione di Sviluppo (non stabile) dei programmi?", &
-						 question!, YesNo!, 2) = 1 then
-
-			kpointer_orig = setpointer(hourglass!)
-		
-			try
-				k_db_connesso = Kguo_sqlca_db_magazzino.db_connetti()
-
-			catch (uo_exception kuo_exception)
-				
-			end try
-		
-			if not k_db_connesso then
-				
-		//messagebox("Problemi di connessione con il DB", trim(kst_esito.sqlerrtext ))
-		//--- se connessione DB KO! allora provo a scaricare gli aggiornamenti con i dati dell'utlimo confdb aggiornato
-				k_path_centrale = kGuf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, "path_centrale")
-		
-			else
-				
-				kuf1_base = create kuf_base
-		
-			//=== Legge utente di Login
-//				k_base = kGuf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, "utente_login")
-				k_base = trim(mid(kuf1_base.prendi_dato_base("utente_login"), 2))
-			
-			//--- Aggiorna arch di config
-				kst_profilestring_ini.operazione = "2"
-				kst_profilestring_ini.file = ""
-				kst_profilestring_ini.titolo = "ambiente"
-				kst_profilestring_ini.nome = "utente_login"
-				kst_profilestring_ini.valore = k_base
-				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
-			
-			//=== Legge il percorso di dove sono i programmi aggiornati
-				k_base = trim(mid(kuf1_base.prendi_dato_base("path_pgm_upd"), 2))
-			
-			//--- Aggiorna arch di config
-				kst_profilestring_ini.operazione = "2"
-				kst_profilestring_ini.file = ""
-				kst_profilestring_ini.titolo = "ambiente"
-				kst_profilestring_ini.nome = "path_pgm_upd"
-				kst_profilestring_ini.valore = k_base
-				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
-			
-			//=== Legge il percorso del root del server della Procedura
-				k_base = trim(mid(kuf1_base.prendi_dato_base("path_centrale"), 2))
-			
-			//--- Aggiorna arch di config
-				kst_profilestring_ini.operazione = "2"
-				kst_profilestring_ini.file = ""
-				kst_profilestring_ini.titolo = "ambiente"
-				kst_profilestring_ini.nome = "path_centrale"
-				kst_profilestring_ini.valore = k_base
-				kguf_data_base.profilestring_ini ( kst_profilestring_ini )
-			
-				destroy kuf1_base 
-
-				if kst_profilestring_ini.esito = kkg_esito.ok then
-					
-					if trim(kst_profilestring_ini.valore) > " " then
+		k_aggiorna = messagebox ("Richiesta di Aggiornamento", "Aggiornare alla versione di Sviluppo (non stabile) dei programmi?", &
+						 question!, YesNo!, 2) 
+	else
+		k_aggiorna = 1
+	end if
 						
-						k_path_centrale = trim(kst_profilestring_ini.valore)
+	if k_aggiorna = 1 then
 
-					end if
-				end if
+		kpointer_orig = setpointer(hourglass!)
+	
+		try
+			k_db_connesso = Kguo_sqlca_db_magazzino.db_connetti()
 
-			end if
+		catch (uo_exception kuo_exception)
+			
+		end try
+	
+		if not k_db_connesso then
+			
+	//messagebox("Problemi di connessione con il DB", trim(kst_esito.sqlerrtext ))
+	//--- se connessione DB KO! allora provo a scaricare gli aggiornamenti con i dati dell'utlimo confdb aggiornato
+			k_path_centrale = kGuf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, "path_centrale")
+	
+		else
+			
+			kuf1_base = create kuf_base
+	
+		//=== Legge utente di Login
+//				k_base = kGuf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, "utente_login")
+			k_base = trim(mid(kuf1_base.prendi_dato_base("utente_login"), 2))
+		
+		//--- Aggiorna arch di config
+			kst_profilestring_ini.operazione = "2"
+			kst_profilestring_ini.file = ""
+			kst_profilestring_ini.titolo = "ambiente"
+			kst_profilestring_ini.nome = "utente_login"
+			kst_profilestring_ini.valore = k_base
+			kguf_data_base.profilestring_ini ( kst_profilestring_ini )
+		
+		//=== Legge il percorso di dove sono i programmi aggiornati
+			k_base = trim(mid(kuf1_base.prendi_dato_base("path_pgm_upd"), 2))
+		
+		//--- Aggiorna arch di config
+			kst_profilestring_ini.operazione = "2"
+			kst_profilestring_ini.file = ""
+			kst_profilestring_ini.titolo = "ambiente"
+			kst_profilestring_ini.nome = "path_pgm_upd"
+			kst_profilestring_ini.valore = k_base
+			kguf_data_base.profilestring_ini ( kst_profilestring_ini )
+		
+		//=== Legge il percorso del root del server della Procedura
+			k_base = trim(mid(kuf1_base.prendi_dato_base("path_centrale"), 2))
+		
+		//--- Aggiorna arch di config
+			kst_profilestring_ini.operazione = "2"
+			kst_profilestring_ini.file = ""
+			kst_profilestring_ini.titolo = "ambiente"
+			kst_profilestring_ini.nome = "path_centrale"
+			kst_profilestring_ini.valore = k_base
+			kguf_data_base.profilestring_ini ( kst_profilestring_ini )
+		
+			destroy kuf1_base 
 
-			if k_path_centrale > " " then
-				if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2022" + KKG.PATH_SEP + "g_upd_ver.exe", normal!) = 1 then
-					k_return = true
-				end if
-			end if
+			if kst_profilestring_ini.esito = kkg_esito.ok then
 				
-		end if	
+				if trim(kst_profilestring_ini.valore) > " " then
+					
+					k_path_centrale = trim(kst_profilestring_ini.valore)
+
+				end if
+			end if
+
+		end if
+
+		if k_path_centrale > " " then
+			if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2022" + KKG.PATH_SEP + "g_upd_ver.exe", normal!) = 1 then
+				k_return = true
+			end if
+		end if
+				
 	end if
 
 catch (uo_exception kuo1_exception)

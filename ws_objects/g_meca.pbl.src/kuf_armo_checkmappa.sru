@@ -253,7 +253,7 @@ try
 	
 	if ast_tab_meca.clie_1 = 0 then
 		kst_esito.esito = kkg_esito.DATI_INSUFF
-		if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+		if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 		kst_esito.sqlerrtext = "Manca il Mandante della merce "
 		kguo_exception.inizializza()
 		kguo_exception.set_esito( kst_esito ) 	
@@ -262,7 +262,7 @@ try
 		kst_tab_clienti.codice = ast_tab_meca.clie_1
 		if not kuf1_clienti.if_attivo_attivoparziale(kst_tab_clienti) then
 			kst_esito.esito = kkg_esito.KO
-			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 			kst_esito.sqlerrtext += "Il Mandante "+ string(kst_tab_clienti.codice) + "  non è nello stato di Attivo in Anagrafe " 
 			kguo_exception.inizializza()
 			kguo_exception.set_esito( kst_esito ) 	
@@ -273,7 +273,7 @@ try
 	if NOT if_carico_nodose() then  // Ricevente e fatturato devono esserci x forza?
 		if ast_tab_meca.clie_2 = 0 then
 			kst_esito.esito = kkg_esito.DATI_INSUFF
-			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 			kst_esito.sqlerrtext = "Manca il Ricevente della merce " 
 			kguo_exception.inizializza()
 			kguo_exception.set_esito( kst_esito ) 	
@@ -281,7 +281,7 @@ try
 			kst_tab_clienti.codice = ast_tab_meca.clie_2
 			if not kuf1_clienti.if_attivo_attivoparziale(kst_tab_clienti) then
 				kst_esito.esito = kkg_esito.KO
-				if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+				if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 				kst_esito.sqlerrtext += "Il Ricevente "+ string(kst_tab_clienti.codice) + "  non è nello stato di Attivo in Anagrafe " 
 				kguo_exception.inizializza()
 				kguo_exception.set_esito( kst_esito ) 	
@@ -290,7 +290,7 @@ try
 		end if
 		if ast_tab_meca.clie_3 = 0 then
 			kst_esito.esito = kkg_esito.DATI_INSUFF
-			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+			if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 			kst_esito.sqlerrtext += "Manca il Cliente a cui fattuare " 
 			kguo_exception.inizializza()
 			kguo_exception.set_esito( kst_esito ) 	
@@ -298,7 +298,7 @@ try
 			kst_tab_clienti.codice = ast_tab_meca.clie_3
 			if not kuf1_clienti.if_attivo(kst_tab_clienti) then
 				kst_esito.esito = kkg_esito.KO
-				if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += "~n~r"  // aggiungo a capo se necessario
+				if trim(kst_esito.SQLErrText) > " " then kst_esito.SQLErrText += kkg.acapo  // aggiungo a capo se necessario
 				kst_esito.sqlerrtext += "Il Cliente "+ string(kst_tab_clienti.codice) + "  non è nello stato di Attivo in Anagrafe " 
 				kguo_exception.inizializza()
 				kguo_exception.set_esito( kst_esito ) 	
@@ -838,6 +838,27 @@ try
 				end if
 			end if
 		end if
+
+//--- Verifica CAMPIONI
+		kst_tab_armo.campionecolli = ads_inp_righe.getitemnumber(k_riga, "campionecolli")
+		kst_tab_armo.campione = ads_inp_righe.getitemstring(k_riga, "campione")
+		if kst_tab_armo.campione = "S" and kst_tab_armo.campionecolli > 0 then
+		else
+			if kst_tab_armo.campione = "S" then
+				kst_esito.esito = kkg_esito.dati_wrn
+				k_nr_errori++
+				kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("Riga Lotto n. " + string(k_riga) &
+								+ "Indicate Etichette Campioni ma manca il numero dei colli.")
+			else
+				if kst_tab_armo.campionecolli > 0 then
+					kst_esito.esito = kkg_esito.dati_wrn
+					k_nr_errori++
+					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("Riga Lotto n. " + string(k_riga) &
+								+ "Caricati " + string(kst_tab_armo.campionecolli) + " colli Campioni ma è disabilitata la generazione delle Etichette.")
+				end if
+			end if
+		end if
+
 
 		k_riga++   
 	loop

@@ -2846,7 +2846,7 @@ end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 string text = "Voci Prezzi"
-string picturename = "D:\gammarad\pb_gmmrd126\icone\carrello16.png"
+string picturename = "carrello16.png"
 string powertiptext = "Voci prezzi lotto in fattura"
 end type
 
