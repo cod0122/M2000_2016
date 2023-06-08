@@ -1784,7 +1784,7 @@ long k_height
 		if ki_st_vertical then
 			st_vertical.visible = true
 			tv_root.width = st_vertical.X - st_vertical.width 
-			lv_1.width =  this.width - tv_root.width
+			lv_1.width =  this.width - tv_root.width - st_vertical.width
 			lv_1.x = st_vertical.x + st_vertical.width 
 			st_vertical.bringtotop = true
 		else

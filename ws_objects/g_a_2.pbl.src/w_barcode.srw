@@ -940,7 +940,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 					else
 						if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
 							messagebox("Operazione non consentita", &
-								"Il BARCODE " + trim(k_key) + " risulta già Trattato o in pianificazione, procedo alla sola visualizzazione~n~r")
+								"Il barcode " + trim(k_key) + " risulta già Trattato o in Pianificazione, è consentito solo la Visualizzazione")
 						end if
 						
 						ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione

@@ -7851,15 +7851,21 @@ if kst_tab_meca.id > 0 then
 	if isnull(kst_tab_meca.data_ent) then
 		 kst_tab_meca.data_ent = datetime(date(0), time(0))
 	end if
+
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 	
 	UPDATE meca 
 			SET data_ent = :kst_tab_meca.data_ent
+					,x_datins = :kst_tab_meca.x_datins
+					,x_utente = :kst_tab_meca.x_utente
 			WHERE meca.id = :kst_tab_meca.id   
 			using kguo_sqlca_db_magazzino;
 			
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento data entrata Lotto " + string(kst_tab_meca.data_ent) + " (meca), ID: " + string(kst_tab_meca.id) + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.SQLErrText = "Errore in aggiornamento data entrata Lotto " + string(kst_tab_meca.data_ent) + " (meca), ID: " + string(kst_tab_meca.id) &
+									+ kkg.acapo  + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 	end if
 			
@@ -9086,7 +9092,6 @@ st_esito kst_esito
 
 		end choose
 
-
 		kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 
@@ -9099,9 +9104,9 @@ st_esito kst_esito
 
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
 			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore durante aggiornamento Sblocco/Blocco Riferimento (Lotto id= " &
+			kst_esito.SQLErrText = "Errore durante aggiornamento Sblocco/Blocco Riferimento (Lotto id " &
 								 + string(kst_tab_meca.id) + " " &
-								 + ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+								 + ")" + kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
 			kst_esito.esito = kkg_esito.db_ko
 			kguo_exception.inizializza( )
 			kguo_exception.set_esito(kst_esito)					
@@ -9119,9 +9124,9 @@ st_esito kst_esito
 
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
 			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore durante aggiornamento Sblocco/Blocco Riferimento (tab. blocchi Lotto id= " &
+			kst_esito.SQLErrText = "Errore durante aggiornamento Sblocco/Blocco Riferimento (tab. blocchi Lotto id " &
 								 + string(kst_tab_meca.id) + " " &
-								 + ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+								 + ")" + kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
 			kst_esito.esito = kkg_esito.db_ko
 			kguo_exception.inizializza( )
 			kguo_exception.set_esito(kst_esito)					
@@ -9132,6 +9137,17 @@ st_esito kst_esito
 			set stato = :kst_tab_meca.stato
 			where id_meca = :kst_tab_meca.id
 			using kguo_sqlca_db_magazzino;
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+			kst_esito.SQLErrText = "Errore durante aggiornamento Sblocco/Blocco Riferimento (righe Lotto id " &
+								 + string(kst_tab_meca.id) + " " &
+								 + ")" + kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.inizializza( )
+			kguo_exception.set_esito(kst_esito)					
+			throw kguo_exception
+		end if	
 
 		kguo_sqlca_db_magazzino.db_commit()
 		

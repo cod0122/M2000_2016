@@ -8,6 +8,8 @@ global type st_tab_barcode from structure
 	string		barcode_lav
 	long		id_armo
 	string		flg_dosimetro		descriptor "comment" = "1=presenza dosimetro"
+	integer		flg_parziale 		descriptor "comment" = "1=pallet PARZIALE"
+	integer		flg_campione 		descriptor "comment" = "1=pallet accompagnato a un collo Campione"
 	long		pl_barcode
 	long		pl_barcode_progr
 	string		causale

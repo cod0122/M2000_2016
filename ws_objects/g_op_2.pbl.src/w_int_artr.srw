@@ -4773,6 +4773,9 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a )
 		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", 0 )
 		tab_1.tabpage_1.dw_1.setitem(1, "mc_co", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "descr", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "idem", "" )
 		tab_1.tabpage_1.dw_1.setitem(1, "codice", 0 )
 
 			
@@ -7380,13 +7383,15 @@ try
 	else
 	
 		k_data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da") //data riferimento a
-		if isnull(k_data_da) or k_data_da = date(0) or k_data_da = date("01/01/1900") or k_data_da = date("00/00/0000") then
+		if k_data_da > date("01/01/1901") then
+		else
 			k_data_da = k_dataoggi
 		end if
 		kst_report_indici_run.data_da = k_data_da
 	
 		k_data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a") //data riferimento da
-		if isnull(k_data_a) or k_data_a = date(0) or k_data_a = date("01/01/1900") or k_data_a = date("00/00/0000") then
+		if k_data_da > date("01/01/1901") then
+		else
 			k_data_a = k_dataoggi
 		end if
 		kst_report_indici_run.data_a = k_data_a
@@ -7407,7 +7412,8 @@ try
 	end if
 	
 	kst_report_indici_run.gru = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_gruppo") //codice gruppo
-	if isnull(kst_report_indici_run.gru) then
+	if kst_report_indici_run.gru > 0 then
+	else
 		kst_report_indici_run.gru = 0
 	end if
 	kst_report_indici_run.gru_flag = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_flag") //flag tipo estrazione gruppo
@@ -7415,12 +7421,14 @@ try
 		kst_report_indici_run.gru_flag = 2
 	end if
 	kst_report_indici_run.gru_attiva = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_attiva") //flag attiva/disattiva estrazione gruppo
-	if isnull(kst_report_indici_run.gru_attiva) then
+	if kst_report_indici_run.gru_attiva > 0 then
+	else
 		kst_report_indici_run.gru_attiva = 0
 	end if
 	
 	kst_report_indici_run.xcliente = tab_1.tabpage_1.dw_1.getitemstring(1, "daticlienti")
-	if isnull(kst_report_indici_run.xcliente) then
+	if kst_report_indici_run.xcliente > " " then
+	else
 		kst_report_indici_run.xcliente = "N"
 	end if
 	
@@ -7431,7 +7439,7 @@ try
 	if (k_data_a > date(0) and k_data_a < k_data_da) then
 		kGuo_exception.inizializza( )
 		kGuo_exception.set_tipo(kGuo_exception.KK_st_uo_exception_tipo_non_eseguito)
-		kGuo_exception.setmessage("Controlla le date immesse,~n~r data di fine periodo e' minore di quella di inizio")
+		kGuo_exception.setmessage("Periodo non congruente, data fine minore di quella di inizio")
 		throw kGuo_exception 
 	else
 		if	kst_report_indici_run.id_meca_ini = 0 then
@@ -8484,6 +8492,10 @@ if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 //		end if
 
 	elseif  dwo.name = "mc_co" then
+		tab_1.tabpage_1.dw_1.setitem(1, "descr", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "idem", "" )
+		tab_1.tabpage_1.dw_1.setitem(1, "codice", 0 )
 		if trim(data) > " " then
 			tab_1.tabpage_1.dw_1.getchild("mc_co", kdwc_contratti_1)
 			//k_riga = kdwc_contratti_1.getrow()
@@ -8499,16 +8511,8 @@ if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 				if kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", &
 											kdwc_contratti_1.getrow() + 1, kdwc_contratti_1.rowcount()) > 0 then
 					tab_1.tabpage_1.dw_1.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(data) )
-				else
-					tab_1.tabpage_1.dw_1.setitem(1, "idem", "")
 				end if
-			else
-				tab_1.tabpage_1.dw_1.setitem(1, "descr","")
-				tab_1.tabpage_1.dw_1.setitem(1, "codice",0)
 			end if
-		else		
-			tab_1.tabpage_1.dw_1.setitem(1, "descr","")
-			tab_1.tabpage_1.dw_1.setitem(1, "codice",0)
 		end if
 	end if
 end if

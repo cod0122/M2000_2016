@@ -1005,13 +1005,13 @@ st_tab_wm_pklist kst_tab_wm_pklist
 st_tab_armo kst_tab_armo[]
 st_esito kst_esito
 st_tab_barcode kst_tab_barcode
-datastore kds_wm_pklist_righe_l_barcode
+uo_ds_std_1 kds_wm_pklist_righe_l_barcode
 kds_e1_asn_rows kds1_e1_asn_rows
 kuf_listino kuf1_listino
 kuf_wm_pklist_testa kuf1_wm_pklist_testa
 kuf_base kuf1_base
 kuf_barcode kuf1_barcode
-datastore kds_1
+uo_ds_std_1 kds_1
 
 
 try
@@ -1022,7 +1022,7 @@ try
 	kuf1_wm_pklist_testa = create kuf_wm_pklist_testa
 	kuf1_base = create kuf_base
 	kuf1_barcode = create kuf_barcode
-	kds_1 = create datastore
+	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_barcode_set_flg_dosimetro"
 
 //--- get dati del pkl
@@ -1043,7 +1043,7 @@ try
 	kst_tab_wm_pklist.idpkl = kuf1_wm_pklist_testa.get_idpkl(kst_tab_wm_pklist) // get del codice packing-list
 
 	//kst_tab_armo.colli_2 = get_totale_colli( )
-	kds_wm_pklist_righe_l_barcode = create datastore
+	kds_wm_pklist_righe_l_barcode = create uo_ds_std_1
 	kds_wm_pklist_righe_l_barcode.dataobject = "ds_wm_pklist_righe_l_barcode"
 	kds_wm_pklist_righe_l_barcode.settransobject(kguo_sqlca_db_magazzino)
 		
@@ -1057,6 +1057,16 @@ try
 		if kst_tab_armo[k_riga].colli_2 > 0 then
 	
 			k_riga_pkl = kds_wm_pklist_righe_l_barcode.retrieve(kst_tab_wm_pklist.id_wm_pklist)  // leggo i barcode cliente
+			if k_riga_pkl < 0 then
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.kist_esito = kds_wm_pklist_righe_l_barcode.kist_esito
+				kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+				kguo_exception.kist_esito.sqlerrtext = "Generazione ASN su E1 bloccata, fallita lettura elenco righe barcode dal packing-list (id Pkl " &
+													+ string(kst_tab_wm_pklist.id_wm_pklist) + ") " &
+													+ kkg.acapo + kguo_exception.kist_esito.sqlerrtext
+				throw kguo_exception
+			end if	
+			
 			auf_armo.get_id_listino(kst_tab_armo[k_riga]) //tab_1.tabpage_4.dw_4.getitemnumber( k_riga, "id_listino")
 			kst_tab_listino.id = kst_tab_armo[k_riga].id_listino
 			if kst_tab_listino.id > 0 then
@@ -1094,8 +1104,10 @@ try
 
 //--- prepara il ds per il calcolo del numero dosimetri che avrà il Lotto
 				k_righe_barcode = kds_1.insertrow(0)
-				kds_1.setitem(k_righe_barcode, "id_armo", 	kst_tab_armo[k_riga].id_armo)
-				kds_1.setitem(k_righe_barcode, "barcode", trim(kds_wm_pklist_righe_l_barcode.getitemstring(k_ctr, "wm_barcode")))  // metto un valore fittizio 
+				if k_righe_barcode > 0 then
+					kds_1.setitem(k_righe_barcode, "id_armo", 	kst_tab_armo[k_riga].id_armo)
+					kds_1.setitem(k_righe_barcode, "barcode", trim(kds_wm_pklist_righe_l_barcode.getitemstring(k_ctr, "wm_barcode")))  // metto un valore fittizio 
+				end if
 				
 			next
 			

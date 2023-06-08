@@ -40,10 +40,9 @@ string k_view, k_sql, k_campi
 SetPointer(kkg.pointer_attesa)
 
 //--- costruisco le view di base 
-//	crea_view_x_report_23_xdtcertif( )
-//	crea_view_x_report_23_xgru( )
+	crea_view_x_report_23_xdtcertif( )
+	crea_view_x_report_23_xgru( )
 	
-
 //--- costruisco altre view  
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_trattati") 
 	k_sql = " "                                   

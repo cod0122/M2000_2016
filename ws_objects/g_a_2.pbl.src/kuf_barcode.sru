@@ -167,7 +167,6 @@ public function long get_barcode_da_id_meca (ref st_tab_barcode kst_tab_barcode[
 public function boolean if_barcode_figlio (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public function boolean if_da_trattare (st_tab_barcode ast_tab_barcode) throws uo_exception
 public function long get_pl_barcode (st_tab_barcode kst_tab_barcode) throws uo_exception
-public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref datastore ads_1) throws uo_exception
 public function integer set_flg_dosimetro_all (st_tab_barcode ast_tab_barcode) throws uo_exception
 public function integer set_flg_dosimetro_rigenera (st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine set_flg_dosimetro_reset_all (st_tab_barcode ast_tab_barcode) throws uo_exception
@@ -181,6 +180,7 @@ public function uo_ds_std_1 get_figli_barcode (readonly st_tab_barcode kst_tab_b
 public function uo_ds_std_1 get_figli_barcode_uguale_sl_pt (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function st_esito get_barcode_dati_trattamento (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 public function boolean if_barcode_exists (readonly st_tab_barcode ast_tab_barcode) throws uo_exception
+public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref uo_ds_std_1 ads_1) throws uo_exception
 end prototypes
 
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode);//
@@ -1173,10 +1173,6 @@ kuf_base kuf1_base
 		end if
 
 	end if
-
-
-
-
 
 return kst_esito
 
@@ -5438,116 +5434,6 @@ end try
 return k_return
 end function
 
-public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref datastore ads_1) throws uo_exception;//
-//====================================================================
-//=== Imposta in automatico il flag_dosimetro sul Barcode x Lotto
-//=== 
-//=== Input:  st_tab_barcode.id_meca, datastore = 'ds_barcode_set_flg_dosimetro' 
-//=== out: ds ds_barcode_set_flg_dosimetro tutti i barcode con impostato la col flg_dosimetro
-//=== ret: nr dosimetri impostati 
-//===
-//=== lancia EXCEPTION
-//=== 
-//====================================================================
-//
-integer k_return, k_resto
-//decimal{2} k_resto                    
-int k_num, k_riga_flegga_barcode, k_righe_barcode, k_riga_flegga_barcode_ultimo
-decimal{1} k_unita_ditrattamento = 0.0
-kuf_armo kuf1_armo
-kuf_sl_pt kuf1_sl_pt
-st_tab_sl_pt kst_tab_sl_pt
-st_tab_armo kst_tab_armo
-st_esito kst_esito 
-
-
-try
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_barcode.st_tab_g_0 
-
-	k_righe_barcode = ads_1.rowcount()
-
-	if k_righe_barcode > 0 then
-
-//--- get del codice PT per leggere i dati di dove mettere i Dosimetri
-		kuf1_armo = create kuf_armo
-		kst_tab_armo.id_armo = ads_1.getitemnumber(1, "id_armo")
-		kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
-//--- get dei dati da PT circa il nr dosimetri		
-		kuf1_sl_pt = create kuf_sl_pt
-		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
-			kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
-		else
-			kst_tab_sl_pt.dosim_delta_bcode = 0 
-		end if
-
-		if kst_tab_sl_pt.unitwork > 0.0 then
-			k_unita_ditrattamento = (100 / kst_tab_sl_pt.unitwork)
-		else
-			k_unita_ditrattamento = 1.0
-		end if
-
-//--- piazza il dosimetro ogni tot di barcode 
-		if kst_tab_sl_pt.dosim_delta_bcode > 0 then
-//--- ricalcola il delta con l'unità di trattamento 
-			kst_tab_sl_pt.dosim_delta_bcode = k_unita_ditrattamento * kst_tab_sl_pt.dosim_delta_bcode
-			
-			k_riga_flegga_barcode = 1
-			do while k_riga_flegga_barcode <= k_righe_barcode
-				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    // flegga il dosimetro
-				k_return += kst_tab_sl_pt.dosim_x_bcode  // i dosimetri x barcode possono essere anche più di 1
-				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode
-			loop
-			k_riga_flegga_barcode -= kst_tab_sl_pt.dosim_delta_bcode
-		end if
-
-		if k_righe_barcode = 1 and k_riga_flegga_barcode = 0 then
-			k_riga_flegga_barcode = 1
-		else
-//--- dosimetro se attivato il risparmio in ultimo pallet condizionato
-			if kst_tab_sl_pt.savedosimeter = 1 then
-				//--- se il n. dei barcode rimasti è minore del numero dell'unità di trattamento indicata allora no dosimetro
-				if (k_righe_barcode - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
-					k_riga_flegga_barcode = k_righe_barcode
-				else
-					k_riga_flegga_barcode = 0   //no dosimetro
-				end if
-			else				
-//--- 27/8/2019 deprecato (REZIO): 20/7/2010 se il numero colli e' pari o dispari? devo mettere il dosimetro sull'ultimo pari
-//--- 27/8/2019				k_resto = mod(k_righe_barcode, 2)
-//--- 27/8/2019				if k_resto = 0 then  // pari
-					k_riga_flegga_barcode = k_righe_barcode			// flegga il dosimetro sull'ultimo
-//--- 27/8/2019				else
-//--- 27/8/2019					k_riga_flegga_barcode = k_righe_barcode - 1		// flegga il dosimetro sul penultimo
-//--- 27/8/2019				end if
-			end if
-		end if
-
-//--- controllo se è già stato marcato
-		if k_riga_flegga_barcode > 0 then
-			if ads_1.getitemstring(k_riga_flegga_barcode, "flg_dosimetro") = ki_flg_dosimetro_si then
-			else
-				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    
-				k_return += kst_tab_sl_pt.dosim_x_bcode  // incrementa i dosimetri sul barcode finale
-			end if		
-		end if
-
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-
-end try
-
-
-return k_return 
-end function
-
 public function integer set_flg_dosimetro_all (st_tab_barcode ast_tab_barcode) throws uo_exception;//
 //====================================================================
 //=== Imposta in automatico il flag_dosimetro sul Barcode x Lotto
@@ -6297,6 +6183,116 @@ st_tab_barcode kst_tab_barcode
 
 return k_return
 
+end function
+
+public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref uo_ds_std_1 ads_1) throws uo_exception;//
+//====================================================================
+//=== Imposta in automatico il flag_dosimetro sul Barcode x Lotto
+//=== 
+//=== Input:  st_tab_barcode.id_meca, datastore = 'ds_barcode_set_flg_dosimetro' 
+//=== out: ds ds_barcode_set_flg_dosimetro tutti i barcode con impostato la col flg_dosimetro
+//=== ret: nr dosimetri impostati 
+//===
+//=== lancia EXCEPTION
+//=== 
+//====================================================================
+//
+integer k_return, k_resto
+//decimal{2} k_resto                    
+int k_num, k_riga_flegga_barcode, k_righe_barcode, k_riga_flegga_barcode_ultimo
+decimal{1} k_unita_ditrattamento = 0.0
+kuf_armo kuf1_armo
+kuf_sl_pt kuf1_sl_pt
+st_tab_sl_pt kst_tab_sl_pt
+st_tab_armo kst_tab_armo
+st_esito kst_esito 
+
+
+try
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
+	kst_esito.st_tab_g_0 = ast_tab_barcode.st_tab_g_0 
+
+	k_righe_barcode = ads_1.rowcount()
+
+	if k_righe_barcode > 0 then
+
+//--- get del codice PT per leggere i dati di dove mettere i Dosimetri
+		kuf1_armo = create kuf_armo
+		kst_tab_armo.id_armo = ads_1.getitemnumber(1, "id_armo")
+		kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
+//--- get dei dati da PT circa il nr dosimetri		
+		kuf1_sl_pt = create kuf_sl_pt
+		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
+			kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
+		else
+			kst_tab_sl_pt.dosim_delta_bcode = 0 
+		end if
+
+		if kst_tab_sl_pt.unitwork > 0.0 then
+			k_unita_ditrattamento = (100 / kst_tab_sl_pt.unitwork)
+		else
+			k_unita_ditrattamento = 1.0
+		end if
+
+//--- piazza il dosimetro ogni tot di barcode 
+		if kst_tab_sl_pt.dosim_delta_bcode > 0 then
+//--- ricalcola il delta con l'unità di trattamento 
+			kst_tab_sl_pt.dosim_delta_bcode = k_unita_ditrattamento * kst_tab_sl_pt.dosim_delta_bcode
+			
+			k_riga_flegga_barcode = 1
+			do while k_riga_flegga_barcode <= k_righe_barcode
+				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    // flegga il dosimetro
+				k_return += kst_tab_sl_pt.dosim_x_bcode  // i dosimetri x barcode possono essere anche più di 1
+				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode
+			loop
+			k_riga_flegga_barcode -= kst_tab_sl_pt.dosim_delta_bcode
+		end if
+
+		if k_righe_barcode = 1 and k_riga_flegga_barcode = 0 then
+			k_riga_flegga_barcode = 1
+		else
+//--- dosimetro se attivato il risparmio in ultimo pallet condizionato
+			if kst_tab_sl_pt.savedosimeter = 1 then
+				//--- se il n. dei barcode rimasti è minore del numero dell'unità di trattamento indicata allora no dosimetro
+				if (k_righe_barcode - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
+					k_riga_flegga_barcode = k_righe_barcode
+				else
+					k_riga_flegga_barcode = 0   //no dosimetro
+				end if
+			else				
+//--- 27/8/2019 deprecato (REZIO): 20/7/2010 se il numero colli e' pari o dispari? devo mettere il dosimetro sull'ultimo pari
+//--- 27/8/2019				k_resto = mod(k_righe_barcode, 2)
+//--- 27/8/2019				if k_resto = 0 then  // pari
+					k_riga_flegga_barcode = k_righe_barcode			// flegga il dosimetro sull'ultimo
+//--- 27/8/2019				else
+//--- 27/8/2019					k_riga_flegga_barcode = k_righe_barcode - 1		// flegga il dosimetro sul penultimo
+//--- 27/8/2019				end if
+			end if
+		end if
+
+//--- controllo se è già stato marcato
+		if k_riga_flegga_barcode > 0 then
+			if ads_1.getitemstring(k_riga_flegga_barcode, "flg_dosimetro") = ki_flg_dosimetro_si then
+			else
+				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    
+				k_return += kst_tab_sl_pt.dosim_x_bcode  // incrementa i dosimetri sul barcode finale
+			end if		
+		end if
+
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+
+end try
+
+
+return k_return 
 end function
 
 on kuf_barcode.create

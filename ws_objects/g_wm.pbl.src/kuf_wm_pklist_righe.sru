@@ -698,26 +698,20 @@ return kst_esito
 
 end function
 
-public function st_esito set_dati_lotto (ref st_tab_wm_pklist_righe kst_tab_wm_pklist_righe);//
-//====================================================================
-//=== Aggiorna i dati provenienti dal LOTTO di Magazzino  
-//=== 
-//=== Input: st_tab_wm_pklist_righe.id_wm_pklist_riga e id_meca, id_armoi,  
-//=== Ritorna:       ST_ESITO 
-//=== 
-//====================================================================
-//
+public function st_esito set_dati_lotto (ref st_tab_wm_pklist_righe kst_tab_wm_pklist_righe);/*
+ Aggiorna i dati provenienti dal LOTTO di Magazzino e imposta lo STATO a importato 
+ 
+ Inp: st_tab_wm_pklist_righe.id_wm_pklist_riga e id_meca, id_armoi,  
+ Rit: ST_ESITO 
+
+*/
 boolean k_return
 st_esito kst_esito
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 kst_open_w.flag_modalita = kkg_flag_modalita.modifica
 kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.modifica) 
@@ -731,7 +725,7 @@ destroy kuf1_sicurezza
 if not k_return then
 
 	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Modifica dati Righe Packing List Mandante non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.SQLErrText = "Modifica dati Packing List Mandante non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
 	kst_esito.esito = kkg_esito.no_aut
 
 else
@@ -745,6 +739,7 @@ else
 				set id_meca = :kst_tab_wm_pklist_righe.id_meca
 					, id_armo = :kst_tab_wm_pklist_righe.id_armo
 					, gruppo = :kst_tab_wm_pklist_righe.gruppo
+				   , stato = :kki_STATO_importato
 					,x_datins = :kst_tab_wm_pklist_righe.x_datins
 					,x_utente = :kst_tab_wm_pklist_righe.x_utente
 				WHERE id_wm_pklist_riga = :kst_tab_wm_pklist_righe.id_wm_pklist_riga
@@ -753,10 +748,11 @@ else
 		if sqlca.sqlcode <> 0 then
 				
 			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = &
-	"Errore durante la Modifica 'dati Lotto' della Riga di Packing-List Mandante ~n~r" &
-					+ " id=" + string(kst_tab_wm_pklist_righe.id_wm_pklist_riga, "####0") + " " &
-					+ " ~n~rErrore-tab.'wm_pklist':"	+ trim(sqlca.SQLErrText)
+			kst_esito.SQLErrText = "Errore in Modifica 'dati Lotto' della Riga di Packing-List del Mandante " &
+					+ kkg.acapo + "id riga Pkl: " + string(kst_tab_wm_pklist_righe.id_wm_pklist_riga, "####0") + " " &
+					+ " id Lotto (ASN): " + string(kst_tab_wm_pklist_righe.id_meca, "####0") + " " &
+					+ " id riga Lotto (ASN): " + string(kst_tab_wm_pklist_righe.id_armo, "####0") + " " &
+					+ kkg.acapo + " Errore: "	+ trim(sqlca.SQLErrText)
 			if sqlca.sqlcode = 100 then
 				kst_esito.esito = kkg_esito.not_fnd
 			else

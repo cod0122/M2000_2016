@@ -31,7 +31,7 @@ public function long u_set_data_ent () throws uo_exception;//
 //--- 
 //--------------------------------------------------------------------------------------------------------------
 long k_return=0
-long k_riga, k_righe
+long k_riga, k_righe, k_rc
 string k_msg_warning
 datetime k_datetime
 uo_ds_std_1 kds_1
@@ -46,11 +46,14 @@ try
 	
 	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_meca_senza_data_ent"
-	kds_1.settrans(kguo_sqlca_db_magazzino)
+	kds_1.settransobject(kguo_sqlca_db_magazzino)
 	k_datetime = datetime(date(0),time(0))
 	k_righe = kds_1.retrieve(k_datetime)     // estrae tutti i Lotti aperti senza data di entrata
 
 	kuf1_e1_asn = create kuf_e1_asn
+
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 
 	for k_riga = 1 to k_righe
 
@@ -61,6 +64,8 @@ try
 			if kst_tab_meca.data_ent > datetime(kkg.data_zero, time(0)) then
 				
 				kds_1.setitem(k_riga, "data_ent", kst_tab_meca.data_ent)
+				kds_1.setitem(k_riga, "x_datins", kst_tab_meca.x_datins)
+				kds_1.setitem(k_riga, "x_utente", kst_tab_meca.x_utente)
 
 				k_msg_warning = kiuf_armo.u_get_consegna_tempi(kst_tab_meca)
 				if trim(k_msg_warning) > " " then
@@ -84,14 +89,21 @@ try
 		
 	next
 	if k_return > 0 then
-		kds_1.update()       // AGGIORNA LE RIGHE CON DATA ENTRATA E DI CONSEGNA
-		kguo_sqlca_db_magazzino.db_commit( )
+		k_rc = kds_1.update()       // AGGIORNA LE RIGHE CON DATA ENTRATA E DI CONSEGNA
+		if k_rc >= 0 then 
+			kguo_sqlca_db_magazzino.db_commit( )
+		else
+			kst_esito = kds_1.kist_esito
+			kst_esito.SQLErrText = "Errore in aggiornamento data di Entrata e Consegna dei " + string(k_return) + " Lotti a cui mancava, ad esempio per Id (meca): " + string(kds_1.getitemnumber( 1, "id")) &
+									+ kkg.acapo  + trim(kst_esito.SQLErrText)
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.set_esito(kst_esito)
+			kguo_sqlca_db_magazzino.db_rollback( )
+			throw kguo_exception
+		end if
 	end if
-
 	
 catch (uo_exception kuo_exception) 
-	k_return = 0
-	kguo_sqlca_db_magazzino.db_rollback( )
 	throw kuo_exception
 	
 finally
@@ -181,10 +193,7 @@ st_esito kst_esito
 
 try 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Imposta Data di entrata merce di E1 su MECA
 	k_ctr = u_set_data_ent( )

@@ -1464,13 +1464,13 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 		 	kist_tab_meca.stato_in_attenzione = kuf1_armo.kki_STATO_IN_ATTENZIONE_ON
 			kist_tab_meca.num_int = 0
 			kist_tab_meca.id = 0
-			kist_tab_meca.st_tab_g_0.esegui_commit = "N"
+			kist_tab_meca.st_tab_g_0.esegui_commit = "S"
 
 //--- Insert del Nuovo Lotto / Riferimento
 			kist_tab_meca.id = carica_lotto_testa()
 			
 //--- aggiorna lo stato della Packing		
-			kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "N"
+			kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "S"
 			kst_esito = kuf1_wm_pklist_testa.set_stato_importato(kst_tab_wm_pklist)
 			if kst_esito.esito = kkg_esito.db_ko then
 				kguo_exception.set_esito(kst_esito)
@@ -1624,7 +1624,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 						kist_tab_armo.stato = kiuf_armo.ki_meca_stato_blk 		
 					end if
 					kist_tab_armo.travaso = "N"
-					kist_tab_armo.st_tab_g_0.esegui_commit = "N"
+					kist_tab_armo.st_tab_g_0.esegui_commit = "S"
 					
 //--- Insert della nuova riga nel Lotto					
 					kist_tab_armo.id_armo = carica_lotto_riga( ) 
@@ -1650,7 +1650,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 //--- Aggiorna ogni singola riga del Packing						
 					for k_ctr = k_ctr_righe_pkilst_lastupdate to (k_ctr_righe_pklist - 1) step 1
 
-						kst_tab_wm_pklist_righe[k_ctr].st_tab_g_0.esegui_commit = "N"
+						kst_tab_wm_pklist_righe[k_ctr].st_tab_g_0.esegui_commit = "S"
 						kst_tab_wm_pklist_righe[k_ctr].id_meca = kist_tab_meca.id 						
 						kst_tab_wm_pklist_righe[k_ctr].id_armo = kist_tab_armo.id_armo
 						if kst_tab_wm_pklist_righe[k_ctr].gruppo > 0 then
@@ -1661,10 +1661,10 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 						if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
 							kguo_exception.set_esito(kst_esito)
 						end if
-						kst_esito = kuf1_wm_pklist_righe.set_stato_importato(kst_tab_wm_pklist_righe[k_ctr])
-						if kst_esito.esito = kkg_esito.db_ko then
-							kguo_exception.set_esito(kst_esito)
-						end if
+//						kst_esito = kuf1_wm_pklist_righe.set_stato_importato(kst_tab_wm_pklist_righe[k_ctr])
+//						if kst_esito.esito = kkg_esito.db_ko then
+//							kguo_exception.set_esito(kst_esito)
+//						end if
 					
 					next
 					k_ctr_righe_pkilst_lastupdate = k_ctr_righe_pklist
@@ -1677,7 +1677,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 //---- Imposta le Note a OK		
 			kst_tab_wm_pklist.note = "Caricato nel Lotto num. " + string(kist_tab_meca.num_int) + " del " + string(kist_tab_meca.data_int) &
 			                            + " alle " + string(kguo_g.get_datetime_current( ), "hh:mm")
-		 	kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "N"
+		 	kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "S"
 			kuf1_wm_pklist_testa.set_add_note(kst_tab_wm_pklist)
 
 //--- Commit delle Modifiche

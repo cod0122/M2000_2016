@@ -157,19 +157,13 @@ public function boolean tb_add_barcode (st_tab_meca_dosim kst_tab_meca_dosim) th
 //-------------------------------------------------------------------------------------------------------------
 boolean k_return=false
 boolean k_sicurezza=true
-//long k_rcn
-//st_tab_meca kst_tab_meca
 st_esito kst_esito
 st_open_w kst_open_w
 kuf_barcode kuf1_barcode
 kuf_sicurezza kuf1_sicurezza
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
 	kst_tab_meca_dosim.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_meca_dosim.x_utente = kGuf_data_base.prendi_x_utente()
@@ -274,37 +268,32 @@ kst_esito.nome_oggetto = this.classname()
 							using kguo_sqlca_db_magazzino;
 	end if
 	
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore durante aggiornamento Tab.Dosimetrie Lotti (meca_dosim) "  + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
+		kst_esito.SQLErrText = "Errore in aggiornamento dati Dosimetrici del Lotto (meca_dosim) id " &
+								+ string(kst_tab_meca_dosim.id_meca) + " dosimetro: " + trim(kst_tab_meca_dosim.barcode_dosimetro) &
+								+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.esito = kkg_esito.db_ko
 
-	//---- COMMIT....	
-	if kst_esito.esito = kkg_esito.db_ko then
-		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosim.st_tab_g_0.esegui_commit) then
+		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
 			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 		
 		kguo_exception.inizializza( )
 		kguo_exception.set_esito( kst_esito )
 		throw kguo_exception
-		
+			
 	else
-		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosim.st_tab_g_0.esegui_commit) then
+		
+		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
 			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
 		end if
 		if kst_esito.esito = kkg_esito.ok then
 			k_return = TRUE
 		end if
+		
 	end if
 
 
@@ -2497,6 +2486,11 @@ try
 			throw kguo_exception
 		end if	
 
+//---- COMMIT....	
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+
 	end if
 
 //--- Aggiorna stato del LOTTO solo se HO letto TUTTE le dosimetrie, quindi leggo se ho dei dosimetri non letti
@@ -2535,12 +2529,6 @@ try
 		
 	end if
 //-----------------------------------------------------------------------------------------------------------------------
-
-
-//---- COMMIT....	
-	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_commit( )
-	end if
 
 
 catch (uo_exception kuo_exception)

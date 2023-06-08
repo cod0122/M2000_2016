@@ -994,13 +994,14 @@ try
 		kuf1_barcode.set_flg_dosimetro_all(kst_tab_barcode)
 		
 	end if
+
+	kguo_sqlca_db_magazzino.db_commit( )
 			
 catch (uo_exception kuo_exception)
 	kst_esito = kuo_exception.get_st_esito()
 	k_return = "1Errore: " + string(kst_esito.sqlcode) + " (" + trim(kst_esito.sqlerrtext) + ") "
 	
 finally
-	kguo_sqlca_db_magazzino.db_commit( )
 
 	if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim 
 	if isvalid(kuf1_barcode) then destroy kuf1_barcode 

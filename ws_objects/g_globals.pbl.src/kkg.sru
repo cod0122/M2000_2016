@@ -16,7 +16,7 @@ constant string APP_NAME = "M2000"
 
 //--- Versione Procedura Major-release XX + YY.MMDD  (anno.mese e giorno)
 constant string VERSIONE_MAJOR_REL="13"
-constant dec{4} VERSIONE=23.0524
+constant dec{4} VERSIONE=23.0607
 
 //--- icone risorse grafiche
 constant string PATH_SEP ="\" 

@@ -204,8 +204,8 @@ catch (uo_exception kuo_execption)
 	setpointer(kkg.pointer_default)
 	kst_esito = kuo_execption.get_st_esito()
 	k_return = trim(kst_esito.esito) + trim(kst_esito.sqlerrtext)
-	if k_return > " " then
-		messagebox("Aggiornamento in Errore", "Aggiornamento dati Lotto non completatato" +"~n~r"+ k_return)
+	if k_return > " " then 
+		messagebox("Aggiornamento in Errore", "Aggiornamento dati Lotto non completatato " + kkg.acapo + trim(kst_esito.sqlerrtext))
 	else
 		k_return = "1Errore in Aggiornamento Lotto, operazione non completata."
 		messagebox("Aggiornamento in Errore", "Aggiornamento dati Lotto non completatato")
@@ -844,17 +844,19 @@ try
 
 	end if 
 
+	u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
+
 catch (uo_exception kuo2_exception)
 	kuo_exception.messaggio_utente()
 
 finally
-	u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode fa generare
-	attiva_tasti()
-	
-//--- reset del flag di update 				
-	tab_1.tabpage_6.dw_6.ResetUpdate ( ) 
 
 end try
+
+attiva_tasti()
+
+//--- reset del flag di update 				
+tab_1.tabpage_6.dw_6.ResetUpdate ( ) 
 
 
 SetPointer(kkg.pointer_default)
@@ -1691,6 +1693,63 @@ try
 		kst_esito = kiuf_armo_checkmappa.u_check_dati(kds_inp_testa, kds_inp_righe)
 	end if
 	
+//--- Controllo i tab 5 (flag barcode)
+	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then
+	else
+		if tab_1.tabpage_5.dw_5.rowcount() > 0 and tab_1.tabpage_4.dw_4.rowcount() > 0 then
+			if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 0 then
+				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
+					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] then
+						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+										"ATTENZIONE: numero Campioni indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + ") diverso dal numero dei Barcode associati ai Campioni " &
+											+ string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) +".")
+						kst_esito = kguo_exception.get_st_esito()
+					end if
+				else
+					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 1 then
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i Barcode a quali associare i " + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + " colli Campioni.")
+					else
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode al quale associare il collo Campione.")
+					end if
+					kst_esito = kguo_exception.get_st_esito()
+				end if
+			else
+				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
+					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) + " Campioni associati sulla Riga di Dettaglio.")
+					kst_esito = kguo_exception.get_st_esito()
+			end if
+			end if
+			if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 0 then
+				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
+					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] then
+						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+										"ATTENZIONE: numero dei pallet Parziali indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + ") diverso dal numero dei Barcode segnalati come Parziali " &
+											+ string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) +".")
+						kst_esito = kguo_exception.get_st_esito()
+					end if
+				else
+					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 1 then
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i " + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + " Barcode Parziali.")
+					else
+						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode Parziale.")
+					end if
+					kst_esito = kguo_exception.get_st_esito()
+				end if
+			else
+				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
+					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) + " Barcode Parziali sulla Riga di Dettaglio.")
+					kst_esito = kguo_exception.get_st_esito()
+				end if
+			end if
+		end if
+	end if
+	
 	
 catch (uo_exception kuo_exception)
 	kst_esito = kuo_exception.get_st_esito()
@@ -1727,7 +1786,6 @@ end try
 
 
 return k_errore + k_return
-
 
 end function
 
@@ -2648,13 +2706,14 @@ try
 			if kist_tab_meca_orig.num_int > 0 then
 				if kist_tab_meca_orig.num_int <> kst_tab_meca.num_int or kist_tab_meca_orig.data_int <> kst_tab_meca.data_int then
 //--- Cambio numero e data....			
-					kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+					kst_tab_meca.st_tab_g_0.esegui_commit = "S"
 					kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "id_meca")
 					kiuf_armo.set_num_data_int( kst_tab_meca )
 				end if
 			end if
 		end if
 	end if
+
 //--- se sono sullo stato di SBLOCCATO allora metto NORMALE	
 	kst_tab_meca.stato = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "stato")
 	if kst_tab_meca.stato = kiuf_armo.ki_meca_stato_sblk then
@@ -2687,15 +2746,17 @@ try
 	kst_tab_meca.consegna_ora = tab_1.tabpage_1.dw_1.getitemtime(k_riga, "consegna_ora")
 	u_get_consegna_tempi(kst_tab_meca)
 		
-//--- espone in testata il toto colli 
+//--- espone in testata il tot colli 
 	kst_tab_armo.colli_2 = get_totale_colli( )
 	tab_1.tabpage_1.dw_1.setitem(k_riga, "colli", kst_tab_armo.colli_2)
+
+	kguo_sqlca_db_magazzino.db_commit( )    // Commit forse per evitare un errore da TemporalTable
 		
 //--- Carica / Aggiorna, se modificato, la TAB_1	
 	if tab_1.tabpage_1.dw_1.getnextmodified(0, primary!) > 0	or kst_tab_meca.id = 0 then
-	
+
 //--- Carica / Aggiorna la testata
-		kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+		kst_tab_meca.st_tab_g_0.esegui_commit = "S"
 		kst_tab_meca.id = kiuf_armo.tb_update_meca( kst_tab_meca )
 
 		kguo_sqlca_db_magazzino.db_commit( )    // Commit della TESTATA (meca)
@@ -2705,7 +2766,7 @@ try
 			
 //--- carico Causale Lotto 	
 			if kst_tab_meca.id_meca_causale > 0 then
-				kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+				kst_tab_meca.st_tab_g_0.esegui_commit = "S"
 				kst_tab_meca_causali.id_meca_causale = kst_tab_meca.id_meca_causale
 				kst_esito = kiuf_ausiliari.tb_select(kst_tab_meca_causali)
 				if kst_esito.esito <> kkg_esito.ok then
@@ -2739,7 +2800,7 @@ try
 	end if
 	
 //--- Se tutto OK carico le righe di dettaglio 	
-	kst_tab_armo.st_tab_g_0.esegui_commit = "N"
+	kst_tab_armo.st_tab_g_0.esegui_commit = "S"
 	
 //---- Prima rimuove le righe da CANCELLARE DAL DB (se ce ne sono)
 	k_riga = 1
@@ -2828,12 +2889,24 @@ try
 	loop
 
 		
+//--- Aggiorna, se modificato, la TAB_5  - FLAG DEI BARCODE  ---------------------------------------------------------------------------------------
+	if tab_1.tabpage_5.dw_5.getnextmodified(0, primary!) > 0	or tab_1.tabpage_5.dw_5.DeletedCount ( ) > 0 then
+		if tab_1.tabpage_5.dw_5.update( ) < 0 then
+			kst_esito.sqlcode = 0
+			kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
+			kst_esito.sqlerrtext = "Fallito aggiornamento '" + trim(tab_1.tabpage_5.text) + "', " + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!"
+			kguo_exception.inizializza( )
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception
+		end if
+	end if
+		
 //--- Aggiorna, se modificato, la TAB_6  - PREZZI RIGA ------------------------------------------------------------------------------------------
 	if tab_1.tabpage_6.dw_6.getnextmodified(0, primary!) > 0	or tab_1.tabpage_6.dw_6.DeletedCount ( ) > 0 then
 		if tab_1.tabpage_6.dw_6.update( ) < 0 then
 			kst_esito.sqlcode = 0
 			kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
-			kst_esito.sqlerrtext = "Fallito aggiornamento '" + trim(tab_1.tabpage_6.text) + "', ~n~r" + "Impossibile proseguire con gli aggiornamenti!"
+			kst_esito.sqlerrtext = "Fallito aggiornamento '" + trim(tab_1.tabpage_6.text) + "'," + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!"
 			kguo_exception.inizializza( )
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
@@ -5139,13 +5212,13 @@ try
 				else
 					k_msg = "Operazione completato correttamente. Vuoi generare immediatamente " + string(k_nr_barcode) + " barcode."
 				end if
-				if messagebox("Aggiornamento Lotto", k_msg, question!, yesno!, 1) = 1 then
-
-					k_nr_elaborati = u_cb_aggiorna_1( )  // GENERA ASN
-					if k_nr_elaborati > 0 then
-						ki_exit_si = TRUE // faccio exit!
+				if k_msg > " " then
+					if messagebox("Aggiornamento Lotto", k_msg, question!, yesno!, 1) = 1 then
+						k_nr_elaborati = u_cb_aggiorna_1( )  // GENERA ASN
+						if k_nr_elaborati > 0 then
+							ki_exit_si = TRUE // faccio exit!
+						end if
 					end if
-					
 				end if
 			else
 				if k_nr_barcode < 0 then
@@ -5193,6 +5266,10 @@ try
 
 	end if
 
+	if ki_exit_si then
+		cb_ritorna.post event clicked( )  // CHIUDE LA WINDOW
+	end if
+
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 	k_return = "1" 
@@ -5201,7 +5278,6 @@ catch (uo_exception kuo_exception)
 
 finally
 	if ki_exit_si then
-		cb_ritorna.post event clicked( )  // CHIUDE LA WINDOW
 	else
 		if k_esito > " " then
 			u_write_avvertenze(k_esito)

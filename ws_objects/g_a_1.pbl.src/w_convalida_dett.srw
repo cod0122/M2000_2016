@@ -182,7 +182,7 @@ try
 		kst_tab_meca_dosim.barcode = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "meca_dosim_barcode_1")
 		kst_tab_meca_dosim.barcode_lav = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "barcode_lav")
 
-		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
+		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
 		kiuf_meca_dosim.set_convalida_x_barcode(kst_tab_meca_dosim)    // AGGIORNA MECA_DOSIM
 
 		kguo_sqlca_db_magazzino.db_commit()

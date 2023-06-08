@@ -1,14 +1,14 @@
 ﻿$PBExportHeader$m_2000.srj
-EXE:m_2000.exe,icone\g_m2000.pbr,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.0.0.1892
+EXE:m_2000.exe,icone\g_m2000.pbr,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.0.0.1900
 CMP:0,1,0,2,0,0,0
 COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.23.02.241
-PVN:13,23,5,241
-FVS:13.23.02.241
-FVN:13,23,5,241
+PVS:13.23.06.071
+PVN:13,23,6,71
+FVS:13.23.06.071
+FVN:13,23,6,71
 MAN:1,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -272,9 +272,9 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_asn_x_schedule,d
 OBJ:C:\Sterigenics\app32\g_generic.pbl,st_esito,s
 OBJ:C:\Sterigenics\app32\g_globals.pbl,kkg_colore,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_file_explorer,u
+OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_armo_nt,s
 OBJ:C:\Sterigenics\app32\g_parent.pbl,w_g_filtra,w
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,w_powerfilter_custom,w
-OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_armo_nt,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,st_tab_f5547013,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_s_avgtimeplant,s
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_chiudi,u
@@ -562,11 +562,11 @@ OBJ:C:\Sterigenics\app32\g_web.pbl,kuf_email_funzioni,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_armo_pt,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_lettore_grp,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_barcode_stampa,u
+OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca_dosimbozza,s
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_menu_window,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_qtna,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,u_powerfilter_dropdown,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,ds_pl_barcode,d
-OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca_dosimbozza,s
 OBJ:C:\Sterigenics\app32\g_op_2.pbl,kuf_stat_invent,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_xweb,u
 OBJ:C:\Sterigenics\app32\g_wm.pbl,st_wm_pkl_file,s
