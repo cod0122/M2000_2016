@@ -490,7 +490,7 @@ if trim(kst_esito.sqlerrtext) > " " then
 		a_msg = trim(kst_esito.sqlerrtext)
 	end if
 	if trim(kst_esito.nome_oggetto) > " " then
-		a_msg += " ~r~n(" +  trim(kst_esito.nome_oggetto) + ") "
+		a_msg += " " + kkg.acapo + "(" +  trim(kst_esito.nome_oggetto) + ") "
 	end if
 end if
 
@@ -691,12 +691,10 @@ end function
 public function string u_errori_gestione (st_esito ast_esito);//
 //---- gestione centralizzata degli errori della procedura
 //
-//
 
 u_set_ki_from_st_esito(ast_esito)
 
 u_write_error() 
-//errori_scrivi_esito("W", kst_esito) 
 
 CHOOSE CASE kist_esito.SQLdbcode
 
@@ -708,7 +706,6 @@ CHOOSE CASE kist_esito.SQLdbcode
 
 //informix	case -1811, -349, -1803, -25580 //--- manca connessione 
 	case 	-4060, -40197, -40501, -40613, -49918, -49919, -49920, -4221, 10054, 64 //, 121 timeout
-		
 		try 
 			kist_esito.sqlerrtext = "Tentativo di Ri-connessione al database di Magazzino... " 
 			u_write_error()
@@ -730,7 +727,6 @@ CHOOSE CASE kist_esito.SQLdbcode
 		end try
 		
 	case 	12170 // timeout ORACLE
-		
 		try 
 			kist_esito.sqlerrtext = "Tentativo di Ri-connessione al DB di E1... " 
 			u_write_error()
@@ -747,10 +743,8 @@ CHOOSE CASE kist_esito.SQLdbcode
 		catch (uo_exception kuo1_exception)
 			messaggio_utente("Connessione E1", "Persa la Connessione al DB di E1, tentativo di riconnessione fallito (" + trim(kuo1_exception.getmessage())+").")
 		finally
-
 		end try
 		
-//		"~n~r"
 	CASE 121  // errore strano interno
 		messaggio_utente("Connessione di rete Interrotta",  &
 			"Riconnettersi alla rete e riaprire questa funzione. Altrimenti chiudere il programma.~n~r" &
@@ -759,7 +753,6 @@ CHOOSE CASE kist_esito.SQLdbcode
 			+ " sqlcode: " + string(kist_esito.sqlcode) &
 			+ " syntax: " + trim(kist_esito.SQLErrText) + " -> " + trim(kist_esito.sqlsyntax))   
 		
-//		"~n~r"
 	CASE -04  // errore strano interno
 		kist_esito.esito = kkg_esito.no_esecuzione
 		kist_esito.sqlcode = 0
@@ -776,7 +769,18 @@ CHOOSE CASE kist_esito.SQLdbcode
 		kist_esito.sqlcode = 0
 		kist_esito.sqlerrtext = "Login fallito, utente o password errata." 
 		u_write_error()
-		
+
+	case 999
+		kist_esito.sqlerrtext = "Errore non riconosciuto. " + kkg.acapo + kist_esito.sqlerrtext
+		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+			if kist_esito.SQLdbcode = kist_esito.SQLcode then
+				kist_esito.SQLcode = kguo_sqlca_db_magazzino.sqlcode
+			end if
+		end if
+		u_write_error()
+		messaggio_utente("Programma non operativo", "Errore in comunicazione con il database di Magazzino, il programma verrà chiuso.")
+		halt close
+	
 	case else
 		if sqlca.sqlcode >= 0 and kist_esito.SQLdbcode > 0 then
 			// niente di grave forse solo un tentativo di connessione fallito
@@ -793,10 +797,7 @@ CHOOSE CASE kist_esito.SQLdbcode
 
 END CHOOSE
 
-
-
 return "0"
-
 
 end function
 

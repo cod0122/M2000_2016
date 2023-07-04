@@ -29,7 +29,7 @@ public subroutine get_report (ref st_report_indici_run kst_report_indici_run) th
 end prototypes
 
 private subroutine crea_view_x_report_23_runsrtrrts () throws uo_exception;//======================================================================
-//=== Crea le View per le query
+////=== Crea le View per le query
 //======================================================================
 //
 string k_view, k_sql, k_campi
@@ -115,7 +115,9 @@ SetPointer(kkg.pointer_attesa)
 	 + " ( mese, anno, rts_1 ) AS   " 
 	k_sql += &
 			" SELECT month(certif.data), year(certif.data)" &
-			+ ", convert(int, datediff(day, convert(date, meca.data_ent), coalesce(max(sped.data_rit), max(sped.data_bolla_out)) ))  FROM " &
+			+ ", convert(int, datediff(day, convert(date, meca.data_ent), " &
+		      	+ "(case when max(sped.data_rit) > cast('2000-01-01' as datetime) then max(sped.data_rit) else max(sped.data_bolla_out) end) )) " &
+			+ " FROM " &
 			+ " meca  "  &
 			+ " inner JOIN armo " &
 			+ " ON meca.id = armo.id_meca " &
@@ -129,6 +131,8 @@ SetPointer(kkg.pointer_attesa)
 			+ " meca.id in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 		 	+ " group by month(certif.data), year(certif.data),  meca.data_ent  " 
 	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+
+			//coalesce(max(sped.data_rit), max(sped.data_bolla_out))
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_rts") 		//Receive TO Send (media)
 	k_sql = " "                                   
@@ -180,15 +184,17 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT month(certif.data), year(certif.data) " & 
 			+ ", convert(int, datediff(day " &
 						+ ", certif.data " &
-						+ ", (select coalesce(max(sped.data_rit), max(sped.data_bolla_out)) " &
-					     		+ " from arsp inner join sped on arsp.id_sped = sped.id_sped " &
-											+ " inner join armo on  arsp.id_armo = armo.id_armo " &
-									+ " where armo.id_meca = certif.id_meca) )) " &
+						+ ", (select " &
+					  	        + " case when max(sped.data_rit) > cast('2000-01-01' as datetime) then max(sped.data_rit) else max(sped.data_bolla_out) end " &
+		     		         + " from arsp inner join sped on arsp.id_sped = sped.id_sped " &
+ 						 	          	 + " inner join armo on  arsp.id_armo = armo.id_armo " &
+			+ " where armo.id_meca = certif.id_meca) )) " &
 			+ " FROM certif " & 
 	 		+ " WHERE  " & 
 	 		+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+ " group by month(certif.data), year(certif.data), certif.num_certif, certif.id_meca, certif.data " 
 	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//						coalesce(max(sped.data_rit), max(sped.data_bolla_out)) " &
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_relts") 		//Release TO Send (media)
 	k_sql = " "                                   
@@ -241,14 +247,15 @@ SetPointer(kkg.pointer_attesa)
 	 		+ ", data_fin, colli_trattati, rtr, rts, etr, rte, relts, gruppo) AS   " 
 	k_sql += &
 			" SELECT meca.id, meca.num_int, meca.data_ent, certif.data " &
-			+ ", coalesce(max(sped.data_rit), max(sped.data_bolla_out)), max(arsp.num_bolla_out) " & 
+ 	      + ", case when max(sped.data_rit) > cast('2000-01-01' as datetime) then max(sped.data_rit) else max(sped.data_bolla_out) end " &
+			+ ", max(arsp.num_bolla_out) " & 
 			+ ", max(artr.data_fin) " & 
 			+ ", (select sum(artr.colli_trattati) from artr inner join armo on artr.id_armo = armo.id_armo where meca.id = armo.id_meca) " & 
 			+ ", datediff(day, convert(date, meca.data_ent), certif.data) " & 
-			+ ", datediff(day, convert(date, meca.data_ent), coalesce(max(sped.data_rit), max(sped.data_bolla_out))) " & 
+			+ ", datediff(day, convert(date, meca.data_ent), (case when max(sped.data_rit) > cast('2000-01-01' as datetime) then max(sped.data_rit) else max(sped.data_bolla_out) end)) " & 
 			+ ", datediff(day, max(artr.data_fin), certif.data) " & 
 			+ ", datediff(day, convert(date, meca.data_ent), max(artr.data_fin)) " & 
-			+ ", datediff(day, certif.data, coalesce(max(sped.data_rit), max(sped.data_bolla_out)) )" & 
+			+ ", datediff(day, certif.data, (case when max(sped.data_rit) > cast('2000-01-01' as datetime) then max(sped.data_rit) else max(sped.data_bolla_out) end) )" & 
 			+ ", prodotti.gruppo " & 
 			+ " FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_xdtcertif") + " as runs"   &
@@ -271,6 +278,10 @@ SetPointer(kkg.pointer_attesa)
 			+ " ON arsp.id_sped = sped.id_sped "  
 	k_sql += " group by meca.id, meca.num_int, meca.data_ent, certif.data, prodotti.gruppo " 
 	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//		+ ", coalesce(max(sped.data_rit), max(sped.data_bolla_out)) " &
+//			+ ", datediff(day, certif.data, coalesce(max(sped.data_rit), max(sped.data_bolla_out)) )" & 
+//			+ ", datediff(day, convert(date, meca.data_ent), coalesce(max(sped.data_rit), max(sped.data_bolla_out))) " & 
+
 
 //			", sum(artr.colli_trattati) " &
 	
@@ -893,7 +904,6 @@ SetPointer(kkg.pointer_attesa)
 	crea_view_x_report_23_xdtent( )
 	crea_view_x_report_23_xdtentgru()
 	
-
 //--- costruisco altre view  
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_idx_meca_tot") 
 	k_sql = " "                                   

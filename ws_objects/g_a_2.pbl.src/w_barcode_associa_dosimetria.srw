@@ -398,11 +398,9 @@ st_tab_meca_dosim kst_tab_meca_dosim
 st_esito kst_esito
 
 	try 
-	
-		kst_esito.esito = kkg_esito.ok  
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = ""
-		kst_esito.nome_oggetto = this.classname()
+		kst_esito = kguo_exception.inizializza(this.classname())
+
+		kguo_sqlca_db_magazzino.db_commit()   // forse evita un errore su TemporalTable
 
 		k_righe = dw_dett_0.rowcount()
 		for k_riga = 1 to k_righe

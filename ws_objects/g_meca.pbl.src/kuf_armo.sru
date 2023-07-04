@@ -7847,7 +7847,9 @@ st_esito kst_esito
 kst_esito = kguo_exception.inizializza(this.classname())
 
 if kst_tab_meca.id > 0 then
-	
+
+	kguo_sqlca_db_magazzino.db_commit( )  // aggiorna qui x forse evita errori su TemporalTable
+
 	if isnull(kst_tab_meca.data_ent) then
 		 kst_tab_meca.data_ent = datetime(date(0), time(0))
 	end if
@@ -7867,20 +7869,17 @@ if kst_tab_meca.id > 0 then
 		kst_esito.SQLErrText = "Errore in aggiornamento data entrata Lotto " + string(kst_tab_meca.data_ent) + " (meca), ID: " + string(kst_tab_meca.id) &
 									+ kkg.acapo  + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
-	end if
-			
-//---- COMMIT....	
-	if kst_esito.esito = kkg_esito.db_ko then
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
+		else
 			kguo_sqlca_db_magazzino.db_rollback()
 		end if
-		kguo_exception.inizializza( )
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
+	end if
+	
+	if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
 	else
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit()
-		end if
+		kguo_sqlca_db_magazzino.db_commit()
 	end if
 
 else
@@ -9378,6 +9377,11 @@ try
 		kst_tab_meca.dosimprev = 0
 	end if
 
+	if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_commit( )   // commit anche qui perchè da problemi le TEMPORAL-TABLE
+	end if
+
 //--- aggiorna la testa del lotto
 	update meca
 				set dosimprev = :kst_tab_meca.dosimprev
@@ -9397,12 +9401,14 @@ try
 		
 //--- se arriva qui tutto OK	
 	k_return = kst_tab_meca.dosimprev
-	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+	if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
+	else
 		kguo_sqlca_db_magazzino.db_commit( )
 	end if
 	
 catch (uo_exception kuo_exception)
-	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+	if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
+	else
 		kguo_sqlca_db_magazzino.db_rollback( )
 	end if
 	throw kuo_exception

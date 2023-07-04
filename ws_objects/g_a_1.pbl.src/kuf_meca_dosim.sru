@@ -465,12 +465,10 @@ boolean k_return = FALSE
 long k_contati=0
 st_esito kst_esito
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+try
+	SetPointer(kkg.pointer_attesa)
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_meca_dosim.x_datins = kGuf_data_base.prendi_x_datins() 
 	kst_tab_meca_dosim.x_utente = kGuf_data_base.prendi_x_utente() 
@@ -481,31 +479,36 @@ st_esito kst_esito
 					,x_utente = :kst_tab_meca_dosim.x_utente 
 		where meca_dosim.id_meca = :kst_tab_meca_dosim.id_meca
 		     and meca_dosim.barcode = :kst_tab_meca_dosim.barcode
-		using sqlca;
+		using kguo_sqlca_db_magazzino;
 
-	if sqlca.sqlcode < 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosim.id_meca) + ")   ~n~r" + trim(SQLCA.SQLErrText)
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+		kst_esito.SQLErrText = "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosim.id_meca) + " meca_dosim) " &
+									+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
-		
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
 	end if
 
-//---- COMMIT....	
-	if kst_esito.esito = kkg_esito.db_ko then
-		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_rollback_1( )
-		end if
-		kguo_exception.inizializza()
-		kguo_exception.set_esito( kst_esito )
-		throw kguo_exception
-		
+	if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
 	else
-		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
-		end if
+		kguo_sqlca_db_magazzino.db_commit()
 	end if
-	
+
 	k_return=true
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
 
 return k_return
 
@@ -1200,12 +1203,14 @@ try
 //-----------------------------------------------------------------------------------------------------------------------
 
 //---- COMMIT....	
-	if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
+	if ast_tab_meca.st_tab_g_0.esegui_commit = "N" then
+	else
 		kguo_sqlca_db_magazzino.db_commit( )
 	end if
 
 catch (uo_exception kuo_exception)
-	if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
+	if ast_tab_meca.st_tab_g_0.esegui_commit = "N" then
+	else
 		kguo_sqlca_db_magazzino.db_rollback( )
 	end if
 	throw kuo_exception
@@ -1296,21 +1301,14 @@ public subroutine tb_delete_x_barcode_lav (st_tab_meca_dosim ast_tab_meca_dosim)
 //=== Out:
 //=== Ritorna:         Lancia Exception x errore
 //====================================================================
-boolean k_sicurezza
 st_esito kst_esito
 st_tab_barcode kst_tab_barcode 
 kuf_barcode kuf1_barcode
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
 try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-//	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
-	
 //---- Cancellazione DOSIMETRI										
 	delete from meca_dosim
 		where barcode_lav = :ast_tab_meca_dosim.barcode_lav
@@ -1319,34 +1317,34 @@ try
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 		kst_esito.SQLErrText = &
-			"Errore in cancellazione Dosimetri associati al barocde " &
+			"Errore in cancellazione Dosimetri associati al barcode " &
 					+ trim(ast_tab_meca_dosim.barcode_lav) + " " &
-					+ "~n~rErrore-tab.meca_dosim:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+					+ kkg.acapo + "Tab. meca_dosim: "	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 
-		kguo_exception.inizializza()
 		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	else
+		throw kguo_exception		
+	end if
 
 //--- reset del flag dosimetro sul barcode
-		kuf1_barcode = create kuf_barcode
-		kst_tab_barcode.barcode = ast_tab_meca_dosim.barcode_lav
-		kuf1_barcode.set_flg_dosimetro_reset(kst_tab_barcode)
+	kuf1_barcode = create kuf_barcode
+	kst_tab_barcode.barcode = ast_tab_meca_dosim.barcode_lav
+	kuf1_barcode.set_flg_dosimetro_reset(kst_tab_barcode)
 
-		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kst_esito = kguo_sqlca_db_magazzino.db_commit( )
 	end if
-										
-
+	
 catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kst_esito = kguo_sqlca_db_magazzino.db_rollback( )
+	end if
 	throw kuo_exception
 	
 finally
-
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
 	
 end try
 		
@@ -1779,7 +1777,7 @@ try
 								//--- genera uno o più barcode per etichetta
 								kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
 								kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
-								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"  // no COMMIT altrimenti chiude il CURSORE
+								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
 								if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
 									try
 										k_return ++
@@ -2717,11 +2715,7 @@ kuf_base kuf1_base
 
 
 try
-	
-   kst_esito.esito = kkg_esito.ok
-   kst_esito.sqlcode = 0
-   kst_esito.SQLErrText = ""
-   kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
   	kuf1_base = create kuf_base
 
@@ -2729,7 +2723,7 @@ try
 	kst_tab_base.dosimetro_ult_barcode = mid(trim(kst_tab_meca_dosim.barcode),4)
 
 //--- Setta i primi 3 caratteri che identifcano il barcode
-	kst_tab_base.st_tab_g_0.esegui_commit = "N"
+	kst_tab_base.st_tab_g_0.esegui_commit = "S" //"N"
 	kst_tab_base.key = "dosimetro_barcode_mask"
 	kst_tab_base.key1 = kst_tab_base.dosimetro_barcode_mask
 	kst_esito  = kuf1_base.metti_dato_base(kst_tab_base)
@@ -2746,7 +2740,6 @@ try
 		kst_esito.esito = kkg_esito.ko
 		kst_esito.sqlcode = 0
 		kst_esito.SQLErrText = "Errore durante registrazione dati Barcode Dosimetrici in tabella (BASE)."
-		kguo_exception.inizializza( )
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
@@ -3006,10 +2999,7 @@ try
 //--- Puntatore Cursore da attesa.....
 	kpointer = SetPointer(HourGlass!)
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_armo = create kuf_armo
 	k_data_meno90gg = relativedate(kg_dataoggi, -90)

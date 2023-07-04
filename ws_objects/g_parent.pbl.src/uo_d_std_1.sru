@@ -787,10 +787,12 @@ event type string ue_get_display_dddw(string a_col_name);//
 //
 string k_return 
 
-k_return = trim( &
+if this.getrow() > 0 then
+	k_return = trim( &
 					this.Describe &
-     				 ("Evaluate('LookupDisplay(task)', " + String(this.getrow()) + ")") )
-						
+     				 ("Evaluate('LookupDisplay(" + trim(a_col_name) + ")', " + String(this.getrow()) + ")") )
+//     				 ("Evaluate('LookupDisplay(task)', " + String(this.getrow()) + ")") )
+end if						
 if k_return > " " then
 	return k_return
 else
@@ -1570,9 +1572,9 @@ long k_rows, k_row
 	
 	k_rows --
 	
-	choose case Left(k_colType,4)
+	choose case lower(Left(trim(k_colType),3))
 			
-		case "char"
+		case "cha"
 			for k_row = 1 to k_rows
 				if this.getitemstring(1, k_colName) > this.getitemstring(1, k_colName) then
 					k_sortType_temp = "D"
@@ -1588,7 +1590,7 @@ long k_rows, k_row
 				end if
 			next
 			
-		case "date"
+		case "dat"
 			if k_colType = "datetime" then
 				for k_row = 1 to k_rows
 					if this.getitemdatetime(1, k_colName) > this.getitemdatetime(1, k_colName) then
@@ -1621,7 +1623,7 @@ long k_rows, k_row
 				next 
 			end if
 			
-		case "time"
+		case "tim"
 			if k_colType = "datetime" then
 			else
 				for k_row = 1 to k_rows
@@ -1640,7 +1642,12 @@ long k_rows, k_row
 				next
 			end if
 			
-		case else
+		case "int"
+		case "lon"
+		case "num"
+		case "dec"
+		case "rea"
+		case "ulo"
 			for k_row = 1 to k_rows
 				if this.getitemnumber(1, k_colName) > this.getitemnumber(1, k_colName) then
 					k_sortType_temp = "D"
@@ -1655,6 +1662,13 @@ long k_rows, k_row
 					k_sortType = k_sortType_temp
 				end if
 			next
+			
+		case else
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.kist_esito.esito = kkg_esito.ko
+			kguo_exception.kist_esito.sqlerrtext="Errore in SORT del DW, coltype = '" + trim(k_coltype) + "' e colname = '" + trim(k_colname) + "'"
+			kguo_exception.scrivi_log( )
+			
 	end choose
 		
 	if k_sortType = k_sortType_temp then

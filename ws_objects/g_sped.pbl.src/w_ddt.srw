@@ -2241,6 +2241,7 @@ st_esito kst_esito
 	
 	tab_1.tabpage_4.dw_4.setitem(k_riga, "colli"  ,kst_tab_arsp.colli )
 	tab_1.tabpage_4.dw_4.setitem(k_riga, "colli_out"  ,kst_tab_arsp.colli_out )
+	tab_1.tabpage_4.dw_4.setitem(k_riga, "campionecolli"  ,kst_tab_armo.campionecolli )
 	tab_1.tabpage_4.dw_4.setitem(k_riga, "peso_kg_out"  ,kst_tab_arsp.peso_kg_out )
 	tab_1.tabpage_4.dw_4.setitem(k_riga, "id_sped"  ,kst_tab_arsp.id_sped )
 	tab_1.tabpage_4.dw_4.setitem(k_riga, "id_arsp"  ,kst_tab_arsp.id_arsp )
@@ -3172,6 +3173,9 @@ try
 		kst_tab_arsp.stampa = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "stampa")
 		kst_tab_arsp.colli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "colli")
 		kst_tab_arsp.colli_out = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "colli_out" )
+		
+		kst_tab_armo.campionecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "campionecolli")
+		
 		kst_tab_arsp.peso_kg_out = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "peso_kg_out")
 		kst_tab_arsp.note_1 = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "note_1" )
 		kst_tab_arsp.note_2 = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "note_2" )
@@ -3227,6 +3231,8 @@ try
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "colli_orig", kst_tab_arsp.colli )
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "colli_da_sped_max", kst_tab_arsp_spedmax.colli )
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "colli_out", kst_tab_arsp.colli_out )
+		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "campionecolli", kst_tab_armo.campionecolli )
+		
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "peso_kg_out", kst_tab_arsp.peso_kg_out )
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "note_1", trim(kst_tab_arsp.note_1) )
 		tab_1.tabpage_4.dw_riga_0.setitem( k_riga1, "note_2", trim(kst_tab_arsp.note_2) )
@@ -4342,9 +4348,12 @@ st_tab_meca kst_tab_meca
 			kst_tab_arsp.id_arsp = this.getitemnumber( k_riga, "id_arsp")
 			kst_tab_arsp.id_armo = this.getitemnumber( k_riga, "id_armo")
 //			kst_tab_arsp.id_sped = this.getitemnumber( k_riga, "id_sped")
+
 			kst_tab_armo.id_meca = this.getitemnumber( k_riga, "id_meca")
 			kst_tab_armo.num_int = this.getitemnumber( k_riga, "num_int")
 			kst_tab_armo.data_int = this.getitemdate( k_riga, "data_int")
+			kst_tab_armo.campionecolli = this.getitemnumber( k_riga, "campionecolli" )
+			
 			kst_tab_arsp.note_1 = this.getitemstring(k_riga, "note_1")
 			kst_tab_arsp.note_2 = this.getitemstring(k_riga, "note_2")
 			kst_tab_arsp.note_3 = this.getitemstring(k_riga, "note_3")

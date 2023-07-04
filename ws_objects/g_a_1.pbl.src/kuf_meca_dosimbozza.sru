@@ -326,11 +326,10 @@ long k_contati=0
 st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+try
+	SetPointer(kkg.pointer_attesa)
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
 		
 	update meca_dosimbozza 
 			set barcode_dosimetro = :kst_tab_meca_dosimbozza.barcode_dosimetro
@@ -340,29 +339,32 @@ st_esito kst_esito
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosimbozza.id_meca) + ")   ~n~r" + trim(SQLCA.SQLErrText)
+		kst_esito.SQLErrText = "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosimbozza.id_meca) + " meca_dosimbozza) " &
+									+ kkg.acapo + trim(SQLCA.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 		
 	end if
 
 
-//---- COMMIT....	
-	if kst_esito.esito = kkg_esito.db_ko then
-		if kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-		
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito( kst_esito )
-		throw kguo_exception
-		
+	if kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit = "N" then
 	else
-		if kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit) then
-			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-		end if
+		kguo_sqlca_db_magazzino.db_commit()
 	end if
-	
+
 	k_return=true
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_meca_dosimbozza.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
 
 return k_return
 

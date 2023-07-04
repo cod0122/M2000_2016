@@ -956,6 +956,8 @@ try
 	kds1_e1_asn_get_barcode = kuf1_e1_asn.get_barcode(kst_get_e1barcode)
 	k_nr_righe = kds1_e1_asn_get_barcode.rowcount( )
 
+	kguo_sqlca_db_magazzino.db_commit( )  // aggiorna qui x forse evita errori su TemporalTable
+ 
 //--- recupera da E1 il WO/SO da mettere su MECA
 	if k_nr_righe > 0 then
 		kst_tab_meca.id = ast_tab_barcode.id_meca

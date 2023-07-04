@@ -947,6 +947,8 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 						
 					end if
 					
+					tab_1.tabpage_1.dw_1.resetUpdate() //--- resetta gli Stati dei campi a non modificati
+
 					attiva_tasti()
 
 			end choose
@@ -1002,9 +1004,6 @@ if k_errore = 0 then
 		
 	end if
 end if
-
-//--- resetta gli Stati dei campi a non modificati
-	tab_1.tabpage_1.dw_1.resetUpdate()
 
 return "0"
 
@@ -1295,7 +1294,6 @@ st_esito kst_esito
 kuf_meca_dosim kuf1_meca_dosim
 
 
-
 try 
 
 //=== Puntatore Cursore da attesa..... 
@@ -1315,19 +1313,20 @@ try
 //		k_errore += trim(kst_esito.sqlerrtext)
 	end if
 
-//--- Aggiornamenti dei figli
+	//kguo_sqlca_db_magazzino.db_commit()  // forza COMMIT x evitare forse errore su TemporalTable
 
 	kuf1_meca_dosim = create kuf_meca_dosim
+
+	kst_tab_barcode.barcode = tab_1.tabpage_1.dw_1.getitemstring(tab_1.tabpage_1.dw_1.getrow(), "barcode") 
 			
 //--- se BARCODE da NON TRATTARE allora lo rimuove dal GROUPAGE e anche il DOSIMETRO (eventuale)
 	kst_tab_barcode.causale = tab_1.tabpage_1.dw_1.getitemstring(1, "barcode_causale")
 	if kst_tab_barcode.causale = kiuf_barcode.ki_causale_non_trattare then
 		
-		kst_tab_barcode.barcode = tab_1.tabpage_1.dw_1.getitemstring(tab_1.tabpage_1.dw_1.getrow(), "barcode") 
-		kst_tab_barcode.st_tab_g_0.esegui_commit = "N"
+		kst_tab_barcode.st_tab_g_0.esegui_commit = "S"
 		kiuf_barcode.tb_togli_figli_tutti(kst_tab_barcode)
 		
-		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
+		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
 		kst_tab_meca_dosim.barcode_lav = kst_tab_barcode.barcode
 		//kst_tab_meca_dosim.barcode = ""  // reset del barcode dosimetro
 		//kuf1_meca_dosim.set_barcode(kst_tab_meca_dosim)  // esegue il RESET del barcode dosimetro
@@ -1339,7 +1338,7 @@ try
 		kst_tab_barcode.flg_dosimetro = tab_1.tabpage_1.dw_1.getitemstring(1, "flg_dosimetro")
 		if kst_tab_barcode.flg_dosimetro = kiuf_barcode.ki_flg_dosimetro_si then
 		else
-			kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
+			kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
 			kst_tab_meca_dosim.barcode_lav = kst_tab_barcode.barcode
 			kuf1_meca_dosim.tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove barcode dosimetro
 		end if
@@ -1381,7 +1380,7 @@ try
 				
 			kst_tab_barcode.barcode = tab_1.tabpage_2.dw_2.getitemstring ( k_riga, "barcode") 
 			 
-			kst_tab_barcode.st_tab_g_0.esegui_commit = "N"
+			kst_tab_barcode.st_tab_g_0.esegui_commit = "S"
 			kst_esito = kiuf_barcode.tb_aggiungi_figlio(kst_tab_barcode)
 			
 			if kst_esito.esito = kkg_esito.ko or kst_esito.esito = kkg_esito.db_ko then
@@ -1403,7 +1402,7 @@ try
 //--- aggiorna anche eventuale barcode dosimetro accoppiandolo o disaccoppiandolo
 		kst_tab_meca_dosim.id_meca = tab_1.tabpage_1.dw_1.getitemnumber( tab_1.tabpage_1.dw_1.getrow(), "id_meca") 
 		kst_tab_meca_dosim.barcode_lav = tab_1.tabpage_1.dw_1.getitemstring( tab_1.tabpage_1.dw_1.getrow(), "barcode") 
-		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
+		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
 		kuf1_meca_dosim.u_genera_rimuove_barcode(kst_tab_meca_dosim)
 
 //--- FINALMENTE COMMIT!
@@ -1422,7 +1421,7 @@ try
 catch (uo_exception kuo1_exception)
 	kuo1_exception.messaggio_utente()
 	k_errore = "1" + trim(kst_esito.sqlerrtext)
-	kst_esito = kguo_sqlca_db_magazzino.db_rollback()
+	kguo_sqlca_db_magazzino.db_rollback()
 
 //			kst_esito = kuo1_exception.get_st_esito() 
 //			k_errore = "1Errore in '" + tab_1.tabpage_2.text + "' alla riga " + &

@@ -3481,11 +3481,11 @@ else
 		into :k_rcn
 		from clienti_mkt
 		WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-		using sqlca;
+		using kguo_sqlca_db_magazzino;
 		
 			
 //--- tento l'insert se manca in arch.
-	if sqlca.sqlcode  >= 0 then
+	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
 
 //--- controllo se ci sono dati
 		if len(trim(kst_tab_clienti.kst_tab_clienti_mkt.altra_sede)) > 0 & 
@@ -3519,7 +3519,7 @@ else
 			if k_senza_dati then //allora non serve quindi lo  cancello
 				delete from clienti_mkt  
 					WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-					using sqlca;
+					using kguo_sqlca_db_magazzino;
 			else
 				
 				UPDATE clienti_mkt  
@@ -3547,7 +3547,7 @@ else
 						,x_datins = :kst_tab_clienti_mkt.x_datins
 						,x_utente = :kst_tab_clienti_mkt.x_utente  
 					WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-					using sqlca;
+					using kguo_sqlca_db_magazzino;
 			end if						
 		else
 			
@@ -3580,8 +3580,8 @@ else
 						 )  
 				  VALUES ( 
 					 :kst_tab_clienti_mkt.id_cliente 
-					,:kst_tab_clienti_mkt.tipo_rapporto 
 					,:kst_tab_clienti_mkt.altra_sede 
+					,:kst_tab_clienti_mkt.tipo_rapporto 
 					,:kst_tab_clienti_mkt.cod_atecori 
 					,:kst_tab_clienti_mkt.contatto_1_qualif
 					,:kst_tab_clienti_mkt.contatto_2_qualif
@@ -3603,7 +3603,7 @@ else
 					,:kst_tab_clienti_mkt.x_datins
 					,:kst_tab_clienti_mkt.x_utente  
 						  )  
-				using sqlca;
+				using kguo_sqlca_db_magazzino;
 				
 			end if
 		end if
@@ -3611,13 +3611,13 @@ else
 	end if	
 
 
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Marketing cliente: " + trim(sqlca.SQLErrText)
-		if sqlca.sqlcode = 100 then
+	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+		kst_esito.SQLErrText = "Errore in aggiornamento dati Marketing cliente: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		if kguo_sqlca_db_magazzino.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
 		else
-			if sqlca.sqlcode > 0 then
+			if kguo_sqlca_db_magazzino.sqlcode > 0 then
 				kst_esito.esito = kkg_esito.db_wrn
 			else
 				kst_esito.esito = kkg_esito.db_ko
@@ -3625,7 +3625,7 @@ else
 		end if
 	else
 		if kst_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-			kst_esito = kGuf_data_base.db_commit_1( )
+			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	end if
 

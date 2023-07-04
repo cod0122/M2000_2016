@@ -212,6 +212,9 @@ private function long report_27_inizializza (uo_d_std_1 kdw_1) throws uo_excepti
 private subroutine get_parametri_28 () throws uo_exception
 private subroutine report_28 ()
 private function long report_28_inizializza (uo_d_std_1 kdw_1) throws uo_exception
+private subroutine report_29 ()
+private subroutine get_parametri_29 () throws uo_exception
+private function long report_29_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 end prototypes
 
 protected function string inizializza () throws uo_exception;////======================================================================
@@ -482,11 +485,11 @@ int k_ctr=0
 
 	ki_st_int_artr.utente = kguo_utente.get_comp()
 	if LenA(trim(ki_st_int_artr.utente)) > 0 then
-		ki_st_int_artr.utente = MidA(ki_st_int_artr.utente, 1, 4)
+		ki_st_int_artr.utente = Mid(ki_st_int_artr.utente, 1, 4)
 
-		k_ctr = PosA(ki_st_int_artr.utente, ".") 
+		k_ctr = Pos(ki_st_int_artr.utente, ".") 
 		do while k_ctr > 0 
-			ki_st_int_artr.utente = ReplaceA ( ki_st_int_artr.utente, k_ctr, 1, "_" ) 
+			ki_st_int_artr.utente = Replace ( ki_st_int_artr.utente, k_ctr, 1, "_" ) 
 			k_ctr = PosA( ki_st_int_artr.utente, "." ) 
 		loop 
 //--- aggiungo il numero tab al nome utente
@@ -2245,7 +2248,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", string(kguo_utente.get_id_utente( ))) //ki_st_int_artr.utente)
 
 		tab_1.tabpage_1.dw_1.setitem(1, "data_a", kguo_g.get_dataoggi( ))	
 
@@ -2681,7 +2684,7 @@ kuf_calendar_working kuf1_calendar_working
 				
 				kdw_1.dataobject = "d_report_8_instockyet" 
 				kdw_1.visible = true
-				k_rc = kdw_1.settransobject ( sqlca )
+				k_rc = kdw_1.settransobject ( kguo_sqlca_db_magazzino )
 				k_righe = kdw_1.retrieve(ki_st_int_artr.giorni, ki_st_int_artr.data_a, ki_st_int_artr.clie_3)
 				
 			else
@@ -2699,7 +2702,7 @@ kuf_calendar_working kuf1_calendar_working
 				kdw_1.Object.DataWindow.Table.Select = k_sql_orig 
 				
 				kdw_1.visible = true
-				k_rc = kdw_1.settransobject ( sqlca )
+				k_rc = kdw_1.settransobject ( kguo_sqlca_db_magazzino )
 				k_righe = kdw_1.retrieve()
 			end if
 
@@ -5520,6 +5523,9 @@ try
 		case kiuf_int_artr.kki_scelta_report_nrdosimetri // Numero dosimetri previsti e prodotti
 			k_righe = report_25_inizializza(kdw_1)
 			
+		case kiuf_int_artr.kki_scelta_report_colliParziali // Elenco Lotti con colli Parziali
+			k_righe = report_29_inizializza(kdw_1)
+			
 		case kiuf_int_artr.kki_scelta_report_ptaskslab // Progetti Laboratori
 			k_righe = report_26_inizializza(kdw_1)
 			
@@ -6404,7 +6410,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	try	
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", string(kguo_utente.get_id_utente( ))) //ki_st_int_artr.utente)
 		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
 //--- prendi data oggi		
 		k_data = kguo_g.get_dataoggi( )
@@ -7237,6 +7243,9 @@ choose case ki_scelta_report
 		
 	case kiuf_int_artr.kki_scelta_report_ptasksTempi		// Progetti: dati Tempi
 		report_28()
+		
+	case kiuf_int_artr.kki_scelta_report_colliParziali		// elenco Lotti con colli Parziali
+		report_29()
 
 	case else  
 		k_return = false
@@ -8102,6 +8111,151 @@ return k_righe
 
 end function
 
+private subroutine report_29 ();//======================================================================
+//=== Inizializzazione della Windows
+//=== Ripristino DW; tasti; e retrieve liste
+//======================================================================
+//
+string k_scelta, k_importa
+date k_data_da, k_data_a
+
+
+if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_29" then
+	tab_1.tabpage_1.dw_1.dataobject = "d_report_29"
+	tab_1.tabpage_1.dw_1.reset()
+	tab_1.tabpage_1.dw_1.insertrow(0)
+	
+	tab_1.tabpage_1.dw_1.visible = true
+
+	try	
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+	
+		k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
+		if k_data_da > date(0) then
+		else
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(year(k_data_a), month(k_data_a),01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
+		end if
+		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+
+	finally
+		tab_1.tabpage_1.dw_1.setfocus()
+	
+	end try
+
+end if
+
+attiva_tasti()
+		
+
+	
+
+
+
+end subroutine
+
+private subroutine get_parametri_29 () throws uo_exception;//======================================================================
+//=== Polola la struttura con i parametri di estrazione
+//======================================================================
+//
+date  k_data_fin, k_data_ini
+st_tab_meca kst_tab_meca_da,  kst_tab_meca_a
+
+
+set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+
+//--- piglia param dalla window
+k_data_ini = tab_1.tabpage_1.dw_1.getitemdate(1, "data_ini") 
+k_data_fin = tab_1.tabpage_1.dw_1.getitemdate(1, "data_fin") 
+if k_data_ini > k_data_fin  then
+	kGuo_exception.inizializza( )
+	kGuo_exception.setmessage("Dati incongruenti", "Data fine maggiore di data inizio, valore non ammesso,~n~rprego correggere i valori")
+	throw kGuo_exception 
+end if
+
+ki_st_int_artr.data_ini = k_data_ini
+ki_st_int_artr.data_fin = k_data_fin
+
+kst_tab_meca_da.id = 0
+kst_tab_meca_da.data_int = ki_st_int_artr.data_ini
+kst_tab_meca_a.data_int = ki_st_int_artr.data_fin
+get_id_meca(kst_tab_meca_da, kst_tab_meca_a)
+ki_st_int_artr.id_meca_ini = kst_tab_meca_da.id 
+ki_st_int_artr.id_meca_fin = kst_tab_meca_a.id 
+
+
+end subroutine
+
+private function long report_29_inizializza (uo_d_std_1 kdw_1) throws uo_exception;//
+//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_scelta, k_codice_prec
+long k_righe=0, k_rc
+kuf_utility kuf1_utility
+
+
+	try
+			
+	
+		k_scelta = trim(ki_st_open_w.flag_modalita)
+
+	
+	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+		if not isnull(kdw_1.tag) then
+			k_codice_prec = kdw_1.tag
+		else
+			k_codice_prec = " "
+		end if
+	
+	//--- salvo i parametri cosi come sono stati immessi
+		kuf1_utility = create kuf_utility
+		kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+		destroy kuf1_utility
+
+		if trim(k_codice_prec) <> trim(kdw_1.tag) then
+			u_set_tabpage_picture(true)
+		else
+			u_set_tabpage_picture(false)
+		end if
+	
+		if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
+
+			kdw_1.visible = true
+			kdw_1.dataobject = "d_report_29_n_parziali"
+			k_rc = kdw_1.settransobject(sqlca)
+
+	//--- piglia i parametri per l'estrazione 
+			get_parametri_29()
+
+			k_righe = kdw_1.retrieve(ki_st_int_artr.id_meca_ini, ki_st_int_artr.id_meca_fin, ki_st_int_artr.data_ini, ki_st_int_artr.data_fin)
+
+		end if
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally		
+		attiva_tasti()
+		if kdw_1.rowcount() = 0 then
+			kdw_1.insertrow(0) 
+		end if
+		kdw_1.setfocus()
+
+	end try
+
+
+return k_righe
+
+end function
+
 on w_int_artr.create
 int iCurrent
 call super::create
@@ -8240,6 +8394,7 @@ end type
 
 event tab_1::selectionchanged;call super::selectionchanged;//
 //parent.title = trim(ki_win_titolo_orig) + ".  " + trim(tab_1.tabpage_1.ddplb_report.text)
+//
 
 end event
 
@@ -8259,6 +8414,11 @@ end on
 on tab_1.destroy
 call super::destroy
 end on
+
+event tab_1::selectionchanging;call super::selectionchanging;//
+tab_1.tabpage_1.dw_1.accepttext()
+
+end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 long backcolor = 67108864
@@ -8305,7 +8465,7 @@ end type
 event dw_1::itemchanged;call super::itemchanged;//
 int k_errore=0
 long  k_id_clie, k_riga
-string k_rag_soc //, k_indirizzo, k_localita
+string k_rag_soc, k_mc_co //, k_indirizzo, k_localita
 datawindowchild kdwc_cliente
 datawindowchild kdwc_contratti_1
 
@@ -8499,18 +8659,18 @@ if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 		if trim(data) > " " then
 			tab_1.tabpage_1.dw_1.getchild("mc_co", kdwc_contratti_1)
 			//k_riga = kdwc_contratti_1.getrow()
-			k_riga=kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
+			k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
 			if k_riga > 0 then
-				tab_1.tabpage_1.dw_1.setitem(1, "descr",&
-								kdwc_contratti_1.getitemstring(k_riga, "descr"))
-				tab_1.tabpage_1.dw_1.setitem(1, "codice",&
-								kdwc_contratti_1.getitemnumber(k_riga, "codice"))
-				tab_1.tabpage_1.dw_1.setitem(1, "scadenza",&
-								"scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
-				kdwc_contratti_1.setrow(k_riga)
-				if kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", &
-											kdwc_contratti_1.getrow() + 1, kdwc_contratti_1.rowcount()) > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(data) )
+				tab_1.tabpage_1.dw_1.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
+				tab_1.tabpage_1.dw_1.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
+				tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
+				k_mc_co = kdwc_contratti_1.getitemstring(k_riga, "mc_co")
+				k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", 1, kdwc_contratti_1.rowcount()) 
+				if k_riga > 0 then
+					k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", k_riga + 1, kdwc_contratti_1.rowcount()) 
+					if k_riga > 0 then
+						tab_1.tabpage_1.dw_1.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(k_mc_co) )
+					end if
 				end if
 			end if
 		end if
@@ -8758,6 +8918,7 @@ if NOT kguf_data_base.u_if_run_dev_mode( ) then
 	kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts = this.AddPicture("DataWindow!")
 	kiuf_int_artr.kki_scelta_report_pic_prevFineLav = this.AddPicture("Regenerate!")
 	kiuf_int_artr.kki_scelta_report_pic_nrDosimetri = this.AddPicture("DataWindow!")
+	kiuf_int_artr.kki_scelta_report_pic_colliParziali = this.AddPicture("DataWindow!")
 	kiuf_int_artr.kki_scelta_report_pic_PtasksLab = this.AddPicture("prjtask16.png")
 	kiuf_int_artr.kki_scelta_report_pic_PtasksFatt = this.AddPicture("prjtask16.png")
 	kiuf_int_artr.kki_scelta_report_pic_PtasksTempi = this.AddPicture("prjtask16.png")
@@ -8786,6 +8947,7 @@ this.InsertItem(  "Articoli Movimentati", kiuf_int_artr.kki_scelta_report_pic_ar
 this.InsertItem(  "Contratti Movimentati ", kiuf_int_artr.kki_scelta_report_pic_armo_Contratti, kiuf_int_artr.kki_scelta_report_armo_Contratti) //21
 this.InsertItem(  "Capitolati ", kiuf_int_artr.kki_scelta_report_pic_LavxCapitolato, kiuf_int_artr.kki_scelta_report_LavxCapitolato) //22
 this.InsertItem(  "N. Dosimetri ", kiuf_int_artr.kki_scelta_report_pic_nrDosimetri, kiuf_int_artr.kki_scelta_report_nrdosimetri) //25
+this.InsertItem(  "Lotti con colli Parziali ", kiuf_int_artr.kki_scelta_report_pic_colliParziali, kiuf_int_artr.kki_scelta_report_colliParziali) //29
 this.InsertItem(  "Indicatori ", kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts, kiuf_int_artr.kki_scelta_report_RunsRtrRts) //23
 this.InsertItem(  "Progetti: Laboratori ", kiuf_int_artr.kki_scelta_report_pic_PtasksLab, kiuf_int_artr.kki_scelta_report_PtasksLab) //26
 this.InsertItem(  "Progetti: Fatture ", kiuf_int_artr.kki_scelta_report_pic_PtasksFatt, kiuf_int_artr.kki_scelta_report_PtasksFatt) //27

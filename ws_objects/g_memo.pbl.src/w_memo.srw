@@ -679,7 +679,7 @@ try
 	if kist_memo.st_tab_memo.id_memo = 0 or isnull(kist_memo.st_tab_memo.id_memo) then
 		
 		//--- Aggiornamento dei dati inseriti/modificati
-		dati_modif_accept( )
+		//100623 dati_modif_accept( )
 		
 		//--- Toglie le righe eventualmente da non registrare
 		pulizia_righe()
@@ -1452,6 +1452,9 @@ end if
 
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_memo
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_memo
 end type

@@ -84,7 +84,7 @@ st_tab_listino kst_tab_listino
 
 
 //=== Toglie righe da non UPDATE
-dati_modif_accept( )
+//100623 dati_modif_accept( )
 
 
 //=== Pulisco eventuali righe rimaste vuote e aggiusto campi a NULL
@@ -2329,6 +2329,9 @@ return k_return
 
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_listino
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_listino
 end type

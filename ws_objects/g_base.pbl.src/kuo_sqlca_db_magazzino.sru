@@ -143,21 +143,29 @@ uo_exception kuo_exception
 end subroutine
 
 public function boolean if_connesso_x ();//
-boolean k_return = false
 int k_connesso=0
 
-
-	select 1 into :k_connesso from base 
-		using this;
 	
-	if k_connesso = 1 then
+	if kiuo_sqlca_db_0_saved.sqldbcode = 999 then
+
+		return false
+
+	else
+		select 1 into :k_connesso from base 
+			using this;
 		
-		k_return = true   
+		if k_connesso = 1 then
+			
+			return true   
+			
+		else
+			
+			return false
+	
+		end if
 
 	end if
 
-
-return k_return
 end function
 
 public function boolean db_set_isolation_level () throws uo_exception;//---------------------------------------------------------------------
@@ -513,7 +521,11 @@ protected function boolean u_error_others (ref st_esito ast_esito);//
 		
 		return true
 		
-	else
+	elseif ast_esito.SQLdbcode = 13535 then // Errore in aggiornamento TEmporalTable
+
+		ast_esito.esito = kkg_esito.db_wrn
+		ast_esito.sqlerrtext = "Errore interno restituito dal DB '" + ki_db_descrizione + "' (tabella TemporalTable). " + ast_esito.sqlerrtext
+		kguo_exception.scrivi_log(ast_esito)
 		
 		return false
 		

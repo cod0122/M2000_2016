@@ -93,7 +93,7 @@ try
 					if kst_tab_e1_asn[k_riga_tab].wasrst = kuf1_e1_asn.kki_status_canceled then
 						if isnumber(kst_tab_e1_asn[k_riga_tab].waapid) then
 							kst_tab_meca.id = long(kst_tab_e1_asn[k_riga_tab].waapid)
-							kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+							kst_tab_meca.st_tab_g_0.esegui_commit = "S"
 							kuf1_armo.set_lotto_annullato_no_sr(kst_tab_meca)
 							kst_tab_meca.meca_blk_descrizione = ""
 							kst_tab_meca.meca_blk_descrizione = kuf1_armo.get_meca_blk_descrizione(kst_tab_meca)
@@ -120,8 +120,8 @@ try
 		else
 			kst_esito.sqlcode = k_return
 			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.SQLErrText = "Errore in aggiornamento degli 'Stato' dei Lotti da E1 (MECA). Il primo ID doveva essere '" + string(kds_1.getitemnumber(1, "id")) + "' " &
-										  + "~r~nErrore: " + trim(kds_1.kist_esito.sqlerrtext) + " - " + string(kds_1.kist_esito.sqlerrtext) + ") "
+			kst_esito.SQLErrText = "Errore in aggiornamento 'Stato' dei Lotti da E1 (MECA). Il primo ID doveva essere '" + string(kds_1.getitemnumber(1, "id")) + "' " &
+										  + kkg.acapo + "Errore: " + trim(kds_1.kist_esito.sqlerrtext) + " - " + string(kds_1.kist_esito.sqlerrtext) + ") "
 			kguo_exception.inizializza()
 			kguo_exception.set_esito(kds_1.kist_esito)
 			throw kguo_exception
@@ -153,10 +153,7 @@ st_esito kst_esito
 
 try 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Imposta STATO Lotto di E1 su MECA
 	k_ctr = u_set_stato_lotto_da_e1( )

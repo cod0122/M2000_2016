@@ -1420,7 +1420,7 @@ string k_return = "", k_rc_inizializza
 
 try 
 
-	dati_modif_accept( )
+	//100623 dati_modif_accept( )
 
 	if a_tab_da_attivare > 0 then
 
@@ -2434,7 +2434,7 @@ pointer kp_oldpointer
 	ki_tab_1_index_new=newindex
 	ki_tab_1_index_old=oldindex
 
-	dati_modif_accept( )
+	//100623 dati_modif_accept( )
 
 	if oldindex > 0 and oldindex <> newindex then  //la prima volta e' a -1
 

@@ -3973,7 +3973,7 @@ try
 
 //--- prima di tutto CONTROLA E AGGIORNA I DATI LOTTO
 //--- Aggiornamento dei dati inseriti/modificati
-	dati_modif_accept( )
+//100623	dati_modif_accept( )
 
 //--- Toglie le righe eventualmente da non registrare
 	pulizia_righe()
@@ -4204,12 +4204,7 @@ st_esito kst_esito
 try
 
 	setpointer(kkg.pointer_attesa) 
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = " "
-	kst_esito.nome_oggetto = this.classname()
-	
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 	else

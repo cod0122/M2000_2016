@@ -1449,10 +1449,10 @@ try
 		kds1_e1_asn_header = u_crea_asn_header(ast_tab_f5547013, kuf1_armo, kds1_e1_asn_rows.rowcount() )
 	
 		if kds1_e1_asn_header.rowcount( ) > 0 then
-			if ast_tab_f5547013.st_tab_g_0.esegui_commit = "S" or isnull(ast_tab_f5547013.st_tab_g_0.esegui_commit) then
-				k_commit = true
-			else
+			if ast_tab_f5547013.st_tab_g_0.esegui_commit = "N" then
 				k_commit = false
+			else
+				k_commit = true
 			end if
 			
 			k_return = u_crea_asn_esegui(kds1_e1_asn_header, kds1_e1_asn_rows, k_commit)   	// AGGIUNGE LOTTO ASN SU E-ONE

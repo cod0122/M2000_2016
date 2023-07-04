@@ -531,20 +531,10 @@ public function boolean set_pl_barcode_stato (string k_tipo_stato, st_tab_pl_bar
 boolean k_return = false
 long k_ctr
 st_esito kst_esito
-uo_exception kuo_exception
-pointer oldpointer
-
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
 
 
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-	
 	choose case lower(k_tipo_stato)
 				
 		case "aperto"
@@ -571,7 +561,6 @@ pointer oldpointer
 			throw kguo_exception
 
 	end choose
-
 
 	kst_tab_pl_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_pl_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -616,8 +605,6 @@ pointer oldpointer
 				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
 			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.nome_oggetto = this.classname()
-			kguo_exception.inizializza( )
 			kguo_exception.set_esito (kst_esito)
 			throw kguo_exception
 		end if

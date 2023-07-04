@@ -1901,7 +1901,7 @@ string k_rc_inizializza = ""
 try 
 	
 
-	dati_modif_accept( )
+	//100623 dati_modif_accept( )
 
 	if a_tab_da_attivare > 0 then
 

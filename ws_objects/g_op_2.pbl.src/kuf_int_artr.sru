@@ -36,10 +36,11 @@ constant int kki_scelta_report_art_movim = 20
 constant int kki_scelta_report_armo_Contratti = 21
 constant int kki_scelta_report_LavxCapitolato = 22
 constant int kki_scelta_report_nrdosimetri = 23
-constant int kki_scelta_report_RunsRtrRts = 24
-constant int kki_scelta_report_PtasksLab = 25
-constant int kki_scelta_report_PtasksFatt = 26
-constant int kki_scelta_report_PtasksTempi = 27
+constant int kki_scelta_report_colliParziali = 24
+constant int kki_scelta_report_RunsRtrRts = 25
+constant int kki_scelta_report_PtasksLab = 26
+constant int kki_scelta_report_PtasksFatt = 27
+constant int kki_scelta_report_PtasksTempi = 28
 
 int kki_scelta_report_pic_lotti_entrati
 int kki_scelta_report_pic_generico
@@ -64,13 +65,13 @@ int kki_scelta_report_pic_art_movim
 int kki_scelta_report_pic_armo_Contratti 
 int kki_scelta_report_pic_LavxCapitolato 
 int kki_scelta_report_pic_nrdosimetri 
+int kki_scelta_report_pic_colliParziali
 int kki_scelta_report_pic_RunsRtrRts 
 int kki_scelta_report_pic_PtasksLab 
 int kki_scelta_report_pic_PtasksFatt 
 int kki_scelta_report_pic_PtasksTempi
 
 end variables
-
 forward prototypes
 public function st_esito u_open ()
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception

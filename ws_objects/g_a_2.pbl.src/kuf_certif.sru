@@ -2990,13 +2990,12 @@ public function boolean set_flg_ristampa_xddt (st_tab_certif kst_tab_certif) thr
 boolean k_return = false
 st_esito kst_esito
 
-	
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+
+kst_esito = kguo_exception.inizializza(this.classname())
 	
 if kst_tab_certif.id > 0 then
+
+	kguo_sqlca_db_magazzino.db_commit( ) // x evitare forse problemi con TemporalTable faccio COMMIT
 
 	kst_tab_certif.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_certif.x_utente = kGuf_data_base.prendi_x_utente()
@@ -3010,20 +3009,22 @@ if kst_tab_certif.id > 0 then
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento 'flag di Attestato stampato da Ufficio Spedizioni'. ~n~r" &
-					+ "Id: " + string(kst_tab_certif.id, "####0") + "  " &
-					+ " ~n~rErrore-tab.certif:" + string(kguo_sqlca_db_magazzino.SQLcode) + ' ' + trim(kguo_sqlca_db_magazzino.SQLErrText) 
+		kst_esito.SQLErrText = "Errore in aggiornamento 'flag di Attestato stampato da Ufficio Spedizioni'. "&
+					+ "Id: " + string(kst_tab_certif.id, "####0") + " "  + kkg.acapo &
+					+ "Errore-tab.certif:" + string(kguo_sqlca_db_magazzino.SQLcode) + ' ' + trim(kguo_sqlca_db_magazzino.SQLErrText) 
 		kst_esito.esito = kkg_esito.db_ko
 	end if
 	
 //---- COMMIT o ROLLBACK....	
 	if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
-		if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
+		if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	else
-		if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_rollback_1( )
+		if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 		
 		kguo_exception.inizializza( )
