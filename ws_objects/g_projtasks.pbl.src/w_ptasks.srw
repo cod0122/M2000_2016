@@ -1709,10 +1709,11 @@ try
 			kst_esito.sqlcode = k_rc
 			kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
 			if kist_tab_ptasks_orig.id_ptask = 0 then
-				kst_esito.sqlerrtext = "Errore in Inserimento nuovo Progetto!  Operazione non eseguita." //, ~n~r" 
+				kst_esito.sqlerrtext = "Errore in Inserimento nuovo Progetto!  Operazione non eseguita. " 
 			else
-				kst_esito.sqlerrtext = "Errore in Aggiornamento del Progetto id.'" + string(kist_tab_ptasks_orig.id_ptask) + "'! Operazione non eseguita." //, ~n~r" 
+				kst_esito.sqlerrtext = "Errore in Aggiornamento del Progetto id.'" + string(kist_tab_ptasks_orig.id_ptask) + "'! Operazione non eseguita. " 
 			end if
+			kst_esito.sqlerrtext = kst_esito.sqlerrtext  + kkg.acapo + "Errore cod. " + string(tab_1.tabpage_1.dw_1.kist_esito.sqlcode) + " " + trim(tab_1.tabpage_1.dw_1.kist_esito.sqlerrtext)
 			kguo_exception.set_esito(kst_esito)
 			tab_1.tabpage_1.dw_1.event u_disp_avvertenze(kst_esito.sqlerrtext)
 			throw kguo_exception

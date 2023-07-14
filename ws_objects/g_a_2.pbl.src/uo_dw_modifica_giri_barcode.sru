@@ -601,8 +601,10 @@ st_tab_barcode kst_tab_barcode
 
 
 try
-//	kst_esito_update.esito = kkg_esito.ok
+
 	kst_esito = kguo_exception.inizializza( this.classname())
+	
+	this.accepttext( )
 	
 	if this.rowcount() > 0 then
 	else
@@ -623,48 +625,34 @@ try
 //		if this.object.aggiorna_rif[1] = "0" then
 //		else
 	if ki_modif_tutto_riferimento = kiuf_barcode_mod_giri.ki_modif_tutto_riferimento_si then
-		k_msg = "Saranno modificati i Barcode NON ANCORA PIANIFICATI per il Trattamento~n~r"  &
+		k_msg = "Saranno modificati i Barcode NON ANCORA PIANIFICATI per il Trattamento " + kkg.acapo   &
 				+ "del Lotto n. " &
-				+ string(this.getitemnumber(1, "meca_num_int")) & 
-				+ "~n~r" 
-		if kiuf_barcode.kist_tab_barcode.fila_1 > 0 and kiuf_barcode.kist_tab_barcode.fila_2 > 0 then	
-			k_msg += "e con " + string(kiuf_barcode.kist_tab_barcode.fila_1) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_1p) &
-				+ " giri in F-1 e " + string(kiuf_barcode.kist_tab_barcode.fila_2) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_2p) + " in F-2."  
-		else
+				+ string(this.getitemnumber(1, "meca_num_int")) + " " + kkg.acapo
+				
+		if this.object.scelta_fila_1[1] = "1" then
 			if kiuf_barcode.kist_tab_barcode.fila_1 > 0 then	
-				k_msg += "e con " + string(kiuf_barcode.kist_tab_barcode.fila_1) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_1p) &
-						+ " giri in F-1."
-			else
-				if kiuf_barcode.kist_tab_barcode.fila_2 > 0 then	
-					k_msg += "e con " + string(kiuf_barcode.kist_tab_barcode.fila_2) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_2p) &
-						+ " giri in F-2."
-				end if
+				k_msg += "giri FILA 1 = " + string(kiuf_barcode.kist_tab_barcode.fila_1) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_1p) + " " + kkg.acapo
 			end if
 		end if
-		k_msg += "~n~rProcedere con l'operazione?"
-//			else
-//				k_msg = "Modificare il Trattamento? " 
-//				k_elaboro = 1
-//			end if
+		if this.object.scelta_fila_2[1] = "1" then
+			if kiuf_barcode.kist_tab_barcode.fila_2 > 0 then	
+				k_msg += "giri FILA 2 = " + string(kiuf_barcode.kist_tab_barcode.fila_2) + "+" + string(kiuf_barcode.kist_tab_barcode.fila_2p) + " " + kkg.acapo
+			end if
+		end if
+		k_msg += "Applicare l'aggiornamento?"
+
 	else
+		
 		if this.object.aggiorna_righe_selezionate[1]  = "1" then
 			k_msg = "Attenzione, saranno modificati tutti i barcode selezionati.~n~r"  &
-					+ "Procedere con l'operazione?"
-//				k_elaboro = 1
+					+ "Applicare l'aggiornamento?"
 		else
 			k_msg = "Sarà modificato il Barcode '" &
-					+ trim(this.object.barcode_barcode.primary[1]) + "'~n~r"  &
-					+ "Procedere con l'operazione?"
-//						+ "~n~r" &
-//				k_elaboro = 1
-//			   if this.object.aggiorna_righe_selezionate[1] = kiuf_barcode_mod_giri.ki_modalita_modifica_scelta_fila then
-//					k_msg = "Modificare il Trattamento? " 
-//					k_elaboro = 1
-//				else
-//				   if kidw_barcode_da_modificare.classname() = "dw_meca" then
-//				end if
+					+ trim(this.object.barcode_barcode.primary[1]) + "' " + kkg.acapo  &
+					+ "Applicare l'aggiornamento?"
 		end if
 	end if
+
 	if k_elaboro = 0 then
 		k_elaboro = messagebox("Aggiornamento Giri di Lavorazione", k_msg, question!, yesno!, 2)
 	else
@@ -718,28 +706,13 @@ try
 	if this.object.aggiorna_righe_selezionate.primary[1]  = "1" then
 		do while k_riga_selected > 0 
 
-//			else
-////--- se ho selezionato piu' di una riga faccio con getrow()				
-//				k_riga_selected = kidw_barcode_da_modificare.getselectedrow(0)
-//				if k_riga_selected > 0 then
-//					k_ctr = k_riga_selected 
-//					if kidw_barcode_da_modificare.getselectedrow(k_ctr) > 0 then
-//						k_riga_selected = kidw_barcode_da_modificare.getrow()
-//					end if
-//				else
-//					k_riga_selected = kidw_barcode_da_modificare.getrow()
-//				end if
-//
-//			end if
-
-//			if u_get_nome_col(kidw_barcode_da_modificare, "barcode") > " " then
-		
 //--- Cambia i GIRI 
 			k_record_aggiornati = aggiorna_barcode_giri_1(k_riga_selected)
 			k_riga_selected = kidw_barcode_da_modificare.getselectedrow(k_riga_selected)
 		loop
 
 	else
+		
 //--- Cambia i GIRI 
 		k_record_aggiornati = aggiorna_barcode_giri_1(k_riga_selected)
 	end if						
@@ -747,7 +720,7 @@ try
 	if k_record_aggiornati = 0 then
 		if kst_esito.esito = kkg_esito.ok then
 			kst_esito.esito = kkg_esito.no_esecuzione
-			kst_esito.sqlerrtext = "Nessun aggiornamento giri di Trattamento eseguito"
+			kst_esito.sqlerrtext = "Nessun aggiornamento ai giri di Trattamento eseguito"
 			if this.object.aggiorna_rif[1] = "0" then
 				messagebox("Operazione non eseguita", &
 					"Impossibile aggiornare i Giri del Barcode '" + trim(kiuf_barcode.kist_tab_barcode.barcode) + "'. ")

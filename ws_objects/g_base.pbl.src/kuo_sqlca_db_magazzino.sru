@@ -146,7 +146,7 @@ public function boolean if_connesso_x ();//
 int k_connesso=0
 
 	
-	if kiuo_sqlca_db_0_saved.sqldbcode = 999 then
+	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 then // connessione persa
 
 		return false
 

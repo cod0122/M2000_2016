@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kuf_listino2.sru
 forward
-global type kuf_listino2 from kuf_parent0
+global type kuf_listino2 from kuf_parent
 end type
 end forward
 
-global type kuf_listino2 from kuf_parent0
+global type kuf_listino2 from kuf_parent
 end type
 global kuf_listino2 kuf_listino2
 

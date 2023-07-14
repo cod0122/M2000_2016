@@ -130,14 +130,17 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 and (tab_1.tabpage_1.dw_1.getnextmodifie
 				kst_tab_wm_pklist.idpkl = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "idpkl")
 				if kst_tab_wm_pklist.idpkl <> kst_tab_wm_pklist.idpkl then
 //--- Cambio codice....			
-					kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "N"
+					kst_tab_wm_pklist.st_tab_g_0.esegui_commit = "S"
 					kst_esito = kiuf_wm_pklist_testa.tb_update_idpkl( kst_tab_wm_pklist )
 				end if
 			end if
 		end if
 		
 		if kst_esito.esito <> kkg_esito.db_ko then
+			
 			kst_esito = kguo_exception.inizializza(this.classname())
+
+			kguo_sqlca_db_magazzino.db_commit()  // forse per ovviare al problema delle TemporalTable
 			
 			set_st_tab_wm_pklist_da_dw1(k_riga, kst_tab_wm_pklist)
 			
@@ -146,16 +149,18 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 and (tab_1.tabpage_1.dw_1.getnextmodifie
 		
 //--- Aggiorna la testa PK-LIST
 				k_rc = tab_1.tabpage_1.dw_1.update()  
-				if k_rc = 1 then
+				if k_rc < 0 then
+					kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
+					kst_esito.sqlerrtext = "Errore in aggiornamento testata del PKL, impossibile proseguire con la registrazione! " &
+					             + kkg.acapo + "Errore: " + string(tab_1.tabpage_1.dw_1.kist_esito.sqlcode) + " sqldbcode: " + string(tab_1.tabpage_1.dw_1.kist_esito.sqldbcode) &
+									 + " " + trim(tab_1.tabpage_1.dw_1.kist_esito.sqlerrtext)
+				else
 //--- se id documento manca nella struct lo legge da tabella
 					if kst_tab_wm_pklist.id_wm_pklist = 0 or isnull(kst_tab_wm_pklist.id_wm_pklist) then
 						kst_tab_wm_pklist.id_wm_pklist = kiuf_wm_pklist_testa.get_id_wm_pklist_max()
 					end if
 					tab_1.tabpage_1.dw_1.setitem(k_riga, "id_wm_pklist", kst_tab_wm_pklist.id_wm_pklist )
 					
-				else
-					kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
-					kst_esito.sqlerrtext = "Errore in aggiornamento testata del PKL, ~n~r" + "impossibile proseguire con la registrazione!"
 				end if	
 	
 			end if
@@ -176,11 +181,13 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 and (tab_1.tabpage_1.dw_1.getnextmodifie
 
 //--- Aggiorna righe PK-LIST
 			k_rc =  tab_1.tabpage_4.dw_4.update()  
-			if k_rc = 1 then
-				tab_1.tabpage_4.dw_4.resetupdate( )
-			else
+			if k_rc < 0 then
 				kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
-				kst_esito.sqlerrtext = "Errore in aggiornamento righe del PKL, ~n~r" + "impossibile proseguire con l'aggiornamento!"
+				kst_esito.sqlerrtext = "Errore in aggiornamento righe del PKL, impossibile proseguire con l'aggiornamento! " &
+					             + kkg.acapo + "Errore: " + string(tab_1.tabpage_1.dw_1.kist_esito.sqlcode) + " sqldbcode: " + string(tab_1.tabpage_1.dw_1.kist_esito.sqldbcode) &
+									 + " " + trim(tab_1.tabpage_1.dw_1.kist_esito.sqlerrtext)
+			else
+				tab_1.tabpage_4.dw_4.resetupdate( )
 			end if	
 
 		end if

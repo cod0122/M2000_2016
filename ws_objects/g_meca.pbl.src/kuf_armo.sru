@@ -2824,6 +2824,8 @@ st_esito kst_esito
 
 	if isnull(kst_tab_meca.stato_in_attenzione) then kst_tab_meca.stato_in_attenzione = 0
 
+	kguo_sqlca_db_magazzino.db_commit( )  // x problema in TemporalTable forse risolve 13luglio23
+
 	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 
@@ -2835,15 +2837,17 @@ st_esito kst_esito
 				where ID = :kst_tab_meca.ID
 			using kguo_sqlca_db_magazzino;
 	
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 		kst_esito.SQLErrText = "Errore in aggiornamento Stato 'in Attenzione' nel Lotto con ID: " + string(kst_tab_meca.ID) + "~n~r"   + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "S" then
+		else
 			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 	else
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "S" then
+		else
 			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	end if

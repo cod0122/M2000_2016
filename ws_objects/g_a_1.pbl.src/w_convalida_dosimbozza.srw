@@ -954,6 +954,7 @@ kuf_barcode kuf1_barcode
 
 
 try
+	kguo_sqlca_db_magazzino.db_commit()  // forse per ovviare al problema delle TemporalTable
 	 
 	u_set_dw_dett_0_update_status( ) 
 	 
@@ -961,7 +962,9 @@ try
 		kguo_sqlca_db_magazzino.db_rollback()
 		kst_esito.sqlcode = -1
 		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlerrtext = "Errore durante aggiornamento dati di imputazione dosimetrica in tabella"
+		kst_esito.sqlerrtext = "Errore durante aggiornamento dati di imputazione dosimetrica in tabella " &
+					             + kkg.acapo + "Errore: " + string(dw_dett_0.kist_esito.sqlcode) + " sqldbcode: " + string(dw_dett_0.kist_esito.sqldbcode) &
+									 + " " + trim(dw_dett_0.kist_esito.sqlerrtext)
 		kguo_exception.inizializza()
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
