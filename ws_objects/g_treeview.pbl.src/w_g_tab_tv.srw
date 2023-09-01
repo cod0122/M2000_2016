@@ -29,8 +29,8 @@ end type
 end forward
 
 global type w_g_tab_tv from w_g_tab
-integer width = 5038
-integer height = 3180
+integer width = 37
+integer height = 180
 string title = "Navigatore"
 boolean ki_salva_controlli = true
 boolean ki_windowpredef = true
@@ -2054,7 +2054,7 @@ end event
 event getfocus;//
 kiuf_treeview.ki_fuoco_tree_list = kiuf_treeview.ki_fuoco_su_tree
 
-attiva_tasti()
+post attiva_tasti()
 
 end event
 
@@ -2200,21 +2200,20 @@ string k_label
 integer k_width
 listviewitem klvi_1
 alignment k_align
+listviewitem klvi_copy
 
 
 	this.enabled = false
 
 	SetPointer(kkg.pointer_attesa) 
 
-//	this.SetRedraw(false)
-
-	if this.totalitems( ) > 1 then
+	this.getitem(1,klvi_copy)	
+	this.deleteitem(1)
 	
+	if this.totalitems( ) > 1 then
+
 	   this.GetColumn(column, k_label, k_align, k_width)
 
-//--- se non numerico
-//		if k_align <> right! then
-	
 		if this.tag = string(column) + "D" then
 
 			this.Sort ( Descending!, column )
@@ -2224,11 +2223,8 @@ alignment k_align
 			this.Sort ( Ascending!, column )
 			
 		end if
-			
-//		else
-//			this.Sort ( UserDefinedSort!, column )
 
-//		end if
+		this.insertitem( 1, klvi_copy)
 		
 //--- imposto il senso del sort così la prossima è l contrario
 		if this.tag = string(column) + "D" then
@@ -2239,8 +2235,6 @@ alignment k_align
 		
 
 	end if
-
-//	this.SetRedraw(true)
 
 	this.enabled = true
 
@@ -2254,7 +2248,7 @@ event getfocus;//
 //--- imposta oggetto selezionato x fare il TROVA
 kigrf_x_trova = this
 
-attiva_tasti()
+post attiva_tasti()
 
 end event
 

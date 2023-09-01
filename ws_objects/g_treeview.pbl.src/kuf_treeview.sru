@@ -572,7 +572,7 @@ private function integer u_stampa_barcode ();//
 //
 integer k_return = 0, k_lindex = 0, k_n_selezionati=0, k_rc
 long k_handle_item = 0
-integer k_ctr, k_nr_barcode_stampati=0, k_barcode_da_stampare=0
+integer k_ctr, k_nr_barcode_stampati=0, k_barcode_da_stampare=0, k_controcampioni
 boolean k_stampa_da_listview=true, k_stampa_esegue 
 boolean k_ristampa_gia_risposto=false, k_stampa_gia_risposto=false
 st_esito kst_esito
@@ -639,33 +639,33 @@ try
 		kuf1_barcode_stampa.ki_stampa_etichetta_autorizza = true
 	
 		if kst_tab_barcode.num_int > 0 then
-	
+
+		//--- Verifica se sono in stampa o ristampa?
+			k_barcode_da_stampare = kuf1_barcode_stampa.stampa_etichetta_riferimento_ristampa &
+														(kst_tab_barcode.barcode, kst_tab_barcode.id_meca)
+			if k_barcode_da_stampare < 0 then
+				kst_esito.sqlcode = k_barcode_da_stampare
+				kst_esito.esito = kkg_esito.no_esecuzione
+				kst_esito.sqlerrtext = &
+								"Errore in Stampa Barcode Barcode '" + trim(kst_tab_barcode.barcode) &
+								+ "' in ricerca per la preparazione della stampa" &
+								+ " (rc=" + string(k_barcode_da_stampare) + ") "
+				kguo_exception.set_esito(kst_esito)
+				k_n_selezionati = 0
+				throw kguo_exception
+			end if
+
 	//--- Open della coda di stampa
-			kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode)
+	      if k_barcode_da_stampare > 0 then
+				kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, false)	// prima stampa
+			else
+				kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, true)	// ristampa
+			end if
 			if kuf1_barcode_stampa.ki_id_print_etichette > 0 then
-	
 	
 	//--- Ciclo di stampa ETICHETTE
 				do while k_n_selezionati > 0
 	
-	//--- Verifica se sono in stampa o ristampa?
-					k_barcode_da_stampare = kuf1_barcode_stampa.stampa_etichetta_riferimento_ristampa &
-													(kst_tab_barcode.barcode, &
-													 kst_tab_barcode.id_meca)
-													// kst_tab_barcode.data_int)
-	
-					if k_barcode_da_stampare < 0 then
-						kst_esito.sqlcode = k_barcode_da_stampare
-						kst_esito.esito = kkg_esito.no_esecuzione
-						kst_esito.sqlerrtext = &
-										"Errore in Lettura Barcode '" + trim(kst_tab_barcode.barcode) &
-										+ "' in preparazione della stampa" &
-										+ " (" + string(k_barcode_da_stampare) + ") " // - " + trim(kst_esito.sqlerrtext))
-						kguo_exception.set_esito(kst_esito)
-						throw kguo_exception
-						k_n_selezionati = 0
-					end if
-					
 					if k_barcode_da_stampare > 0 then
 						if not k_stampa_gia_risposto then
 							k_stampa_gia_risposto=true
@@ -691,10 +691,11 @@ try
 						k_ctr = kuf1_barcode_stampa.stampa_etichetta_riferimento &
 															(kst_tab_barcode.barcode, &
 															 kst_tab_barcode.id_meca)
-															// kst_tab_barcode.data_int)
 					
 						if k_ctr > 0 then
 							k_nr_barcode_stampati += k_ctr
+							
+							k_controcampioni = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(kst_tab_barcode.id_meca)
 							
 	//--- cancello item stampato dalla lista			
 							if k_stampa_da_listview then
@@ -792,8 +793,12 @@ try
 			
 			k_return = k_nr_barcode_stampati
 			
-			messagebox("Stampa Eseguita","Stampa di " &
-						+ string (k_nr_barcode_stampati) + " Barcode, inviata alla stampante ")
+			if k_controcampioni > 0 then
+				kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento e " &
+												+ string(k_controcampioni) + " Controcampioni, inviata alla stampante ")
+			else
+				kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento, inviata alla stampante ")
+			end if
 	
 		end if
 						

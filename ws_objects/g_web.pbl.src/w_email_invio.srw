@@ -847,7 +847,7 @@ try
 					end if
 					
 				catch (uo_exception kuo1_exception)
-					k_mail_no += trim(kuo1_exception.kist_esito.sqlerrtext) + "~n~r"
+					k_mail_no += trim(kuo1_exception.kist_esito.sqlerrtext) + kkg.acapo
 					
 				end try
 				
@@ -860,10 +860,12 @@ try
 	if k_nr_invii > 0 then
 		
 		leggi_liste()
-		if trim(k_mail_no) > " " then
+		k_mail_no = trim(k_mail_no)
+		if k_mail_no > " " then
 //--- scrivo sul log			
 			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
-			kguo_exception.setmessage(" Msg anomalie e-mail: "  + trim(k_mail_no ))
+			kguo_exception.setmessage("Anomalie durante l'invio delle e-mail: "  + trim(k_mail_no ) &
+											+ " " + kkg.acapo + "Ne sono state inviate correttamente " +  string(k_nr_invii))
 			kguo_exception.scrivi_log( )
 //msg utente			 
 			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ok )
@@ -874,7 +876,11 @@ try
 		end if
 	else
 		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito)
-		kguo_exception.setmessage("Non sono state inviate e-mail " )
+		if trim(k_mail_no) > " " then
+			kguo_exception.setmessage("Non sono state inviate e-mail " + kkg.acapo +  k_mail_no)
+		else
+			kguo_exception.setmessage("Non sono state inviate e-mail " )
+		end if
 	end if
 	kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ok )
 	kguo_exception.messaggio_utente( )

@@ -56,7 +56,6 @@ private string ki_art_x_costo_call = ""
 private kuf_menu_window kiuf_menu_window
 
 end variables
-
 forward prototypes
 protected function string aggiorna ()
 protected function integer cancella ()
@@ -901,33 +900,26 @@ try
 								end if
 							end if
 						end if
-					else
+					else 
 //--- se riga da LOTTO verifica il clie_3 su LOTTO altrimenti e' Riga VARIA
 						kst_tab_armo.id_armo = tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "id_armo") 
 						if kst_tab_armo.id_armo > 0 then
-							kst_esito = kiuf_armo.get_id_meca_da_id_armo( kst_tab_armo )
-	
-							if kst_esito.esito = kkg_esito.db_ko then
-								k_return += tab_1.tabpage_1.text + ": Errore DB-5: '" + string(kst_esito.sqlcode) +" - "+ trim(kst_esito.sqlerrtext) + "'~n~r" 
-								k_errore = "1"
+							kiuf_armo.get_id_meca_da_id_armo( kst_tab_armo )
+							kst_tab_meca.id = kst_tab_armo.id_meca
+							kiuf_armo.get_clie( kst_tab_meca )
+
+							if kst_tab_meca.clie_1 = 0  then
+								k_return = trim(k_return) +  tab_1.tabpage_4.text + " Riga " + string(k_nriga, "#####") +": Lotto id="+ string(kst_tab_meca.id) + " non Trovato! ~n~r" 
+								k_errore = "3"
 								k_nr_errori++
 							else
-								kst_tab_meca.id = kst_tab_armo.id_meca
-								kiuf_armo.get_clie( kst_tab_meca )
-	
-								if kst_tab_meca.clie_1 = 0  then
-									k_return = trim(k_return) +  tab_1.tabpage_4.text + " Riga " + string(k_nriga, "#####") +": Lotto id="+ string(kst_tab_meca.id) + " non Trovato! ~n~r" 
-									k_errore = "3"
-									k_nr_errori++
-								else
-									if kst_tab_meca.clie_3 > 0 then 
-										if kst_tab_meca.clie_3 <> kst_tab_meca.clie_3 then 
-											kiuf_armo.get_num_int( kst_tab_meca )  // piglio x informare anche il numero lotto
-											k_return = trim(k_return) +  tab_1.tabpage_4.text + " Riga " + string(k_nriga, "#####") +": Cliente "+ string(kst_tab_meca.clie_3) +" del Lotto "+ string(kst_tab_meca.num_int) &
-												+ " " + string(kst_tab_meca.data_int) + " diverso da quello del Documento cod. "+ string(kst_tab_arfa.clie_3) +" ~n~r" 
-											k_errore = "3"
-											k_nr_errori++
-										end if
+								if kst_tab_meca.clie_3 > 0 then 
+									if kst_tab_meca.clie_3 <> kst_tab_meca.clie_3 then 
+										kiuf_armo.get_num_int( kst_tab_meca )  // piglio x informare anche il numero lotto
+										k_return = trim(k_return) +  tab_1.tabpage_4.text + " Riga " + string(k_nriga, "#####") +": Cliente "+ string(kst_tab_meca.clie_3) +" del Lotto "+ string(kst_tab_meca.num_int) &
+											+ " " + string(kst_tab_meca.data_int) + " diverso da quello del Documento cod. "+ string(kst_tab_arfa.clie_3) +" ~n~r" 
+										k_errore = "3"
+										k_nr_errori++
 									end if
 								end if
 							end if
@@ -2751,13 +2743,8 @@ if k_riga > 0 then
 									try	
 										
 										kst_tab_armo.id_armo =  kst_tab_arsp[k_ind].id_armo
-										kst_esito = kiuf_armo.get_id_meca_da_id_armo( kst_tab_armo )
-										if kst_esito.esito = kkg_esito.db_ko then
-											kguo_exception.inizializza( )
-											kguo_exception.set_esito(kst_esito)
-											kguo_exception.messaggio_utente( )
+										if kiuf_armo.get_id_meca_da_id_armo( kst_tab_armo ) = 0 then
 											k_ind = upperbound(kst_tab_arsp[]) + 1
-											
 										else
 											
 											kst_tab_meca.id = kst_tab_armo.id_meca
@@ -4645,6 +4632,9 @@ return k_return
 
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_fatture
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_fatture
 integer y = 1808

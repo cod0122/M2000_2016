@@ -1594,6 +1594,7 @@ public function st_esito set_sped_no_x_id_armo (st_tab_wm_pklist_righe kst_tab_w
 boolean k_return
 st_esito kst_esito
 st_open_w kst_open_w
+st_tab_wm_pklist_righe kst1_tab_wm_pklist_righe
 kuf_sicurezza kuf1_sicurezza
 
 
@@ -1622,8 +1623,8 @@ kst_esito.nome_oggetto = this.classname()
 
 	if kst_tab_wm_pklist_righe.id_armo > 0 then
 
-         kst_tab_wm_pklist_righe.insped = this.kki_insped
-         kst_tab_wm_pklist_righe.sped = this.kki_SPED_si
+       kst_tab_wm_pklist_righe.insped = this.kki_insped
+       kst_tab_wm_pklist_righe.sped = this.kki_SPED_si
 		 kst_tab_wm_pklist_righe.eliminato =  this.kki_ELIMINATO_SI
 		
 		declare c_set_sped_no_x_id_armo cursor for  
@@ -1642,7 +1643,9 @@ kst_esito.nome_oggetto = this.classname()
 			
 			do while sqlca.sqlcode = 0 and (kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn)
 			
-				kst_esito = set_sped_si(kst_tab_wm_pklist_righe) //Aggiorna righe del PK con SPEDITO!
+				kst1_tab_wm_pklist_righe = kst_tab_wm_pklist_righe
+				kst1_tab_wm_pklist_righe.st_tab_g_0.esegui_commit = "N"
+				kst_esito = set_sped_si(kst1_tab_wm_pklist_righe) //Aggiorna righe del PK con SPEDITO!
 			
 				fetch c_set_sped_no_x_id_armo into :kst_tab_wm_pklist_righe.id_wm_pklist_riga;
 				
@@ -1701,6 +1704,7 @@ public function st_esito set_sped_si_x_id_armo (st_tab_wm_pklist_righe kst_tab_w
 boolean k_return
 st_esito kst_esito
 st_open_w kst_open_w
+st_tab_wm_pklist_righe kst1_tab_wm_pklist_righe
 kuf_sicurezza kuf1_sicurezza
 
 
@@ -1743,7 +1747,9 @@ kst_esito.nome_oggetto = this.classname()
 			
 			do while sqlca.sqlcode = 0 and (kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn)
 			
-				kst_esito = set_sped_si(kst_tab_wm_pklist_righe) //Aggiorna righe del PK con SPEDITO!
+				kst1_tab_wm_pklist_righe = kst_tab_wm_pklist_righe
+				kst1_tab_wm_pklist_righe.st_tab_g_0.esegui_commit = "N"
+				kst_esito = set_sped_si(kst1_tab_wm_pklist_righe) //Aggiorna righe del PK con SPEDITO!
 			
 				fetch c_set_sped_si_x_id_armo into :kst_tab_wm_pklist_righe.id_wm_pklist_riga;
 				

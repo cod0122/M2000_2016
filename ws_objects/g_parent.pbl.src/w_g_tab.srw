@@ -538,27 +538,35 @@ if k_return = "0" then
 		end if
 		if k_dati_modificati then // se ci sono dato midificati chiedo se aggiornare
 			
-			if isnull(k_titolo) or len(trim(k_titolo)) = 0 then
-				k_titolo = "Aggiorna Archivio"
-			end if
-	
-			if ki_esponi_msg_dati_modificati then 
-				k_msg = messagebox(k_titolo, "Dati Modificati, vuoi Salvare gli Aggiornamenti ?", &
-									question!, yesnocancel!, 1) 
-			else
-				if ki_esponi_msg_dati_modificati_salvaauotom then
-					k_msg = 1
-				else
-					k_msg = 2
+			if kguo_g.kg_exit_si then  // se sto uscendo da TUTTA LA APP non faccio nulla
+				
+				k_msg = 2
+				
+			else				
+				
+				if isnull(k_titolo) or len(trim(k_titolo)) = 0 then
+					k_titolo = "Aggiorna Archivio"
 				end if
-			end if
 		
+				if ki_esponi_msg_dati_modificati then 
+					k_msg = messagebox(k_titolo, "Dati Modificati, vuoi Salvare gli Aggiornamenti ?", &
+										question!, yesnocancel!, 1) 
+				else
+					if ki_esponi_msg_dati_modificati_salvaauotom then
+						k_msg = 1
+					else
+						k_msg = 2
+					end if
+				end if
+
+			end if
+
 			if k_msg = 1 then
 				k_return = "1Dati Modificati"	
 			else
 				k_return = string(k_msg)			
 			end if
-			
+				
 		end if
 		
 	end if
@@ -1327,7 +1335,7 @@ destroy(this.st_stampa)
 end on
 
 event activate;//---
-if not ki_exit_si and not kguo_g.kG_exit_si then
+if (not ki_exit_si and not kguo_g.kG_exit_si) or IsNull(ki_exit_si) or IsNull(kguo_g.kG_exit_si) then
 	
 	
 	event u_activate( )

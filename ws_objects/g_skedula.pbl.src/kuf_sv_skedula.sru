@@ -506,11 +506,11 @@ kuf_menu_window kuf1_menu_window
 		end if				
 
 	catch (uo_exception kuo_exception)
-		kst_esito = kuo_exception.get_st_esito()
-		if kst_esito.esito <> kkg_esito.not_fnd then
-			kist_sv_eventi_sked[1].esito = 	"Operazione conclusa per ERRORE: " + trim(kst_esito.sqlerrtext)
+		if kuo_exception.kist_esito.esito <> kkg_esito.not_fnd then
+			kist_sv_eventi_sked[1].esito = 	"Operazione conclusa per ERRORE: " + trim(kuo_exception.kist_esito.sqlerrtext)
+			kuo_exception.scrivi_log()
 		else
-			kist_sv_eventi_sked[1].esito = 	"Operazione conclusa ma:  " + trim(kst_esito.sqlerrtext)
+			kist_sv_eventi_sked[1].esito = 	"Operazione conclusa ma:  " + trim(kuo_exception.kist_esito.sqlerrtext)
 		end if
 		tb_aggiorna_stato_sv_eventi_sked()
 		

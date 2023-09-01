@@ -247,7 +247,7 @@ try
 		end if
 
 		if k_path_centrale > " " then
-			if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2022" + KKG.PATH_SEP + "g_upd_ver.exe", normal!) = 1 then
+			if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2022r2" + KKG.PATH_SEP + "g_upd_ver.exe", normal!) = 1 then
 				k_return = true
 			end if
 		end if

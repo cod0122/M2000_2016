@@ -10,7 +10,7 @@ global kuf_barcode_stampa kuf_barcode_stampa
 
 type variables
 //--- id streamer della stampa etichette
-public long ki_id_print_etichette=0 
+public longlong ki_id_print_etichette=0 
 public boolean ki_stampa_etichetta_autorizza = false
 
 //--- contatore etichette nella pagina (probabile al max 2 o 4)
@@ -26,15 +26,16 @@ public constant string barcode_modulo_1etichetta = "A"
 //private int ki_font[9,3]
 private string ki_font_name[11] 
 private st_barcode_stampa kist_barcode_stampa
+
+//--- la stampante originale
+private string ki_stampante_originale
 end variables
 
 forward prototypes
-private subroutine stampa_barcode (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb)
 private subroutine stampa_barcode_f (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb, integer k_id_font)
 public subroutine stampa_etichetta_riferimento_autorizza ()
 public subroutine stampa_etichetta_riferimento_close ()
 public function integer stampa_etichetta_riferimento_avvertenze (string k_barcode, long k_num_int, date k_data_int)
-public subroutine stampa_etichetta_riferimento_open (st_tab_barcode kst_tab_barcode)
 public function boolean stampa_etichetta_riferimento_1_4xpag (st_barcode_stampa kst_barcode_stampa)
 public function boolean stampa_etichetta_riferimento_2xpag (st_barcode_stampa kst_barcode_stampa)
 public function boolean stampa_etichetta_riferimento_x_2xpag (st_barcode_stampa kst_barcode_stampa)
@@ -46,182 +47,10 @@ private subroutine stampa_testo_verticale (string a_testo_verticale, integer a_i
 public function boolean stampa_etichetta_riferimento_1_4xpag_old (st_barcode_stampa kst_barcode_stampa)
 private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
 private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
+private subroutine stampa_barcode (string k_barcode, longlong k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb)
+public function boolean stampa_etichetta_riferimento_open (long a_id_meca, boolean a_ristampa)
+public function integer stampa_etichetta_riferimento_campioni (long a_id_meca) throws uo_exception
 end prototypes
-
-private subroutine stampa_barcode (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb);//
-// stampa codice a barre standard CODE 39
-//
-// 1'' (inches) = 2,54 cm 
-// ogni carattere è composto da 5 barre e 4 spazi (=9 elementi)
-// ogni elemento può essere fine o grosso (narrow o wide)
-// 3 dei 9 elementi deve essere wide (ecco xchè si chiama 'code 39')
-// la tabella k_caratt_barcode è di 44, ogni stringa contiene 9 caratteri che indicano 
-// la sequenza 'sottile' e 'grosso' iniziando dall'elemento barra poi spazio poi barra ecc... 
-// la codebar intera è composta da una zona franca di almeno 0,1'' + il carattere di 
-// inizio '*' + il codice + il carattere di fine '*' + zona franca di almeno 0,1''
-//
-string k_caratt_barcode[0 to 44, 0 to 1], k_caratt_bar_sp=""
-string k_open_print="N"
-int k_spessore=0, k_altezza=0, k_coord_y1, k_font_alt=18, k_max_item=0
-double k_coeff_di_spessore = 0.85 
-int k_ctr=0, k_ctr1=0, k_ctr2=0
-
-
-                                  k_caratt_bar_sp='bsbsbsbsb'
-k_caratt_barcode[00,0]='0';  k_caratt_barcode[00,1]='nnnwwnwnn'
-k_caratt_barcode[01,0]='1';  k_caratt_barcode[01,1]='wnnwnnnnw'
-k_caratt_barcode[02,0]='2';  k_caratt_barcode[02,1]='nnwwnnnnw'
-k_caratt_barcode[03,0]='3';  k_caratt_barcode[03,1]='wnwwnnnnn'
-k_caratt_barcode[04,0]='4';  k_caratt_barcode[04,1]='nnnwwnnnw'
-k_caratt_barcode[05,0]='5';  k_caratt_barcode[05,1]='wnnwwnnnn'
-k_caratt_barcode[06,0]='6';  k_caratt_barcode[06,1]='nnwwwnnnn'
-k_caratt_barcode[07,0]='7';  k_caratt_barcode[07,1]='nnnwnnwnw'
-k_caratt_barcode[08,0]='8';  k_caratt_barcode[08,1]='wnnwnnwnn'
-k_caratt_barcode[09,0]='9';  k_caratt_barcode[09,1]='nnwwnnwnn'
-k_caratt_barcode[10,0]='a';  k_caratt_barcode[10,1]='wnnnnwnnw'
-k_caratt_barcode[11,0]='b';  k_caratt_barcode[11,1]='nnwnnwnnw'
-k_caratt_barcode[12,0]='c';  k_caratt_barcode[12,1]='wnwnnwnnn'
-k_caratt_barcode[13,0]='d';  k_caratt_barcode[13,1]='nnnnwwnnw'
-k_caratt_barcode[14,0]='e';  k_caratt_barcode[14,1]='wnnnwwnnn'
-k_caratt_barcode[15,0]='f';  k_caratt_barcode[15,1]='nnwnwwnnn'
-k_caratt_barcode[16,0]='g';  k_caratt_barcode[16,1]='nnnnnwwnw'
-k_caratt_barcode[17,0]='h';  k_caratt_barcode[17,1]='wnnnnwwnn'
-k_caratt_barcode[18,0]='i';  k_caratt_barcode[18,1]='nnwnnwwnn'
-k_caratt_barcode[19,0]='j';  k_caratt_barcode[19,1]='nnnnwwwnn'
-k_caratt_barcode[20,0]='k';  k_caratt_barcode[20,1]='wnnnnnnww'
-k_caratt_barcode[21,0]='l';  k_caratt_barcode[21,1]='nnwnnnnww'
-k_caratt_barcode[22,0]='m';  k_caratt_barcode[22,1]='wnwnnnnwn'
-k_caratt_barcode[23,0]='n';  k_caratt_barcode[23,1]='nnnnwnnww'
-k_caratt_barcode[24,0]='o';  k_caratt_barcode[24,1]='wnnnwnnwn'
-k_caratt_barcode[25,0]='p';  k_caratt_barcode[25,1]='nnwnwnnwn'
-k_caratt_barcode[26,0]='q';  k_caratt_barcode[26,1]='nnnnnnwww'
-k_caratt_barcode[27,0]='r';  k_caratt_barcode[27,1]='wnnnnnwwn'
-k_caratt_barcode[28,0]='s';  k_caratt_barcode[28,1]='nnwnnnwwn'
-k_caratt_barcode[29,0]='t';  k_caratt_barcode[29,1]='nnnnwnwwn'
-k_caratt_barcode[30,0]='u';  k_caratt_barcode[30,1]='wwnnnnnnw'
-k_caratt_barcode[31,0]='v';  k_caratt_barcode[31,1]='nwwnnnnnw'
-k_caratt_barcode[32,0]='w';  k_caratt_barcode[32,1]='wwwnnnnnn'
-k_caratt_barcode[33,0]='x';  k_caratt_barcode[33,1]='nwnnwnnnw'
-k_caratt_barcode[34,0]='y';  k_caratt_barcode[34,1]='wwnnwnnnn'
-k_caratt_barcode[35,0]='z';  k_caratt_barcode[35,1]='nwwnwnnnn'
-k_caratt_barcode[36,0]='-';  k_caratt_barcode[36,1]='nwnnnnwnw'
-k_caratt_barcode[37,0]='.';  k_caratt_barcode[37,1]='wwnnnnwnn'
-k_caratt_barcode[38,0]=' ';  k_caratt_barcode[38,1]='nwwnnnwnn'
-k_caratt_barcode[39,0]='*';  k_caratt_barcode[39,1]='nwnnwnwnn'
-k_caratt_barcode[40,0]='$';  k_caratt_barcode[40,1]='nwnwnwnnn'
-k_caratt_barcode[41,0]='/';  k_caratt_barcode[41,1]='nwnwnnnwn'
-k_caratt_barcode[42,0]='+';  k_caratt_barcode[42,1]='nwnnnwnwn'
-k_caratt_barcode[43,0]='%';  k_caratt_barcode[43,1]='nnnwnwnwn'
-k_caratt_barcode[44,0]=' ';  k_caratt_barcode[44,1]='         '
-
-k_max_item = upperbound(k_caratt_barcode, 1)
-
-
-	if k_id_print = 0 or isnull(k_id_print) then
-		k_open_print = "S"
-		k_id_print = PrintOpen( )
-	end if
-	
-	if k_coord_x = 0 or isnull(k_coord_x) then
-		k_coord_x = 1170
-	end if
-	if k_coord_y = 0 or isnull(k_coord_y) then
-		k_coord_y = 3500
-	end if
-	if k_altezza_cb = 0 or isnull(k_altezza_cb) then
-		k_altezza_cb = 1600
-	end if
-	k_coord_y1 = k_coord_y - k_font_alt
-	k_altezza = k_altezza_cb + k_coord_y
-
-
-//--- definizione di un font per la stampa di stringhe
-	PrintDefineFont(k_id_print, 1, "Courier 10,12,15", - k_font_alt, 400, Fixed!, Modern!, FALSE, FALSE)
-	
-//--- carattere di inizio codice a barre
-	for k_ctr1 = 1 to 9
-		
-      if MidA(k_caratt_barcode[39,1],k_ctr1,1) = 'n' then
-			k_spessore = 10 * k_coeff_di_spessore
-		else
-			k_spessore = 25 * k_coeff_di_spessore
-		end if
-
-		if k_ctr1 = 5 then   // stampo il carattere per chiarezza
-			printtext (k_id_print, MidA(k_caratt_barcode[39,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
-		end if
-		
-      if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
-			Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
-		end if
-		k_coord_x = k_coord_x + k_spessore
-		
-	next
-
-//--- stringa alfanumerica dell'effettivo codice a barre riempita con zero a destra
-   k_barcode = trim(k_barcode) + FillA("0", (13 - LenA(trim(k_barcode)))) 
-	
-		
-	for k_ctr2 = 1 to 13
-		
-		k_ctr=0
-		do while MidA(k_barcode, k_ctr2, 1) = trim(k_caratt_barcode[k_ctr,0]) or k_ctr = k_max_item
-			k_ctr++
-		loop
-
-//--- se carattere del barcode non trovato in tabella code-39 allora forzo l'uscita!
-		if k_ctr = k_max_item then
-			k_ctr2 = 14
-		end if
-		
-		for k_ctr1 = 1 to 9
-			if MidA(k_caratt_barcode[k_ctr,1],k_ctr1,1) = 'n' then
-				k_spessore = 10 * k_coeff_di_spessore
-			else
-				k_spessore = 25 * k_coeff_di_spessore
-			end if
-	
-			if k_ctr1 = 5 then   // stampo il carattere per chiarezza
-			   printtext (k_id_print, MidA(k_caratt_barcode[k_ctr,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
-			end if
-				
-			if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
-				Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
-			end if
-			k_coord_x = k_coord_x + k_spessore
-			
-		next
-	next
-	
-//--- carattere di fine codice a barre
-	for k_ctr1 = 1 to 9
-      if MidA(k_caratt_barcode[39,1],k_ctr1,1) = 'n' then
-			k_spessore = 10 * k_coeff_di_spessore
-		else
-			k_spessore = 25 * k_coeff_di_spessore
-		end if
-
-		if k_ctr1 = 5 then   // stampo il carattere per chiarezza
-			printtext (k_id_print, MidA(k_caratt_barcode[39,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
-		end if
-		
-      if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
-			Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
-		end if
-		k_coord_x = k_coord_x + k_spessore
-		
-	next
-
-
-	if k_open_print = "S" then
-		PrintClose(k_id_print)
-	end if
-	
-
-
-
-
-end subroutine
 
 private subroutine stampa_barcode_f (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb, integer k_id_font);//
 // stampa codice a barre standard CODE 39
@@ -342,11 +171,9 @@ public subroutine stampa_etichetta_riferimento_close ();//
 // return:  set ki_id_print_etichette a zero 
 //
 int k_rc=0
-pointer kpointer
 
-//=== Puntatore Cursore da attesa.....
-	kpointer = SetPointer(HourGlass!)
 
+	SetPointer(kkg.pointer_attesa)
 
 	if ki_id_print_etichette > 0 then   // se streamer stampa non ancora open...
 		if PrintClose(ki_id_print_etichette) > 0 then
@@ -354,8 +181,12 @@ pointer kpointer
 		end if
 	end if
 
+	if trim(ki_stampante_originale) > " " then
+		k_rc = PrintSetPrinter(ki_stampante_originale)  // Ripristina la stampante originale
+		ki_stampante_originale = ""
+	end if
 
-	SetPointer(kpointer)
+	SetPointer(kkg.pointer_default)
 	
 
 
@@ -372,7 +203,7 @@ string k_nessuna_elab="N"
 string k_barcode_x
 int k_barcode_altezza=0, k_barcode_coord_x, k_barcode_coord_y
 int k_barcode_tot_lotto, k_conta_barcode=0, k_barcode_gia_stampati=0, k_etichette_stampate=0
-int k_ctr=0, k_ctr1=0, k_ctr2=0, k_rec_mod=0
+int k_ctr=0, k_ctr1=0, k_ctr2=0
 date k_dataoggi 
 constant int k_num_righe_giu=5800 
 constant int k_num_righe_giu_x4=4020  
@@ -541,7 +372,7 @@ declare kc_listview cursor for
 
 			if ki_id_print_etichette = 0 then   // se streamer stampa non ancora open...
 				k_monoetichetta = true
-				stampa_etichetta_riferimento_open(kst_tab_barcode)
+				stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, true)
 			end if
 
 			if ki_id_print_etichette = 0 then   // se streamer stampa non open...
@@ -871,11 +702,6 @@ declare kc_listview cursor for
 		
 		close kc_listview;
 
-
-		if k_rec_mod > 0 then
-			commit using sqlca;
-		end if
-		
 	end if
 
 	if isvalid(kuf1_base) then destroy kuf1_base
@@ -889,68 +715,6 @@ declare kc_listview cursor for
 
 
 end function
-
-public subroutine stampa_etichetta_riferimento_open (st_tab_barcode kst_tab_barcode);//
-// stampa dell'etichetta: Open dello streamer di stampa
-// return:  set ki_id_print_etichette
-//
-int k_rc=0
-string k_nessuna_elab="N"
-string  k_stampante
-pointer kpointer  // Declares a pointer variable
-kuf_base kuf1_base
-
-
-
-//--- Puntatore Cursore da attesa.....
-	kpointer = SetPointer(HourGlass!)
-
-		kuf1_base = create kuf_base
-		k_stampante = trim(MidA(kuf1_base.prendi_dato_base( "stamp_cbarre"),2))
-		destroy kuf1_base
-		if LenA(trim(k_stampante)) = 0 or isnull(k_stampante) then
-			k_rc = printsetup() 
-		
-			if k_rc < 1 or isnull(k_rc) or k_rc = 0 then
-				k_nessuna_elab = "S" 
-			end if
-		else		
-			 
-			if PrintSetPrinter (k_stampante) <= 0 then
-				k_nessuna_elab = "S"
-			end if
-			
-		end if
-
-		if	k_nessuna_elab <> "S" then
-			if ki_id_print_etichette = 0 then   // se streamer stampa non ancora open...
-//				ki_id_print_etichette = PrintOpen( ) 
-				if isnull(kst_tab_barcode.id_meca) then kst_tab_barcode.id_meca = 0
-				ki_id_print_etichette = PrintOpen( "barcodeLotto_" + string(kst_tab_barcode.id_meca), FALSE )
-				if ki_id_print_etichette < 0 then
-					kguo_exception.inizializza(this.classname())
-					kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-					kguo_exception.kist_esito.sqlcode = ki_id_print_etichette 
-					kguo_exception.kist_esito.sqlerrtext = "Errore in Stampa Etichette Lotto id " + string(kst_tab_barcode.id_meca) + "."&
-					                                       + " Stampante non aperta: " + trim(k_stampante)
-					kguo_exception.scrivi_log( )
-					ki_id_print_etichette = 0
-				else
-					ki_num_etichetta_in_pag=0  // contatore etichette nella pagina (probabile al max 2 o 4)
-				end if
-			end if
-		else
-			ki_id_print_etichette = 0
-		end if
-
-
-	SetPointer(kpointer)
-	
-
-
-
-
-end subroutine
 
 public function boolean stampa_etichetta_riferimento_1_4xpag (st_barcode_stampa kst_barcode_stampa);//
 // stampa 4 etichette di TRATTAMENTO con il codice a barre  
@@ -1636,10 +1400,10 @@ declare kc_listview cursor for
 		order by barcode.barcode using kguo_sqlca_db_magazzino;
 
 
-
+try
+	
 //=== Puntatore Cursore da attesa.....
 	kpointer = SetPointer(HourGlass!)
-
 
 	kuf1_base = create kuf_base
 	kuf1_barcode = create kuf_barcode
@@ -1650,6 +1414,7 @@ declare kc_listview cursor for
 	k_etichette_stampate=0
 	kst_tab_barcode.barcode = trim(k_barcode)
 
+	kguo_sqlca_db_magazzino.db_commit( )  // metto anche qui per evitare forse errore in TemporalTable ATTENZIONE LA COMMIT CHIUDE IL CURSOR!!
 
 //=== Controlla se funzione Autorizzata o meno 
 	if not ki_stampa_etichetta_autorizza then 
@@ -1716,8 +1481,7 @@ declare kc_listview cursor for
 			end if
 			
 		end if
-
-				 
+ 
 	end if
 
 //--- se query ok e funzione Abilitata
@@ -1732,7 +1496,7 @@ declare kc_listview cursor for
 
 			if ki_id_print_etichette = 0 then   // se streamer stampa non ancora open...
 				k_monoetichetta = true
-				stampa_etichetta_riferimento_open(kst_tab_barcode)
+				stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, true)
 			end if
 
 			if ki_id_print_etichette = 0 then   // se streamer stampa non open...
@@ -1780,7 +1544,6 @@ declare kc_listview cursor for
 		
 				end if
 
-	
 //--- prima lettura fuori ciclo	
 				fetch kc_listview 
 					into
@@ -2193,18 +1956,20 @@ declare kc_listview cursor for
 					end if
 					
 //--- Aggiorno data di stampa
-					update barcode
-						set data_stampa = :k_dataoggi
-						 WHERE 
-							 barcode = :kst_tab_barcode.barcode
-						using kguo_sqlca_db_magazzino;
+					kst_tab_barcode.st_tab_g_0.esegui_commit = "N"
+					kst_tab_barcode.data_stampa = k_dataoggi
+					kuf1_barcode.set_data_stampa(kst_tab_barcode)
+//					update barcode
+//						set data_stampa = :k_dataoggi
+//						 WHERE 
+//							 barcode = :kst_tab_barcode.barcode
+//						using kguo_sqlca_db_magazzino;
 						
-					if kguo_sqlca_db_magazzino.sqlcode = 0 then
+//					if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+//						kguo_sqlca_db_magazzino.db_commit( )  // metto anche qui per evitare forse errore in TemporalTable
 						k_rec_mod++
-					end if
+//					end if
 
-					
-				
 					fetch kc_listview 
 							into
 						  :kst_tab_barcode.id_meca
@@ -2272,12 +2037,16 @@ declare kc_listview cursor for
 	
 		end if
 		
+	end if
 
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+	
+finally
 //--- se ho aggiornato qls allora commit!
-		if k_rec_mod > 0 then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-		
+	if k_rec_mod > 0 then
+		kguo_sqlca_db_magazzino.db_commit( )
 	end if
 
 	if isvalid(kuf1_base) then destroy kuf1_base
@@ -2285,8 +2054,9 @@ declare kc_listview cursor for
 
 	SetPointer(kpointer)
 	
+end try
 
-	return k_etichette_stampate
+return k_etichette_stampate
 
 
 
@@ -2965,6 +2735,558 @@ int k_len, k_ind
 
 end function
 
+private subroutine stampa_barcode (string k_barcode, longlong k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb);//
+// stampa codice a barre standard CODE 39
+//
+// 1'' (inches) = 2,54 cm 
+// ogni carattere è composto da 5 barre e 4 spazi (=9 elementi)
+// ogni elemento può essere fine o grosso (narrow o wide)
+// 3 dei 9 elementi deve essere wide (ecco xchè si chiama 'code 39')
+// la tabella k_caratt_barcode è di 44, ogni stringa contiene 9 caratteri che indicano 
+// la sequenza 'sottile' e 'grosso' iniziando dall'elemento barra poi spazio poi barra ecc... 
+// la codebar intera è composta da una zona franca di almeno 0,1'' + il carattere di 
+// inizio '*' + il codice + il carattere di fine '*' + zona franca di almeno 0,1''
+//
+string k_caratt_barcode[0 to 44, 0 to 1], k_caratt_bar_sp=""
+string k_open_print="N"
+int k_spessore=0, k_altezza=0, k_coord_y1, k_font_alt=18, k_max_item=0
+double k_coeff_di_spessore = 0.85 
+int k_ctr=0, k_ctr1=0, k_ctr2=0
+
+
+                                  k_caratt_bar_sp='bsbsbsbsb'
+k_caratt_barcode[00,0]='0';  k_caratt_barcode[00,1]='nnnwwnwnn'
+k_caratt_barcode[01,0]='1';  k_caratt_barcode[01,1]='wnnwnnnnw'
+k_caratt_barcode[02,0]='2';  k_caratt_barcode[02,1]='nnwwnnnnw'
+k_caratt_barcode[03,0]='3';  k_caratt_barcode[03,1]='wnwwnnnnn'
+k_caratt_barcode[04,0]='4';  k_caratt_barcode[04,1]='nnnwwnnnw'
+k_caratt_barcode[05,0]='5';  k_caratt_barcode[05,1]='wnnwwnnnn'
+k_caratt_barcode[06,0]='6';  k_caratt_barcode[06,1]='nnwwwnnnn'
+k_caratt_barcode[07,0]='7';  k_caratt_barcode[07,1]='nnnwnnwnw'
+k_caratt_barcode[08,0]='8';  k_caratt_barcode[08,1]='wnnwnnwnn'
+k_caratt_barcode[09,0]='9';  k_caratt_barcode[09,1]='nnwwnnwnn'
+k_caratt_barcode[10,0]='a';  k_caratt_barcode[10,1]='wnnnnwnnw'
+k_caratt_barcode[11,0]='b';  k_caratt_barcode[11,1]='nnwnnwnnw'
+k_caratt_barcode[12,0]='c';  k_caratt_barcode[12,1]='wnwnnwnnn'
+k_caratt_barcode[13,0]='d';  k_caratt_barcode[13,1]='nnnnwwnnw'
+k_caratt_barcode[14,0]='e';  k_caratt_barcode[14,1]='wnnnwwnnn'
+k_caratt_barcode[15,0]='f';  k_caratt_barcode[15,1]='nnwnwwnnn'
+k_caratt_barcode[16,0]='g';  k_caratt_barcode[16,1]='nnnnnwwnw'
+k_caratt_barcode[17,0]='h';  k_caratt_barcode[17,1]='wnnnnwwnn'
+k_caratt_barcode[18,0]='i';  k_caratt_barcode[18,1]='nnwnnwwnn'
+k_caratt_barcode[19,0]='j';  k_caratt_barcode[19,1]='nnnnwwwnn'
+k_caratt_barcode[20,0]='k';  k_caratt_barcode[20,1]='wnnnnnnww'
+k_caratt_barcode[21,0]='l';  k_caratt_barcode[21,1]='nnwnnnnww'
+k_caratt_barcode[22,0]='m';  k_caratt_barcode[22,1]='wnwnnnnwn'
+k_caratt_barcode[23,0]='n';  k_caratt_barcode[23,1]='nnnnwnnww'
+k_caratt_barcode[24,0]='o';  k_caratt_barcode[24,1]='wnnnwnnwn'
+k_caratt_barcode[25,0]='p';  k_caratt_barcode[25,1]='nnwnwnnwn'
+k_caratt_barcode[26,0]='q';  k_caratt_barcode[26,1]='nnnnnnwww'
+k_caratt_barcode[27,0]='r';  k_caratt_barcode[27,1]='wnnnnnwwn'
+k_caratt_barcode[28,0]='s';  k_caratt_barcode[28,1]='nnwnnnwwn'
+k_caratt_barcode[29,0]='t';  k_caratt_barcode[29,1]='nnnnwnwwn'
+k_caratt_barcode[30,0]='u';  k_caratt_barcode[30,1]='wwnnnnnnw'
+k_caratt_barcode[31,0]='v';  k_caratt_barcode[31,1]='nwwnnnnnw'
+k_caratt_barcode[32,0]='w';  k_caratt_barcode[32,1]='wwwnnnnnn'
+k_caratt_barcode[33,0]='x';  k_caratt_barcode[33,1]='nwnnwnnnw'
+k_caratt_barcode[34,0]='y';  k_caratt_barcode[34,1]='wwnnwnnnn'
+k_caratt_barcode[35,0]='z';  k_caratt_barcode[35,1]='nwwnwnnnn'
+k_caratt_barcode[36,0]='-';  k_caratt_barcode[36,1]='nwnnnnwnw'
+k_caratt_barcode[37,0]='.';  k_caratt_barcode[37,1]='wwnnnnwnn'
+k_caratt_barcode[38,0]=' ';  k_caratt_barcode[38,1]='nwwnnnwnn'
+k_caratt_barcode[39,0]='*';  k_caratt_barcode[39,1]='nwnnwnwnn'
+k_caratt_barcode[40,0]='$';  k_caratt_barcode[40,1]='nwnwnwnnn'
+k_caratt_barcode[41,0]='/';  k_caratt_barcode[41,1]='nwnwnnnwn'
+k_caratt_barcode[42,0]='+';  k_caratt_barcode[42,1]='nwnnnwnwn'
+k_caratt_barcode[43,0]='%';  k_caratt_barcode[43,1]='nnnwnwnwn'
+k_caratt_barcode[44,0]=' ';  k_caratt_barcode[44,1]='         '
+
+k_max_item = upperbound(k_caratt_barcode, 1)
+
+
+	if k_id_print = 0 or isnull(k_id_print) then
+		k_open_print = "S"
+		k_id_print = PrintOpen( )
+	end if
+	
+	if k_coord_x = 0 or isnull(k_coord_x) then
+		k_coord_x = 1170
+	end if
+	if k_coord_y = 0 or isnull(k_coord_y) then
+		k_coord_y = 3500
+	end if
+	if k_altezza_cb = 0 or isnull(k_altezza_cb) then
+		k_altezza_cb = 1600
+	end if
+	k_coord_y1 = k_coord_y - k_font_alt
+	k_altezza = k_altezza_cb + k_coord_y
+
+
+//--- definizione di un font per la stampa di stringhe
+	PrintDefineFont(k_id_print, 1, "Courier 10,12,15", - k_font_alt, 400, Fixed!, Modern!, FALSE, FALSE)
+	
+//--- carattere di inizio codice a barre
+	for k_ctr1 = 1 to 9
+		
+      if MidA(k_caratt_barcode[39,1],k_ctr1,1) = 'n' then
+			k_spessore = 10 * k_coeff_di_spessore
+		else
+			k_spessore = 25 * k_coeff_di_spessore
+		end if
+
+		if k_ctr1 = 5 then   // stampo il carattere per chiarezza
+			printtext (k_id_print, MidA(k_caratt_barcode[39,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
+		end if
+		
+      if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
+			Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
+		end if
+		k_coord_x = k_coord_x + k_spessore
+		
+	next
+
+//--- stringa alfanumerica dell'effettivo codice a barre riempita con zero a destra
+   k_barcode = trim(k_barcode) + FillA("0", (13 - LenA(trim(k_barcode)))) 
+	
+		
+	for k_ctr2 = 1 to 13
+		
+		k_ctr=0
+		do while MidA(k_barcode, k_ctr2, 1) = trim(k_caratt_barcode[k_ctr,0]) or k_ctr = k_max_item
+			k_ctr++
+		loop
+
+//--- se carattere del barcode non trovato in tabella code-39 allora forzo l'uscita!
+		if k_ctr = k_max_item then
+			k_ctr2 = 14
+		end if
+		
+		for k_ctr1 = 1 to 9
+			if MidA(k_caratt_barcode[k_ctr,1],k_ctr1,1) = 'n' then
+				k_spessore = 10 * k_coeff_di_spessore
+			else
+				k_spessore = 25 * k_coeff_di_spessore
+			end if
+	
+			if k_ctr1 = 5 then   // stampo il carattere per chiarezza
+			   printtext (k_id_print, MidA(k_caratt_barcode[k_ctr,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
+			end if
+				
+			if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
+				Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
+			end if
+			k_coord_x = k_coord_x + k_spessore
+			
+		next
+	next
+	
+//--- carattere di fine codice a barre
+	for k_ctr1 = 1 to 9
+      if MidA(k_caratt_barcode[39,1],k_ctr1,1) = 'n' then
+			k_spessore = 10 * k_coeff_di_spessore
+		else
+			k_spessore = 25 * k_coeff_di_spessore
+		end if
+
+		if k_ctr1 = 5 then   // stampo il carattere per chiarezza
+			printtext (k_id_print, MidA(k_caratt_barcode[39,0],k_ctr1,1), k_coord_x, k_coord_y1, 1)
+		end if
+		
+      if MidA(k_caratt_bar_sp,k_ctr1,1) = 'b' then
+			Printline(k_id_print, k_coord_x, k_coord_y, k_coord_x, k_altezza, k_spessore)
+		end if
+		k_coord_x = k_coord_x + k_spessore
+		
+	next
+
+
+	if k_open_print = "S" then
+		PrintClose(k_id_print)
+	end if
+	
+
+
+
+
+end subroutine
+
+public function boolean stampa_etichetta_riferimento_open (long a_id_meca, boolean a_ristampa);//
+// stampa dell'etichetta: Open dello streamer di stampa
+// return:  set ki_id_print_etichette
+//
+int k_rc=0
+boolean k_elabora = true
+string  k_stampante
+kuf_base kuf1_base
+
+
+	SetPointer(kkg.pointer_attesa)
+
+	ki_stampante_originale = PrintGetPrinter()  // salva la stampante originale impostata
+
+//--- se non sono in ristampa chiedo la stampante
+	if not a_ristampa then
+		kuf1_base = create kuf_base
+		k_stampante = trim(mid(kuf1_base.prendi_dato_base(kuf1_base.kki_base_utenti_codice_stbarcode),2)) // controlla prima la stampante personale dei barcode
+		if k_stampante > " " then
+		else
+			k_stampante = trim(mid(kuf1_base.prendi_dato_base( "stamp_cbarre"),2))  // cerca su tabella generale
+		end if
+		destroy kuf1_base
+	end if
+	
+	if k_stampante > " " then
+		
+		if PrintSetPrinter (k_stampante) <= 0 then
+			k_elabora = false
+		end if
+		
+	else		
+
+		if printsetup() < 0 then  // se alla fine non è non impostata la chiede
+			k_elabora = false
+		else
+			k_stampante = PrintGetPrinter()  // get della stampante scelta
+		end if
+		
+	end if
+
+	if	k_elabora then
+		if ki_id_print_etichette = 0 then   // se streamer stampa non ancora open...
+//				ki_id_print_etichette = PrintOpen( ) 
+			if isnull(a_id_meca) then a_id_meca = 0
+			ki_id_print_etichette = PrintOpen( "barcodeLotto_" + string(a_id_meca), FALSE )
+			if ki_id_print_etichette < 0 then
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+				kguo_exception.kist_esito.sqlcode = ki_id_print_etichette 
+				kguo_exception.kist_esito.sqlerrtext = "Errore in Stampa Etichette Lotto id/ASN " + string(a_id_meca) + "."&
+																	+ " Stampante indicata non connessa: " + kkg.acapo + "'" + trim(k_stampante) + "' "
+				kguo_exception.messaggio_utente( )
+				ki_id_print_etichette = 0
+			else
+				ki_num_etichetta_in_pag=0  // contatore etichette nella pagina (probabile al max 2 o 4)
+			end if
+		end if
+	else
+		ki_id_print_etichette = 0
+	end if
+
+	SetPointer(kkg.pointer_default)
+	
+return k_elabora
+end function
+
+public function integer stampa_etichetta_riferimento_campioni (long a_id_meca) throws uo_exception;/*
+ stampa etichette CONTROCAMPIONI 
+ return:  numero di barcode stampati 0=nessuno
+*/
+int k_return
+int k_rc=0, k_i, k_row
+string k_nessuna_elab="N"
+string k_barcode_x
+int k_barcode_altezza=0, k_barcode_coord_x, k_barcode_coord_y
+int k_barcode_tot_lotto, k_barcode_generati, k_etichette_stampate
+int k_ctr=0, k_ctr1=0, k_ctr2=0
+date k_dataoggi 
+constant int k_num_righe_giu=5800 
+constant int k_num_righe_giu_x4=4020  
+constant int k_num_col_dx_x4=5450 
+boolean k_print_open = false
+int k_num_righe = 1, k_inizio_riga=0, k_inizio_col=0
+int k_num_colonne = 0, k_len_max
+kuf_armo_campioni kuf1_armo_campioni
+kuf_base kuf1_base
+st_tab_armo_campioni kst_tab_armo_campioni
+st_tab_meca kst_tab_meca
+st_tab_clienti kst_tab_clienti_1, kst_tab_clienti_2
+st_tab_base kst_tab_base
+uo_ds_std_1 kds_1
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+
+	kuf1_armo_campioni = create kuf_armo_campioni
+	kuf1_base = create kuf_base
+
+	if a_id_meca> 0 then
+	else
+		return 0
+	end if
+
+	kds_1 = kuf1_armo_campioni.get_ds_armo_campioni_print(a_id_meca) // torna il datastore con i Campioni da stampare li genera se necessario
+	k_barcode_generati = kds_1.rowcount( )
+	if k_barcode_generati < 0 then
+		kguo_exception.set_esito(kds_1.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Stampa etichette Controcampioni: Errore in lettura Barcode Campioni per Lotto id " + string(a_id_meca) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+		throw kguo_exception 
+	end if
+	if k_barcode_generati > 0 then
+	else
+		return 0
+	end if
+
+//	if not ki_stampa_etichetta_autorizza then 
+//		
+//		stampa_etichetta_riferimento_autorizza()
+//		
+//	end if
+//--- se query ok e funzione Abilitata
+//	if not ki_stampa_etichetta_autorizza then
+//		return 0
+//	end if
+	
+//--- individuo il tipo modulo x etichette codici a barre da stampare (2 etich x foglio A3 o 4 etic x foglio A4 o su etichettarice...)
+	kst_tab_base.barcode_modulo = kGuf_data_base.ki_barcode_modulo // trim(MidA(kuf1_base.prendi_dato_base( "barcode_modulo"),2))
+
+	if ki_id_print_etichette = 0 then   // se streamer stampa non ancora open...
+		k_print_open = true
+		stampa_etichetta_riferimento_open(a_id_meca, true)
+	end if
+
+	if ki_id_print_etichette = 0 then   // se streamer stampa non open...
+		return 0
+	end if
+				
+	if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+
+		k_barcode_coord_x = (2.0 / 2.54) * 520   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_coord_y = (7.0 / 2.54) * 580   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_altezza = (0.6 / 2.54) * 1200   //--- (Xcm / coeff di conv x pollici) * migliaia
+		
+	else		
+
+		k_barcode_coord_x = (2.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_coord_y = (7.0 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+		k_barcode_altezza = (0.6 / 2.54) * 1000   //--- (Xcm / coeff di conv x pollici) * migliaia
+
+	end if
+				
+//--- Imposta i FONT di default
+	u_set_font_default( )
+	
+//--- personalizza il font 7	
+	PrintDefineFont(ki_id_print_etichette, 7, ki_font_name[7], -52, 400, Fixed!, Modern!, FALSE, FALSE)
+	
+//------------------------------------------------------------------------------------------------------------------------------------ CICLO LETTURE
+	for k_etichette_stampate = 1 to k_barcode_generati
+
+		kst_tab_armo_campioni.id_armo_campione = kds_1.getitemnumber(k_etichette_stampate, "id_armo_campione") 
+		kst_tab_armo_campioni.id_armo = kds_1.getitemnumber(k_etichette_stampate, "id_armo") 
+		kst_tab_armo_campioni.barcode = kds_1.getitemstring(k_etichette_stampate, "barcode") 
+		kst_tab_meca.num_int = kds_1.getitemnumber(k_etichette_stampate, "num_int") 
+		kst_tab_meca.data_int = kds_1.getitemdate(k_etichette_stampate, "data_int") 
+		kst_tab_meca.data_ent = kds_1.getitemdatetime(k_etichette_stampate, "data_ent") 
+		kst_tab_meca.clie_1 = kds_1.getitemnumber(k_etichette_stampate, "clie_1") 
+		kst_tab_clienti_1.rag_soc_10 = kds_1.getitemstring(k_etichette_stampate, "rag_soc_1") 
+		kst_tab_meca.clie_2 = kds_1.getitemnumber(k_etichette_stampate, "clie_2") 
+		kst_tab_clienti_2.rag_soc_10 = kds_1.getitemstring(k_etichette_stampate, "rag_soc_2") 
+		kst_tab_meca.area_mag = kds_1.getitemstring(k_etichette_stampate, "area_mag") 
+
+////--- salvo il nr. rif xche' al cambio devo fare il salto pagina SE PRIMA VOLTA
+//				if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+//					if isnull(kist_tab_barcode_stampa_save.num_int) then kist_tab_barcode_stampa_save.num_int = 0
+//				else
+//					if isnull(kist_tab_barcode_stampa_save.num_int) or kist_tab_barcode_stampa_save.num_int = 0 then
+//						kist_tab_barcode_stampa_save.num_int = kst_tab_meca.num_int	
+//					end if
+//				end if
+
+		ki_num_etichetta_in_pag ++
+				
+//--- MODULO A 4 ETICHETTE OPPURE 1 SU ETICHETTATRICE ----------------------------------------------------------------------------------------------------------------------------------- 
+		if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina or trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+
+//--- Numero etichetta
+//--- se sono su etichettatrice salto subito pagina							
+			if trim(kst_tab_base.barcode_modulo) = barcode_modulo_4xpagina then
+				choose case ki_num_etichetta_in_pag
+						
+					case 1
+						k_num_colonne = -300
+						k_num_righe = 0
+						
+					case 2
+						k_num_colonne = -300
+						k_num_righe = k_num_righe_giu_x4
+						
+					case 3
+						k_num_colonne = k_num_col_dx_x4
+						k_num_righe = 0
+						
+					case 4
+						k_num_colonne = k_num_col_dx_x4
+						k_num_righe = k_num_righe_giu_x4
+						
+					case else
+//--- salto pagina 
+						PrintPage ( ki_id_print_etichette )
+						ki_num_etichetta_in_pag = 1
+						k_num_colonne = -300
+						k_num_righe = 0
+				end choose
+				
+			end if
+
+//--- se sono su etichettatrice 
+			if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+				k_num_colonne = -150
+				k_num_righe = 200
+			end if
+
+// stampa il logo ad inizio foglio
+			PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + kkg.path_sep + "et_bcode_x4_avvertenze.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) //2400, 750) 
+			PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + kkg.path_sep + "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500) //2500, 500)
+
+//--- Sezione Anagrafiche Clienti 
+			k_inizio_riga = 720
+			k_inizio_col = 450
+			printtext (ki_id_print_etichette, "Mandante :", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[1,1])
+			printtext (ki_id_print_etichette, "Ricevente :", k_inizio_col+k_num_colonne, k_inizio_riga +300 + k_num_righe, kist_barcode_stampa.font[1,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.clie_1,"####0") , k_inizio_col+550+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[1,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.clie_2,"####0") , k_inizio_col+550+k_num_colonne, k_inizio_riga + 300 + k_num_righe, kist_barcode_stampa.font[1,1])
+			printtext (ki_id_print_etichette, trim(kst_tab_clienti_1.rag_soc_10) , k_inizio_col+850+k_num_colonne, k_inizio_riga - 80 + k_num_righe, kist_barcode_stampa.font[3,1])
+			printtext (ki_id_print_etichette, trim(kst_tab_clienti_2.rag_soc_10) , k_inizio_col+850+k_num_colonne, k_inizio_riga + 220 + k_num_righe, kist_barcode_stampa.font[3,1])
+
+//--- Sezione Riferimento
+			k_inizio_riga = 1480  //1500
+			k_inizio_col = 520   //2750
+			printtext (ki_id_print_etichette, "RIF.: ", k_inizio_col+k_num_colonne, k_inizio_riga + 100 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.num_int,"####0") , k_inizio_col + 400+k_num_colonne, k_inizio_riga - 170 + k_num_righe, kist_barcode_stampa.font[5,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.data_int,"dd/mm/yy") , k_inizio_col+1900+k_num_colonne, k_inizio_riga + 100 + k_num_righe, kist_barcode_stampa.font[2,1])
+
+//--- Sezione Etichetta
+			k_inizio_riga = 1480  //1500
+			k_inizio_col = 3700   //2750
+			printtext (ki_id_print_etichette, "Etichetta: ", k_inizio_col+k_num_colonne, k_inizio_riga + 100 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(k_etichette_stampate,"####0") + "." + string (k_barcode_generati,"####0") &
+							, k_inizio_col+900+k_num_colonne, k_inizio_riga -120 + k_num_righe, kist_barcode_stampa.font[6,1])
+
+//--- Sezione NOTE
+			k_inizio_riga = 2100
+			k_inizio_col = 520 
+			printtext (ki_id_print_etichette, "ETICHETTA CONTROCAMPIONI", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+
+//--- Sezione BARCODE: testo 
+			k_inizio_riga = 3200
+			k_inizio_col = 620 
+			if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+				printtext (ki_id_print_etichette, string(trim(kst_tab_armo_campioni.barcode),"@@@ @@@@@"), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			else							
+				if isnumber(Left(kst_tab_armo_campioni.barcode,1)) then
+					printtext (ki_id_print_etichette, string(trim(kst_tab_armo_campioni.barcode),"@@@@@@@@"), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+				else							
+					printtext (ki_id_print_etichette, string(trim(kst_tab_armo_campioni.barcode),"@@@@@@@@"), k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+				end if
+			end if
+
+//--- Area di magazzino
+			k_inizio_riga = 3450
+			k_inizio_col = 3900 
+			if trim(kst_tab_meca.area_mag) > " " then
+				printtext (ki_id_print_etichette, "Area di Ubicazione: ", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[1,1])
+				printtext (ki_id_print_etichette, string(trim(kst_tab_meca.area_mag),"@@ @@@@@@@@@@"), k_inizio_col+k_num_colonne+800, k_inizio_riga + k_num_righe -50, kist_barcode_stampa.font[2,1])
+			end if
+
+//--- Sezione BARCODE: il codice a BARRE
+			k_inizio_riga = 2350
+			k_inizio_col = 700
+			stampa_barcode_f ( kst_tab_armo_campioni.barcode, ki_id_print_etichette, k_inizio_col + k_num_colonne, (k_inizio_riga + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
+
+//--- se Etichettatrice (1 etich) allora stampo
+			if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta then
+				
+				PrintPage ( ki_id_print_etichette )  //--- FORZA salto pagina 
+				ki_num_etichetta_in_pag = 1
+				
+			end if
+				
+		else		
+//--- MODULO A 2 ETICHETTE ------------------------------------------------------------------------------------- 
+
+			if ki_num_etichetta_in_pag = 2 then
+				k_num_righe = k_num_righe_giu
+			else
+				k_num_righe = 0
+//--- salto pagina 
+				if ki_num_etichetta_in_pag > 2 then
+					PrintPage ( ki_id_print_etichette )
+					ki_num_etichetta_in_pag = 1
+				end if
+			end if
+		
+			
+// stampa il logo ad inizio foglio
+			PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_avvertenze.bmp", 300, 1 + k_num_righe, 7800, 5750)
+			PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\logo_barcode.jpg", 400, 1 + k_num_righe,  2400, 800) // 0, 0)
+
+//--- Sezione Anagrafiche Clienti 
+			printtext (ki_id_print_etichette, "Cliente :", 450, 1200 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, "Ricevente :", 450, 1800 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.clie_1,"####0") , 1600, 1200 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.clie_2,"####0") , 1600, 1800 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, trim(kst_tab_clienti_1.rag_soc_10) , 2050, 1050 + k_num_righe, kist_barcode_stampa.font[4,1])
+			printtext (ki_id_print_etichette, trim(kst_tab_clienti_2.rag_soc_10) , 2050, 1650 + k_num_righe, kist_barcode_stampa.font[4,1])
+
+//--- Sezione Sinistra Riferimento
+			printtext (ki_id_print_etichette, "RIF: ", 450 - 50, 2400 - 20  + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.num_int,"####0") , 1800 - 800, 2300 + k_num_righe - 80, kist_barcode_stampa.font[5,1])
+			printtext (ki_id_print_etichette, string(kst_tab_meca.data_int,"dd/mm/yy") , 2950 - 600, 2400 + k_num_righe, kist_barcode_stampa.font[3,1])
+
+//--- Sezione Lotto
+			printtext (ki_id_print_etichette, "Etichetta: ", 400, 3450 + k_num_righe, kist_barcode_stampa.font[2,1])
+			printtext (ki_id_print_etichette, string(k_etichette_stampate,"####0") + "." + string (k_barcode_generati,"####0"), 1220, 3450 + k_num_righe, kist_barcode_stampa.font[6,1])
+
+//--- Note
+			printtext (ki_id_print_etichette, "ETICHETTE CONTROCAMPIONI", 280, 3650 + k_num_righe, kist_barcode_stampa.font[7,1])
+
+//--- Sezione BARCODE: testo
+			k_inizio_riga = 4650
+			if isnumber(LeftA(kst_tab_armo_campioni.barcode,1)) then
+				printtext (ki_id_print_etichette, string(trim(kst_tab_armo_campioni.barcode),"@@@ @@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			else
+				printtext (ki_id_print_etichette, string(trim(kst_tab_armo_campioni.barcode),"@@@@@@@@"), 280, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[6,1])
+			end if
+
+//--- Area di magazzino
+			k_inizio_riga = 650
+			k_inizio_col = 5000 
+			if trim(kst_tab_meca.area_mag) > " " then
+				printtext (ki_id_print_etichette, "Area di Ubicazione: ", k_inizio_col+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[1,1])
+				printtext (ki_id_print_etichette, string(trim(kst_tab_meca.area_mag),"@@ @@@@@@@@@@"), k_inizio_col+2000+k_num_colonne, k_inizio_riga + k_num_righe, kist_barcode_stampa.font[2,1])
+			end if
+
+//--- Sezione BARCODE: il codice a BARRE
+			stampa_barcode_f ( kst_tab_armo_campioni.barcode, ki_id_print_etichette, 680, (4000 + k_num_righe), k_barcode_altezza, kist_barcode_stampa.font[1,1] )
+
+		end if
+
+		kuf1_armo_campioni.set_ts_stampa(kst_tab_armo_campioni)  // Aggiorna Data e ora stampa etichette
+		
+		k_return++
+	next
+	
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+//--- Spedisce la stampa al dispositivo e chiude la coda se sono in modalita' mono-etichetta
+	if k_print_open then
+		stampa_etichetta_riferimento_close()
+	end if
+	if isvalid(kuf1_armo_campioni) then destroy kuf1_armo_campioni
+	if isvalid(kuf1_base) then destroy kuf1_base
+
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+
+end function
+
 on kuf_barcode_stampa.create
 call super::create
 end on
@@ -2975,7 +3297,7 @@ end on
 
 event constructor;call super::constructor;//
 	ki_nomeOggetto = "kuf_barcode" 
-
+	
 	
 
 end event

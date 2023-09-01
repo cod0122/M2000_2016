@@ -39,6 +39,10 @@ FUNCTION long GetComputerNameA(ref string compname,ref ulong slength) LIBRARY "k
 
 end prototypes
 
+type variables
+
+end variables
+
 forward prototypes
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag)
 public function integer ext_popola_new_tab ()
@@ -55,10 +59,8 @@ public function st_esito errori_visualizza_log (integer k_tipo)
 public function st_esito errori_visualizza_log_informix (integer k_tipo)
 public function string u_stringa_pulisci (string k_stringa)
 public function st_esito u_dw_check_dup_row (ref datawindow kdw_buffer, string k_key[5])
-public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref datawindow k_dw)
 public function string u_nome_computer ()
 private subroutine u_stored_procedure ()
-public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref datawindow k_dw)
 public function integer ext_popola_id_meca ()
 public function boolean u_check_network ()
 public function boolean u_check_caps_on ()
@@ -127,13 +129,14 @@ public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1)
 public function string u_dw_get_protect_evaluate (datawindow adw_1, integer a_field_n)
 public function string u_get_tooltip_text (string a_tooltip_tip) throws uo_exception
 public function string u_stringa_spezza (string k_stringa)
-public subroutine u_dw_set_riga_new_color (ref uo_d_std_1 auo_d_std_1)
-private subroutine u_dw_set_column_color (ref datawindow k_dw)
-private subroutine u_dw_set_column_color (ref uo_d_std_1 k_dw)
 public function int u_open_app_files (string a_file) throws uo_exception
 public function integer u_stringa_split (ref string a_string[], string a_sep)
 public function string u_url_sep_path_by_name (ref string a_url)
 public function string u_url_encode (string a_url, boolean a_replace_puls_sign)
+public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw)
+private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw)
+private subroutine old_u_dw_set_column_color (ref datawindow k_dw)
+public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -1474,116 +1477,6 @@ end if
 return kst_esito
 end function
 
-public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref datawindow k_dw);//---
-//--- meglio usare: u_proteggi_sproteggi_dw
-
-//---
-//--- Protegge/Sprotegge campi della dw
-//---
-//--- parametri di input:
-//---    k_operazione se:
-//          1=proteggi dw;
-//          3=proteggi senza modificare il colore nella dw;
-//          5=proteggi senza modificare il Protect dw;
-//          0=sproteggi dw; 
-//          2=S-proteggi senza modificare il colore nella dw;
-//          4=S-proteggi senza modificare il Protect dw;
-//--- 
-//---    k_id_campo se 0=tutta la dw; >0 solo il numero campo indicato
-//---    k_dw la datawindows da proteggere/sproteggere
-//---
-int k_rc
-string k_style, k_type, k_num_colonne, k_campo, k_appo
-int k_ctr, k_TabSequence, k_num_colonne_nr
-string k_rcx 
-string k_modify
-st_proteggi kst_proteggi
-
-
-	k_dw.setredraw(false)
-
-	if k_id_campo = 0 and (k_operazione = "1" or k_operazione = "5") then   // protegge tutta la dw
-		k_modify = "DataWindow.ReadOnly=yes "
-	else
-		k_modify = "DataWindow.ReadOnly=no "
-	end if
-
-//--- imposta i campi Colore, Protetto ....
-	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
-
-	if k_id_campo > 0 then
-		// FACCIO solo 1 campo
-		k_ctr = k_id_campo
-		k_num_colonne_nr = k_id_campo
-	else
-		// FACCIO TUTTA LA DW
-		k_ctr=1
-
-		k_num_colonne = k_dw.Object.DataWindow.Column.Count
-		if isnumber(k_num_colonne) then
-			k_num_colonne_nr = integer(k_num_colonne)
-		else
-			k_num_colonne_nr = 99
-		end if
-	end if
-	
-	do 
-
-		k_campo = trim(string(k_ctr,"###"))
-		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
-
-		k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
-		
-		k_TabSequence=integer(k_dw.Describe("#" + trim(string(k_ctr,"###"))+".TabSequence"))
-		if k_TabSequence > 0 then
-				
-			k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
-			if k_style <> "checkbox" and k_style <> "radiobuttons" then
-			
-				if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
-				
-					k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Color"))
-					if k_rcx <> "!" and k_rcx <> "?" then
-						k_modify += "#" + k_campo+".Background.Color='" + kst_proteggi.color + "' " 
-					end if
-					
-					if k_type = "column" then
-						k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Transparency"))
-						if k_rcx <> "!" and k_rcx <> "?" and k_rcx <> "0" then
-					   	k_modify += "#" + k_campo+".Background.Transparency=1" + " "  //imposta OPACO (100=trasparente)
-						end if
-					end if
-					//k_rcx = k_dw.Modify("#" + k_campo+".Background.Color="+kst_proteggi.color+" " &
-				     //                  +"#" + k_campo+".Background.Transparency=1") 
-
-				end if
-				
-			end if
-				
-		end if
-
-		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
-			if k_type = "column" then
-				k_rcx = trim(k_dw.Describe("#" + k_campo + ".Protect"))
-				if k_rcx <> "!" and k_rcx <> "?" then
-					k_modify += "#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'" + " "
-				end if
-			end if
-		end if
-		
-		//k_rcx=k_dw.Modify("#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'")
-		k_ctr = k_ctr + 1 
-
-	loop while k_ctr <= k_num_colonne_nr and k_id_campo = 0
-
-	k_rcx=k_dw.Modify(k_modify)
-	u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne
-
-	k_dw.setredraw(true)
-
-
-end subroutine
-
 public function string u_nome_computer ();//
 //--- torna il nome del PC
 //
@@ -1848,93 +1741,6 @@ private subroutine u_stored_procedure ();
 //
 //end procedure;
 //
-end subroutine
-
-public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref datawindow k_dw);//---
-//--- meglio usare: u_proteggi_sproteggi_dw
-
-//--- Protegge/Sprotegge un campo della dw
-//---
-//--- parametri di input:
-//---    k_operazione se:
-//          1=proteggi dw;
-//          3=proteggi senza modificare il colore nella dw;
-//          5=proteggi senza modificare il Protect dw;
-//          0=sproteggi dw; 
-//          2=S-proteggi senza modificare il colore nella dw;
-//          4=S-proteggi senza modificare il Protect dw;
-//--- 
-//---    k_txt_campo = "nome_campo" solo il campo indicato se non è una colonna viene nascosto (visible=0)
-//---    k_dw la datawindows da proteggere/sproteggere
-//---
-int k_rc
-string k_id_campox
-int k_id_campo
-//string k_style
-//string k_type
-//string k_visible="1"
-//int k_ctr
-//string k_rcx, k_modify
-//st_proteggi kst_proteggi
-
-
-if trim(k_txt_campo) > " " then
-
-	k_id_campox = trim(k_dw.Describe( trim(k_txt_campo) + ".ID"))
-	if IsNumber (k_id_campox) then
-		k_id_campo = integer(k_id_campox)
-
-		u_proteggi_dw(k_operazione, k_id_campo, k_dw)
-	end if 
-
-//	if k_operazione = "0" or k_operazione = "2" then  //proteggi 
-//		k_modify = "DataWindow.ReadOnly=no "
-//	end if
-//	
-////--- imposta i campi Colore, Protetto ....
-//	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
-//
-//	if trim(k_txt_campo) > " " then
-//		k_ctr=0
-//	else
-//		k_ctr=1
-//	end if
-//
-//	k_type = trim(k_dw.Describe(" " + trim(k_txt_campo)+".Type"))
-//	if k_type = "column" then
-//		
-//		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
-//			k_modify += " " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'"
-//		end if
-//		
-//		k_style=trim(k_dw.Describe(" " + trim(k_txt_campo)+".Edit.Style"))
-//		if k_style <> "checkbox" and k_style <> "radiobuttons" then
-//			
-//			if k_operazione <> "2" and k_operazione <> "3" then  //fai senza mod il colore
-//			
-//				k_modify += trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" &
-//				          + trim(k_txt_campo)+".Background.Transparency=1"
-//			end if
-//			
-//		end if
-//
-//	else
-//		
-//		k_modify += " " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'"
-//
-//	end if
-//	
-//	if k_modify > " " then
-//		
-//		k_rcx = k_dw.Modify(k_modify)
-//		u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne	
-//		
-//	end if
-	
-else
-	u_proteggi_dw(k_operazione, 0, k_dw)
-end if
-
 end subroutine
 
 public function integer ext_popola_id_meca ();//
@@ -5525,185 +5331,6 @@ return k_return_stringa
 
 end function
 
-public subroutine u_dw_set_riga_new_color (ref uo_d_std_1 auo_d_std_1);/*
-    Colore la riga in DW se colonna 'x_datins' = DATAOGGI
-*/
-long k_num_colonne_nr, k_ctr=1, k_pos
-string k_num_colonne, k_colore, K_RET, k_str, k_colore_orig, k_str_modify=""
-string k_dataoggi_x
-kuf_link_zoom kuf1_link_zoom
-
-
-//---- Mette Colore BACKCOLOR x le righe aggiornate di recente
-	if auo_d_std_1.Object.DataWindow.Processing = "1" and isnumber(auo_d_std_1.Describe("x_datins.x")) then
-	
-		k_dataoggi_x = string(kguo_g.get_dataoggi( ))
-	
-		k_num_colonne = auo_d_std_1.Object.DataWindow.Column.Count
-		if isnumber(k_num_colonne) then
-			k_num_colonne_nr = integer(k_num_colonne)
-		else
-			k_num_colonne_nr = 99
-		end if
-		do 
-			k_colore = trim(auo_d_std_1.Describe("#" + trim(string(k_ctr,"###"))+".background.color"))
-			
-//--- controllo di NON avere già registrato l'espressione... 
-			k_pos = pos(k_colore, "if( date(x_datins) = date(", 1) 
-			if k_pos <= 0 then 
-			
-//--- controllo se nella dw c'e' gia' una EXPRESSION
-				k_pos = pos(k_colore, "~t", 1) 
-				if k_pos > 0 then 
-//--- piglia l'espressione senza le Virgolette
-					k_colore_orig = mid(k_colore, k_pos, len(k_colore) - k_pos  )
-					k_str = "#" + trim(string(k_ctr,"###"))+".background.color=~" 0"   &
-							+"~tif( date(x_datins) =  date('" + k_dataoggi_x + "'),"+ KKG_COLORE.REC_UPDX + "," +k_colore_orig + ") ~""  //kGuo_g.get_dataoggi()) +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore_orig + ") ~"" //~""
-				else
-					k_str = "#" + trim(string(k_ctr,"###"))+".background.color=~" 0"  &
-							+"~tif( date(x_datins) = date('" + k_dataoggi_x +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore + ") ~""//string(kGuo_g.get_dataoggi()) +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore + ") ~"" //~""
-				end if
-				
-				k_str_modify += k_str + " "
-				
-			end if
-			k_ctr ++
-
-		loop while k_ctr <= k_num_colonne_nr 
-	end if
-	
-//--- se ho trovato qls applica le modifiche tutte insieme	
-	if k_str_modify > " " then 
-		k_ret = auo_d_std_1.Modify(k_str_modify)
-		u_dw_set_column_color(auo_d_std_1) // imposta il colore delle colonne 
-		
-//--- Se LINK abilitato lo imposta
-		if auo_d_std_1.if_link_enabled( ) then
-				
-			kuf1_link_zoom = create kuf_link_zoom
-			kuf1_link_zoom.link_standard_imposta_p (auo_d_std_1) // attiva i tasti con il LINK
-	
-		end if		
-		
-	end if
-
-	
-	
-		
-end subroutine
-
-private subroutine u_dw_set_column_color (ref datawindow k_dw);/*
-   Imposta il COLOR del testo a seconda del background
-*/
-int k_rc
-string k_style, k_type, k_num_colonne, k_campo, k_appo
-int k_ctr, k_num_colonne_nr
-string k_rcx , k_color_black, k_color_white
-string k_modify
-long k_backgroundColor, k_n
-
-
-	k_dw.setredraw(false)
-	
-	k_color_black = string(kkg_colore.nero)
-	k_color_white = string(kkg_colore.bianco)
-
-	k_num_colonne = k_dw.Object.DataWindow.Column.Count
-	if isnumber(k_num_colonne) then
-		k_num_colonne_nr = integer(k_num_colonne)
-	else
-		k_num_colonne_nr = 99
-	end if
-	do 
-
-		k_campo = trim(string(k_ctr,"###"))
-		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
-
-		k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
-		if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
-			
-			k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
-		
-			k_backgroundColor = long(k_dw.Describe("#" + trim(string(k_ctr,"###")) + ".Background.Color"))
-			if k_backgroundColor = 0 then  // se il colore sfondo è zero (presuppongo sia TRANSPARENT) allora piglia il colore di sffondo del DE
-				k_backgroundColor = long(k_dw.Describe("DataWindow.Color"))
-			end if				
-			if k_backgroundColor <= kkg_colore.bianco then
-				//k_n = kkg_colore.SFONDO_SCURO_n
-				if k_backgroundColor >= kkg_colore.SFONDO_SCURO_n then
-					k_modify += "#" + k_campo+".Color='" + k_color_black + "' "
-				else
-					k_modify += "#" + k_campo+".Color='" + k_color_white + "' "
-				end if
-			end if				
-		end if
-		k_ctr = k_ctr + 1 
-
-	loop while k_ctr <= k_num_colonne_nr //and k_id_campo = 0
-
-	k_rcx=k_dw.Modify(k_modify)
-
-	k_dw.setredraw(true)
-
-
-end subroutine
-
-private subroutine u_dw_set_column_color (ref uo_d_std_1 k_dw);/*
-   Imposta il COLOR del testo a seconda del background
-*/
-int k_rc
-string k_style, k_type, k_num_colonne, k_campo, k_appo
-int k_ctr, k_num_colonne_nr
-string k_rcx , k_color_black, k_color_white
-string k_modify
-long k_backgroundColor, k_n
-
-
-	k_dw.setredraw(false)
-	
-	k_color_black = string(kkg_colore.nero)
-	k_color_white = string(kkg_colore.bianco)
-
-	k_num_colonne = k_dw.Object.DataWindow.Column.Count
-	if isnumber(k_num_colonne) then
-		k_num_colonne_nr = integer(k_num_colonne)
-	else
-		k_num_colonne_nr = 99
-	end if
-	do 
-
-		k_campo = trim(string(k_ctr,"###"))
-		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
-
-		k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
-		if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
-			
-			k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
-		
-			k_backgroundColor = long(k_dw.Describe("#" + trim(string(k_ctr,"###")) + ".Background.Color"))
-			if k_backgroundColor = 0 then  // se il colore sfondo è zero (presuppongo sia TRANSPARENT) allora piglia il colore di sffondo del DE
-				k_backgroundColor = long(k_dw.Describe("DataWindow.Color"))
-			end if				
-			if k_backgroundColor <= kkg_colore.bianco then
-				//k_n = kkg_colore.SFONDO_SCURO_n
-				if k_backgroundColor >= kkg_colore.SFONDO_SCURO_n then
-					k_modify += "#" + k_campo+".Color='" + k_color_black + "' "
-				else
-					k_modify += "#" + k_campo+".Color='" + k_color_white + "' "
-				end if
-			end if				
-		end if
-		k_ctr = k_ctr + 1 
-
-	loop while k_ctr <= k_num_colonne_nr //and k_id_campo = 0
-
-	k_rcx=k_dw.Modify(k_modify)
-
-	k_dw.setredraw(true)
-
-
-end subroutine
-
 public function int u_open_app_files (string a_file) throws uo_exception;//
 //---  Apre più file separati da ';' con l'applicazione del sistema
 //
@@ -5840,6 +5467,315 @@ end if
 
 return k_url_encode
 end function
+
+public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw);//---
+//--- meglio usare: u_proteggi_sproteggi_dw
+
+//---
+//--- Protegge/Sprotegge campi della dw
+//---
+//--- parametri di input:
+//---    k_operazione se:
+//          1=proteggi dw;
+//          3=proteggi senza modificare il colore nella dw;
+//          5=proteggi senza modificare il Protect dw;
+//          0=sproteggi dw; 
+//          2=S-proteggi senza modificare il colore nella dw;
+//          4=S-proteggi senza modificare il Protect dw;
+//--- 
+//---    k_id_campo se 0=tutta la dw; >0 solo il numero campo indicato
+//---    k_dw la datawindows da proteggere/sproteggere
+//---
+int k_rc
+string k_style, k_type, k_num_colonne, k_campo, k_appo
+int k_ctr, k_TabSequence, k_num_colonne_nr
+string k_rcx 
+string k_modify
+st_proteggi kst_proteggi
+
+
+	k_dw.setredraw(false)
+
+	if k_id_campo = 0 and (k_operazione = "1" or k_operazione = "5") then   // protegge tutta la dw
+		k_modify = "DataWindow.ReadOnly=yes "
+	else
+		k_modify = "DataWindow.ReadOnly=no "
+	end if
+
+//--- imposta i campi Colore, Protetto ....
+	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
+
+	if k_id_campo > 0 then
+		// FACCIO solo 1 campo
+		k_ctr = k_id_campo
+		k_num_colonne_nr = k_id_campo
+	else
+		// FACCIO TUTTA LA DW
+		k_ctr=1
+
+		k_num_colonne = k_dw.Object.DataWindow.Column.Count
+		if isnumber(k_num_colonne) then
+			k_num_colonne_nr = integer(k_num_colonne)
+		else
+			k_num_colonne_nr = 99
+		end if
+	end if
+	
+	do 
+
+		k_campo = trim(string(k_ctr,"###"))
+		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
+
+		k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
+		
+		k_TabSequence=integer(k_dw.Describe("#" + trim(string(k_ctr,"###"))+".TabSequence"))
+		if k_TabSequence > 0 then
+				
+			k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
+			if k_style <> "checkbox" and k_style <> "radiobuttons" then
+			
+				if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
+				
+					k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Color"))
+					if k_rcx <> "!" and k_rcx <> "?" then
+						k_modify += "#" + k_campo+".Background.Color='" + kst_proteggi.color + "' " 
+					end if
+					
+					if k_type = "column" then
+						k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Transparency"))
+						if k_rcx <> "!" and k_rcx <> "?" and k_rcx <> "0" then
+					   	k_modify += "#" + k_campo+".Background.Transparency=1" + " "  //imposta OPACO (100=trasparente)
+						end if
+					end if
+					//k_rcx = k_dw.Modify("#" + k_campo+".Background.Color="+kst_proteggi.color+" " &
+				     //                  +"#" + k_campo+".Background.Transparency=1") 
+
+				end if
+				
+			end if
+				
+		end if
+
+		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
+			if k_type = "column" then
+				k_rcx = trim(k_dw.Describe("#" + k_campo + ".Protect"))
+				if k_rcx <> "!" and k_rcx <> "?" then
+					k_modify += "#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'" + " "
+				end if
+			end if
+		end if
+		
+		//k_rcx=k_dw.Modify("#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'")
+		k_ctr = k_ctr + 1 
+
+	loop while k_ctr <= k_num_colonne_nr and k_id_campo = 0
+
+	k_rcx=k_dw.Modify(k_modify)
+	k_dw.u_set_column_color()   // imposta il colore del testo nelle colonne
+
+	k_dw.setredraw(true)
+
+
+end subroutine
+
+private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw);/*
+   Imposta il COLOR del testo a seconda del background
+*/
+int k_rc
+string k_style, k_type, k_num_colonne, k_campo, k_appo
+int k_ctr, k_num_colonne_nr
+string k_rcx , k_color_black, k_color_white
+string k_modify
+long k_backgroundColor, k_n
+
+
+	k_dw.setredraw(false)
+	
+	k_color_black = string(kkg_colore.nero)
+	k_color_white = string(kkg_colore.bianco)
+
+	k_num_colonne = k_dw.Object.DataWindow.Column.Count
+	if isnumber(k_num_colonne) then
+		k_num_colonne_nr = integer(k_num_colonne)
+	else
+		k_num_colonne_nr = 99
+	end if
+	do 
+
+		k_campo = trim(string(k_ctr,"###"))
+		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
+
+		k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
+		if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+			
+			k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
+		
+			k_backgroundColor = long(k_dw.Describe("#" + trim(string(k_ctr,"###")) + ".Background.Color"))
+			if k_backgroundColor = 0 then  // se il colore sfondo è zero (presuppongo sia TRANSPARENT) allora piglia il colore di sffondo del DE
+				k_backgroundColor = long(k_dw.Describe("DataWindow.Color"))
+			end if				
+			if k_backgroundColor <= kkg_colore.bianco then
+				//k_n = kkg_colore.SFONDO_SCURO_n
+				if k_backgroundColor >= kkg_colore.SFONDO_SCURO_n then
+					k_modify += "#" + k_campo+".Color='" + k_color_black + "' "
+				else
+					k_modify += "#" + k_campo+".Color='" + k_color_white + "' "
+				end if
+			end if				
+		end if
+		k_ctr = k_ctr + 1 
+
+	loop while k_ctr <= k_num_colonne_nr //and k_id_campo = 0
+
+	k_rcx=k_dw.Modify(k_modify)
+
+	k_dw.setredraw(true)
+
+
+end subroutine
+
+private subroutine old_u_dw_set_column_color (ref datawindow k_dw);/*
+   Imposta il COLOR del testo a seconda del background
+*/
+int k_rc
+string k_style, k_type, k_num_colonne, k_campo, k_appo
+int k_ctr, k_num_colonne_nr
+string k_rcx , k_color_black, k_color_white
+string k_modify
+long k_backgroundColor, k_n
+
+
+	k_dw.setredraw(false)
+	
+	k_color_black = string(kkg_colore.nero)
+	k_color_white = string(kkg_colore.bianco)
+
+	k_num_colonne = k_dw.Object.DataWindow.Column.Count
+	if isnumber(k_num_colonne) then
+		k_num_colonne_nr = integer(k_num_colonne)
+	else
+		k_num_colonne_nr = 99
+	end if
+	do 
+
+		k_campo = trim(string(k_ctr,"###"))
+		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
+
+		k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
+		if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+			
+			k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
+		
+			k_backgroundColor = long(k_dw.Describe("#" + trim(string(k_ctr,"###")) + ".Background.Color"))
+			if k_backgroundColor = 0 then  // se il colore sfondo è zero (presuppongo sia TRANSPARENT) allora piglia il colore di sffondo del DE
+				k_backgroundColor = long(k_dw.Describe("DataWindow.Color"))
+			end if				
+			if k_backgroundColor <= kkg_colore.bianco then
+				//k_n = kkg_colore.SFONDO_SCURO_n
+				if k_backgroundColor >= kkg_colore.SFONDO_SCURO_n then
+					k_modify += "#" + k_campo+".Color='" + k_color_black + "' "
+				else
+					k_modify += "#" + k_campo+".Color='" + k_color_white + "' "
+				end if
+			end if				
+		end if
+		k_ctr = k_ctr + 1 
+
+	loop while k_ctr <= k_num_colonne_nr //and k_id_campo = 0
+
+	k_rcx=k_dw.Modify(k_modify)
+
+	k_dw.setredraw(true)
+
+
+end subroutine
+
+public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw);//---
+//--- meglio usare: u_proteggi_sproteggi_dw
+
+//--- Protegge/Sprotegge un campo della dw
+//---
+//--- parametri di input:
+//---    k_operazione se:
+//          1=proteggi dw;
+//          3=proteggi senza modificare il colore nella dw;
+//          5=proteggi senza modificare il Protect dw;
+//          0=sproteggi dw; 
+//          2=S-proteggi senza modificare il colore nella dw;
+//          4=S-proteggi senza modificare il Protect dw;
+//--- 
+//---    k_txt_campo = "nome_campo" solo il campo indicato se non è una colonna viene nascosto (visible=0)
+//---    k_dw la datawindows da proteggere/sproteggere
+//---
+int k_rc
+string k_id_campox
+int k_id_campo
+//string k_style
+//string k_type
+//string k_visible="1"
+//int k_ctr
+//string k_rcx, k_modify
+//st_proteggi kst_proteggi
+
+
+if trim(k_txt_campo) > " " then
+
+	k_id_campox = trim(k_dw.Describe( trim(k_txt_campo) + ".ID"))
+	if IsNumber (k_id_campox) then
+		k_id_campo = integer(k_id_campox)
+
+		u_proteggi_dw(k_operazione, k_id_campo, k_dw)
+	end if 
+
+//	if k_operazione = "0" or k_operazione = "2" then  //proteggi 
+//		k_modify = "DataWindow.ReadOnly=no "
+//	end if
+//	
+////--- imposta i campi Colore, Protetto ....
+//	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
+//
+//	if trim(k_txt_campo) > " " then
+//		k_ctr=0
+//	else
+//		k_ctr=1
+//	end if
+//
+//	k_type = trim(k_dw.Describe(" " + trim(k_txt_campo)+".Type"))
+//	if k_type = "column" then
+//		
+//		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
+//			k_modify += " " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'"
+//		end if
+//		
+//		k_style=trim(k_dw.Describe(" " + trim(k_txt_campo)+".Edit.Style"))
+//		if k_style <> "checkbox" and k_style <> "radiobuttons" then
+//			
+//			if k_operazione <> "2" and k_operazione <> "3" then  //fai senza mod il colore
+//			
+//				k_modify += trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" &
+//				          + trim(k_txt_campo)+".Background.Transparency=1"
+//			end if
+//			
+//		end if
+//
+//	else
+//		
+//		k_modify += " " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'"
+//
+//	end if
+//	
+//	if k_modify > " " then
+//		
+//		k_rcx = k_dw.Modify(k_modify)
+//		u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne	
+//		
+//	end if
+	
+else
+	u_proteggi_dw(k_operazione, 0, k_dw)
+end if
+
+end subroutine
 
 on kuf_utility.create
 call super::create

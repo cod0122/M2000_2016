@@ -19,7 +19,6 @@ end variables
 
 forward prototypes
 protected subroutine x_db_profilo () throws uo_exception
-public function boolean if_connesso_x ()
 public function boolean db_set_isolation_level () throws uo_exception
 public function st_esito db_crea_temp_table (string k_table, string k_campi, string k_select) throws uo_exception
 public function st_esito db_crea_temp_table_global (string k_table, string k_campi, string k_select) throws uo_exception
@@ -31,6 +30,7 @@ protected function boolean u_error_db_if_login (ref st_esito ast_esito)
 protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
 protected function boolean u_error_others (ref st_esito ast_esito)
 public subroutine inizializza () throws uo_exception
+public function boolean if_connesso_x () throws uo_exception
 end prototypes
 
 protected subroutine x_db_profilo () throws uo_exception;//
@@ -96,6 +96,7 @@ uo_exception kuo_exception
 	this.DBParm = kiuf_conf_access.kist_conf_access.dbparm
 	this.LogId = profilestring (k_file_ini, "Database", "LogId", "M2000")
 	this.LogPass = profilestring (k_file_ini, "Database", "LogPass", "") //"start") 
+	this.lock = profilestring (k_file_ini, "Database", "Lock", "RU")  // lock il default Read Uncommited
 	if this.LogPass > " " then
 	else
 		this.LogPass = kiuf_conf_access.kist_conf_access.pwd
@@ -141,32 +142,6 @@ uo_exception kuo_exception
 
 	
 end subroutine
-
-public function boolean if_connesso_x ();//
-int k_connesso=0
-
-	
-	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 then // connessione persa
-
-		return false
-
-	else
-		select 1 into :k_connesso from base 
-			using this;
-		
-		if k_connesso = 1 then
-			
-			return true   
-			
-		else
-			
-			return false
-	
-		end if
-
-	end if
-
-end function
 
 public function boolean db_set_isolation_level () throws uo_exception;//---------------------------------------------------------------------
 //--- 
@@ -437,10 +412,13 @@ protected function boolean u_error_db_if_conn (ref st_esito ast_esito);//
 			//ast_esito.sqlerrtext = "Tentativo di Ri-connessione al database di Magazzino... " 
 			//kguo_exception.scrivi_log( ) // u_write_error()
 			//errori_scrivi_esito("W", kst_esito) 
+
 //--- tentativo di connessione al db.....
-			if not kguo_sqlca_db_magazzino.db_riconnetti( ) then
-				kguo_exception.messaggio_utente("Programma non operativo", "Persa la Connessione al database di Magazzino, il programma verrà chiuso.")
+			if not db_riconnetti( ) then
+				kguo_exception.messaggio_utente("Programma non operativo", "Persa la Connessione al database di Magazzino, il programma verrà chiuso. " & 
+								+ kkg.acapo + "Motivo: " + left(ast_esito.sqlerrtext,40))
 				halt close
+				
 			else
 				ast_esito.esito = kkg_esito.ok
 				ast_esito.sqlcode = 0
@@ -541,6 +519,32 @@ ki_title_id = "db_magazzino"
 if not isvalid(kiuf_conf_access) then kiuf_conf_access = create kuf_conf_access
 kiuf_conf_access.u_set_st_conf_access( ) 
 end subroutine
+
+public function boolean if_connesso_x () throws uo_exception;//
+int k_connesso=0
+
+	
+	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 then // connessione persa
+
+		return false
+
+	else
+		select 1 into :k_connesso from base 
+			using this;
+		
+		if k_connesso = 1 then
+			
+			return true   
+			
+		else
+			
+			return false
+	
+		end if
+
+	end if
+
+end function
 
 on kuo_sqlca_db_magazzino.create
 call super::create

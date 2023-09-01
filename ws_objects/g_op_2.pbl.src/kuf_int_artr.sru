@@ -72,6 +72,7 @@ int kki_scelta_report_pic_PtasksFatt
 int kki_scelta_report_pic_PtasksTempi
 
 end variables
+
 forward prototypes
 public function st_esito u_open ()
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception

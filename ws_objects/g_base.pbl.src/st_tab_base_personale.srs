@@ -10,6 +10,7 @@ global type st_tab_base_personale from structure
 	string		flag_suoni
 	string		stcert1		descriptor "comment" = "attestati stampante pagina 1"
 	string		stcert2		descriptor "comment" = "attestati stampante pagine allegate"
+	string		stbarcode		descriptor "comment" = "Barcode stampante delle etichette"
 	string		flag_zoom_ctrl		descriptor "comment" = "S= zoom attivo solo con CLICK+CTRL altrimenti con il solo CLICK"
 	string		thema_attivo		descriptor "comment" = "1=attivo"
 	string		memo_window_open		descriptor "comment" = "1=attiva funzione finestra memo"

@@ -19,6 +19,7 @@ public boolean ki_flag_ristampa=false
 private boolean ki_stampa_bianco_nero=false
 private boolean ki_mat_farmaceutico=false
 end variables
+
 forward prototypes
 public subroutine set_mat_farmaceutico ()
 public subroutine set_stampa_bianco_nero ()
@@ -117,15 +118,8 @@ try
 //			kst_tab_certif.id_meca = kuf1_artr.get_id_meca_da_num_certif(kst_tab_artr)
 			kst_tab_armo.id_armo = kuf1_artr.get_id_armo_da_num_certif(kst_tab_artr)
 			if kst_tab_armo.id_armo > 0 then
-				kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito(kst_esito)
-					throw kguo_exception
-				end if
-				kst_tab_certif.id_meca = kst_tab_armo.id_meca  
-				if isnull(kst_tab_certif.id_meca)  then
-					kst_tab_certif.id_meca = 0
+				if kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo) > 0 then
+					kst_tab_certif.id_meca = kst_tab_armo.id_meca  
 				end if
 			end if
 		end if

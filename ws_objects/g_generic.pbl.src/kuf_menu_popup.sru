@@ -108,7 +108,7 @@ if isvalid(kw_1) then
 		kmenu_popup.m_lib_5.text = k_menu.m_strumenti.m_fin_gest_libero5.text + "~t" + trim(k_menu.m_strumenti.m_fin_gest_libero5.tag)
 		kmenu_popup.m_lib_5.visible = (k_menu.m_strumenti.m_fin_gest_libero5.toolbaritemVisible or k_menu.m_strumenti.m_fin_gest_libero5.enabled) 
 		kmenu_popup.m_lib_5.enabled = k_menu.m_strumenti.m_fin_gest_libero5.enabled
-		kmenu_popup.m_lib_5.menuimage = k_menu.m_strumenti.m_fin_gest_libero5.toolbaritemName
+		kmenu_popup.m_lib_5.menuimage = k_menu.m_strumenti.m_fin_gest_libero5.toolbaritemName 
 		
 		kmenu_popup.m_lib_6.text = k_menu.m_strumenti.m_fin_gest_libero6.text + "~t" + trim(k_menu.m_strumenti.m_fin_gest_libero6.tag)
 		kmenu_popup.m_lib_6.visible = (k_menu.m_strumenti.m_fin_gest_libero6.toolbaritemVisible or k_menu.m_strumenti.m_fin_gest_libero6.enabled) 

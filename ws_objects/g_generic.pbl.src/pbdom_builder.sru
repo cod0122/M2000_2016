@@ -9,6 +9,7 @@ public function  pbdom_document BuildFromString(string strXMLString)
 public function  pbdom_document BuildFromDataStore(datastore datastore_ref)
 public function  pbdom_document BuildFromFile(string strURL)
 public function  boolean		 GetParseErrors(ref string strErrorMessageArray[])
+public subroutine  		 SetDisableEntityResolution(boolean bDisableEntityResolution)
 end type
 global pbdom_builder pbdom_builder
 

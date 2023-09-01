@@ -46,6 +46,8 @@ try
 
 	kst_esito = kguo_exception.inizializza(this.classname())
 	
+	kguo_sqlca_db_magazzino.db_commit( )  // forse risolve problema sulle TemporalTable
+	
 	kuf1_e1_asn = create kuf_e1_asn
 
 	kds_1 = create uo_ds_std_1

@@ -12,12 +12,12 @@ forward prototypes
 protected subroutine x_db_profilo () throws uo_exception
 public function boolean if_connessione_bloccata () throws uo_exception
 public function boolean u_db_connetti (ref datawindow adw_1) throws uo_exception
-public function boolean if_connesso_x () throws uo_exception
 public function integer u_get_col_len (string a_table, string a_col)
 public function integer x_db_connetti_post_ok () throws uo_exception
 protected function boolean u_if_dberror_grave (integer a_code)
 protected function boolean u_error_db_if_conn (ref st_esito ast_esito)
 protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
+public function boolean if_connesso_x () throws uo_exception
 end prototypes
 
 protected subroutine x_db_profilo () throws uo_exception;//
@@ -137,30 +137,6 @@ finally
 end try
 
 
-
-return k_return
-
-end function
-
-public function boolean if_connesso_x () throws uo_exception;//
-boolean k_return = false
-int k_conta
-
-try
-
-	SELECT count(*)
-	  into :k_conta 
-	  FROM global_name 
-	  using this; 
-	  
-	if sqlcode = 0 then
-		k_return = true
-	end if
-	
-catch (uo_exception kuo_exception)
-	k_return = false
-	
-end try
 
 return k_return
 
@@ -287,6 +263,36 @@ CHOOSE CASE ast_esito.SQLdbcode
 		return false
 
 END CHOOSE
+
+
+end function
+
+public function boolean if_connesso_x () throws uo_exception;//
+int k_connesso=0
+
+	
+	if kiuo_sqlca_db_0_saved.sqldbcode = 12541 then // connessione persa
+
+		return false
+
+	else
+		
+		SELECT count(*)
+		  into :k_connesso 
+		  FROM global_name 
+		  using this; 
+		
+		if sqlcode = 0 then
+			
+			return true   
+			
+		else
+			
+			return false
+	
+		end if
+
+	end if
 
 
 end function

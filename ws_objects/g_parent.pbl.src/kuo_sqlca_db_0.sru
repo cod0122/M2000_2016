@@ -69,22 +69,18 @@ end prototypes
 public function st_esito db_commit ();//
 //===	Ritorna St_esito - come da standard
 //
-
 st_esito kst_esito
+uo_exception kuo_exception
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-
+	kst_esito.esito = kkg_esito.ok
 
 	commit using this;
 
 	if this.sqlcode <> 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = this.sqlcode
-		kst_esito.SQLErrText = trim(this.SQLErrText)
+		kuo_exception = create uo_exception
+		kst_esito = kuo_exception.set_st_esito_err_db(this, "Errore in Conferma dati sul DB (Commit).")
+		kuo_exception.scrivi_log( )
 	end if
 
 return kst_esito
@@ -95,22 +91,18 @@ end function
 public function st_esito db_rollback ();//
 //===	Ritorna St_esito - come da standard
 //
-
 st_esito kst_esito
+uo_exception kuo_exception
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-
+	kst_esito.esito = kkg_esito.ok
 
 	rollback using this;
 
 	if this.sqlcode <> 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = this.sqlcode
-		kst_esito.SQLErrText = trim(this.SQLErrText)
+		kuo_exception = create uo_exception
+		kst_esito = kuo_exception.set_st_esito_err_db(this, "Errore in Recupero dati sul DB (Rollback).")
+		kuo_exception.scrivi_log( )
 	end if
 
 return kst_esito
@@ -669,7 +661,6 @@ try
 			
 //--- Connessione al db
 			if x_db_connetti() then
-				ki_n_riconnessioni = 0
 				k_connesso = true // RI-CONNESSO!!
 			end if
 			
@@ -686,6 +677,7 @@ try
 	if k_connesso then
 		kguo_exception.kist_esito.esito = kkg_esito.ok
 		kguo_exception.kist_esito.sqlerrtext = "Riconnesso al DB dopo '" + string(ki_n_riconnessioni) + "' tentativi."
+		ki_n_riconnessioni = 0
 	else
 		kguo_exception.kist_esito.esito = kkg_esito.db_ko
 		kguo_exception.kist_esito.sqlerrtext = "Non è stato possibile riconnettersi al DB dopo '" + string(ki_n_riconnessioni) + "' tentativi."

@@ -224,7 +224,7 @@ NOME_COMPUTER = a_nome_computer
 end subroutine
 
 public function string get_nome_computer ();
-return NOME_COMPUTER 
+return trim(NOME_COMPUTER)
 
 end function
 

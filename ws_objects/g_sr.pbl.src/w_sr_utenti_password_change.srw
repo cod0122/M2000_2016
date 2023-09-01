@@ -54,19 +54,19 @@ protected function string check_dati ();//
 string k_return = " ", k_errore = "0"
 st_esito kst_esito
 st_tab_sr_utenti kst_tab_sr_utenti
-kuf_sr_sicurezza kuf1_sr_sicurezza
+kuf_sr_utenti kuf1_sr_utenti
 
 
 if dw_pwd.rowcount() > 0 then 
 
-	kuf1_sr_sicurezza = create kuf_sr_sicurezza
+	kuf1_sr_utenti = create kuf_sr_utenti
 	
 	kst_tab_sr_utenti.codice = upper(trim(dw_pwd.getitemstring(dw_pwd.getrow(), "codice")))
 	kst_tab_sr_utenti.password = upper(trim(dw_pwd.getitemstring(dw_pwd.getrow(), "password_w")))
-	kst_esito = kuf1_sr_sicurezza.tb_select(kst_tab_sr_utenti)
+	kst_esito = kuf1_sr_utenti.tb_select(kst_tab_sr_utenti)
 	if kst_esito.esito = kkg_esito.ok then
 		try 
-			kuf1_sr_sicurezza.check_cambia_password (kst_tab_sr_utenti)
+			kuf1_sr_utenti.check_cambia_password (kst_tab_sr_utenti)
 		catch (uo_exception kuo_exception)
 			kst_esito = kuo_exception.get_st_esito()
 		end try
@@ -94,7 +94,7 @@ if dw_pwd.rowcount() > 0 then
 		kst_tab_sr_utenti.codice = upper(trim(dw_pwd.getitemstring(dw_pwd.getrow(), "codice")))
 		kst_tab_sr_utenti.password = upper(trim(dw_pwd.getitemstring(dw_pwd.getrow(), "password_1")))
 		
-		kst_esito = kuf1_sr_sicurezza.check_password_sintax (kst_tab_sr_utenti)
+		kst_esito = kuf1_sr_utenti.check_password_sintax (kst_tab_sr_utenti)
 		
 		if kst_esito.esito <> kkg_esito.ok then
 			
@@ -104,7 +104,7 @@ if dw_pwd.rowcount() > 0 then
 		end if
 	end if
 
-	destroy kuf1_sr_sicurezza
+	destroy kuf1_sr_utenti
 
 	
 end if
@@ -125,7 +125,7 @@ string k_return="0 "
 string k_errore= "0 ", k_errore1 = "0 ", k_errore_dati = "0 "
 //string k_errore_check
 
-kuf_sr_sicurezza kuf1_sr_sicurezza
+kuf_sr_utenti kuf1_sr_utenti
 st_tab_sr_utenti kst_tab_sr_utenti
 st_esito kst_esito
 
@@ -181,9 +181,9 @@ k_return = check_dati()
 		kst_tab_sr_utenti.id = dw_pwd.getitemnumber(dw_pwd.getrow(), "id")
 		kst_tab_sr_utenti.password = dw_pwd.getitemstring(dw_pwd.getrow(), "password_1")
 	
-		kuf1_sr_sicurezza = create kuf_sr_sicurezza
-		kst_esito = kuf1_sr_sicurezza.tb_update_password ( kst_tab_sr_utenti )
-		destroy kuf1_sr_sicurezza
+		kuf1_sr_utenti = create kuf_sr_utenti
+		kst_esito = kuf1_sr_utenti.tb_update_password ( kst_tab_sr_utenti )
+		destroy kuf1_sr_utenti
 	
 		if kst_esito.esito = "0" then
 	

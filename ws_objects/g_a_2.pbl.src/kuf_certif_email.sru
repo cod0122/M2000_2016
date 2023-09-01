@@ -46,8 +46,7 @@ st_tab_clienti_web kst_tab_clienti_web
 st_tab_clienti kst_tab_clienti
 st_tab_certif kst_tab_certif
 kuf_certif_print kuf1_certif_print
-datastore kds_1
-
+uo_ds_std_1 kds_1
 
 //setpointer()
 
@@ -57,7 +56,7 @@ try
 
 	kuf1_certif_print = create kuf_certif_print
 	
-	kds_1 = create datastore
+	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_certif_email_noemail"
 	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	k_righe = kds_1.retrieve() // estrazione avvisi senza ancora il id_email_invio
@@ -135,7 +134,7 @@ try
 				kst_tab_certif_email[k_riga_tab].id_meca = kds_1.getitemnumber( k_riga_ds, "id_meca")
 				kst_tab_certif_email[k_riga_tab].certif_e1_e1doco = kds_1.getitemnumber( k_riga_ds, "certif_e1_e1doco")
 				
-				kst_tab_certif_email[k_riga_tab].st_tab_g_0.esegui_commit = "N"
+				kst_tab_certif_email[k_riga_tab].st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
 				kst_tab_certif_email[k_riga_tab].id_email_invio = u_add_email_invio_1(kst_tab_certif_email[k_riga_tab], kst_tab_email_invio) // ADD EMAIL
 				if kst_tab_certif_email[k_riga_tab].id_email_invio > 0 then
 //--- Imposta id email invio in tabella Certif email
@@ -161,13 +160,14 @@ try
 			kguo_sqlca_db_magazzino.db_commit( )
 		else
 			kguo_sqlca_db_magazzino.db_rollback( )
-			kst_esito.sqlcode = k_return
+			kst_esito = kds_1.kist_esito
 			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.SQLErrText = "Errore aggiornamento delle " + string(k_righe) + " email Attestati. Per esempio il Id Attestato: " &
+			kst_esito.SQLErrText = "Errore in inserimemtno di " + string(k_righe) + " email Attestati. " &
+							+ kkg.acapo + "Per esempio Attestato id: " &
 							+ string(kds_1.getitemnumber(k_riga, "id_certif")) + " ASN: " + string(kds_1.getitemnumber(k_riga, "id_meca")) &
-							+ " Lotto: "  + " ASN: " + string(kds_1.getitemnumber(k_riga, "num_int")) + string(kds_1.getitemdate(k_riga, "data_int")) &
-			            + "~r~nErrore: " + trim(kst_esito.nome_oggetto) + ") "
-			kguo_exception.inizializza( )
+							+ " Lotto: "  + " ASN: " + string(kds_1.getitemnumber(k_riga, "num_int")) + string(kds_1.getitemdate(k_riga, "data_int")) + " " &
+			            + kkg.acapo + "Errore: " + trim(kst_esito.nome_oggetto) + " " &
+							+ string(kst_esito.sqlcode) +  " " + trim(kst_esito.sqlerrtext)
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if

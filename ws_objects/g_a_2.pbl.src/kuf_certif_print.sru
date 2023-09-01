@@ -372,7 +372,7 @@ try
 		end if
 		if ki_stampante[1] > " " then
 			k_return = true
-//--- get della stampante principale			
+//--- get altra stampante
 			ki_stampante[2] = trim(mid(kiuf_base.prendi_dato_base(kiuf_base.kki_base_utenti_codice_stcert2),2)) // controlla prima la stampante personale
 			if ki_stampante[2] > " " then
 			else
@@ -857,7 +857,9 @@ try
 
 	if ki_stampante[1] > " " then
 	else
+
 		stampa_attestato_set_printer( )   // imposta le stampanti ki_stampante[]
+		
 	end if 
 	
 	if ki_stampante[1] > " " then
@@ -1365,6 +1367,9 @@ try
 //--- cattura la stampante di impostata
 	k_printer = PrintGetPrinter( )
 
+	ki_stampante[1] = ""
+	ki_stampante[2] = ""
+	
 	k_n_attestati_max = upperbound(ast_tab_certif[])
 	if k_n_attestati_max > 0 then	
 		kist_tab_certif = ast_tab_certif[1]
@@ -1421,7 +1426,9 @@ catch (uo_exception kuo_exception)
 	
 finally
 //--- ripristina la stampante di impostata
-	PrintSetPrinter(k_printer)
+	if trim(k_printer) > " " then
+		PrintSetPrinter(k_printer)
+	end if
 	
 end try
 		
@@ -1822,24 +1829,35 @@ try
 //--- ricava la stampante-certificato solo se Stampa vera e stampante non impostata
 		if k_stampante > " " then
 			if PrintSetPrinter (k_stampante) > 0 then
-				SetPointer(kkg.pointer_attesa)
-	//--- stampa dw direttamente sulla stampante indicata				
-				if kids_certif_stampa.print() > 0 then
-					kst_esito.esito = kkg_esito.OK
-					k_return = true
-				else
-					kst_esito.sqlcode = 0
-					kst_esito.SQLErrText = "Errore durante la stampa singola dell'Attestato: " + string(kist_tab_certif.num_certif) & 
-										+ ". Verificare la correttezza della stampante '" + k_stampante + "' indicata.~n~r" 
-					kst_esito.esito = kkg_esito.bug
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito(kst_esito)
-					throw kguo_exception
-				end if
-			else	
+			else
 				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Stampante '" + k_stampante + "' non valida. ~n~r" &
-							+ "Attestato " + string(kist_tab_certif.num_certif) + " non stampato." 
+				kst_esito.SQLErrText = "Errore in connessione alla stampante indicata: " + kkg.acapo + "'" + k_stampante + "' " &
+				                     + kkg.acapo +" Stampa singola dell'Attestato " + string(kist_tab_certif.num_certif) + " non eseguita. " & 
+											+ kkg.acapo + "Verificare la connessione alla stampante."
+				kst_esito.esito = kkg_esito.no_esecuzione
+				kguo_exception.inizializza( )
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		else
+			if PrintSetup() > 0 then  // scegli la stmpante se non indicata
+				k_stampante = PrintGetPrinter()
+			end if
+		end if
+		
+		if k_stampante > " " then
+			SetPointer(kkg.pointer_attesa)
+			
+	//--- stampa dw direttamente sulla stampante indicata				
+			if kids_certif_stampa.print(false, false) > 0 then
+				
+				kst_esito.esito = kkg_esito.OK
+				k_return = true
+				
+			else
+				kst_esito.sqlcode = 0
+				kst_esito.SQLErrText = "Errore durante la stampa singola dell'Attestato: " + string(kist_tab_certif.num_certif) & 
+									+ ". Verificare la correttezza della stampante indicata: " + kkg.acapo + "'" + k_stampante + "' "
 				kst_esito.esito = kkg_esito.bug
 				kguo_exception.inizializza( )
 				kguo_exception.set_esito(kst_esito)
@@ -1852,7 +1870,7 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 
 finally	
-//	if isvalid(kds1_att_stampa) then destroy kds1_att_stampa
+
 	SetPointer(kkg.pointer_default)
 	
 end try
@@ -1933,8 +1951,8 @@ if if_sicurezza(kkg_flag_modalita.stampa) then
 				kst_tab_artr.num_certif = kst_tab_certif.num_certif
 				kst_tab_artr.data_st = kst_tab_certif.data
 				kuf1_artr = create kuf_artr
-				kst_tab_artr.st_tab_g_0.esegui_commit = "N"
-				kst_esito_1=kuf1_artr.aggiorna_data_stampa_attestato(kst_tab_artr)
+				kst_tab_artr.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
+				kst_esito_1 = kuf1_artr.aggiorna_data_stampa_attestato(kst_tab_artr)
 				destroy kuf1_artr 
 				
 				if kst_esito_1.sqlcode < 0 then
@@ -1950,21 +1968,19 @@ if if_sicurezza(kkg_flag_modalita.stampa) then
 					
 			end if
 			
+			if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
 
 		catch (uo_exception kuo_exception)
+			if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
 			throw kuo_exception
 	
 		finally
-		//--- Commit
-			if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
-		
-				if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn or kst_esito.esito = kkg_esito.not_fnd then
-					kGuf_data_base.db_commit_1()
-				else
-					kGuf_data_base.db_rollback_1( )
-				end if
-				
-			end if
 	
 		end try
 	end if

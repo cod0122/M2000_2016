@@ -1,0 +1,14 @@
+﻿$PBExportHeader$st_tab_armo_campioni.srs
+global type st_tab_armo_campioni from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_armo_campione
+	string		barcode_lav		descriptor "comment" = "barcode di trattamento"
+	long		id_armo
+	string		barcode		descriptor "comment" = "barcode del Controcampione"
+	string		x_utente_dosim_verifica
+	datetime		ts_ins
+	datetime		ts_stampa
+	datetime		x_datins
+	string		x_utente
+end type
+

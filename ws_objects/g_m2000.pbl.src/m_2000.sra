@@ -247,13 +247,19 @@ long richtextedittype = 5
 long richtexteditx64type = 5
 long richtexteditversion = 3
 string richtexteditkey = ""
-string appicon = "C:\Sterigenics\app32\icone\main.ico"
-string appruntimeversion = "22.0.0.1900"
+string appicon = "main.ico"
+string appruntimeversion = "22.1.0.2819"
 boolean manualsession = false
 boolean unsupportedapierror = false
+boolean ultrafast = false
 boolean bignoreservercertificate = false
 uint ignoreservercertificate = 0
+long webview2distribution = 0
+boolean webview2checkx86 = false
+boolean webview2checkx64 = false
+string webview2url = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/"
 event ue_open ( )
+event u_halt ( )
 end type
 global m_2000 m_2000
 
@@ -285,7 +291,6 @@ end variables
 forward prototypes
 public subroutine u_allarme_utente ()
 public subroutine a_license ()
-private subroutine u_close_all ()
 end prototypes
 
 event ue_open();//
@@ -357,13 +362,22 @@ kGuf_data_base.u_theme_apply()
 
 if isvalid(kuf1_utility) then destroy kuf1_utility
 
-//--- se utente inattivo x + di 40' (2400 sec) allora lancia idle()
-idle(2400)
+//--- se utente inattivo x + di 2h (7200 sec) allora lancia idle()
+idle(7200)
+//idle(60) // TETS
+
 
 SetPointer(kkg.pointer_default) 
 
 //--- abilita il pannello iniziale di accesso
 w_about_start.u_inizializza()
+end event
+
+event u_halt();
+//--- Forza Chiusura
+halt close
+//event close( )
+
 end event
 
 public subroutine u_allarme_utente ();//
@@ -420,35 +434,6 @@ public subroutine a_license ();//
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
-end subroutine
-
-private subroutine u_close_all ();//
-//=== Chiudo tutte le windows children
-window wSheet, wSheetNEXT
-
-	if isvalid(kGuo_g.kgw_attiva) then
-		close(kGuo_g.kgw_attiva)
-	end if
-
-	if isvalid(w_main) then
-		wSheet = w_main.GetFirstSheet()
-		do WHILE IsValid(wSheet) //and wSheet.classname( ) <> "w_menu_tree"
-			close(wSheet)
-			wSheet = w_main.GetFirstSheet()
-		loop
-		if isvalid(wsheet) then
-			wSheetNEXT = wsheet
-		end if
-	
-		do while isvalid(wSheet)
-			wSheet = w_main.GetNextSheet(wSheetNEXT)
-			if IsValid (wSheet) then
-				close(wSheet)
-			end if
-		loop
-	end if
-
-
 end subroutine
 
 event open;//
@@ -529,10 +514,8 @@ kuf_base kuf1_base
 //kuf_db kuf1_db
  
 
-//--- chiude tutte le window
-this.u_close_all( )
+if isvalid(w_main_0) then w_main_0.event close()
 
-//
 //=== Se DB-PILOTA connesso 
 if isvalid(kguo_sqlca_db_pilota) then
 	if kguo_sqlca_db_pilota.DBHandle ( ) > 0 then
@@ -682,11 +665,13 @@ try
 //	if isvalid(kguo_sqlca_db_magazzino) then
 //		kguo_sqlca_db_magazzino.db_connetti( )
 //	end if
-	
-	
+		
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 
+finally
+	kst_esito.esito = kkg_esito.ko
+	
 end try
 
 
@@ -814,9 +799,31 @@ end try
 //Some errors terminate the application immediately. They do not trigger the SystemError event 
 end event
 
-event idle;//
+event idle;
 //--- get e visualizza eventuali allarmi MEMO
-		u_allarme_utente( )
+//		u_allarme_utente( )
 
+// FORZA LA CHIUSURA DOPO INATTIVITA'
+if kguo_utente.if_virtual_user( ) then
+else
+//	try
+		
+		kguo_exception.inizializza( )
+		kguo_exception.kist_esito.esito = kkg_esito_no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Uscita FORZATA dall'Applicazione per prolungata inattività (timeout da IDLE)!"
+		kguo_exception.scrivi_log( )
+		
+//	catch (uo_exception kuo_exception)
+//	end try
+	
+	kguo_g.kG_exit_si = true
+
+	//--- chiude tutte le window
+	fx_close_all_window()
+
+	post event u_halt( )
+	//HALT CLOSE
+	
+end if
 end event
 

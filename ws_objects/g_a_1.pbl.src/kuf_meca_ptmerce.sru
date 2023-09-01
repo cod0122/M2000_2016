@@ -623,10 +623,7 @@ try
 			throw kguo_exception
 		end if
 
-
-
-
-//quiii		k_file_attached = u_build_email_attach_label(ast_tab_meca) // Label da allegare alla email		
+//quiii		k_file_attached = u_build_email_attach_label(ast_tab_meca) //  label con barcode da allegare alla email		
 		if trim(k_file_attached) > " " then
 			kst_tab_email_invio.allegati_pathfile = trim(k_file_attached)
 		end if

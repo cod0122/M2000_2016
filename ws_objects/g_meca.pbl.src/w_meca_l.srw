@@ -9,6 +9,8 @@ end type
 end forward
 
 global type w_meca_l from w_g_tab0
+integer width = 3035
+integer height = 2180
 string title = "Lotti"
 boolean ki_toolbar_window_presente = true
 boolean ki_esponi_msg_dati_modificati = false
@@ -40,8 +42,8 @@ private subroutine cambia_data ()
 protected function integer modifica ()
 public function integer u_open_riferimenti_autorizza ()
 private subroutine call_memo ()
-public subroutine stampa_choose_run ()
 protected subroutine stampa ()
+private subroutine stampa_choose_run ()
 end prototypes
 
 protected function integer visualizza ();//
@@ -448,8 +450,12 @@ end try
 
 end subroutine
 
-public subroutine stampa_choose_run ();//
-//long k_num_riga, k_riga
+protected subroutine stampa ();//
+dw_stampa.visible = true
+
+end subroutine
+
+private subroutine stampa_choose_run ();//
 string k_tipo_stampa
 int k_rc=0
 long k_riga
@@ -473,10 +479,9 @@ try
 			k_riga = dw_lista_0.getselectedrow(0)
 			if k_riga > 0 then
 				k_riga = dw_lista_0.getselectedrow(k_riga)
-				kuf1_meca_stampa.u_inizializza_stampa_pdf()  // inizializza l'array che conterrà i pdf da stampare
 				if k_riga > 0 then
-//--- con più documenti fa tutto in PDF poi unisce il tutto e finalmente stampa
 					k_riga = dw_lista_0.getselectedrow(0)
+//--- con più documenti fa tutto in PDF poi unisce il tutto e finalmente stampa
 					do while k_riga > 0
 						kuf1_meca_stampa.u_inizializza_stampa_pdf()  // inizializza l'array che conterrà i pdf da stampare
 						kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
@@ -485,7 +490,7 @@ try
 							kuf1_meca_stampa.u_genera_pdf_completa(kst_tab_meca) //u_stampa_completa(kst_tab_meca)
 						end if
 						k_riga = dw_lista_0.getselectedrow(k_riga)
-						sleep (1) // ritardo per lasciare il tempo di fare il pdf
+						//sleep (1) // ritardo per lasciare il tempo di fare il pdf
 						kuf1_meca_stampa.u_stampa_all_pdf( )  // stampa file PDF aggiunti nell'array 
 					loop
 				else
@@ -494,8 +499,6 @@ try
 					kuf1_meca_stampa.u_stampa_completa( kst_tab_meca )
 				end if
 			end if
-
-	
 
 		case "X"   // stampa dati lotto selezionati
 			k_riga = dw_lista_0.getselectedrow(0)
@@ -540,11 +543,6 @@ finally
 end try
 
 
-
-end subroutine
-
-protected subroutine stampa ();//
-dw_stampa.visible = true
 
 end subroutine
 

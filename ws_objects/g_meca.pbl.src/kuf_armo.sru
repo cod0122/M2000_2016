@@ -84,7 +84,6 @@ public function st_esito anteprima_elenco (ref datastore kdw_anteprima, st_tab_a
 public function st_esito get_id_meca (ref st_tab_armo kst_tab_armo)
 public function st_esito get_stato (ref st_tab_meca kst_tab_meca)
 public function boolean if_stampa_etichetta_avvertenze (st_tab_meca kst_tab_meca)
-public function st_esito get_id_meca_da_id_armo (ref st_tab_armo kst_tab_armo)
 public function st_esito anteprima_riga (ref datastore kdw_anteprima, st_tab_armo kst_tab_armo)
 public function integer get_colli_anno_x_clie_3 (readonly st_tab_meca kst_tab_meca) throws uo_exception
 public function st_esito get_riga_colli_da_fatt (ref st_tab_armo kst_tab_armo)
@@ -212,6 +211,7 @@ public function st_esito anteprima_meca_print (ref datastore kdw_anteprima, st_t
 public function boolean set_e1doco (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function boolean set_e1doco_rorn_stato_in_attenzione (ref st_tab_meca kst_tab_meca) throws uo_exception
 public subroutine set_meca_blk_descr_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception
+public function long get_id_meca_da_id_armo (ref st_tab_armo kst_tab_armo) throws uo_exception
 end prototypes
 
 public function st_esito setta_errore_lav (st_tab_meca kst_tab_meca);//
@@ -1561,60 +1561,6 @@ return k_return
 
 end function
 
-public function st_esito get_id_meca_da_id_armo (ref st_tab_armo kst_tab_armo);//
-//====================================================================
-//=== Legge MECA 
-//=== 
-//=== 
-//===  input: kst_tab_armo.id_armo 
-//===  Outout: kst_tab_armo.ID_MECA
-//===              ST_ESITO, Esiti: STANDARD
-//===                                     
-//====================================================================
-//
-int k_anno
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	kst_tab_armo.id_meca = 0
-
-	if kst_tab_armo.id_armo > 0 then
-
-		SELECT distinct armo.id_meca
-				 INTO 
-						:kst_tab_armo.id_meca 
-				 FROM armo  
-				WHERE armo.id_armo = :kst_tab_armo.id_armo
-					 using kguo_sqlca_db_magazzino;
-				
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			kst_tab_armo.id_meca = 0
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Tab. righe Lotto (armo) (id riga=" + string(kst_tab_armo.id_armo) + ") " &
-										 + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if kguo_sqlca_db_magazzino.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else	
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-		end if
-	
-	else
-		kst_tab_armo.id_meca = 0
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.SQLErrText = "Tab. righe Lotto (armo): ID riga non indicato, operazione interrotta! "
-	end if
-	
-return kst_esito
-
-end function
-
 public function st_esito anteprima_riga (ref datastore kdw_anteprima, st_tab_armo kst_tab_armo);//====================================================================
 //=== Operazione di Anteprima (riga armo x id_armo)
 //===
@@ -2824,7 +2770,7 @@ st_esito kst_esito
 
 	if isnull(kst_tab_meca.stato_in_attenzione) then kst_tab_meca.stato_in_attenzione = 0
 
-	kguo_sqlca_db_magazzino.db_commit( )  // x problema in TemporalTable forse risolve 13luglio23
+	//kguo_sqlca_db_magazzino.db_commit( )  // x problema in TemporalTable forse risolve 13luglio23
 
 	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
@@ -2838,22 +2784,17 @@ st_esito kst_esito
 			using kguo_sqlca_db_magazzino;
 	
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento Stato 'in Attenzione' nel Lotto con ID: " + string(kst_tab_meca.ID) + "~n~r"   + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		if kst_tab_meca.st_tab_g_0.esegui_commit = "S" then
+		kst_esito = kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento Stato 'in Attenzione' nel Lotto con ID: " + string(kst_tab_meca.ID))
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
 		else
 			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 	else
-		if kst_tab_meca.st_tab_g_0.esegui_commit = "S" then
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
 		else
 			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	end if
-
-			
-
 
 return kst_esito
 
@@ -3988,11 +3929,11 @@ try
 
 		
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko  
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento Lotto, indicatrore 'APERTO' a " + trim(ast_tab_meca.aperto) + ", ID: " + string(kst_tab_meca.ID) + "~n~r" + trim(sqlca.SQLErrText)
-		kguo_exception.inizializza( )			
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento Lotto, indicatrore 'APERTO' a " + trim(ast_tab_meca.aperto) + ", ID: " + string(kst_tab_meca.ID) + " ")
+		if ast_tab_meca.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
 		throw kguo_exception
 	end if
 	
@@ -4002,27 +3943,20 @@ try
 		kst_esito.SQLErrText = "Lotto non trovato durante aggiornamento indicatore 'APERTO' come " + trim(ast_tab_meca.aperto) + ", ID: " + string(kst_tab_meca.ID) + "~n~r" + trim(sqlca.SQLErrText)
 		kguo_exception.inizializza( )			
 		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
+	else
+	
+		if ast_tab_meca.st_tab_g_0.esegui_commit = "N" then
+		else
+			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		if kst_esito.esito = kkg_esito.ok then
+			k_return = true   // TUTTO OK!
+		end if
+		
 	end if
-
-	if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
-		kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-	end if
-
-//--- se arriva qui tutto OK	
-	k_return = true
-
 
 catch (uo_exception kuo_exception)
-	k_return = false
-//--- c'e' stato un errore grave?
-	if kst_esito.esito = kkg_esito.db_ko then
-		if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
-			kst_esito = kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-			
-		throw  kuo_exception
-	end if
+	throw  kuo_exception
 	
 finally
 		
@@ -4293,9 +4227,9 @@ try
 //--- Lotto con causale da NON TRATTARE?
 		if kst_tab_armo.id_meca > 0 then
 		else
-			kst_esito = get_id_meca_da_id_armo(kst_tab_armo)
+			get_id_meca_da_id_armo(kst_tab_armo)
 		end if
-		if kst_esito.esito = kkg_esito.ok then
+		if kst_tab_armo.id_meca > 0 then
 			kst_tab_meca.id = kst_tab_armo.id_meca
 			get_causale(kst_tab_meca)
 			if kst_tab_meca.id_meca_causale > 0 then
@@ -5872,8 +5806,8 @@ try
 
 //---
 		kst_tab_armo_1 = kst_tab_armo
-		kst_esito = get_id_meca_da_id_armo(kst_tab_armo_1)
-		if kst_esito.esito = kkg_esito.ok then
+		get_id_meca_da_id_armo(kst_tab_armo_1)
+		if kst_tab_armo_1.id_meca > 0 then
 			
 			kst_tab_meca.id = kst_tab_armo_1.id_meca
 			if NOT if_lotto_chiuso(kst_tab_meca) then
@@ -7869,15 +7803,11 @@ if kst_tab_meca.id > 0 then
 			using kguo_sqlca_db_magazzino;
 			
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento data entrata Lotto " + string(kst_tab_meca.data_ent) + " (meca), ID: " + string(kst_tab_meca.id) &
-									+ kkg.acapo  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento data entrata Lotto " + string(kst_tab_meca.data_ent) + " (meca), ID: " + string(kst_tab_meca.id))
 		if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
 		else
 			kguo_sqlca_db_magazzino.db_rollback()
 		end if
-		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
 	
@@ -9395,11 +9325,11 @@ try
 			using kguo_sqlca_db_magazzino;
 		
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko  
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento Numero Dosimetri Previsti (" +  string(kst_tab_meca.dosimprev) + ") in testata Lotto, ID: " + string(kst_tab_meca.ID) + "~n~r" + trim(sqlca.SQLErrText)
-		kGuo_exception.inizializza( )
-		kGuo_exception.set_esito( kst_esito )
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento Numero Dosimetri Previsti (" +  string(kst_tab_meca.dosimprev) + ") in testata Lotto, ID: " + string(kst_tab_meca.ID))
+		if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
 		throw kGuo_exception
 	end if
 		
@@ -9411,10 +9341,6 @@ try
 	end if
 	
 catch (uo_exception kuo_exception)
-	if kst_tab_meca.st_tab_g_0.esegui_commit = "N" then
-	else
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
 	throw kuo_exception
 	
 end try
@@ -9557,6 +9483,9 @@ try
 			kst_esito.SQLErrText = "Errore in aggiornamento Descrizione su Tab. dati Lotto 'meca_blk' id " + string(kst_tab_meca.id) + " :" + trim(kguo_sqlca_db_magazzino.SQLErrText)
 			kst_esito.esito = kkg_esito.db_ko
 			kguo_exception.set_esito(kst_esito)
+			if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+				kst_esito = kguo_sqlca_db_magazzino.db_rollback( )
+			end if
 			throw kguo_exception
 		end if
 	
@@ -10086,6 +10015,46 @@ end try
 
 
 end subroutine
+
+public function long get_id_meca_da_id_armo (ref st_tab_armo kst_tab_armo) throws uo_exception;/*
+ Legge ID LOTTO da ARMO
+    inp: kst_tab_armo.id_armo 
+    Out: kst_tab_armo.ID_MECA
+*/
+long k_return
+st_esito kst_esito
+
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	kst_tab_armo.id_meca = 0
+
+	if kst_tab_armo.id_armo > 0 then
+
+		SELECT distinct armo.id_meca
+				 INTO 
+						:kst_tab_armo.id_meca 
+				 FROM armo  
+				WHERE armo.id_armo = :kst_tab_armo.id_armo
+					 using kguo_sqlca_db_magazzino;
+				
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura Id Lotto (ASN) da tabella righe Lotto (armo) (id riga=" + string(kst_tab_armo.id_armo) + ") ")
+			throw kguo_exception 
+		end if
+	
+		if kst_tab_armo.id_meca > 0 then
+			k_return = kst_tab_armo.id_meca
+		end if
+		
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione
+		kst_esito.SQLErrText = "Lettura Id Lotto/ASN: Id riga Lotto non indicato, operazione interrotta! "
+	end if
+	
+return k_return
+
+end function
 
 on kuf_armo.create
 call super::create

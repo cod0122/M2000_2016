@@ -155,13 +155,13 @@ return kst_esito
 
 end function
 
-public function st_esito popola_tab_lettore_grp ();//
-//--- Scrive su tabella i Groupage Scaricati nella cartella comune con il Lettore
-//--- inp: 
-//--- out: 
-//--- rit: st_esito
-//--- deve essere stato impostato il PATH dove il Lettore mette i Groupage sulle Proprietà Base
-//---
+public function st_esito popola_tab_lettore_grp ();/*
+ Scrive su tabella i Groupage Scaricati nella cartella comune con il Lettore
+	 inp: 
+	 out: 
+	 rit: st_esito
+ deve essere stato impostato il PATH dove il Lettore mette i Groupage sulle Proprietà Base
+*/
 string k_esito=""
 string k_file=""
 int k_n_file=0, k_ind
@@ -173,7 +173,7 @@ try
 
 	kst_esito = kGuo_exception.inizializza(this.classname())
 
-//--- legge i groupage dalla cartella
+//--- legge i file di groupage dalla cartella
 	get_files_groupage(kst_file_lettore_grp[])
 	
 	k_n_file = upperbound(kst_file_lettore_grp[])
@@ -382,14 +382,13 @@ return k_return
 
 end function
 
-private function st_esito popola_tab_lettore_grp_da_ds ();//
-//--- Scrive su tabella i records dal ds_file_lettore_grp 
-//--- inp: 
-//--- out: 
-//--- rit: st_esito
-//--- deve essere stato popolato il ds_file_lettore_grp 
-//---
+private function st_esito popola_tab_lettore_grp_da_ds ();/*
+ Scrive su tabella i records dal ds_file_lettore_grp 
+   rit: st_esito
+ deve essere stato popolato il ds_file_lettore_grp 
+*/
 st_esito kst_esito
+long k_rows
 boolean k_doppi=false
 integer k_riga, k_errore=0, k_riga_file=0, k_ind_doppi=0
 string k_file_dati
@@ -398,7 +397,8 @@ st_tab_lettore_grp kst_tab_lettore_grp
 
 kst_esito = kGuo_exception.inizializza(this.classname())
 
-if kids_file_lettore_grp.rowcount( ) > 0 then
+k_rows = kids_file_lettore_grp.rowcount( )
+if k_rows > 0 then
 	
 	kids_lettore_grp.reset( )
 	
@@ -451,15 +451,15 @@ if kids_file_lettore_grp.rowcount( ) > 0 then
 					"Errore durante inserimento dei Groupage da palmare  ~n~r" &
 									+ "Esempio il Padre: " + kids_file_lettore_grp.object.barcode[1]  &	
 									+ " key: " + kids_file_lettore_grp.object.key[1]	+ " ~n~r" &
-									+ " data/ora inizio: " + kids_file_lettore_grp.object.timestamp_inizio[1]	+ " ~n~r" &
+									+ " data/ora inizio: " + kids_file_lettore_grp.object.timestamp_inizio[1]	+ kkg.acapo + &
 									+ "Codice errore: " + string(kids_lettore_grp.kist_esito.sqlcode)  &	
-									+ " ~n~r" + trim(kids_lettore_grp.kist_esito.SQLErrText)
+									+ " - " + trim(kids_lettore_grp.kist_esito.SQLErrText)
 			else
 				kst_esito.SQLErrText = &
 					"Errore durante in inserimento dei Groupage da palmare " &
-									+ "(nessun barcode trovato): "   &	
-									+ "Codice errore: " + string(kids_lettore_grp.kist_esito.sqlcode)  &	
-									+ " ~n~r" + trim(kids_lettore_grp.kist_esito.SQLErrText)
+									+ "(nessun barcode trovato)."   &	
+									+ kkg.acapo + "Codice errore: " + string(kids_lettore_grp.kist_esito.sqlcode)  &	
+									+ " - " + trim(kids_lettore_grp.kist_esito.SQLErrText)
 			end if
 			kst_esito.esito = kkg_esito.db_ko
 			
@@ -477,12 +477,18 @@ if kids_file_lettore_grp.rowcount( ) > 0 then
 		
 	end if
 	
-
 else
 	
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Nessun Groupage da palmare presente " 
-	kst_esito.esito = kkg_esito.db_wrn
+	if k_rows < 0 then
+		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.sqlcode = kids_lettore_grp.kist_esito.sqlcode
+		kst_esito.SQLErrText = "Errore in lettura barcode groupage invati da palmare. " &
+											+ kkg.acapo + "Errore: " + string(kids_lettore_grp.kist_esito.sqlcode)  &	
+											+ " - " + trim(kids_lettore_grp.kist_esito.SQLErrText)
+	else
+		kst_esito.SQLErrText = "Nessun barcode inviato da palmare." 
+		kst_esito.esito = kkg_esito.not_fnd
+	end if
 end if
 
 

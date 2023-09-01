@@ -9,6 +9,8 @@ end type
 end forward
 
 global type w_barcode from w_g_tab_3
+integer width = 3035
+integer height = 1680
 string title = "Barcode"
 boolean ki_toolbar_window_presente = true
 boolean ki_fai_nuovo_dopo_update = false
@@ -31,6 +33,8 @@ private kuf_barcode kiuf_barcode
 private string ki_flag_modalita_orig=""
 private st_tab_barcode kist_tab_barcode_orig
 private kuf_barcode_mod_giri kiuf_barcode_mod_giri
+
+private st_tab_armo_campioni kist_tab_armo_campioni
 
 end variables
 
@@ -61,6 +65,7 @@ protected subroutine inizializza_2 () throws uo_exception
 protected subroutine attiva_tasti_0 ()
 private subroutine modifica_giri ()
 protected subroutine inizializza_3 () throws uo_exception
+protected subroutine inizializza_4 () throws uo_exception
 end prototypes
 
 protected subroutine inizializza_1 ();//======================================================================
@@ -973,7 +978,6 @@ if k_errore = 0 then
 	   or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.cancellazione then
 		
 		kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
-		kuf1_utility.u_proteggi_dw("1", "b_barcode_lav", tab_1.tabpage_1.dw_1)
 
 //--- se arrivo da Modifica Programmazione Pilota abbiamo un'eccezione!!!!
 		if trim(ki_st_open_w.id_programma_chiamante) = kkg_id_programma_pilota_programmazione then
@@ -981,6 +985,8 @@ if k_errore = 0 then
 		else
 			kuf1_utility.u_proteggi_dw("1", "b_barcode_figli", tab_1.tabpage_1.dw_1)
 		end if
+		
+   	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
 	else		
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
@@ -991,6 +997,7 @@ if k_errore = 0 then
 			if tab_1.tabpage_1.dw_1.getitemnumber(1, "pl_barcode") > 0 then
 				kuf1_utility.u_proteggi_dw("1", "barcode_causale", tab_1.tabpage_1.dw_1) //proteggi campo
 				kuf1_utility.u_proteggi_dw("1", "flg_dosimetro", tab_1.tabpage_1.dw_1) //proteggi campo
+		   	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
 			end if
 		end if
 	end if
@@ -1286,11 +1293,14 @@ protected function string aggiorna ();//
 //
 string k_errore ="0 "
 long k_riga=0
+int k_rows, k_row
 dwItemStatus kdwstatus_1
 st_tab_barcode kst_tab_barcode
 st_tab_meca_dosim kst_tab_meca_dosim
 st_esito kst_esito
-//kuf_barcode kuf1_barcode
+st_tab_g_0 kst_tab_g_0
+st_tab_armo_campioni kst_tab_armo_campioni
+kuf_armo_campioni kuf1_armo_campioni
 kuf_meca_dosim kuf1_meca_dosim
 
 
@@ -1298,6 +1308,33 @@ try
 
 //=== Puntatore Cursore da attesa..... 
 	SetPointer(kkg.pointer_attesa)
+
+	kst_tab_barcode.barcode = trim(tab_1.tabpage_1.dw_1.getitemstring(tab_1.tabpage_1.dw_1.getrow(), "barcode"))
+
+//--- aggiorna eventuale barcode Campione accoppiandolo o disaccoppiandolo
+	if kst_tab_barcode.barcode = kist_tab_armo_campioni.barcode_lav then // devo avere aperto la scheda dei Campioni
+		kuf1_armo_campioni = create kuf_armo_campioni
+		kst_tab_barcode.flg_campione = 0
+		k_rows = tab_1.tabpage_5.dw_5.rowcount()
+		for k_row = 1 to k_rows
+			kst_tab_armo_campioni.id_armo_campione = tab_1.tabpage_5.dw_5.getitemnumber(k_row, "id_armo_campione") 
+			if tab_1.tabpage_5.dw_5.getitemnumber(k_row, "k_associato") = 1 then 
+				kst_tab_armo_campioni.barcode_lav = tab_1.tabpage_1.dw_1.getitemstring(tab_1.tabpage_1.dw_1.getrow(), "barcode")
+				kst_tab_barcode.flg_campione = 1   // attiva flag CAMPIONE sul Barcode
+			else
+				kst_tab_armo_campioni.barcode_lav = ""
+			end if
+			if kst_tab_armo_campioni.barcode_lav = tab_1.tabpage_5.dw_5.getitemstring( k_row, "barcode_lav") then
+			else
+				kst_tab_armo_campioni.st_tab_g_0.esegui_commit = "S"
+				kuf1_armo_campioni.set_barcode_lav(kst_tab_armo_campioni)
+			end if
+		next
+		tab_1.tabpage_1.dw_1.setitem(tab_1.tabpage_1.dw_1.getrow(), "flg_campione", kst_tab_barcode.flg_campione)  // toglie/mette il flag campione barcode
+	//	kst_tab_barcode.id_meca = tab_1.tabpage_1.dw_1.getitemnumber(tab_1.tabpage_1.dw_1.getrow(), "id_meca") 
+	//	kst_tab_g_0.esegui_commit = "S"
+	//	kuf1_armo_campioni.u_genera_barcode_lotto(kst_tab_barcode.id_meca, kst_tab_g_0) // se non ci sono li genera
+	end if
 	
 //=== Aggiorna, se modificato, la TAB_1	
 	kst_esito = aggiorna_dw (tab_1.tabpage_1.dw_1, tab_1.tabpage_1.text)
@@ -1316,8 +1353,6 @@ try
 	//kguo_sqlca_db_magazzino.db_commit()  // forza COMMIT x evitare forse errore su TemporalTable
 
 	kuf1_meca_dosim = create kuf_meca_dosim
-
-	kst_tab_barcode.barcode = tab_1.tabpage_1.dw_1.getitemstring(tab_1.tabpage_1.dw_1.getrow(), "barcode") 
 			
 //--- se BARCODE da NON TRATTARE allora lo rimuove dal GROUPAGE e anche il DOSIMETRO (eventuale)
 	kst_tab_barcode.causale = tab_1.tabpage_1.dw_1.getitemstring(1, "barcode_causale")
@@ -1355,7 +1390,7 @@ try
 				if kdwstatus_1 = NotModified! or kdwstatus_1 = DataModified!	then
 					kst_tab_barcode.barcode = tab_1.tabpage_2.dw_2.getitemstring ( k_riga, "barcode", delete!, true) 
 					
-					kst_tab_barcode.st_tab_g_0.esegui_commit = "N"
+					kst_tab_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
 					kst_esito = kiuf_barcode.tb_togli_da_groupage(kst_tab_barcode)
 					
 					if kst_esito.esito = kkg_esito.ko or kst_esito.esito = kkg_esito.db_ko then
@@ -1398,25 +1433,25 @@ try
 			
 	end if
 		
-			
-//--- aggiorna anche eventuale barcode dosimetro accoppiandolo o disaccoppiandolo
-		kst_tab_meca_dosim.id_meca = tab_1.tabpage_1.dw_1.getitemnumber( tab_1.tabpage_1.dw_1.getrow(), "id_meca") 
-		kst_tab_meca_dosim.barcode_lav = tab_1.tabpage_1.dw_1.getitemstring( tab_1.tabpage_1.dw_1.getrow(), "barcode") 
-		kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
-		kuf1_meca_dosim.u_genera_rimuove_barcode(kst_tab_meca_dosim)
+//--- Genera/Rimuove barcode dosimetri
+	kst_tab_meca_dosim.id_meca = tab_1.tabpage_1.dw_1.getitemnumber( tab_1.tabpage_1.dw_1.getrow(), "id_meca") 
+	kst_tab_meca_dosim.barcode_lav = tab_1.tabpage_1.dw_1.getitemstring( tab_1.tabpage_1.dw_1.getrow(), "barcode") 
+	kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"
+	kuf1_meca_dosim.u_genera_rimuove_barcode(kst_tab_meca_dosim)
 
 //--- FINALMENTE COMMIT!
-		kst_esito = kguo_sqlca_db_magazzino.db_commit()
-			
-		if kst_esito.esito = kkg_esito.db_ko then
-			k_errore = "1Errore durante consolidamento (commit) dei dati del Barcode: " + kst_tab_barcode.barcode + " " + trim(kst_esito.sqlerrtext)+".~n~r" 
-		else
+	kst_esito = kguo_sqlca_db_magazzino.db_commit()
+		
+	if kst_esito.esito = kkg_esito.db_ko then
+		k_errore = "1Errore durante consolidamento (commit) dei dati del Barcode: " + kst_tab_barcode.barcode + " " + trim(kst_esito.sqlerrtext)+".~n~r" 
+	else
 			
 //--- resetta gli Stati dei campi a non modificati
-			tab_1.tabpage_1.dw_1.resetUpdate()
-			tab_1.tabpage_2.dw_2.resetUpdate()
-			
-		end if
+		tab_1.tabpage_1.dw_1.resetUpdate()
+		tab_1.tabpage_2.dw_2.resetUpdate()
+		tab_1.tabpage_5.dw_5.resetUpdate()
+		
+	end if
 
 catch (uo_exception kuo1_exception)
 	kuo1_exception.messaggio_utente()
@@ -1428,9 +1463,10 @@ catch (uo_exception kuo1_exception)
 //			string(k_riga, "#####") + ", durante aggiornamento del Barcode "+ trim(kst_tab_barcode.barcode)+ ", " + trim(kst_esito.sqlerrtext)+".~n~r" 
 
 finally
-
-		if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
-		SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
+	if isvalid(kuf1_armo_campioni) then destroy kuf1_armo_campioni
+	
+	SetPointer(kkg.pointer_default)
 		
 end try
 
@@ -1888,6 +1924,65 @@ string k_scelta
 
 end subroutine
 
+protected subroutine inizializza_4 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 5 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_codice_elenco = ""
+string k_scelta
+kuf_utility kuf1_utility
+
+try
+	
+	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+		
+		kist_tab_armo_campioni.barcode_lav = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "barcode")  )
+
+		if tab_1.tabpage_5.dw_5.rowcount() > 0 then
+
+			k_codice_elenco = trim(tab_1.tabpage_5.dw_5.getitemstring(1, "barcode"))
+
+		end if
+	
+		if k_codice_elenco <> kist_tab_armo_campioni.barcode_lav then 
+
+			tab_1.tabpage_5.dw_5.retrieve( kist_tab_armo_campioni.barcode_lav )
+
+		end if
+
+		tab_1.tabpage_5.dw_5.setfocus()
+
+		if tab_1.tabpage_5.dw_5.rowcount( ) > 0 then
+			tab_1.tabpage_5.dw_5.ki_flag_modalita = ki_st_open_w.flag_modalita
+			
+			kuf1_utility = create kuf_utility
+			
+			kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_5.dw_5)
+	
+			if tab_1.tabpage_5.dw_5.ki_flag_modalita = kkg_flag_modalita.modifica then
+	//--- se barcode già con in Piano di Lavoro allora non posso cambiare
+				if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+					if tab_1.tabpage_1.dw_1.getitemnumber(1, "pl_barcode") > 0 then
+						kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+					end if
+				end if
+			end if
+		end if
+		
+	end if
+	
+	tab_1.tabpage_5.dw_5.resetUpdate()
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	
+end try
+	
+end subroutine
+
 on w_barcode.create
 int iCurrent
 call super::create
@@ -2063,6 +2158,9 @@ string k_errore="0"
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_barcode
+integer x = 0
+integer y = 0
+integer width = 2656
 boolean fixedwidth = true
 boolean powertips = true
 end type
@@ -2095,12 +2193,13 @@ end on
 
 event tab_1::u_constructor;//
 							// 1     2     3     4     5      6     7      8      9   
-ki_tabpage_enabled = {true, true, true, true, false, false, false, false, false} // disabilita alcune tabpage
+ki_tabpage_enabled = {true, true, true, true, true, false, false, false, false} // disabilita alcune tabpage
 super::event u_constructor( )
 
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+integer width = 2619
 string text = "BARCODE"
 string powertiptext = "dati barcode "
 end type
@@ -2285,6 +2384,7 @@ long backcolor = 255
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+integer width = 2619
 string text = "groupage"
 string powertiptext = "barcode figli associati in groupage"
 end type
@@ -2316,6 +2416,7 @@ end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
+integer width = 2619
 boolean enabled = true
 string text = "dosimetri"
 end type
@@ -2365,6 +2466,7 @@ end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
+integer width = 2619
 boolean enabled = true
 string text = "disp.ausiliari"
 ln_1 ln_1
@@ -2423,12 +2525,18 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
-string text = ""
+boolean visible = true
+integer width = 2619
+boolean enabled = true
+string text = "Campioni"
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
 integer width = 2935
 integer height = 1172
+boolean enabled = true
+string dataobject = "d_armo_campioni_l_x_barcode"
+boolean ki_link_standard_sempre_possibile = true
 end type
 
 event dw_5::clicked;call super::clicked;//
@@ -2461,6 +2569,7 @@ type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
 end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
+integer width = 2619
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -2470,6 +2579,7 @@ type dw_6 from w_g_tab_3`dw_6 within tabpage_6
 end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+integer width = 2619
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
@@ -2479,6 +2589,7 @@ type dw_7 from w_g_tab_3`dw_7 within tabpage_7
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
+integer width = 2619
 end type
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
@@ -2488,6 +2599,7 @@ type dw_8 from w_g_tab_3`dw_8 within tabpage_8
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+integer width = 2619
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9

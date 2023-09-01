@@ -2979,7 +2979,7 @@ st_esito kst_esito
 st_open_w kst_open_w
 kuf_utility kuf1_utility
 datawindowchild  kdwc_1
-datawindow kdw_this
+uo_d_std_1 kdw_this
 uo_exception kuo_exception
 pointer oldpointer  // Declares a pointer variable
 

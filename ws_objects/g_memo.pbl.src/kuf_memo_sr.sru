@@ -36,15 +36,12 @@ public function boolean u_if_sicurezza (st_tab_memo ast_tab_memo, string a_flag_
 boolean k_return=false
 long k_id_utente = 0
 st_tab_sr_utenti kst_tab_sr_utenti
-//st_open_w kst_open_w
-//kuf_armo kuf1_armo
-//kuf_contratti_co kuf1_contratti_co
-//kuf_contratti_dp kuf1_contratti_dp
-//kuf_contratti_rd kuf1_contratti_rd
 kuf_sr_sicurezza  kuf1_sr_sicurezza 
+kuf_sr_utenti  kuf1_sr_utenti
 
 	
 	kuf1_sr_sicurezza  = create kuf_sr_sicurezza 
+	kuf1_sr_utenti = create kuf_sr_utenti
 
 //--- se l'utente è lo stesso creatore del documento allora impongo al massimo il permesso
 	if isnumber(ast_tab_memo.utente_ins) then
@@ -52,7 +49,7 @@ kuf_sr_sicurezza  kuf1_sr_sicurezza
 	else
 		kst_tab_sr_utenti.id = 0
 	end if
-	if kuf1_sr_sicurezza.if_utente_uguale(kst_tab_sr_utenti) then 
+	if kuf1_sr_utenti.if_utente_uguale(kst_tab_sr_utenti) then 
 		ast_tab_memo.permessi = kuf1_sr_sicurezza.ki_permessi_completo
 	end if
 		
@@ -64,6 +61,7 @@ kuf_sr_sicurezza  kuf1_sr_sicurezza
 	end if
 	
 	if isvalid(kuf1_sr_sicurezza) then destroy kuf1_sr_sicurezza
+	if isvalid(kuf1_sr_utenti) then destroy kuf1_sr_utenti
 			
 return k_return
 

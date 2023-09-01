@@ -387,18 +387,15 @@ st_tab_armo kst_tab_armo
 kuf_base kuf1_base
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
 				
 
 	kst_esito.st_tab_g_0 = kst_tab_artr.st_tab_g_0 
-	if kst_esito.st_tab_g_0.esegui_commit <> "S" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-		kst_esito.st_tab_g_0.esegui_commit = "N"
+	if isnull(kst_esito.st_tab_g_0.esegui_commit) then
+		kst_esito.st_tab_g_0.esegui_commit = "S"
 	end if
 
 
@@ -414,11 +411,13 @@ kuf_base kuf1_base
 			using kguo_sqlca_db_magazzino;
 
 		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			if kst_esito.st_tab_g_0.esegui_commit = "S" then
+			if kst_esito.st_tab_g_0.esegui_commit = "N" then
+			else
 				kguo_sqlca_db_magazzino.db_commit() 
 			end if
 		else
-			if kst_esito.st_tab_g_0.esegui_commit = "S" then
+			if kst_esito.st_tab_g_0.esegui_commit = "N" then
+			else
 				kguo_sqlca_db_magazzino.db_rollback() 
 			end if
 			kst_esito.esito = "1"

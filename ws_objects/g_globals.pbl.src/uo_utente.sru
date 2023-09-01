@@ -16,12 +16,12 @@ string ki_CODICE="*VUOTO*" //inizialmente          obsoleto  "MASTER" //User del
 string ki_COMP="MAST" //User compatto, prendo solo 4 lettere senza char strani
 long ki_ID_UTENTE=0 //
 int ki_PWD=0 //Livello di Privilegio OBSOLETO solo x compatibilita' con il passato
+int ki_virtual_user = 0 // 1=utente virtuale es. Console
 public:
 string Ki_DOMAIN //Domain di connessione Active Directoty / LDAP
 
 
 end variables
-
 forward prototypes
 public subroutine set_nome (string a_nome)
 public subroutine set_codice (string a_codice)
@@ -34,6 +34,8 @@ public subroutine set_comp ()
 public subroutine set_id_utente (long a_id_utente)
 public function long get_id_utente ()
 public function boolean if_master ()
+public subroutine set_virtual_user (integer a_virtual_user)
+public function boolean if_virtual_user ()
 end prototypes
 
 public subroutine set_nome (string a_nome);
@@ -210,6 +212,22 @@ public function boolean if_master ();//
 //--- torna se user è MASTER (speciale per il PROGRAMMATORE)
 //
 if ki_ID_UTENTE = 9999 then
+	return true
+else
+	return false
+end if
+end function
+
+public subroutine set_virtual_user (integer a_virtual_user);
+if isnull(a_virtual_user) then a_virtual_user = 0
+ki_virtual_user = a_virtual_user
+
+end subroutine
+
+public function boolean if_virtual_user ();//
+//--- torna se utente VIRTUALE (es. Console)
+//
+if ki_virtual_user = 1 then
 	return true
 else
 	return false

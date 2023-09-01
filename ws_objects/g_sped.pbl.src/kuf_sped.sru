@@ -305,23 +305,19 @@ try
 	
 					end if
 				end if
-			
+
+				if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_commit( )
+				end if
 			
 			catch 	(uo_exception kuo_exception)
 				kst_esito = kuo_exception.get_st_esito()
+				if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_rollback( )
+				end if
 	
 	
 			finally
-	//---- COMMIT....	
-				if kst_esito.esito = kkg_esito.db_ko then
-					if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-						kGuf_data_base.db_rollback_1( )
-					end if
-				else
-					if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-						kGuf_data_base.db_commit_1( )
-					end if
-				end if
 				
 				if isvalid(kuf1_docprod) then destroy kuf1_docprod 
 				if isvalid(kuf1_doctipo) then destroy kuf1_doctipo 
@@ -477,6 +473,11 @@ else
 						+ string(kist_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
 						+ " ~n~rErrore-tab.SPED:"	+ trim(sqlca.SQLErrText)
 				kst_esito.esito = kkg_esito.db_ko
+				
+			else
+				
+				kguo_sqlca_db_magazzino.db_commit()
+				
 			end if
 
 		end if
@@ -4509,11 +4510,8 @@ kuf_docprod kuf1_docprod
 kuf_armo kuf1_armo
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	k_nr_ddt = upperbound(kst_tab_sped[])
 
@@ -4540,14 +4538,7 @@ kuf_armo kuf1_armo
 					get_id_armo_max(kst_tab_arsp)  // piglia id del dettaglio lotto
 					if kst_tab_arsp.id_armo > 0 then
 						kst_tab_armo.id_armo =  kst_tab_arsp.id_armo
-						kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo) // piglia id del lotto
-						if kst_esito.esito = kkg_esito.db_ko then
-							if isvalid(kuf1_docprod) then destroy kuf1_docprod
-							if isvalid(kuf1_armo) then destroy kuf1_armo
-							kguo_exception.inizializza( )
-							kguo_exception.set_esito(kst_esito)
-							throw kguo_exception
-						end if
+						kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo) // piglia id del lotto
 						if kst_tab_armo.id_meca > 0 then
 //--- Recupera il codice CLIENTE fatturato
 							kst_tab_meca.id = kst_tab_armo.id_meca
@@ -4594,6 +4585,14 @@ kuf_armo kuf1_armo
 	
 	end if
 
+catch (uo_exception kuo_exceptiion)
+	throw kuo_exceptiion
+
+finally
+	if isvalid(kuf1_docprod) then destroy kuf1_docprod
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+
+end try
 
 return k_return
 

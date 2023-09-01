@@ -1508,11 +1508,11 @@ kuf_meca_dosim kuf1_meca_dosim
 					+ "meca.data_ent, " &
 					+ "meca.aperto, " &
 					+ "meca.clie_3,  " &
-					+ "meca.data_lav_fin,    " &
-					+ "meca.err_lav_fin,    " &
-					+ "meca_dosim.barcode_dosimetro,    " &
-					+ "meca_dosim.dosim_data,    " &
- 					+ "CONVERT(DATETIME, CONVERT(varchar(20), dosim_data,105)  + ' ' + CONVERT(varchar(8), coalesce(dosim_ora, '00:00:00'), 108))" &
+					+ "meca.data_lav_fin, " &
+					+ "meca.err_lav_fin, " &
+					+ "meca_dosim.barcode_dosimetro, " &
+					+ "meca_dosim.dosim_data, " &
+ 					+ "CONVERT(DATETIME, CONVERT(varchar(20), dosim_data,105)  + ' ' + CONVERT(varchar(8), coalesce(dosim_ora, '00:00:00'), 108)), " &
 					+ "meca_dosim.dosim_dose,    " &
 					+ "meca.err_lav_ok,    " &
 					+ "meca.note_lav_ok,   " &

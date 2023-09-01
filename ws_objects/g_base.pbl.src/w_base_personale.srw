@@ -394,7 +394,7 @@ kuf_armo kuf1_armo
 			kst_tab_base.e1mcu = tab_1.tabpage_4.dw_4.getitemstring( k_riga, "e1mcu") 
 			if trim(kst_tab_base.e1mcu) > " " then
 			else
-				k_testo = trim(tab_1.tabpage_4.dw_4.object.dosimetro_ult_barcode_t.text)
+				k_testo = trim(tab_1.tabpage_4.dw_4.object.e1mcu_t.text)
 				k_return += tab_1.tabpage_4.text + ": scegliere il codice E1" + "~n~r"
 				k_errore = "2"
 				k_nr_errori++
@@ -446,7 +446,7 @@ kuf_armo kuf1_armo
 		k_riga = 1
 		if tab_1.tabpage_5.dw_5.getitemstatus( k_riga, 0, primary!) = DataModified! then
 		
-//--- controllo codice barcode 		
+//--- controllo codice barcode Dosimetri
 			kst_tab_base.dosimetro_ult_barcode = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "dosimetro_ult_barcode") 
 			if trim(kst_tab_base.dosimetro_ult_barcode) > " " then
 				if left(kst_tab_base.dosimetro_ult_barcode, 2) <= "AA" and left(kst_tab_base.dosimetro_ult_barcode, 2) >= "ZZ" then
@@ -469,6 +469,30 @@ kuf_armo kuf1_armo
 			kst_tab_base.dosimetro_barcode_mask = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "dosimetro_barcode_mask")
 			kst_tab_base.dosimetro_ult_barcode = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "dosimetro_ult_barcode")
 			if len(trim(kst_tab_base.dosimetro_barcode_mask)) = 0 or isnull(kst_tab_base.dosimetro_barcode_mask) then kst_tab_base.dosimetro_barcode_mask = "DSM"
+		
+//--- controllo codici barcode Colli Campioni
+			kst_tab_base.collicampioni_ult_barcode = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "collicampioni_ult_barcode") 
+			if trim(kst_tab_base.collicampioni_ult_barcode) > " " then
+				if left(kst_tab_base.collicampioni_ult_barcode, 2) <= "AA" and left(kst_tab_base.collicampioni_ult_barcode, 2) >= "ZZ" then
+					k_testo = trim(tab_1.tabpage_5.dw_5.object.collicampioni_ult_barcode_t.text)
+					k_return += tab_1.tabpage_5.text + ": Primi 2 caratteri non ammessi nel campo '" + k_testo + "', accetta solo da 'AA' a 'ZZ'" + "~n~r"
+					k_errore = "2"
+					k_nr_errori++
+				end if
+				if not isnumber(trim(mid(kst_tab_base.collicampioni_ult_barcode,3,3))) then
+					k_testo = trim(tab_1.tabpage_5.dw_5.object.collicampioni_ult_barcode_t.text)
+					k_return += tab_1.tabpage_5.text + ": Ultimi 3 caratteri non ammessi nel campo '" + k_testo + "', accetta solo numeri 000 - 999" + "~n~r"
+					k_errore = "2"
+					k_nr_errori++
+				end if
+				if k_errore = "0" then
+					k_rx = left(kst_tab_base.collicampioni_ult_barcode, 2) + string(integer(mid(kst_tab_base.collicampioni_ult_barcode,3,3)), "000")
+					tab_1.tabpage_5.dw_5.setitem( k_riga, "collicampioni_ult_barcode", k_rx) 
+				end if
+			end if	
+			kst_tab_base.collicampioni_barcode_mask = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "collicampioni_barcode_mask")
+			kst_tab_base.collicampioni_ult_barcode = tab_1.tabpage_5.dw_5.getitemstring( k_riga, "collicampioni_ult_barcode")
+			if len(trim(kst_tab_base.collicampioni_barcode_mask)) = 0 or isnull(kst_tab_base.collicampioni_barcode_mask) then kst_tab_base.collicampioni_barcode_mask = "DSM"
 			
 		
 		end if
@@ -764,6 +788,14 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 		kst_tab_base.key = kuf1_base.kki_base_utenti_codice_stcert2
 		kst_tab_base.key1 = k_text
 		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
+
+		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stbarcode")
+		if isnull(k_text) then
+			k_text=""
+		end if
+		kst_tab_base.key = kuf1_base.kki_base_utenti_codice_stbarcode
+		kst_tab_base.key1 = k_text
+		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
 	
 		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "flag_zoom_ctrl")
 		if isnull(k_text) then
@@ -969,10 +1001,11 @@ if k_errore = 0 then
 //--- S-protezione campi per riabilitare la modifica 
       	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
 
-//--- legge le stampanti definitive
+//--- legge le stampanti disponibili
 		k_stampanti = kiuf_stampe.get_stampanti_dwddlb_values()
      	tab_1.tabpage_1.dw_1.object.stcert1.Values = k_stampanti
      	tab_1.tabpage_1.dw_1.object.stcert2.Values = k_stampanti
+     	tab_1.tabpage_1.dw_1.object.stbarcode.Values = k_stampanti
 
 	end if
 	destroy kuf1_utility
@@ -1022,6 +1055,7 @@ kst_esito = kuf1_base.leggi_base(kst_tab_base)
 	tab_1.tabpage_1.dw_1.setitem(1, "flag_suoni", trim(kst_tab_base.st_tab_base_personale.flag_suoni))
 	tab_1.tabpage_1.dw_1.setitem(1, "stcert1", trim(kst_tab_base.st_tab_base_personale.stcert1))
 	tab_1.tabpage_1.dw_1.setitem(1, "stcert2", trim(kst_tab_base.st_tab_base_personale.stcert2))
+	tab_1.tabpage_1.dw_1.setitem(1, "stbarcode", trim(kst_tab_base.st_tab_base_personale.stbarcode))
 	tab_1.tabpage_1.dw_1.setitem(1, "current", k_current)
 	tab_1.tabpage_1.dw_1.setitem(1, "path", trim(kGuo_path.get_procedura()))
 	tab_1.tabpage_1.dw_1.setitem(1, "flag_zoom_ctrl", trim(kst_tab_base.st_tab_base_personale.flag_zoom_ctrl))
@@ -1066,6 +1100,10 @@ kst_esito = kuf1_base.leggi_base(kst_tab_base)
 	if trim(kst_tab_base.st_tab_base_personale.stcert2) > " " then
 	else
 		tab_1.tabpage_1.dw_1.setitem(1, "stcert2", " ")
+	end if
+	if trim(kst_tab_base.st_tab_base_personale.stbarcode) > " " then
+	else
+		tab_1.tabpage_1.dw_1.setitem(1, "stbarcode", " ")
 	end if
 
 	

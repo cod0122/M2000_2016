@@ -273,10 +273,7 @@ st_tab_wm_pklist_righe kst_tab_wm_pklist_righe
 kuf_wm_pklist_righe kuf1_wm_pklist_righe
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_sped.num_bolla_out > 0 then  
 		
@@ -334,7 +331,7 @@ kst_esito.nome_oggetto = this.classname()
 //--- se esiste il pk-list aggiorna					
 					if kst_esito.esito = kkg_esito.ok then
 						if k_set_spedito then
-							kst_esito = kuf1_wm_pklist_righe.set_sped_si_x_id_armo	(kst_tab_wm_pklist_righe)		// AGGIORNA PackingList a SPEDITO
+							kst_esito = kuf1_wm_pklist_righe.set_sped_si_x_id_armo(kst_tab_wm_pklist_righe)		// AGGIORNA PackingList a SPEDITO
 						else
 							kst_esito = kuf1_wm_pklist_righe.set_sped_no_x_id_armo(kst_tab_wm_pklist_righe)		// AGGIORNA PackingList a NON SPEDITO (reset)
 						end if
@@ -367,14 +364,15 @@ kst_esito.nome_oggetto = this.classname()
 		
 //---- COMMIT....	
 			if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
+				kguo_sqlca_db_magazzino.db_commit( )
 			end if
+			
 		else		
 			
 			kGuf_data_base.errori_scrivi_esito("W", kst_esito)  //--- scrive il LOG
 			
-			if kst_tab_sped.st_tab_g_0. esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
+			if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
 			
 		end if

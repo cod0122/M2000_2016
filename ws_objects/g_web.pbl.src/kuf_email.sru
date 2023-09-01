@@ -568,7 +568,7 @@ if kst_tab_email.id_email > 0 then
          trim(email.flg_lettera_html),   
          trim(email.flg_ritorno_ricev),  
          trim(email.email_di_ritorno)  
-         ,trim(email.attached)
+         ,trim(coalesce(email.attached,''))
     INTO :kst_tab_email.codice,   
          :kst_tab_email.stato,   
          :kst_tab_email.des,   

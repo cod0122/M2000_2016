@@ -210,6 +210,7 @@ int k_return=0
 string k_record, k_record_1, k_key, k_testo
 string k_errore = "0 " 
 long k_riga
+kuf_sr_utenti  kuf1_sr_utenti
 kuf_sr_sicurezza  kuf1_sr_sicurezza
 st_esito kst_esito
 st_tab_sr_utenti kst_tab_sr_utenti
@@ -304,12 +305,13 @@ if k_riga > 0 and LenA(trim(k_key)) > 0 then
 		question!, yesno!, 2) = 1 then
  
 //=== Creo l'oggetto che ha la funzione x cancellare la tabella
+		kuf1_sr_utenti = create kuf_sr_utenti
 		kuf1_sr_sicurezza = create kuf_sr_sicurezza
 		
 //=== Cancella la riga dal data windows di lista
 		choose case tab_1.selectedtab 
 			case 1 
-				kst_esito = kuf1_sr_sicurezza.tb_delete_sr_utenti(kst_tab_sr_utenti) 
+				kst_esito = kuf1_sr_utenti.tb_delete_sr_utenti(kst_tab_sr_utenti) 
 			case 2
 				kst_esito = kuf1_sr_sicurezza.tb_delete_sr_prof_utenti(kst_tab_sr_prof_utenti) 
 		end choose	
@@ -342,6 +344,7 @@ if k_riga > 0 and LenA(trim(k_key)) > 0 then
 		end if
 
 //=== Distruggo l'oggetto che ha avuto la funzione x cancellare la tabella
+		destroy kuf1_sr_utenti
 		destroy kuf1_sr_sicurezza
 
 	else

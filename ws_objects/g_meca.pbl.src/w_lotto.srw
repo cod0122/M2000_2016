@@ -33,6 +33,7 @@ type variables
 private kuf_armo kiuf_armo 	
 private kuf_armo_nt kiuf_armo_nt 	
 private kuf_armo_checkmappa kiuf_armo_checkmappa
+private kuf_armo_campioni kiuf_armo_campioni
 private kuf_listino kiuf_listino
 private kuf_contratti kiuf_contratti
 private kuf_barcode_ini kiuf_barcode_ini
@@ -180,6 +181,9 @@ protected function integer u_inizializza_4 () throws uo_exception
 public function datetime u_e1_importa_data_ent () throws uo_exception
 protected function string u_e1_importa_all (boolean k_msg_show) throws uo_exception
 protected function string aggiorna_dati ()
+private function integer get_totale_campionecolli ()
+private subroutine u_genera_barcode_armo_campioni () throws uo_exception
+private subroutine u_rimuove_barcode_armo_campioni ()
 end prototypes
 
 protected function string aggiorna ();//
@@ -795,7 +799,7 @@ try
 					tab_1.tabpage_1.dw_1.object.p_img_causale.visible = true 
 					tab_1.tabpage_1.dw_1.object.p_img_elenco_contratti.visible = true
 				end if
-				tab_1.tabpage_1.dw_1.setcolumn("consegna_data")
+				tab_1.tabpage_1.dw_1.setcolumn("area_mag") //consegna_data")
 				
 //--- se Certif già stampato non si può modificare il mittente
 				if ki_certif_stampato then
@@ -835,7 +839,7 @@ try
 //		destroy kuf1_utility
 
 //--- calcola colli testata
-		tab_1.tabpage_1.dw_1.setitem( 1, "colli", get_totale_colli() )
+//		tab_1.tabpage_1.dw_1.setitem( 1, "colli", get_totale_colli() )
 
 //---- azzera il flag delle modifiche
 		tab_1.tabpage_1.dw_1.SetItemStatus( 1, 0, Primary!, NotModified!)
@@ -1038,6 +1042,7 @@ end subroutine
 protected subroutine open_start_window ();//
 kuf_meca_set_e1srst kuf1_meca_set_e1srst
 
+	kiuf_utility = create kuf_utility
 	kiuf_armo = create kuf_armo
 	kiuf_armo_nt = create kuf_armo_nt
 	kiuf_clienti = create kuf_clienti
@@ -1048,6 +1053,7 @@ kuf_meca_set_e1srst kuf1_meca_set_e1srst
 	kiuf_barcode_ini = create kuf_barcode_ini
 	kiuf_ausiliari = create kuf_ausiliari
 	kiuf_e1_asn = create kuf_e1_asn
+	kiuf_armo_campioni = create kuf_armo_campioni
 	
 	kids_elenco_input = create datastore
 
@@ -1295,6 +1301,7 @@ try
 	if k_riga = 0 then
 		messagebox("Operazione non eseguita", "Selezionare una riga dall'elenco", information!)
 	else
+		
 		k_progressivo = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "k_progressivo")
 
 		kiuf_armo.if_isnull_armo(kst_tab_armo)
@@ -1663,9 +1670,11 @@ protected function string check_dati ();//======================================
 string k_return = " "
 string k_errore = "0"
 long k_ctr
+int k_rc, k_nr_barcode
 st_tab_meca kst_tab_meca
 st_esito kst_esito,kst_esito1
 datastore kds_inp_testa, kds_inp_righe
+uo_ds_std_1 kds_1
 
 
 try
@@ -1674,13 +1683,13 @@ try
 
 //--- Controllo i tab
 	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")  
 		kds_inp_testa = create datastore
 		kds_inp_testa.dataobject = tab_1.tabpage_1.dw_1.dataobject
 		tab_1.tabpage_1.dw_1.rowscopy( 1,1,primary!, kds_inp_testa, 1, primary!)
 		kds_inp_righe = create datastore
 		kds_inp_righe.dataobject = tab_1.tabpage_4.dw_4.dataobject
 		if tab_1.tabpage_4.dw_4.rowcount( ) = 0 and tab_1.tabpage_4.dw_4.deletedcount( ) = 0 then
-			kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")  
 			if kst_tab_meca.id > 0 then
 				tab_1.tabpage_4.dw_4.retrieve(kst_tab_meca.id)  // carica le righe del LOTTO !!!!!!
 				for k_ctr = 1 to tab_1.tabpage_4.dw_4.rowcount( ) 
@@ -1697,31 +1706,35 @@ try
 	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then
 	else
 		if tab_1.tabpage_5.dw_5.rowcount() > 0 and tab_1.tabpage_4.dw_4.rowcount() > 0 then
-			if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 0 then
-				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
-					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] then
-						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
-										"ATTENZIONE: numero Campioni indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + ") diverso dal numero dei Barcode associati ai Campioni " &
-											+ string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) +".")
-						kst_esito = kguo_exception.get_st_esito()
-					end if
-				else
+//--- 
+//			if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 0 then
+//				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
+//					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] then
+//						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+//										"ATTENZIONE: numero Campioni indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + ") diverso dal numero dei Barcode associati ai Campioni " &
+//											+ string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) +".")
+//						kst_esito = kguo_exception.get_st_esito()
+//					end if
+//				else
+//					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+//					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 1 then
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i Barcode a quali associare i " + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + " colli Campioni.")
+//					else
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode al quale associare il collo Campione.")
+//					end if
+//					kst_esito = kguo_exception.get_st_esito()
+//				end if
+//			else
+//				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
+				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] then
 					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-					if tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] > 1 then
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i Barcode a quali associare i " + string(tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1]) + " colli Campioni.")
-					else
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode al quale associare il collo Campione.")
-					end if
-					kst_esito = kguo_exception.get_st_esito()
+					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) &
+												+ " Campioni associati sulla Riga di Dettaglio, "&
+												+ kkg.acapo + "oppure rimuovere l'indicazione dall'elenco dei Barcode.")
+  					kst_esito = kguo_exception.get_st_esito()
 				end if
-			else
-				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
-					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) + " Campioni associati sulla Riga di Dettaglio.")
-					kst_esito = kguo_exception.get_st_esito()
-			end if
-			end if
+//			end if
 			if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 0 then
 				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
 					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] then
@@ -1744,6 +1757,47 @@ try
 				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
 					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
 					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) + " Barcode Parziali sulla Riga di Dettaglio.")
+					kst_esito = kguo_exception.get_st_esito()
+				end if
+			end if
+		end if
+	end if
+	
+
+//  Verifica i Colli Campioni ed eventualmente distrugge i barcode
+	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then
+	else
+		if kst_tab_meca.id > 0 then 
+			kds_1 = create uo_ds_std_1
+			kds_1.dataobject = "ds_armo_campioni_count_x_id_meca"
+			kds_1.settransobject(kguo_sqlca_db_magazzino)
+			k_rc = kds_1.retrieve(kst_tab_meca.id)
+			if k_rc < 0 then
+				kguo_exception.set_esito(kds_1.kist_esito)
+				kguo_exception.kist_esito.sqlerrtext = "Controllo dati Campioni - Errore in lettura conteggio del Lotto id " + string(kst_tab_meca.id) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+				kst_esito = kguo_exception.get_st_esito()
+			end if
+			k_nr_barcode = kds_1.getitemnumber(1, "k_campionecolli_tot") - kds_1.getitemnumber(1, "k_contati_tot")  // n.barcode da stampare
+		
+			if k_nr_barcode > 0 then
+				if kds_1.getitemnumber(1, "k_contati_tot") > 0 then
+					kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn
+					kguo_exception.kist_esito.sqlerrtext = "Sono state prodotte altre " + string(k_nr_barcode) + " etichette Controcampioni oltre " &
+														+ "alle " + string(kds_1.getitemnumber(1, "k_contati_tot")) + " già presenti. " 
+					kst_esito = kguo_exception.get_st_esito()
+				end if
+			else		
+				if k_nr_barcode < 0 then
+					kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
+					if kds_1.getitemnumber(1, "k_campionecolli_tot") > 0 then
+						kguo_exception.kist_esito.sqlerrtext = "Sono indicate " + string(kds_1.getitemnumber(1, "k_campionecolli_tot")) + " Colli Campioni ma ci sono " &
+														+ string(kds_1.getitemnumber(1, "k_contati_tot")) + " etichette già prodotte!! " &
+														+ kkg.acapo + "Cancellare le etichette oppure riportare il numero esatto sulla Riga di entrata."
+					else
+						kguo_exception.kist_esito.sqlerrtext = "Non ci sono Colli Campioni indicati ma invece ci sono " &
+														+ string(kds_1.getitemnumber(1, "k_contati_tot")) + " etichette Controcampioni già prodotte!! " &
+														+ kkg.acapo + "Cancellare le etichette oppure riportare il numero esatto sulla Riga di entrata."
+					end if
 					kst_esito = kguo_exception.get_st_esito()
 				end if
 			end if
@@ -1792,32 +1846,32 @@ end function
 private function integer get_totale_colli ();//--
 //---  Torna Totale Colli delle righe di questo documento 
 //---
-int k_return = 0, k_ctr=0, k_righe = 0
-st_tab_armo kst_tab_armo
+int k_return = 0, k_row, k_rows
+int k_colli_2, k_campionecolli
+//st_tab_armo kst_tab_armo
 
-try
+//try
 	
 //--- calcolo il totale colli 	
-	kst_tab_armo.colli_2=0
-	k_righe = tab_1.tabpage_4.dw_4.rowcount( )
-	if k_righe > 0 then
-		for k_ctr= 1 to k_righe
-			kst_tab_armo.colli_2 = tab_1.tabpage_4.dw_4.getitemnumber(k_ctr, "colli_2")
-			if kst_tab_armo.colli_2 > 0 then
-				k_return += kst_tab_armo.colli_2
+	k_rows = tab_1.tabpage_4.dw_4.rowcount( )
+//	if k_righe > 0 then
+		for k_row= 1 to k_rows
+			k_colli_2 = tab_1.tabpage_4.dw_4.getitemnumber(k_row, "colli_2")
+			if k_colli_2 > 0 then
+				k_return += k_colli_2
 			end if
 		next
-	else
-		kst_tab_armo.id_meca = tab_1.tabpage_1.dw_1.getitemnumber( 1, "id_meca")
-		if kst_tab_armo.id_meca > 0 then
-			k_return = kiuf_armo.get_colli_lotto(kst_tab_armo)
-		end if
-	end if
+//	else
+//		kst_tab_armo.id_meca = tab_1.tabpage_1.dw_1.getitemnumber( 1, "id_meca")
+//		if kst_tab_armo.id_meca > 0 then
+//			k_return = kiuf_armo.get_colli_lotto(kst_tab_armo)
+//		end if
+//	end if
 	
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
+//catch (uo_exception kuo_exception)
+//	kuo_exception.messaggio_utente()
 	
-end try
+//end try
 
 
 return k_return
@@ -2483,6 +2537,7 @@ st_esito kst_esito
 //--- valorizzo il numero colli dell'intero lotto
 	if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 		tab_1.tabpage_1.dw_1.setitem(1, "colli", get_totale_colli( ))
+		tab_1.tabpage_1.dw_1.setitem(1, "campionecolli_lotto", get_totale_campionecolli( ))
 	end if
 
 	
@@ -2660,7 +2715,6 @@ kuf_base kuf1_base
 kuf_armo_inout kuf1_armo_inout
 
 
-
 try
 
 	setpointer(kkg.pointer_attesa) 
@@ -2675,7 +2729,6 @@ try
 			end if
 		end if
 	end if
-	
 	
 	kuf1_base = create kuf_base
 	
@@ -2916,6 +2969,9 @@ try
 //--- aggiorna la descrizione a video dello STATO
 	kst_tab_meca_stato.codice = kst_tab_meca.stato
 	put_video_stato(kst_tab_meca_stato)  // put stato a video
+
+//--- Genera barcode CONTROCAMPIONI se richiesto
+	u_genera_barcode_armo_campioni( )
 
 //--- reset delle righe Barcode / Voci x poi rileggerle
 	tab_1.tabpage_5.dw_5.reset( ) 
@@ -5030,8 +5086,10 @@ if kst_tab_meca.id > 0 then
 	
 	if kst_tab_meca.id <> kst_tab_meca_prec.id then
 
-		k_rows =tab_1.tabpage_5.dw_5.retrieve(kst_tab_meca.id)
+		k_rows = tab_1.tabpage_5.dw_5.retrieve(kst_tab_meca.id)
 		
+	else
+		k_rows = tab_1.tabpage_5.dw_5.rowcount( )
 	end if
 
 	k_row_deleted = u_screma_elenco_barcode( )
@@ -5285,6 +5343,93 @@ end try
 return k_return
 end function
 
+private function integer get_totale_campionecolli ();//--
+//---  Torna Totale Colli Campioni delle righe di questo documento 
+//---
+int k_return, k_row, k_rows
+int k_campionecolli
+
+	
+//--- calcolo il totale colli Campioni
+	k_rows = tab_1.tabpage_4.dw_4.rowcount( )
+	for k_row= 1 to k_rows
+		k_campionecolli = tab_1.tabpage_4.dw_4.getitemnumber(k_row, "campionecolli")
+		if k_campionecolli > 0 then
+			k_return += k_campionecolli
+		end if
+	next
+
+return k_return
+
+
+end function
+
+private subroutine u_genera_barcode_armo_campioni () throws uo_exception;/*
+  Verifica i Colli Campioni ed eventualmente distrugge i barcode
+*/
+long k_id_meca
+int k_rc, k_nr_barcode
+st_tab_g_0 kst_tab_g_0
+
+
+try
+
+	k_id_meca = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+
+	if k_id_meca > 0 then 
+		
+		kiuf_armo_campioni.u_genera_barcode_lotto(k_id_meca, kst_tab_g_0)
+
+	end if
+	
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+
+end try
+end subroutine
+
+private subroutine u_rimuove_barcode_armo_campioni ();/*
+  Verifica i Colli Campioni ed eventualmente distrugge i barcode
+*/
+long k_id_meca
+int k_rc, k_nr_barcode
+st_tab_g_0 kst_tab_g_0
+
+
+try
+
+	k_id_meca = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+
+	if k_id_meca > 0 then 
+		
+		k_nr_barcode = kiuf_armo_campioni.get_nr_barcode(k_id_meca)
+		if k_nr_barcode > 0 then
+			if messagebox("Rimozione Compioni", "Sei sicuro di voler rimuovere i " + string(k_nr_barcode) + " barcode Campioni dal Lotto?" &
+								, question!, yesno!, 2) = 1 then
+				if kiuf_armo_campioni.tb_delete_x_id_meca(k_id_meca, kst_tab_g_0) > 0 then
+					messagebox("Rimozione Compioni", "Operazione completata.", information!)
+				else
+					messagebox("Rimozione Compioni", "Attenzione barcode già Trattati o in Lavorazione o non Trovati. Operazione non completata!"&
+										, stopsign!)
+				end if
+			end if
+		else
+			messagebox("Rimozione Compioni", "Nessun barcode Campione generato per questo Lotto (id " + string(k_id_meca) + ").", information!)
+		end if
+
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+
+end try
+end subroutine
+
 on w_lotto.create
 int iCurrent
 call super::create
@@ -5345,14 +5490,21 @@ return k_return
 
 end event
 
-event u_open_preliminari;call super::u_open_preliminari;//
-	kiuf_utility = create kuf_utility
-
-end event
-
 event close;call super::close;//
 
 	if isvalid(kiuf_utility) then destroy kiuf_utility
+	if isvalid(kiuf_armo_campioni) then destroy kiuf_armo_campioni
+	if isvalid(kiuf_armo) then destroy kiuf_armo              
+	if isvalid(kiuf_armo_nt) then destroy kiuf_armo_nt           
+	if isvalid(kiuf_clienti) then destroy kiuf_clienti           
+	if isvalid(kiuf_prodotti) then destroy kiuf_prodotti          
+	if isvalid(kiuf_listino) then destroy kiuf_listino           
+	if isvalid(kiuf_contratti) then destroy kiuf_contratti         
+	if isvalid(kiuf_armo_checkmappa) then destroy kiuf_armo_checkmappa   
+	if isvalid(kiuf_barcode_ini) then destroy kiuf_barcode_ini       
+	if isvalid(kiuf_ausiliari) then destroy kiuf_ausiliari         
+	if isvalid(kiuf_e1_asn) then destroy kiuf_e1_asn            
+	if isvalid(kids_elenco_input) then destroy kids_elenco_input      
 
 end event
 
@@ -5751,6 +5903,12 @@ st_tab_meca kst_tab_meca
 				catch(uo_exception kuo_exception)
 					kuo_exception.messaggio_utente()
 				end try
+			end if
+			
+//---- Rimuove le etichette dalla tabella Controcampioni			
+		case "b_armo_campioni_del"
+			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita =  kkg_flag_modalita.modifica then
+				u_rimuove_barcode_armo_campioni()
 			end if
 			
 ////--- pdf
@@ -6324,6 +6482,7 @@ event u_modifica();//===========================================================
 //=== 
 //======================================================================
 //
+int k_n_barcode
 st_tab_armo kst_tab_armo
 st_tab_arsp kst_tab_arsp 
 kuf_sped kuf1_sped
@@ -6383,6 +6542,7 @@ try
 				kiuf_utility.u_proteggi_dw("0", "campione", tab_1.tabpage_4.dw_riga_0)
 				kiuf_utility.u_proteggi_dw("0", "campionecolli", tab_1.tabpage_4.dw_riga_0)
 				kiuf_utility.u_proteggi_dw("0", "parzialecolli", tab_1.tabpage_4.dw_riga_0)
+				
 				this.setcolumn("colli_2")
 			end if
 		end if
@@ -6393,6 +6553,13 @@ try
 		kiuf_utility.u_proteggi_dw("0", "colli_fatt", tab_1.tabpage_4.dw_riga_0)
 		this.setcolumn("colli_2")
 	end if
+
+//--- se non ci sono Barcode non posso impostare il colli PARZIALI
+	k_n_barcode = u_inizializza_4( )
+	if k_n_barcode > 0 then
+	else
+		kiuf_utility.u_proteggi_dw("1", "parzialecolli", tab_1.tabpage_4.dw_riga_0)
+	end if				
 
 	setredraw(false)
 	this.object.b_ok.visible = true 
@@ -6552,6 +6719,7 @@ end event
 event itemchanged;call super::itemchanged;//
 string  k_sl_pt
 long k_rc, k_riga=0
+int k_num
 st_tab_sl_pt kst_tab_sl_pt
 datawindowchild kdwc_x
 st_tab_armo kst_tab_armo
@@ -6574,9 +6742,9 @@ kuf_sl_pt kuf1_sl_pt
 				return 1
 			end if
 			u_dw_riga_ricalcolo(kst_tab_armo)
-			this.setitem(row, "pedane", kst_tab_armo.pedane)
-			this.setitem(row, "peso_kg", kst_tab_armo.peso_kg)
-			this.setitem(row, "m_cubi", kst_tab_armo.m_cubi)
+			this.post setitem(row, "pedane", kst_tab_armo.pedane)
+			this.post setitem(row, "peso_kg", kst_tab_armo.peso_kg)
+			this.post setitem(row, "m_cubi", kst_tab_armo.m_cubi)
 //			if kst_tab_armo.colli_2 <> this.getitemnumber(row, "pedane") then
 //				this.modify("pedane.Background.Color = '" + string(KKG_COLORE.BLU_CHIARO ) + "' ") 
 //			end if
@@ -6626,6 +6794,16 @@ kuf_sl_pt kuf1_sl_pt
 				
 			end if
 
+		case "campionecolli"
+			k_num = 0
+			if isnumber(trim(data)) then
+				k_num = integer(data)
+			end if
+			if k_num > 0 then
+				this.post setitem(row, "campione", "S")				
+			else
+				this.post setitem(row, "campione", "N")				
+			end if
 				
 	end choose
 

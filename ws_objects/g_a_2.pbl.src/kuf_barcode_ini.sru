@@ -521,12 +521,7 @@ try
 	if ast_tab_barcode.id_meca > 0 then
 	else
 		kst_tab_armo.id_armo = ast_tab_barcode.id_armo
-		kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-		if kst_esito.esito <> kkg_esito.ok then
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
+		kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo) 
 		ast_tab_barcode.id_meca = kst_tab_armo.id_meca
 	end if
 
@@ -938,16 +933,13 @@ try
 	kuf1_e1_asn = create kuf_e1_asn
 	kuf1_clienti = create kuf_clienti
 
+	kguo_sqlca_db_magazzino.db_commit( )  // aggiorna qui x forse evita errori su TemporalTable
+ 
 //--- se non ho passato il ID_MECA lo reperisco da ID_RMO 
 	if ast_tab_barcode.id_meca > 0 then
 	else
 		kst_tab_armo.id_armo = ast_tab_barcode.id_armo
-		kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-		if kst_esito.esito <> kkg_esito.ok then
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
+		kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
 		ast_tab_barcode.id_meca = kst_tab_armo.id_meca
 	end if
 
@@ -956,8 +948,6 @@ try
 	kds1_e1_asn_get_barcode = kuf1_e1_asn.get_barcode(kst_get_e1barcode)
 	k_nr_righe = kds1_e1_asn_get_barcode.rowcount( )
 
-	kguo_sqlca_db_magazzino.db_commit( )  // aggiorna qui x forse evita errori su TemporalTable
- 
 //--- recupera da E1 il WO/SO da mettere su MECA
 	if k_nr_righe > 0 then
 		kst_tab_meca.id = ast_tab_barcode.id_meca
@@ -1220,14 +1210,7 @@ if ast_tab_barcode.id_armo > 0 and trim(ast_tab_barcode.barcode) > " " then
 	if ast_tab_barcode.id_meca > 0 then
 	else
 		kst_tab_armo.id_armo = ast_tab_barcode.id_armo
-		kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-		if kst_esito.esito <> kkg_esito.ok then
-			kst_esito.sqlerrtext = "Anomalia durante aggiornamento Barcode in archivio (lettura id Lotto da id riga = " + string(kst_tab_armo.id_armo)  &
-								  + ")~n~r" +trim(kst_esito.sqlerrtext) 
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
+		kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
 		ast_tab_barcode.id_meca = kst_tab_armo.id_meca
 	end if
 	
@@ -1264,7 +1247,7 @@ if ast_tab_barcode.id_armo > 0 and trim(ast_tab_barcode.barcode) > " " then
 			throw kguo_exception
 		end try
 			
-   		ast_tab_barcode.data = kguo_g.get_dataoggi( )
+   	ast_tab_barcode.data = kguo_g.get_dataoggi( )
 		ast_tab_barcode.BARCODE_lav = ""
 		ast_tab_barcode.groupage = kuf1_barcode.ki_barcode_groupage_NO
 		ast_tab_barcode.tipo_cicli = kst_tab_sl_pt.tipo_cicli

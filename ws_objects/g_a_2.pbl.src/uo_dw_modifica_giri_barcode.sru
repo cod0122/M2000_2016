@@ -542,7 +542,7 @@ try
 						
 //--- AGGIORNA i giri sul tab barcode	!!!!!!!!!!!!!!!!!!!!!!!---------------------------------------------------------------------------------------------------		
 		if ki_AGGIORNARE_TABELLE then  // SOLO se flag di aggiornamento ATTIVATO!!!!
-			kist_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+			kist_tab_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable 
 			kst_esito_update = kuf1_barcode.tb_update_campo( kist_tab_barcode, "barcode_update_giri")
 		end if
 
@@ -557,7 +557,7 @@ try
 					kst_tab_barcode.barcode = kds_barcode_figli.object.barcode[k_ctr]
 					
 					if ki_AGGIORNARE_TABELLE then  // flag di aggiornamento!
-						kist_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+						kist_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 						kst_esito_update = kuf1_barcode.tb_update_campo( kst_tab_barcode, "barcode_update_giri")
 					end if
 					k_ctr++

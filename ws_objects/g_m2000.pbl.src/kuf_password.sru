@@ -15,6 +15,7 @@ public:
 boolean ki_user_autenticato 
 
 end variables
+
 forward prototypes
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function st_esito u_open ()

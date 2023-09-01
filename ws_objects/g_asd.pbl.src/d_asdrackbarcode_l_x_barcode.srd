@@ -1,21 +1,21 @@
 ﻿$PBExportHeader$d_asdrackbarcode_l_x_barcode.srd
-release 21;
-datawindow(units=0 timer_interval=0 color=20132659 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=1 selected.mouse=no )
+release 22;
+datawindow(units=0 data.export.format=1 timer_interval=0 color=20132659 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=1 selected.mouse=no )
 header(height=264 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long updatewhereclause=yes name=id_asdrackcode dbname="asdrackbarcode.id_asdrackcode" dbalias=".id_asdrackcode" )
- column=(type=long updatewhereclause=yes name=id_asddevice dbname="asddevice.id_asddevice" dbalias=".id_asddevice" )
- column=(type=char(160) updatewhereclause=yes name=asddevice_des dbname="asddevice.des" dbalias=".des" )
- column=(type=char(13) updatewhereclause=yes name=rackcode dbname="asdrackcode.rackcode" dbalias=".rackcode" )
- column=(type=char(13) updatewhereclause=yes name=barcode dbname="asdrackbarcode.barcode" dbalias=".barcode" )
- column=(type=datetime updatewhereclause=yes name=x_datins dbname="asdrackbarcode.x_datins" dbalias=".x_datins" )
- column=(type=char(12) updatewhereclause=yes name=x_utente dbname="asdrackbarcode.x_utente" dbalias=".x_utente" )
- column=(type=long updatewhereclause=yes name=id_meca dbname="barcode.id_meca" dbalias=".id_meca" )
- column=(type=long updatewhereclause=yes name=id_armo dbname="barcode.id_armo" dbalias=".id_armo" )
- column=(type=long update=yes updatewhereclause=yes name=k_associato_rack dbname="k_associato" values="	1/	0/	2" )
- column=(type=long updatewhereclause=yes name=id_asdrackbarcode dbname="asdrackbarcode.id_asdrackbarcode" dbalias=".id_asdrackbarcode" )
+table(column=(type=long updatewhereclause=yes name=id_asdrackcode dbname="asdrackbarcode.id_asdrackcode" )
+ column=(type=long updatewhereclause=yes name=id_asddevice dbname="asddevice.id_asddevice" )
+ column=(type=char(160) updatewhereclause=yes name=asddevice_des dbname="asddevice.des" )
+ column=(type=char(13) updatewhereclause=yes name=rackcode dbname="asdrackcode.rackcode" )
+ column=(type=char(13) updatewhereclause=yes name=barcode dbname="asdrackbarcode.barcode" )
+ column=(type=datetime updatewhereclause=yes name=x_datins dbname="asdrackbarcode.x_datins" )
+ column=(type=char(12) updatewhereclause=yes name=x_utente dbname="asdrackbarcode.x_utente" )
+ column=(type=long updatewhereclause=yes name=id_meca dbname="barcode.id_meca" )
+ column=(type=long updatewhereclause=yes name=id_armo dbname="barcode.id_armo" )
+ column=(type=long update=yes updatewhereclause=yes name=k_associato_rack dbname="k_associato_rack" values="	1/	0/	2" )
+ column=(type=long updatewhereclause=yes name=id_asdrackbarcode dbname="asdrackbarcode.id_asdrackbarcode" )
  retrieve="  SELECT distinct asdrackbarcode.id_asdrackcode id_asdrackcode,   
          asddevice.id_asddevice id_asddevice,   
          asddevice.des,   
@@ -25,12 +25,12 @@ table(column=(type=long updatewhereclause=yes name=id_asdrackcode dbname="asdrac
          asdrackbarcode.x_utente x_utente,   
          barcode.id_meca,   
          barcode.id_armo   
-         ,1 k_associato
+         ,1 k_associato_rack
 			,asdrackbarcode.id_asdrackbarcode id_asdrackbarcode 
     FROM asdrackbarcode,   
          asdrackcode,   
          barcode,   
-         asddevice, meca, clienti  
+         asddevice
    WHERE ( asdrackbarcode.id_asdrackcode = asdrackcode.id_asdrackcode ) and  
          ( asdrackbarcode.barcode = barcode.barcode) and  
          ( asdrackcode.id_asddevice = asddevice.id_asddevice ) and  
@@ -56,7 +56,7 @@ table(column=(type=long updatewhereclause=yes name=id_asdrackcode dbname="asdrac
 --         ( asdrackcode.id_asddevice = asddevice.id_asddevice ) and  
 --         ( v_asd_barcode_all.barcode = :k_barcode ) 
 --			and v_asd_barcode_all.linktype <> 'A'
-ORDER BY k_associato desc
+ORDER BY k_associato_rack desc
          ,asdrackbarcode.id_asdrackcode
 		--	asdrackcode.inuso DESC
 " arguments=(("k_barcode", string)) )
@@ -87,8 +87,8 @@ compute(band=detail alignment="2" expression="getrow()"border="0" color="1677721
  )" x="5" y="8" height="72" width="169" format="[GENERAL]" html.valueishtml="0"  name=compute_3 visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="20132659" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 column(band=detail id=10 alignment="2" tabsequence=32766 border="0" color="16777215~tif ( k_associato_rack = 1,  long(describe('k_tot.color'))
  , rgb(50, 120, 0)
- )" x="192" y="8" height="72" width="114" format="[general]" html.valueishtml="0"  name=k_associato_rack visible="1" checkbox.text="" checkbox.on="1" checkbox.off="0" checkbox.other="2" checkbox.scale=yes checkbox.threed=no  font.face="Verdana" font.height="-12" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="20132659" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_associato_rack= 1 , 'Associato diretto al Rack' ,
-     if ( k_associato_rack= 0 , 'Associato attraverso il Groupage', '' ) )" tooltip.transparency="0" transparency="0" )
+ )" x="192" y="8" height="72" width="114" format="[general]" html.valueishtml="0"  name=k_associato_rack visible="1" checkbox.text="" checkbox.on="1" checkbox.off="0" checkbox.other="2" checkbox.scale=yes checkbox.threed=no  font.face="Verdana" font.height="-12" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="20132659" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.tip="~tif ( k_associato_rack= 1 , 'Associato al Barcode di Lavorazione' 
+   , 'Non Associato' )" tooltip.transparency="0" transparency="0" )
 column(band=detail id=11 alignment="1" tabsequence=32766 border="0" color="16777215~tif ( k_associato_rack = 1,  long(describe('k_tot.color'))
  , rgb(50, 120, 0)
  )" x="4302" y="8" height="72" width="210" format="#" html.valueishtml="0"  name=id_asdrackbarcode visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
@@ -129,6 +129,6 @@ xsltgen()
 jsgen()
 export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
-export.pdf(method=2 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
+export.pdf(method=2 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
  

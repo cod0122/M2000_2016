@@ -30,7 +30,7 @@ type variables
 //
 st_open_w kist_open_w
 kuf_password kiuf_password
-kuf_sr_sicurezza kiuf_sr_sicurezza
+kuf_sr_utenti kiuf_sr_utenti
 
 end variables
 
@@ -52,7 +52,7 @@ pointer kpointer
 
 
 try
-	kiuf_sr_sicurezza = create kuf_sr_sicurezza
+	kiuf_sr_utenti = create kuf_sr_utenti
 	
 	kpointer = setpointer(hourglass!)
 	
@@ -111,13 +111,13 @@ try
 		k_passwd = ""
 	end if
 
-	if kiuf_sr_sicurezza.u_if_master(k_passwd) then
+	if kiuf_sr_utenti.u_if_master(k_passwd) then
 		kiuf_password.ki_user_autenticato = true
 	else
 		
 		kst_tab_sr_utenti.codice = trim(k_utente)
 		kst_tab_sr_utenti.password = trim(k_passwd)
-		k_sr_ok = kiuf_sr_sicurezza.check_user_password (kst_tab_sr_utenti)
+		k_sr_ok = kiuf_sr_utenti.check_user_password (kst_tab_sr_utenti)
 	
 	//--- Utente esistente imposto variabili globali
 	//	if kst_tab_sr_utenti.id > 0 then
@@ -135,7 +135,7 @@ try
 		else			
 			kiuf_password.ki_user_autenticato = false
 	
-			kst_esito = kiuf_sr_sicurezza.tb_select(kst_tab_sr_utenti)
+			kst_esito = kiuf_sr_utenti.tb_select(kst_tab_sr_utenti)
 			if kst_esito.esito = kkg_esito.ok then 
 				messagebox("Autenticazione Fallita", "Password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.", information!)
 			else

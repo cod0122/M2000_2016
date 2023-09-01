@@ -75,15 +75,11 @@ public function boolean u_stampa (st_tab_meca ast_tab_meca) throws uo_exception;
 //--------------------------------------------------------------------------------------------------------------
 boolean k_return = false
 long k_righe
-//datastore kds_1
 st_stampe kst_stampe
 st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 try
 
@@ -132,11 +128,7 @@ st_esito kst_esito
 
 
 try
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if ast_tab_meca.id > 0 then
 		if u_stampa(ast_tab_meca) then
@@ -183,11 +175,7 @@ st_esito kst_esito
 
 
 try
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if ast_tab_meca.id > 0 then
 		//--- aggiunge all'array ki_stampa_lotto[]: dati del Report Lotto 

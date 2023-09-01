@@ -6515,11 +6515,9 @@ else
 						//--- acchiappo il contratto da id meca
 						kst_tab_armo.id_armo = adw_link.getitemnumber(adw_link.getrow(), "id_armo")
 						kuf1_armo = create kuf_armo 
-						kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-						if kst_esito.esito = kkg_esito.ok then
-							kst_tab_meca.id = kst_tab_armo.id_meca
-							kst_tab_arfa.contratto = kuf1_armo.get_contratto(kst_tab_meca)
-						end if
+						kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
+						kst_tab_meca.id = kst_tab_armo.id_meca
+						kst_tab_arfa.contratto = kuf1_armo.get_contratto(kst_tab_meca)
 					else
 						k_rcx = adw_link.describe("id_listino.x")
 						if k_rcx <> "!" then

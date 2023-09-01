@@ -1,12 +1,12 @@
-﻿$PBExportHeader$kuf_pdf.sru
+﻿$PBExportHeader$kuf_pdf_old1.sru
 forward
-global type kuf_pdf from nonvisualobject
+global type kuf_pdf_old1 from nonvisualobject
 end type
 end forward
 
-global type kuf_pdf from nonvisualobject
+global type kuf_pdf_old1 from nonvisualobject
 end type
-global kuf_pdf kuf_pdf
+global kuf_pdf_old1 kuf_pdf_old1
 
 type prototypes
 //
@@ -152,12 +152,12 @@ ki_stampa_pdf[ki_stampa_pdf_idx] = a_path_file
 return ki_stampa_pdf_idx
 end function
 
-on kuf_pdf.create
+on kuf_pdf_old1.create
 call super::create
 TriggerEvent( this, "constructor" )
 end on
 
-on kuf_pdf.destroy
+on kuf_pdf_old1.destroy
 TriggerEvent( this, "destructor" )
 call super::destroy
 end on

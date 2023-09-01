@@ -2678,11 +2678,7 @@ st_tab_sl_pt kst_tab_sl_pt
 st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	kguo_exception.inizializza()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if_sicurezza(kkg_flag_modalita.modifica)
 	
@@ -2698,23 +2694,18 @@ st_esito kst_esito
 		where codice = :ast_tab_contratti.codice
 		using kguo_sqlca_db_magazzino;
 
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 			if kst_tab_sl_pt.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_magazzino.db_commit()
 			end if
 		else
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore in Aggiornamento tab CONTRATTI della data di scadenza, codice=" + string(ast_tab_contratti.codice) + "" &
-									+ "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Aggiornamento tab CONTRATTI della data di scadenza, codice=" + string(ast_tab_contratti.codice))
 				if kst_tab_sl_pt.st_tab_g_0.esegui_commit = "N" then
 				else
 					kguo_sqlca_db_magazzino.db_rollback()
 				end if
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
 				throw kguo_exception
 			end if
 		end if

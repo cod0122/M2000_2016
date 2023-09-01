@@ -346,7 +346,7 @@ else
 			kst_tab_artr.num_certif = kst_tab_certif.num_certif
 			kst_tab_artr.data_st = date(0)
 			kuf1_artr = create kuf_artr
-			kst_tab_artr.st_tab_g_0.esegui_commit = "N"
+			kst_tab_artr.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
 			kst_esito_1=kuf1_artr.aggiorna_data_stampa_attestato(kst_tab_artr)
 			destroy kuf1_artr 
 			
@@ -362,9 +362,9 @@ else
 		if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
 	
 			if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn then
-				kst_esito = kGuf_data_base.db_commit_1()
+				kst_esito = kguo_sqlca_db_magazzino.db_commit()
 			else
-				kGuf_data_base.db_rollback_1( )
+				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
 			
 		end if
@@ -1165,6 +1165,7 @@ st_tab_memo kst_tab_memo
 	else
 		kids_certif_tree_stampati_xdata = create kds_certif_tree_stampati_xdata
 	end if
+	kids_certif_tree_stampati_xdata.settransobject(kguo_sqlca_db_magazzino) 
 		 
 //--- Ricavo l'oggetto figlio dal DB 
 	kst_tab_treeview.id = k_tipo_oggetto
@@ -2286,12 +2287,7 @@ try
 		kst_tab_artr.num_certif = kst_tab_certif.num_certif
 		kst_tab_armo.id_armo = kuf1_artr.get_id_armo_da_num_certif(kst_tab_artr)
 		if kst_tab_armo.id_armo > 0 then
-			kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-			if kst_esito.esito = kkg_esito.db_ko then
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
+			kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
 			kst_tab_certif.id_meca = kst_tab_armo.id_meca  
 		end if
 	end if
@@ -2444,7 +2440,6 @@ try
 			
 		end try
 
-	
 		delete from certif
 			where id = :kst_tab_certif.id  
 			using kguo_sqlca_db_magazzino;
@@ -2463,7 +2458,7 @@ try
 		kst_tab_artr.num_certif = kst_tab_certif.num_certif
 		kst_tab_artr.data_st = KKG.DATA_ZERO
 		kuf1_artr = create kuf_artr
-		kst_tab_artr.st_tab_g_0.esegui_commit = "N"
+		kst_tab_artr.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
 		kst_esito1=kuf1_artr.aggiorna_data_stampa_attestato(kst_tab_artr)
 		if kst_esito1.sqlcode < 0 then
 			kguo_exception.inizializza()
@@ -2476,7 +2471,7 @@ try
 			kst_tab_docprod.id_doc = kst_tab_certif.id
 			kuf1_docprod = create kuf_docprod
 			kuf1_doctipo = create kuf_doctipo
-			kst_tab_docprod.st_tab_g_0.esegui_commit = "N"
+			kst_tab_docprod.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
 			kuf1_docprod.tb_delete(kst_tab_docprod, kuf1_doctipo.kki_tipo_attestati )
 		catch (uo_exception kuo1_exception)
 			
@@ -2488,7 +2483,7 @@ try
 			if kst_tab_certif.id_meca > 0 then
 				kuf1_armo_inout = create kuf_armo_inout
 				kst_tab_meca.id = kst_tab_certif.id_meca
-				kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+				kst_tab_meca.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
 				kuf1_armo_inout.update_post_delete_attestato(kst_tab_meca)
 			end if
 		catch (uo_exception kuo2_exception)
@@ -2511,9 +2506,18 @@ try
 			end if
 		end if
 	end if
+	
+	if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
 
 catch (uo_exception kuo10_exception)
-	kst_esito = kuo10_exception.get_st_esito()
+	if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+
 	throw kuo10_exception
 
 finally
@@ -2521,18 +2525,7 @@ finally
 	if isvalid(kuf1_docprod) then destroy kuf1_docprod 
 	if isvalid(kuf1_doctipo) then destroy kuf1_doctipo 
 	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout 
-//--- Commit
-	if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
 
-		if kst_esito.esito = KKG_esito.ok or kst_esito.esito = KKG_esito.db_wrn then
-			kguo_sqlca_db_magazzino.db_commit( )
-		else
-			kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-		
-	end if
-			
-	
 end try
 
 return kst_esito

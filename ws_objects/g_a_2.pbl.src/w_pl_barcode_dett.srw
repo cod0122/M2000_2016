@@ -3204,7 +3204,7 @@ k_errore = 0
 		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
 	
 //--- prima di Chiudere RIPRISTINA gli archivi da eventuali chiusure passate
-		kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N"
+		kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
 		kiuf1_pl_barcode.riapre_pl_barcode(kst_tab_pl_barcode)
 			
 //--- Controllo se Tutto OK			
@@ -3212,7 +3212,7 @@ k_errore = 0
 
 //--- Chiude PL: inizio delle fasi di chiusura del PL 
 		kst_tab_pl_barcode.data_chiuso = kg_dataoggi
-		kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
+		kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
 		kst_esito = kiuf1_pl_barcode.tb_update_campo(kst_tab_pl_barcode, "data_chiuso")
 		
 		if kst_esito.esito <> kkg_esito.ok then
@@ -3504,7 +3504,7 @@ k_errore = 0
 		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
 	
 //--- RIPRISTINA gli archivi da eventuali chiusure passate
-		kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N"
+		kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
 		kiuf1_pl_barcode.riapre_pl_barcode(kst_tab_pl_barcode)
 			
 		kguo_sqlca_db_magazzino.db_commit( ) 
@@ -7474,7 +7474,6 @@ end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_pl_barcode_dett
 integer x = 1797
-integer y = 0
 integer width = 1755
 integer height = 1404
 integer taborder = 20

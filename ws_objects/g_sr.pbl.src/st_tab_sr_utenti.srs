@@ -21,6 +21,8 @@ global type st_tab_sr_utenti from structure
 	date		dt_ultima_modifica
 	decimal { 4 }		work_version		descriptor "comment" = "la versione con cui sta lavorando"
 	integer		count_connections		descriptor "comment" = "conta le connessioni effettuate (nell'anno)"
+	string		device_last		descriptor "comment" = "ultimo device (pc) connesso "
+	integer		virtual_user		descriptor "comment" = "1=utente virtuale tipo la 'Console'"
 	datetime		x_datins
 	string		x_utente
 end type

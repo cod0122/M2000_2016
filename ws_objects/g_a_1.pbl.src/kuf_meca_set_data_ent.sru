@@ -168,7 +168,6 @@ try
 	end if
 	
 catch (uo_exception kuo_exception) 
-	k_return = 0
 	if ast_tab_meca.st_tab_g_0.esegui_commit = "N" then
 	else
 		kguo_sqlca_db_magazzino.db_rollback( )

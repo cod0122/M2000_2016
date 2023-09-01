@@ -1,0 +1,43 @@
+﻿$PBExportHeader$fx_close_all_window.srf
+global type fx_close_all_window from function_object
+end type
+
+forward prototypes
+global subroutine fx_close_all_window ()
+end prototypes
+
+global subroutine fx_close_all_window ();
+//=== Chiudo tutte le window children
+window wSheet, wSheetNEXT
+int k_rc
+
+	if not isnull(w_main) then
+		if isvalid(w_main) then
+			wSheet = w_main.GetFirstSheet()
+			do WHILE IsValid(wSheet) and k_rc = 0
+				if wSheet.classname( ) <> "w_menu_tree" then
+					k_rc = close(wSheet)
+					if k_rc = 0 then
+						wSheet = w_main.GetFirstSheet()
+					end if
+				end if
+			loop
+			
+			if k_rc = 0 then
+				if isvalid(wsheet) then
+					wSheetNEXT = wsheet
+				end if
+			
+				do while isvalid(wSheet) and k_rc = 0
+					wSheet = w_main.GetNextSheet(wSheetNEXT)
+					if IsValid (wSheet) then
+						k_rc = close(wSheet)
+					end if
+				loop
+			end if
+		end if
+	end if
+
+
+end subroutine
+

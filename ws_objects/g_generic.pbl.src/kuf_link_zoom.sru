@@ -135,7 +135,8 @@ choose case a_button
 		, "cb_clienti_cntdep_l" &
 		, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
 		, "b_email_rubrica" &
-	   , "b_asdrackbarcode", "b_asdrackbarcode_1"
+	   , "b_asdrackbarcode", "b_asdrackbarcode_1" &
+		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print"
 		k_return = a_button
 		
 		
@@ -228,6 +229,7 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"n_ptask", "n_ptask_x", "id_ptask" &
 					,"b_asdslpt_l", "p_add_asdtype"  &
 					,"id_asddevice" &
+					,"b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto" & 
 					,"k_hyperlink", "url"
 					
 					
@@ -497,6 +499,9 @@ choose case k_nome_link
 	case "b_asdrackbarcode", "b_asdrackbarcode_1" &
 	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode"
 		kuf1_parent = create using "kuf_asd_zoom"
+		
+	case "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto", "b_campionecolli_print"
+		kuf1_parent = create using "kuf_armo_campioni"
 		
 	case "k_hyperlink", "url_cust_packing_in", "url"
 		kuf1_parent = create using "kuf_webbrowser"

@@ -1610,27 +1610,30 @@ event u_constructor;//
 this.text = 'CIAO'
 end event
 
-event clicked;//
+event clicked;
 //=== Chiudo tutte le windows children
-window wSheet, wSheetNEXT
 
+fx_close_all_window()
 
-	wSheet = w_main.GetFirstSheet()
-	do WHILE IsValid(wSheet) and wSheet.classname( ) <> "w_menu_tree"
-		close(wSheet)
-		wSheet = w_main.GetFirstSheet()
-	loop
-	if isvalid(wsheet) then
-		wSheetNEXT = wsheet
-	end if
-
-	do while isvalid(wSheet)
-		wSheet = w_main.GetNextSheet(wSheetNEXT)
-		if IsValid (wSheet) then
-			close(wSheet)
-		end if
-	loop
-
+//window wSheet, wSheetNEXT
+//
+//
+//	wSheet = w_main.GetFirstSheet()
+//	do WHILE IsValid(wSheet) and wSheet.classname( ) <> "w_menu_tree"
+//		close(wSheet)
+//		wSheet = w_main.GetFirstSheet()
+//	loop
+//	if isvalid(wsheet) then
+//		wSheetNEXT = wsheet
+//	end if
+//
+//	do while isvalid(wSheet)
+//		wSheet = w_main.GetNextSheet(wSheetNEXT)
+//		if IsValid (wSheet) then
+//			close(wSheet)
+//		end if
+//	loop
+//
 
 
 end event

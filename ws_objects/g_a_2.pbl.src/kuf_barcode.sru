@@ -40,6 +40,10 @@ public constant string kk_dw_nome_barcode_l_figli_potenziali = "d_barcode_l_figl
 public constant string ki_barcode_groupage_SI = "S"
 public constant string ki_barcode_groupage_NO = "N"
 
+//--- valori del campo FLG_CAMPIONE
+public constant int ki_flg_campione_SI = 1  // controcampioni accoppiati al barcode
+public constant int ki_flg_campione_NO = 0
+
 ////--- formato di Stampa
 //public constant string barcode_modulo_4xpagina = "4"
 //public constant string barcode_modulo_2xpagina = "2"
@@ -181,6 +185,10 @@ public function uo_ds_std_1 get_figli_barcode_uguale_sl_pt (readonly st_tab_barc
 public function st_esito get_barcode_dati_trattamento (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 public function boolean if_barcode_exists (readonly st_tab_barcode ast_tab_barcode) throws uo_exception
 public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref uo_ds_std_1 ads_1) throws uo_exception
+public function boolean set_data_stampa (st_tab_barcode ast_tab_barcode) throws uo_exception
+public subroutine set_flg_campione_reset (st_tab_barcode ast_tab_barcode) throws uo_exception
+public subroutine set_flg_campione (st_tab_barcode ast_tab_barcode) throws uo_exception
+public subroutine set_flg_campione_si (st_tab_barcode ast_tab_barcode) throws uo_exception
 end prototypes
 
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode);//
@@ -201,14 +209,9 @@ st_tab_pl_barcode kst_tab_pl_barcode
 st_esito kst_esito
 
 
+kst_esito = kguo_exception.inizializza(this.classname())
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-if len(trim(kst_tab_barcode.barcode)) > 0 then
+if trim(kst_tab_barcode.barcode) > " " then
 	
 	k_codice = trim(kst_tab_barcode.barcode)
 
@@ -278,11 +281,12 @@ if len(trim(kst_tab_barcode.barcode)) > 0 then
 					pl_barcode = 0, 
 					data_lav_ini = convert(date,'01.01.1899')
 				where barcode = :k_codice
-				using sqlca;
+				using kguo_sqlca_db_magazzino;
 				
-			if sqlca.sqlcode = 0 then
-				commit using sqlca;
+			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+				kguo_sqlca_db_magazzino.db_commit( )
 			else
+				kguo_sqlca_db_magazzino.db_rollback( )
 				k_return = "1" + SQLCA.SQLErrText
 				kst_esito.esito = kkg_esito.ok
 				kst_esito.sqlcode = sqlca.sqlcode
@@ -335,11 +339,7 @@ st_tab_barcode kst1_tab_barcode
 st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-	
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if kst_tab_barcode.pl_barcode > 0 then
 	
@@ -418,9 +418,10 @@ if kst_tab_barcode.pl_barcode > 0 then
 				where pl_barcode = :k_codice
 				using kguo_sqlca_db_magazzino;
 				
-			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 				kguo_sqlca_db_magazzino.db_commit( )
 			else
+				kguo_sqlca_db_magazzino.db_rollback( )
 				k_return = "1" + kguo_sqlca_db_magazzino.SQLErrText
 				kst_esito.esito = kkg_esito.ok
 				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
@@ -441,7 +442,6 @@ if kst_tab_barcode.pl_barcode > 0 then
 		
 	end if
 		
-
 else	
 
 	kst_esito.esito = kkg_esito.no_esecuzione
@@ -450,7 +450,6 @@ else
 end if
 
 if left(k_return, 1) <> "0" then kGuf_data_base.errori_scrivi_esito("W", kst_esito) // scrivi LOG
-
 
 return k_return
 end function
@@ -474,16 +473,10 @@ st_tab_armo kst_tab_armo
 kuf_armo kuf1_armo
 
 
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = "0"
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
 	kst_tab_barcode.ora_lav_ini = time("00:00")
 	k_data_0 = date(0)
-//			pl_barcode = 0 
-//			,groupage = " "
 
 	update barcode 
 		set 
@@ -499,21 +492,16 @@ kuf_armo kuf1_armo
 			,note_lav_fin = " "
 			,err_lav_fin = " "
 		where pl_barcode = :kst_tab_barcode.pl_barcode
-		using sqlca;
-		
-
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.Barcode: " + trim(SQLCA.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = "1"
+		using kguo_sqlca_db_magazzino;
+				
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+			kguo_sqlca_db_magazzino.db_commit( )
 		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = "3"
-			else	
-				kst_esito.esito = "2"
-			end if
-		end if
+			kguo_sqlca_db_magazzino.db_rollback( )
+
+			kst_esito.sqlcode = sqlca.sqlcode
+			kst_esito.SQLErrText = "Tab.Barcode: " + trim(SQLCA.SQLErrText)
+			kst_esito.esito = "2"
 	end if
 
 
@@ -635,15 +623,9 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = "0"
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-
-	if not isnull(k_campo) &
-		and LenA(trim(k_campo)) > 0 then
+	if trim(k_campo) > " " then
 
 		kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -751,8 +733,7 @@ kuf_base kuf1_base
 	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_barcode.st_tab_g_0 
 
-	if not isnull(k_campo) &
-		and LenA(trim(k_campo)) > 0 then
+	if trim(k_campo) > " " then
 	
 		kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -1158,7 +1139,8 @@ kuf_base kuf1_base
 
 		if kst_esito.esito = kkg_esito.ok then
 			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
-				if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
+				if kst_esito.st_tab_g_0.esegui_commit = "N" then
+				else
 					kguo_sqlca_db_magazzino.db_commit( )
 				end if
 			else
@@ -1166,7 +1148,8 @@ kuf_base kuf1_base
 				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.sqlerrtext = "Errore aggiornamento (" + k_campo + ") Barcode " + trim(kst_tab_barcode.barcode) &
 											+ "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
+				if kst_esito.st_tab_g_0.esegui_commit = "N" then
+				else
 					kguo_sqlca_db_magazzino.db_rollback( )
 				end if
 			end if
@@ -1249,11 +1232,7 @@ st_tab_barcode kst1_tab_barcode
 //kuf_sicurezza kuf1_sicurezza
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 //kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
 //kst_open_w.id_programma = kkg_id_programma_barcode
@@ -1274,16 +1253,14 @@ try
 //else
 
 //--- evito la commit all'interno di ogni barcode xche' la faccio dopo sull'intero riferimento
-	kst1_tab_barcode.st_tab_g_0.esegui_commit = "N"
+	//kst1_tab_barcode.st_tab_g_0.esegui_commit = "N"     // meglio non fare x TemporalTable?
 
 	delete from barcode
 			where id_meca = :kst_tab_barcode.id_meca
 			using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.sqlerrtext = "Errore in cancellazione di tutti i Barcode del Lotto id " +  string(kst_tab_barcode.id_meca) + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito = kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in cancellazione di tutti i Barcode del Lotto id " +  string(kst_tab_barcode.id_meca))
 	end if
 
 
@@ -1309,12 +1286,14 @@ try
 //					"Errore durante la cancellazione dei Barcode (id_meca =" &
 //					+ string(kst_tab_barcode.id_meca, "####0") + ") " &
 //					+ " ~n~rErrore-tab.BARCODE:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kst_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_barcode.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_rollback_1( )
+		if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 	else
-		if kst_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_barcode.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
+		if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	end if
 
@@ -1704,7 +1683,6 @@ public subroutine togli_pl_barcode_non_chiuso (st_tab_barcode kst_tab_barcode) t
 
 string k_return = "0 "
 st_esito kst_esito
-uo_exception kuo_exception				  
 
 
 kst_esito = kguo_exception.inizializza(this.classname())
@@ -1719,8 +1697,7 @@ select distinct data_lav_ini, data_lav_fin, data_lav_ok
 
 if sqlca.sqlcode <> 0 then
 
-	kuo_exception = create uo_exception				  
-	kuo_exception.set_tipo (kuo_exception.KK_st_uo_exception_tipo_db_ko)
+	kguo_exception.set_tipo (kguo_exception.KK_st_uo_exception_tipo_db_ko)
 	kst_esito.nome_oggetto = this.classname()
 	kst_esito.esito = kkg_esito.db_ko
 	kst_esito.sqlcode = sqlca.sqlcode
@@ -1731,8 +1708,8 @@ if sqlca.sqlcode <> 0 then
 		kst_esito.sqlerrtext = "Errore durante la Ricerca x la rimozione del Barcode " + trim(kst_tab_barcode.barcode) + " dal P.L.  ~n~r"  + trim(sqlca.sqlerrtext)
 	end if
 	
-	kuo_exception.set_esito (kst_esito )
-	throw kuo_exception
+	kguo_exception.set_esito (kst_esito )
+	throw kguo_exception
 	
 else
 	
@@ -1749,10 +1726,9 @@ else
 		case  &
 			  kst_tab_barcode.data_lav_fin > date(0) 
 			  
-			kuo_exception = create uo_exception				  
-			kuo_exception.set_tipo (kuo_exception.KK_st_uo_exception_tipo_dati_anomali)
-			kuo_exception.setmessage ( "BARCODE "+ trim(kst_tab_barcode.barcode) +" già trattato, lavorazione conclusa il " + string(kst_tab_barcode.data_lav_fin, "dd/mm/yyyy")  )
-			throw kuo_exception
+			kguo_exception.set_tipo (kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
+			kguo_exception.setmessage ( "BARCODE "+ trim(kst_tab_barcode.barcode) +" già trattato, lavorazione conclusa il " + string(kst_tab_barcode.data_lav_fin, "dd/mm/yyyy")  )
+			throw kguo_exception
 			
 	end choose
 	
@@ -1764,19 +1740,19 @@ else
 			data_lav_ini = :kst_tab_barcode.data_lav_ini
 	
 		where barcode = :kst_tab_barcode.barcode
-		using sqlca;
-		
-	if sqlca.sqlcode = 0 then
-		commit using sqlca;
+		using kguo_sqlca_db_magazzino;
+				
+	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+		kguo_sqlca_db_magazzino.db_commit( )
 	else
-		kuo_exception = create uo_exception				  
-		kuo_exception.set_tipo (kuo_exception.KK_st_uo_exception_tipo_db_ko)
+		kguo_sqlca_db_magazzino.db_rollback( )
+		kguo_exception.set_tipo (kguo_exception.KK_st_uo_exception_tipo_db_ko)
 		kst_esito.nome_oggetto = this.classname()
 		kst_esito.esito = kkg_esito.db_ko
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Errore durante rimozione del Barcode " + trim(kst_tab_barcode.barcode) + " dal P.L.  ~n~r"  + trim(sqlca.sqlerrtext)
-		kuo_exception.set_esito (kst_esito )
-		throw kuo_exception
+		kguo_exception.set_esito (kst_esito )
+		throw kguo_exception
 	end if
 	
 end if
@@ -1937,7 +1913,7 @@ try
 
 	
 //--- se OK allora mette il padre in Groupage
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 			update barcode set 	 
 						 groupage = :kst_tab_barcode.groupage,
 						 x_datins = :kst_tab_barcode.x_datins,
@@ -1953,14 +1929,12 @@ try
 			end if
 		else
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.sqlerrtext = "Errore in aggiunta Barcode padre '" + kst_tab_barcode_padre.barcode &
-										+ "' al Figlio '" + kst_tab_barcode.barcode + "' " &
-										+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
+				kst_esito = kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiunta Barcode padre '" + kst_tab_barcode_padre.barcode &
+										+ "' al Figlio '" + kst_tab_barcode.barcode + "' ")
+				kguo_exception.scrivi_log( )						
 				if kst_esito.st_tab_g_0.esegui_commit = "N" then
 				else
-					kst_esito = kguo_sqlca_db_magazzino.db_rollback()
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 			end if
 		end if
@@ -2036,14 +2010,10 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_barcode.st_tab_g_0 
 
-	if LenA(trim(kst_tab_barcode.barcode)) > 0  then
+	if trim(kst_tab_barcode.barcode) > " "  then
 	
 		kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -2081,12 +2051,7 @@ kuf_base kuf1_base
 
 	end if
 
-
-
-
-
 return kst_esito
-
 
 end function
 
@@ -2149,15 +2114,10 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_barcode.st_tab_g_0 
 
-	if LenA(trim(kst_tab_barcode.barcode)) > 0 &
-		then
+	if trim(kst_tab_barcode.barcode) > " "	then
 	
 		kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -2210,14 +2170,10 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_barcode.st_tab_g_0 
 
-	if LenA(trim(kst_tab_barcode.barcode)) > 0 then
+	if trim(kst_tab_barcode.barcode) > " " then
 
 //--- conta i fligli rimasti	
 		try
@@ -2753,7 +2709,7 @@ if kst_tab_barcode.ID_MECA > 0 then
 
 	end if
 
-	if sqlca.sqlcode = 0 then
+	if sqlca.sqlcode >= 0 then
 		if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 		else
 			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
@@ -2762,14 +2718,12 @@ if kst_tab_barcode.ID_MECA > 0 then
 		if sqlca.sqlcode < 0 then
 			if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 			else
-				kst_esito = kguo_sqlca_db_magazzino.db_rollback( )
+				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
 		end if
 	end if
-		
-		
+				
 end if
-
 
 return kst_esito
 
@@ -3172,13 +3126,10 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_barcode.st_tab_g_0 
 
-	if LenA(trim(kst_tab_barcode.barcode)) > 0 then
+	if trim(kst_tab_barcode.barcode) > " " then
 	
 		kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
@@ -3665,8 +3616,16 @@ st_esito kst_esito
 											+ kkg.acapo + "Errore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
 				kst_esito.esito = kkg_esito.db_ko
 			end if
+			if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
 		else
 			kst_esito.esito = kkg_esito.ok
+			if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
 		end if
 		
 	end if
@@ -3967,14 +3926,11 @@ try
 		   using kguo_sqlca_db_magazzino;
 
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.sqlerrtext = "Reset dell'indicatore Dosimetro sul Barcode " + trim(ast_tab_barcode.barcode) + " in errore" + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Reset dell'indicatore Dosimetro sul Barcode " + trim(ast_tab_barcode.barcode) + " in errore.")
 			if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_magazzino.db_rollback()
 			end if
-			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
 		
@@ -3992,7 +3948,8 @@ try
 	end if
 
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
+	//kst_esito = kuo_exception.get_st_esito()
+	kuo_exception.scrivi_log()
 	
 finally					
 //	if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
@@ -4773,7 +4730,7 @@ st_esito kst_esito
 					using kguo_sqlca_db_magazzino;
 
 
-			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 				if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 				else
 					kst_esito = kguo_sqlca_db_magazzino.db_commit()
@@ -4783,14 +4740,11 @@ st_esito kst_esito
 				
 			else
 				if kguo_sqlca_db_magazzino.sqlcode < 0 then
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.sqlerrtext = "Inserimento Barcode in errore" + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+					kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Inserimento Barcode '" + string(ast_tab_barcode.barcode) + "' in errore.")
 					if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 					else
 						kguo_sqlca_db_magazzino.db_rollback()
 					end if
-					kguo_exception.set_esito(kst_esito)
 					throw kguo_exception
 				end if
 			end if
@@ -4983,12 +4937,17 @@ try
 				kst_tab_barcode.imptime_second = long((k_time_fila_1 + k_time_fila_2) &
 				     / (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p + kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p))
 				
+				kst_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
+				kst_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
+				
 				update barcode set 	 
 							 imptime_second = :kst_tab_barcode.imptime_second
+							,x_datins = :kst_tab_barcode.x_datins  
+							,x_utente = :kst_tab_barcode.x_utente 
 						where barcode = :ast_tab_barcode.barcode
 						using kguo_sqlca_db_magazzino;
 	
-				if kguo_sqlca_db_magazzino.sqlcode = 0 then
+				if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 					if ast_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_barcode.st_tab_g_0.esegui_commit) then
 						kst_esito = kguo_sqlca_db_magazzino.db_commit()
 					end if
@@ -5581,14 +5540,11 @@ try
 		   using kguo_sqlca_db_magazzino;
 
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.sqlerrtext = "Errore in ripristinto indicatore Dosimetro sui Barcode per Id Lotto" + string(ast_tab_barcode.id_meca) + ". Errore" + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in ripristinto indicatore Dosimetro sui Barcode per Id Lotto" + string(ast_tab_barcode.id_meca))
 			if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_magazzino.db_rollback()
 			end if
-			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
 
@@ -6199,6 +6155,9 @@ try
 			k_riga_flegga_barcode = 1
 			do while k_riga_flegga_barcode <= k_righe_barcode
 				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    // flegga il dosimetro
+				ads_1.setitem(k_riga_flegga_barcode, "x_datins", kGuf_data_base.prendi_x_datins())
+				ads_1.setitem(k_riga_flegga_barcode, "x_utente", kGuf_data_base.prendi_x_utente())
+				
 				k_return += kst_tab_sl_pt.dosim_x_bcode  // i dosimetri x barcode possono essere anche più di 1
 				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode
 			loop
@@ -6232,6 +6191,8 @@ try
 			if ads_1.getitemstring(k_riga_flegga_barcode, "flg_dosimetro") = ki_flg_dosimetro_si then
 			else
 				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    
+				ads_1.setitem(k_riga_flegga_barcode, "x_datins", kGuf_data_base.prendi_x_datins())
+				ads_1.setitem(k_riga_flegga_barcode, "x_utente", kGuf_data_base.prendi_x_utente())
 				k_return += kst_tab_sl_pt.dosim_x_bcode  // incrementa i dosimetri sul barcode finale
 			end if		
 		end if
@@ -6250,6 +6211,206 @@ end try
 
 return k_return 
 end function
+
+public function boolean set_data_stampa (st_tab_barcode ast_tab_barcode) throws uo_exception;//
+//------------------------------------------------------------------------
+//--- Aggiorna la data di stampa
+//--- 
+//--- Input: st_tab_barcode.barcode e data_stampa
+//---
+//--- lancia EXCEPTION
+//--- 
+//------------------------------------------------------------------------
+//
+boolean k_return
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+
+		ast_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
+		ast_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
+		
+		update barcode set 	 
+					 data_stampa = :ast_tab_barcode.data_stampa
+					,x_datins = :ast_tab_barcode.x_datins  
+					,x_utente = :ast_tab_barcode.x_utente 
+				where barcode = :ast_tab_barcode.barcode
+				using kguo_sqlca_db_magazzino;
+	
+		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			k_return = true
+		else
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento Data Stampa sul Barcode " + trim(ast_tab_barcode.barcode))
+				if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+				else
+					kguo_sqlca_db_magazzino.db_rollback()
+				end if
+				throw kguo_exception
+			else
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento Data Stampa (2) sul Barcode " + trim(ast_tab_barcode.barcode))
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_wrn
+				kguo_exception.scrivi_log( )
+			end if
+		end if
+		if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit()
+		end if
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Data Stampa su Barcode non eseguito, codice non indicato"
+		throw kguo_exception
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+
+finally					
+
+end try
+
+return k_return
+
+
+end function
+
+public subroutine set_flg_campione_reset (st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Resetta il flag_campione per il Barcode 
+    Input:  st_tab_barcode.barcode 
+*/
+st_esito kst_esito 
+
+
+try
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+	
+		ast_tab_barcode.flg_campione = ki_flg_campione_no
+		
+		set_flg_campione(ast_tab_barcode)
+		
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Reset indicatore Campione del Barcode  non eseguito, codice non indicato"
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally					
+
+end try
+
+
+
+
+end subroutine
+
+public subroutine set_flg_campione (st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Update del flag_campione per il Barcode 
+    Input: st_tab_barcode.barcode flag_campione
+*/
+st_esito kst_esito 
+
+
+try
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+	
+		ast_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
+		ast_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
+		update barcode set 	 
+					 FLG_campione = :ast_tab_barcode.flg_campione
+					 ,x_datins = :ast_tab_barcode.x_datins
+					 ,x_utente = :ast_tab_barcode.x_utente
+		   where barcode = :ast_tab_barcode.barcode
+		   using kguo_sqlca_db_magazzino;
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento indicatore di Campione sul Barcode " + trim(ast_tab_barcode.barcode) + ". ")
+			if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_rollback()
+			end if
+			throw kguo_exception
+		end if
+		
+		if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kst_esito = kguo_sqlca_db_magazzino.db_commit()
+		end if
+		
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Aggiornamento indicatore di Campione sul Barcode non eseguito, codice non indicato"
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+	
+finally					
+
+
+end try
+
+
+
+
+end subroutine
+
+public subroutine set_flg_campione_si (st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Resetta il flag_campione per il Barcode 
+    Input:  st_tab_barcode.barcode 
+*/
+st_esito kst_esito 
+
+
+try
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+	
+		ast_tab_barcode.flg_campione = ki_flg_campione_si
+		
+		set_flg_campione(ast_tab_barcode)
+		
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Attivazione indicatore Campione del Barcode non eseguito, codice non indicato"
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally					
+
+end try
+
+
+
+
+end subroutine
 
 on kuf_barcode.create
 call super::create

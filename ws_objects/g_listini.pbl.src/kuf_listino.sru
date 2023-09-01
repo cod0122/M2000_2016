@@ -1247,11 +1247,7 @@ try
 		if kst_tab_armo.id_armo > 0 then
 			if kst_tab_armo.id_meca = 0 or isnull(kst_tab_armo.id_meca) then 
 //---- piglia id del lotto 		
-				kst_esito = kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.set_esito( kst_esito )
-					throw kguo_exception
-				end if
+				kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
 			end if
 		else
 			kst_tab_armo.id_meca = 0
@@ -2212,11 +2208,7 @@ try
 		if ast_tab_armo.id_armo > 0 then
 			if ast_tab_armo.id_meca = 0 or isnull(ast_tab_armo.id_meca) then 
 //---- piglia id del lotto 		
-				kst_esito = kuf1_armo.get_id_meca_da_id_armo(ast_tab_armo)
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.set_esito( kst_esito )
-					throw kguo_exception
-				end if
+				kuf1_armo.get_id_meca_da_id_armo(ast_tab_armo)
 			end if
 		else
 			ast_tab_armo.id_meca = 0

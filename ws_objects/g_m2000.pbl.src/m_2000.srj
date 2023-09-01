@@ -1,14 +1,14 @@
 ﻿$PBExportHeader$m_2000.srj
-EXE:m_2000.exe,icone\g_m2000.pbr,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.0.0.1900
+EXE:m_2000.exe,icone\g_m2000.pbr,0,1,1,0,C:\Program Files (x86)\Appeon\Common\PowerBuilder\Runtime 22.1.0.2819
 CMP:0,1,0,2,0,0,0
 COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.23.07.141
-PVN:13,23,7,141
-FVS:13.23.07.141
-FVN:13,23,7,141
+PVS:13.23.08.22
+PVN:13,23,8,22
+FVS:13.23.08.22
+FVN:13,23,8,22
 MAN:1,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -108,8 +108,8 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_get_barcode,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_f5548014_ifesiste,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_wo_f5537001_l,d
-OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_sicurezza,u
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_email_address,s
+OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_sicurezza,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_armo_out,u
 OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_dwr_const,u
 OBJ:C:\Sterigenics\app32\g_parent.pbl,kuf_parent0,u
@@ -145,8 +145,8 @@ OBJ:C:\Sterigenics\app32\g_parent.pbl,w_main_0,w
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca,s
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca_stato,s
 OBJ:C:\Sterigenics\app32\g_wm.pbl,st_tab_wm_pklist,s
-OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_funzioni,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,ds_pl_barcode,u
+OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_funzioni,s
 OBJ:C:\Sterigenics\app32\g_base.pbl,st_window_size,s
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_utility,u
 OBJ:C:\Sterigenics\app32\g_wm.pbl,st_tab_wm_pklist_righe,s
@@ -164,11 +164,11 @@ OBJ:C:\Sterigenics\app32\g_wm.pbl,st_tab_wm_receiptgammarad,s
 OBJ:C:\Sterigenics\app32\g_xsmart.pbl,kuf_docpath,u
 OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino_voci,s
 OBJ:C:\Sterigenics\app32\g_sped.pbl,st_sped_ddt,s
-OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_prof_utenti,s
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_tab_alarm_instock,s
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_msg_replace_placeholder,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_conn_cfg,u
 OBJ:C:\Sterigenics\app32\g_prt.pbl,st_stampante,s
+OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_prof_utenti,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_contratti_dp_to_listini,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,ds_contratti_doc_select,u
 OBJ:C:\Sterigenics\app32\g_memo.pbl,st_tab_clienti_memo,s
@@ -190,13 +190,13 @@ OBJ:C:\Sterigenics\app32\g_generic.pbl,st_file_explorer_win32_find_data,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_dosimetrie,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_tab_ind_comm,s
 OBJ:C:\Sterigenics\app32\g_wm.pbl,kuf_wm_pklist_cfg,u
-OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_settori_profili,s
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_update_stat_batch,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_wo_f5548014,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_wo_f5548014_l,d
 OBJ:C:\Sterigenics\app32\g_listini.pbl,kuf_listino_disattivo_massivo,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_pilota,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_utility_db,u
+OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_settori_profili,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_file_lettore_grp,s
 OBJ:C:\Sterigenics\app32\g_xcrm.pbl,kuf_m2000tocrm,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,pbdom_document,u
@@ -236,6 +236,7 @@ OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_tab_m_r_f,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,st_tab_e1_wo_f5548014,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kds_certif_stampa_allegati,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_dosimbozza,u
+OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_armo_campioni,s
 OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_dwr_colors,u
 OBJ:C:\Sterigenics\app32\g_parent.pbl,kuf_trova,u
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,st_tab_prof,s
@@ -248,10 +249,10 @@ OBJ:C:\Sterigenics\app32\g_web.pbl,kuf_email_invio,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kds_pilota_pallet_in,u
 OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_dwr_sub,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,st_conf_access,s
-OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_prof_funz,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_pilota_pallet,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kds_pilota,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kds_pilota_pallet_out,u
+OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_prof_funz,s
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuf_menu_tree,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_dosim_conv,u
 OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino,s
@@ -333,6 +334,7 @@ OBJ:C:\Sterigenics\app32\dw2xls_pb126.pbl,n_dwr_workbook,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_contratti,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuf_esito_operazioni,u
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,st_prof_exp_fatt,s
+OBJ:C:\Sterigenics\app32\g_globals.pbl,fx_close_all_window,f
 OBJ:C:\Sterigenics\app32\g_m2000.pbl,n_login,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_asn,u
 OBJ:C:\Sterigenics\app32\g_web.pbl,kuf_email_invio_pm,u
@@ -522,9 +524,9 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,st_tab_e1_wo_f5537001,s
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_armo_prezzi_v,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,d_powerfilter_pictureparm,d
 OBJ:C:\Sterigenics\app32\g_parent.pbl,m_popup,m
-OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_profili,s
 OBJ:C:\Sterigenics\app32\g_m2000.pbl,d_gnu_gpl,d
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_ricevuti_l,u
+OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_profili,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_pl_barcode,s
 OBJ:C:\Sterigenics\app32\g_treeview.pbl,st_treeview_data,s
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,d_powerfilter_customfilter,d
@@ -548,6 +550,7 @@ OBJ:C:\Sterigenics\app32\g_fatt.pbl,kuf_ricevute,u
 OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_cripta,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_certif_print,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_accettato,u
+OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_armo_campioni,u
 OBJ:C:\Sterigenics\app32\g_skedula.pbl,st_sv_skedula,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_asn_x_schedule_l,d
 OBJ:C:\Sterigenics\app32\g_base.pbl,kds_db_magazzino,u
@@ -582,7 +585,7 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_asn_accettato,d
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,ds_pl_barcode_dett,d
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_contratti_rd_to_listini,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_province,s
-OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_settori,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_meca_causali_blk_m,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,ds_meca_ready_e1asn,d
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1,u
+OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_settori,u

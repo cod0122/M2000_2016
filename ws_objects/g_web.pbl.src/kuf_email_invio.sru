@@ -186,6 +186,7 @@ st_esito kst_esito
 	
 	if_isnull(kst_tab_email_invio)
 	//id_email_invio,   
+	
 	INSERT INTO email_invio  
 				( 
 				  cod_funzione,
@@ -235,7 +236,7 @@ st_esito kst_esito
 		k_return = false
 
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore durante Inserimento Invio Email (email_invio) ~n~r" +  trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.SQLErrText = "Errore durante Inserimento Invio Email (email_invio) " + kkg.acapo +  trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.no_esecuzione
 		
 		if kguo_sqlca_db_magazzino.sqlCode < 0 then
@@ -899,21 +900,21 @@ public function long u_invio_batch () throws uo_exception;//
 //
 long k_return, k_nmailbatch, k_row
 st_tab_email_invio kst_tab_email_invio
-uo_d_std_1 kds_email_invio_batch
+uo_ds_std_1 kds_email_invio_batch
 
 
 try
 	kguo_exception.inizializza(this.classname())
 	
-	kds_email_invio_batch = create uo_d_std_1
+	kds_email_invio_batch = create uo_ds_std_1
 	kds_email_invio_batch.dataobject = "ds_email_invio_batch"
 	kds_email_invio_batch.settransobject(kguo_sqlca_db_magazzino)
 	k_nmailbatch = kds_email_invio_batch.retrieve()
 
 	if k_nmailbatch < 0 then
-		kguo_exception.kist_esito.sqlcode = k_nmailbatch
-		kguo_exception.kist_esito.SQLErrText = "Errore in lettura email da inviare via 'batch'" &
-									 + "~n~r"  + trim(kds_email_invio_batch.kist_esito.sqlerrtext)
+		kguo_exception.kist_esito = kds_email_invio_batch.kist_esito //k_nmailbatch
+		kguo_exception.kist_esito.SQLErrText = "Errore in lettura email da inviare via 'batch' " &
+									 + kkg.acapo  + trim(kds_email_invio_batch.kist_esito.sqlerrtext)
 		kguo_exception.kist_esito.esito = kkg_esito.db_ko
 		throw kguo_exception
 	end if
@@ -1268,8 +1269,8 @@ try
 			else
 	//--- se la cartella non esiste
 				kst_esito.esito = kkg_esito.no_esecuzione  
-				kst_esito.SQLErrText = "La cartella Allegati (" + trim(kst_tab_email_invio.allegati_cartella) + ") non esiste, , e-mail " &
-						+ string(kst_tab_email_invio.id_email_invio) + " bloccata! "
+				kst_esito.SQLErrText = "La cartella Allegati (" + trim(kst_tab_email_invio.allegati_cartella) + ") non esiste. Id e-mail " &
+						+ string(kst_tab_email_invio.id_email_invio) + " non inviata! "
 				kguo_exception.set_esito(kst_esito)
 				throw kguo_exception
 			end if
@@ -1382,14 +1383,14 @@ try
 		if NOT k_upd_email then
 			kst_esito.esito = kkg_esito.no_esecuzione
 			kst_esito.sqlerrtext = "Errore in preparazione e-mail da inviare. Oggetto: " &
-					+ trim(kst_tab_email_invio.oggetto) + " (" + kst_tab_email_invio.cod_funzione + ")" &
-					+ " a: " + trim(kst_tab_email_invio.email)
+					+ trim(kst_tab_email_invio.oggetto) + " (" + kst_tab_email_invio.cod_funzione + ") " &
+					+ kkg.acapo + "a: " + trim(kst_tab_email_invio.email)
 			kguo_exception.set_esito(kst_esito)
 			kguo_exception.scrivi_log( )
 		end if
 	else
 		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlerrtext = "Errore in preparazione e-mail da inviare. Manca l'indirizzo. Oggetto: " &
+		kst_esito.sqlerrtext = "Errore in preparazione e-mail da inviare. Manca l'indirizzo. " +  kkg.acapo + "Oggetto: " &
 				+ trim(kst_tab_email_invio.oggetto) + " (" + kst_tab_email_invio.cod_funzione + ")" 
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception

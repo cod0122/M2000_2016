@@ -190,6 +190,7 @@ private subroutine u_set_riga_new ()
 public function boolean if_link_enabled ()
 public subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake)
 public function string u_get_evaluate (string a_field, string a_field_describe)
+public subroutine u_set_column_color ()
 end prototypes
 
 event ue_dwnkey;//
@@ -1680,21 +1681,62 @@ return k_return
 end function
 
 private subroutine u_set_riga_new ();/*
- Personalizza DW (es. colora le righe agg. di recente)
+    Colore la riga in DW se colonna 'x_datins' = DATAOGGI
 */
-kuf_utility kuf1_utility
+long k_num_colonne_nr, k_ctr=1, k_pos
+string k_num_colonne, k_colore, K_RET, k_str, k_colore_orig, k_str_modify=""
+string k_dataoggi_x
+kuf_link_zoom kuf1_link_zoom
 
 
-	if ki_colora_riga_aggiornata then
+	if not ki_colora_riga_aggiornata then
+		return
+	end if
 
+//---- Mette Colore BACKCOLOR x le righe aggiornate di recente
+	if this.Object.DataWindow.Processing = "1" and isnumber(this.Describe("x_datins.x")) then
+	
+		k_dataoggi_x = string(kguo_g.get_dataoggi( ))
+	
+		k_num_colonne = this.Object.DataWindow.Column.Count
+		if isnumber(k_num_colonne) then
+			k_num_colonne_nr = integer(k_num_colonne)
+		else
+			k_num_colonne_nr = 99
+		end if
+		do 
+			k_colore = trim(this.Describe("#" + trim(string(k_ctr,"###"))+".background.color"))
+			
+//--- controllo di NON avere già registrato l'espressione... 
+			k_pos = pos(k_colore, "if( date(x_datins) = date(", 1) 
+			if k_pos <= 0 then 
+			
+//--- controllo se nella dw c'e' gia' una EXPRESSION
+				k_pos = pos(k_colore, "~t", 1) 
+				if k_pos > 0 then 
+//--- piglia l'espressione senza le Virgolette
+					k_colore_orig = mid(k_colore, k_pos, len(k_colore) - k_pos  )
+					k_str = "#" + trim(string(k_ctr,"###"))+".background.color=~" 0"   &
+							+"~tif( date(x_datins) =  date('" + k_dataoggi_x + "'),"+ KKG_COLORE.REC_UPDX + "," +k_colore_orig + ") ~""  //kGuo_g.get_dataoggi()) +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore_orig + ") ~"" //~""
+				else
+					k_str = "#" + trim(string(k_ctr,"###"))+".background.color=~" 0"  &
+							+"~tif( date(x_datins) = date('" + k_dataoggi_x +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore + ") ~""//string(kGuo_g.get_dataoggi()) +"'),"+ KKG_COLORE.REC_UPDX + "," +k_colore + ") ~"" //~""
+				end if
+				
+				k_str_modify += k_str + " "
+				
+			end if
+			k_ctr ++
 
-		kuf1_utility = create kuf_utility
-		
-		kuf1_utility.u_dw_set_riga_new_color(kidw_this)
-		
-		destroy kuf1_utility
+		loop while k_ctr <= k_num_colonne_nr 
+	end if
+	
+//--- se ho trovato qls applica le modifiche tutte insieme	
+	if k_str_modify > " " then 
+		k_ret = this.Modify(k_str_modify)
+		u_set_column_color() // imposta il colore delle colonne 
+	end if
 
-	end if	
 
 		
 			
@@ -1825,6 +1867,62 @@ END IF
 return ls_value
 
 end function
+
+public subroutine u_set_column_color ();/*
+   Imposta il COLOR del testo a seconda del background
+*/
+int k_rc
+string k_style, k_type, k_num_colonne, k_campo, k_appo
+int k_ctr, k_num_colonne_nr
+string k_rcx , k_color_black, k_color_white
+string k_modify
+long k_backgroundColor, k_n
+
+
+	this.setredraw(false)
+	
+	k_color_black = string(kkg_colore.nero)
+	k_color_white = string(kkg_colore.bianco)
+
+	k_num_colonne = this.Object.DataWindow.Column.Count
+	if isnumber(k_num_colonne) then
+		k_num_colonne_nr = integer(k_num_colonne)
+	else
+		k_num_colonne_nr = 99
+	end if
+	do 
+
+		k_campo = trim(string(k_ctr,"###"))
+		//k_appo = this.Describe("#" + k_campo + ".Name")
+
+		k_style = trim(this.Describe("#" + k_campo + ".Edit.Style"))
+		if k_style <> "!" and k_style <> "?" and k_style <> "checkbox" and k_style <> "radiobuttons" then //and k_style <> "dddw" and k_style <> "ddlb" then
+			
+			k_type = lower(trim(this.Describe("#" + k_campo + ".Type")))
+		
+			k_backgroundColor = long(this.Describe("#" + trim(string(k_ctr,"###")) + ".Background.Color"))
+			if k_backgroundColor = 0 then  // se il colore sfondo è zero (presuppongo sia TRANSPARENT) allora piglia il colore di sffondo del DE
+				k_backgroundColor = long(this.Describe("DataWindow.Color"))
+			end if				
+			if k_backgroundColor <= kkg_colore.bianco then
+				//k_n = kkg_colore.SFONDO_SCURO_n
+				if k_backgroundColor >= kkg_colore.SFONDO_SCURO_n then
+					k_modify += "#" + k_campo+".Color='" + k_color_black + "' "
+				else
+					k_modify += "#" + k_campo+".Color='" + k_color_white + "' "
+				end if
+			end if				
+		end if
+		k_ctr = k_ctr + 1 
+
+	loop while k_ctr <= k_num_colonne_nr //and k_id_campo = 0
+
+	k_rcx=this.Modify(k_modify)
+
+	this.setredraw(true)
+
+
+end subroutine
 
 on uo_d_std_1.create
 end on

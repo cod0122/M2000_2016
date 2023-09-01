@@ -269,19 +269,14 @@ kuf_sicurezza kuf1_sicurezza
 	end if
 	
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Dosimetrici del Lotto (meca_dosim) id " &
-								+ string(kst_tab_meca_dosim.id_meca) + " dosimetro: " + trim(kst_tab_meca_dosim.barcode_dosimetro) &
-								+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento dati Dosimetrici del Lotto (meca_dosim) id " &
+								+ string(kst_tab_meca_dosim.id_meca) + " dosimetro: " + trim(kst_tab_meca_dosim.barcode_dosimetro))
 
 		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
 		else
 			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
 		
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito( kst_esito )
 		throw kguo_exception
 			
 	else
@@ -482,11 +477,11 @@ try
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosim.id_meca) + " meca_dosim) " &
-									+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino,  "Aggiornamento barcode Dosimetro in tab. Dosimetria Lotti (id Lotto=" + string(kst_tab_meca_dosim.id_meca) + " meca_dosim) ")	
+		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
 		throw kguo_exception
 	end if
 
@@ -499,10 +494,6 @@ try
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.scrivi_log( )
-	if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-	else
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
 	throw kuo_exception
 	
 finally
@@ -1457,7 +1448,7 @@ if trim(ast_tab_meca_dosim.barcode_lav) > " " then
 		
 else
 	kst_esito.esito = kkg_esito.ko
-	kst_esito.SQLErrText = "Errore interno. Manca barcode dosimetria (2) x identificarlo, operazione bloccata! "
+	kst_esito.SQLErrText = "Errore interno. Manca barcode di trattamento per leggere la tabella Dosimetri, operazione bloccata! "
 	kguo_exception.inizializza()
 	kguo_exception.set_esito( kst_esito )
 	throw kguo_exception
@@ -1521,7 +1512,7 @@ if trim(ast_tab_meca_dosim.barcode) > " " then
 		
 else
 	kst_esito.esito = kkg_esito.ko
-	kst_esito.SQLErrText = "Errore interno. Manca id lotto x identificarlo, operazione bloccata! "
+	kst_esito.SQLErrText = "Errore interno. Manca codice Barcode x identificarlo, operazione bloccata! "
 	kguo_exception.inizializza()
 	kguo_exception.set_esito( kst_esito )
 	throw kguo_exception
@@ -1688,7 +1679,7 @@ public function integer u_genera_rimuove_barcode (st_tab_meca_dosim ast_tab_meca
 int k_return = 0
 long k_nr_barcode=0, k_riga_barcode, k_ind
 int k_nr_bcode_associati=0, k_nr_dosimpos
-datastore kds_1, kds_sl_pt_dosimpos
+uo_ds_std_1 kds_1, kds_sl_pt_dosimpos
 kuf_barcode kuf1_barcode
 kuf_armo kuf1_armo
 kuf_sl_pt kuf1_sl_pt
@@ -1712,10 +1703,15 @@ try
 	if ast_tab_meca_dosim.id_meca > 0 then 
                
 //--- leggo i barcode del lotto 
-		kds_1 = create datastore
+		kds_1 = create uo_ds_std_1
 		kds_1.dataobject = "ds_barcode_set_flg_dosimetro"
 		kds_1.settransobject(kguo_sqlca_db_magazzino)
 		k_nr_barcode = kds_1.retrieve(ast_tab_meca_dosim.id_meca)
+		if k_nr_barcode < 0 then
+			kguo_exception.set_esito(kds_1.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura conteggio Barcode Dosimetri su Lotto id " + string(ast_tab_meca_dosim.id_meca) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+			throw kguo_exception 
+		end if
 	
 	end if
 	
@@ -1739,10 +1735,15 @@ try
 
 //--- leggo i barcode del lotto 
 		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then 
-			kds_sl_pt_dosimpos = create datastore
+			kds_sl_pt_dosimpos = create uo_ds_std_1
 			kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
 			kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
 			k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt)
+			if k_nr_dosimpos < 0 then
+				kguo_exception.set_esito(kds_1.kist_esito)
+				kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+				throw kguo_exception 
+			end if
 		end if
 
 //--- calcolo dove mettere i dosimetri: se richiesto + di uno allora il primo barcode deve contenere il dosimetro
@@ -1782,7 +1783,6 @@ try
 									try
 										k_return ++
 										kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
-//										set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim)	// AGGIORNA ANCHE TAB BASE		
 									
 									catch (uo_exception kuo1_exception)
 										throw kuo1_exception
@@ -1792,7 +1792,9 @@ try
 								
 							next
 							
-							set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
+							if kst_tab_meca_dosim_ultimo.barcode > " " then
+								set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
+							end if
 						
 						end if
 					end if

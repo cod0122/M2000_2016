@@ -27,6 +27,7 @@ constant string ddt_blk_lotti_senza_attestato_NO="1"  //consente spedizioni anch
 //--- costanti CODICI per la tabella BASE_UTENTI
 constant string kki_base_utenti_codice_stcert1 = "stcert1"   // x stampante ATTESTATI pagina 1
 constant string kki_base_utenti_codice_stcert2 = "stcert2"   // x stampante ATTESTATI pagine di dettaglio
+constant string kki_base_utenti_codice_stbarcode = "stbarcode"   // x stampante BARCODE (etichette)
 constant string kki_base_utenti_startfunz = "startfunz"   // window di start della Procedura
 constant string kki_base_utenti_flagsuoni = "flag_suoni"   // emissione suoni SI/NO
 constant string kki_base_utenti_tel = "tel"   // telefono 
@@ -405,6 +406,7 @@ try
 	
 		kst_tab_base.st_tab_base_personale.stcert1 = get_dato_personale(kki_base_utenti_codice_stcert1)
 		kst_tab_base.st_tab_base_personale.stcert2 = get_dato_personale(kki_base_utenti_codice_stcert2)
+		kst_tab_base.st_tab_base_personale.stbarcode = get_dato_personale(kki_base_utenti_codice_stbarcode)
 		
 		kst_tab_base.st_tab_base_personale.flag_ZOOM_ctrl = get_dato_personale(kki_base_utenti_flagZOOMctrl)
 
@@ -960,6 +962,29 @@ st_esito kst_esito
 				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = trim(kguo_sqlca_db_magazzino.SQLErrText)
 			end if
+//--- Barcode Colli Campioni
+		case "collicampioni_barcode_mask" // i primi 3 char del barcode colli campioni
+			k_record = trim(k_key_1)
+			update base set 
+				collicampioni_barcode_mask = :k_record
+				using kguo_sqlca_db_magazzino;
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			else
+				kst_esito.esito = kkg_esito.db_ko 
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.SQLErrText = trim(kguo_sqlca_db_magazzino.SQLErrText)
+			end if
+		case "collicampioni_ult_barcode" // suffisso (2 char + 3 num) barcode colli campioni
+			k_record = trim(k_key_1)
+			update base set 
+				collicampioni_ult_barcode = :k_record
+				using kguo_sqlca_db_magazzino;
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			else
+				kst_esito.esito = kkg_esito.db_ko 
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.SQLErrText = trim(kguo_sqlca_db_magazzino.SQLErrText)
+			end if
 
 //--- Registro Articolo 50			
 		case "art50_anno" // dati Registro Art.50
@@ -1082,6 +1107,7 @@ st_esito kst_esito
 //--- dati in tab BASE_UTENTI
 		case kki_base_utenti_codice_stcert1  & 
 				,kki_base_utenti_codice_stcert2 &
+				,kki_base_utenti_codice_stbarcode &
 				,kki_base_utenti_startfunz &
 				,kki_base_utenti_flagsuoni & 
 				,kki_base_utenti_tel &
@@ -3316,6 +3342,30 @@ kuf_stampe kuf1_stampe
 			k_pos_ini = 1
 			k_lungo = len(k_record)
 
+// Barcode Colli Campioni
+		case "collicampioni_barcode_mask" // i primi 3 char del barcode al posto del codice Cliente
+			select collicampioni_barcode_mask
+				 into :k_record
+				 from base;
+			k_record = trim(k_record)
+			if k_record > " " then
+			else
+				k_record = "DSM"
+			end if
+			k_pos_ini = 1
+			k_lungo = len(k_record)
+		case "collicampioni_ult_barcode" // suffisso del barcode Dosimetro
+			select collicampioni_ult_barcode
+				 into :k_record
+				 from base;
+			k_record = trim(k_record)
+			if k_record > " " then
+			else
+				k_record = ""
+			end if
+			k_pos_ini = 1
+			k_lungo = len(k_record)
+
 
 //--- Tabella BASE_FATT			
 		case "fatt_bolli_lim_stampa" // limite importo fattura oltre il quale esporre le norme dei bolli
@@ -4012,6 +4062,7 @@ st_profilestring_ini kst_profilestring_ini
 //---- Dati da BASE_UTENTI: paramtro personalizzato su utente
 	if a_key = kki_base_utenti_codice_stcert1  & 
 			or a_key = kki_base_utenti_codice_stcert2 &
+			or a_key = kki_base_utenti_codice_stbarcode &
 			or a_key = kki_base_utenti_startfunz &
 			or a_key = kki_base_utenti_flagsuoni & 
 			or a_key = kki_base_utenti_tel &

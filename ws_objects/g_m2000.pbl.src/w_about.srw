@@ -33,14 +33,14 @@ type variables
 
 //
 st_open_w kist_open_w
-kuf_sr_sicurezza kiuf_sr_sicurezza
+//kuf_sr_sicurezza kiuf_sr_sicurezza
+kuf_sr_utenti kiuf_sr_utenti
 
 
 end variables
 
 forward prototypes
 private subroutine imposta_password ()
-private function boolean db_check_pwd ()
 public function boolean u_check_date ()
 public subroutine u_set_menu ()
 public subroutine u_update_software ()
@@ -49,6 +49,7 @@ public subroutine u_inizializza ()
 public subroutine u_start ()
 public function boolean if_connesso_db () throws uo_exception
 public function boolean u_authentication ()
+private function any db_check_pwd ()
 end prototypes
 
 event ue_open();//
@@ -73,7 +74,7 @@ try
 	this.title = trim(this.title) + "  Versione " + kguo_g.get_app_release( ) 
 	this.title = this.title + " su " + trim(kuf1_utility.u_nome_computer()) //prendo nome del Computer
 	
-	kiuf_sr_sicurezza = create kuf_sr_sicurezza
+	kiuf_sr_utenti = create kuf_sr_utenti
 
 	dw_about.insertrow(0)
 
@@ -152,104 +153,6 @@ kuf_menu kuf1_menu
 
 
 end subroutine
-
-private function boolean db_check_pwd ();//
-boolean k_return = false
-string k_passwd="", k_utente=""
-int k_ctr
-st_tab_sr_utenti kst_tab_sr_utenti  
-st_esito kst_esito
-
-
-try
-
-	kGuo_utente.set_pwd(0)
-	
-	k_utente = trim(dw_about.getitemstring(1, "sle_utente"))
-	if k_utente > " " then
-	else
-		k_utente = kguo_utente.get_codice()
-	end if
-	//k_ctr = dw_about.rowcount()
-	k_passwd = trim(dw_about.getitemstring(1, "sle_password"))
-	if k_passwd > " " then
-	else
-		k_passwd = ""
-	end if
-		
-	kst_tab_sr_utenti.codice = trim(k_utente)
-	kst_tab_sr_utenti.password = trim(k_passwd)
-	k_return = kiuf_sr_sicurezza.check_user_password (kst_tab_sr_utenti)
-
-//--- Utente esistente imposto variabili globali
-	if kst_tab_sr_utenti.id > 0 then
-		kguo_utente.set_pwd (kst_tab_sr_utenti.id)   // OBSOLETO mantenuto solo per compatibilità con il passato
-		kguo_utente.set_nome(kst_tab_sr_utenti.nome) 
-		kguo_utente.set_codice(kst_tab_sr_utenti.codice)
-		kguo_utente.set_id_utente(kst_tab_sr_utenti.id)
-	end if
-	
-//--- se password corretta non faccio niente
-	if k_return then
-							
-	else			
-		kguo_utente.set_pwd (0) 
-		kst_esito = kiuf_sr_sicurezza.tb_select(kst_tab_sr_utenti)
-		if kst_esito.esito = kkg_esito.ok then 
-			st_informa.text = "Accesso non Autorizzato, password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi."
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.kist_esito.esito = kkg_esito.ko
-			kguo_exception.kist_esito.sqlerrtext = st_informa.text
-			kguo_exception.scrivi_log( )
-			//messagebox("Accesso non Autorizzato", "Password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.", information!)
-		else
-			st_informa.text = "Accesso non Autorizzato, provare a ripetere le credenziali di accesso"
-//			messagebox("Accesso non Autorizzato", "Provare a ripetere le credenziali di accesso")
-		end if
-		st_informa.visible = true
-	end if
-
-catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-
-//--- Utente esistente imposto variabili globali
-	if kst_tab_sr_utenti.id > 0 then
-		kguo_utente.set_pwd (kst_tab_sr_utenti.id)   // OBSOLETO mantenuto solo per compatibilità con il passato
-		kguo_utente.set_nome(kst_tab_sr_utenti.nome) 
-		kguo_utente.set_codice(kst_tab_sr_utenti.codice)
-		kguo_utente.set_id_utente(kst_tab_sr_utenti.id)
-	end if
-	
-	choose case kst_esito.esito
-
-		case kkg_esito.pwd_inscad 
-		
-			if messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext) + kkg.acapo + "Vuoi cambiarla ora? ", Question!, yesno!, 1) = 1 then
-				imposta_password()
-			else
-				k_return = true  // OK lancia M2000
-			end if
-
-		case kkg_esito.pwd_scaduta  // PWD scaduta deve essere cambiata!!!
-			messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext), Exclamation!, ok! &
-							) 
-			imposta_password()
-
-		case else
-			st_informa.text = "Accesso non Autorizzato " + kkg.acapo + trim(kst_esito.sqlerrtext)
-			st_informa.visible = true
-			//messagebox ("Controllo Password", trim(kst_esito.sqlerrtext), information!)
-						
-
-	end choose	
-	
-end try
-
-
-return k_return 
-
-
-end function
 
 public function boolean u_check_date ();//---
 //---  Controlla che la data sia conguente
@@ -518,7 +421,7 @@ st_tab_base kst_tab_base
 		
 	end try
 		
-//	if not kiuf_sr_sicurezza.u_if_master(k_passwd) then
+//	if not kiuf_sr_utenti.u_if_master(k_passwd) then
 //		if not u_authentication() then	
 //			kst_esito.esito = kkg_esito.ko
 //		end if
@@ -536,7 +439,7 @@ else
 	if db_check_pwd() then
 
 //--- Segnala il logon dell'applicazione (I=messaggio Informativo)
-		kst_esito.esito = kkg_esito.ok
+		kst_esito.esito = kguo_exception.KK_st_uo_exception_tipo_LOGIN
 		kst_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
 		kst_esito.sqlerrtext = "Connessione Accesso alla Procedura M2000 Accettata. " &
 								    + " Utente di login: " + kguo_utente.get_codice()
@@ -700,6 +603,105 @@ RETURN k_return
 
 end function
 
+private function any db_check_pwd ();//
+boolean k_return = false
+string k_passwd="", k_utente=""
+int k_ctr
+st_tab_sr_utenti kst_tab_sr_utenti  
+st_esito kst_esito
+
+
+try
+
+	kGuo_utente.set_pwd(0)
+	
+	k_utente = trim(dw_about.getitemstring(1, "sle_utente"))
+	if k_utente > " " then
+	else
+		k_utente = kguo_utente.get_codice()
+	end if
+	//k_ctr = dw_about.rowcount()
+	k_passwd = trim(dw_about.getitemstring(1, "sle_password"))
+	if k_passwd > " " then
+	else
+		k_passwd = ""
+	end if
+		
+	kst_tab_sr_utenti.codice = trim(k_utente)
+	kst_tab_sr_utenti.password = trim(k_passwd)
+	k_return = kiuf_sr_utenti.check_user_password (kst_tab_sr_utenti)
+
+//--- Utente esistente imposto variabili globali
+	if kst_tab_sr_utenti.id > 0 then
+		kguo_utente.set_pwd (kst_tab_sr_utenti.id)   // OBSOLETO mantenuto solo per compatibilità con il passato
+		kguo_utente.set_nome(kst_tab_sr_utenti.nome) 
+		kguo_utente.set_codice(kst_tab_sr_utenti.codice)
+		kguo_utente.set_id_utente(kst_tab_sr_utenti.id)
+		kguo_utente.set_virtual_user(kst_tab_sr_utenti.virtual_user)
+	end if
+	
+//--- se password corretta non faccio niente
+	if k_return then
+							
+	else			
+		kguo_utente.set_pwd (0) 
+		kst_esito = kiuf_sr_utenti.tb_select(kst_tab_sr_utenti)
+		if kst_esito.esito = kkg_esito.ok then 
+			st_informa.text = "Accesso non Autorizzato, password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi."
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.kist_esito.esito = kkg_esito.ko
+			kguo_exception.kist_esito.sqlerrtext = st_informa.text
+			kguo_exception.scrivi_log( )
+			//messagebox("Accesso non Autorizzato", "Password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.", information!)
+		else
+			st_informa.text = "Accesso non Autorizzato, provare a ripetere le credenziali di accesso"
+//			messagebox("Accesso non Autorizzato", "Provare a ripetere le credenziali di accesso")
+		end if
+		st_informa.visible = true
+	end if
+
+catch (uo_exception kuo_exception)
+	kst_esito = kuo_exception.get_st_esito()
+
+//--- Utente esistente imposto variabili globali
+	if kst_tab_sr_utenti.id > 0 then
+		kguo_utente.set_pwd (kst_tab_sr_utenti.id)   // OBSOLETO mantenuto solo per compatibilità con il passato
+		kguo_utente.set_nome(kst_tab_sr_utenti.nome) 
+		kguo_utente.set_codice(kst_tab_sr_utenti.codice)
+		kguo_utente.set_id_utente(kst_tab_sr_utenti.id)
+	end if
+	
+	choose case kst_esito.esito
+
+		case kkg_esito.pwd_inscad 
+		
+			if messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext) + kkg.acapo + "Vuoi cambiarla ora? ", Question!, yesno!, 1) = 1 then
+				imposta_password()
+			else
+				k_return = true  // OK lancia M2000
+			end if
+
+		case kkg_esito.pwd_scaduta  // PWD scaduta deve essere cambiata!!!
+			messagebox ("Accesso al Sistema", trim(kst_esito.sqlerrtext), Exclamation!, ok! &
+							) 
+			imposta_password()
+
+		case else
+			st_informa.text = "Accesso non Autorizzato " + kkg.acapo + trim(kst_esito.sqlerrtext)
+			st_informa.visible = true
+			//messagebox ("Controllo Password", trim(kst_esito.sqlerrtext), information!)
+						
+
+	end choose	
+	
+end try
+
+
+return k_return 
+
+
+end function
+
 on w_about.create
 this.st_informa=create st_informa
 this.cb_start=create cb_start
@@ -752,7 +754,7 @@ event post ue_open()
 end event
 
 event close;//
-if isvalid(kiuf_sr_sicurezza) then destroy kiuf_sr_sicurezza
+if isvalid(kiuf_sr_utenti) then destroy kiuf_sr_utenti
 end event
 
 type st_informa from multilineedit within w_about

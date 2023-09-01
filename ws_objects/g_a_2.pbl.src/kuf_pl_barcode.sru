@@ -136,6 +136,13 @@ declare kc_barcode cursor for
 		
 			if sqlca.sqlcode <> 0 then
 				k_return = "1" + SQLCA.SQLErrText
+			else
+				
+				if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N" then
+				else
+					kguo_sqlca_db_magazzino.db_commit()
+				end if
+
 			end if
 		end if
 	end if
@@ -159,15 +166,13 @@ st_tab_base kst_tab_base
 kuf_base kuf1_base
 
 
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.esito = "9"   //x default nessuna operazione
-	kst_esito.sqlcode = 0
-	kst_esito.sqlerrtext = " "
-	kst_esito.nome_oggetto = this.classname()
 
 	kst_esito.st_tab_g_0 = kst_tab_pl_barcode.st_tab_g_0 
-	if kst_esito.st_tab_g_0.esegui_commit <> "S" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-		kst_esito.st_tab_g_0.esegui_commit = "N"
+	if kst_esito.st_tab_g_0.esegui_commit = "N" then
+	else
+		kst_esito.st_tab_g_0.esegui_commit = "S"
 	end if
 
 	kst_tab_pl_barcode.x_datins = kGuf_data_base.prendi_x_datins()
@@ -207,12 +212,12 @@ kuf_base kuf1_base
 				  :kst_tab_pl_barcode.prima_del_barcode,
 				  :kst_tab_pl_barcode.x_datins,
 				  :kst_tab_pl_barcode.x_utente)
-		using sqlca;
+		using kguo_sqlca_db_magazzino;
 			
-		if sqlca.sqlcode = 0 and sqlca.sqlnrows > 0 then
+		if kguo_sqlca_db_magazzino.sqlcode = 0 and kguo_sqlca_db_magazzino.sqlnrows > 0 then
 
 //--- recupera il valore serial
-			if sqlca.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
 				try
 					kst_tab_pl_barcode.codice = get_codice_max()
 				catch (uo_exception kuo_exception)
@@ -220,7 +225,7 @@ kuf_base kuf1_base
 					kst_esito.esito = kkg_esito.db_wrn
 					kst_esito.sqlerrtext = kuo_exception.get_errtext( )
 				end try
-				//kst_tab_pl_barcode.codice = long(sqlca.SQLReturnData) 
+				//kst_tab_pl_barcode.codice = long(kguo_sqlca_db_magazzino.SQLReturnData) 
 			end if
 				
 //--- Imposta il nuovo num. pl_barcode			
@@ -255,25 +260,31 @@ kuf_base kuf1_base
 					 x_datins = :kst_tab_pl_barcode.x_datins,
 					 x_utente = :kst_tab_pl_barcode.x_utente
 			where codice = :kst_tab_pl_barcode.codice
-			using sqlca;
+			using kguo_sqlca_db_magazzino;
 
 	end if
 
 	if kst_esito.esito = "0" then
-		if sqlca.sqlcode = 0 then
-			if kst_esito.st_tab_g_0.esegui_commit = "S" then
-				commit using sqlca;
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+			if kst_esito.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_commit( )
 			end if
 		else
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = "100"
-				kst_esito.sqlcode = sqlca.sqlcode
-				kst_esito.sqlerrtext = "Tab.Piani di Lavoro: " + trim(SQLCA.SQLErrText)
+			if kguo_sqlca_db_magazzino.sqlcode = 100 then
+				kst_esito.esito = kkg_esito.not_fnd
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.sqlerrtext = "Tab.Piani di Lavoro: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
 			else
-				if sqlca.sqlcode <> 0 then
-					kst_esito.esito = "2"
-					kst_esito.sqlcode = sqlca.sqlcode
-					kst_esito.sqlerrtext = "Tab.Piani di Lavoro: " + trim(SQLCA.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode < 0 then
+					kst_esito.esito = kkg_esito.db_ko
+					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+					kst_esito.sqlerrtext = "Tab.Piani di Lavoro: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
+					if kst_esito.st_tab_g_0.esegui_commit = "N" then
+					else
+						kguo_sqlca_db_magazzino.db_rollback( )
+					end if
+						
 				end if
 			end if
 		end if
@@ -297,10 +308,7 @@ st_esito kst_esito
 kuf_base kuf1_base
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if Len(trim(k_campo)) > 0 then
 
@@ -1047,7 +1055,7 @@ try
 
 	
 //--- Chiude il Trattamento del Barcode 
-	kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+	kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 	kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini_fin")
 
 	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then //--- errore grave
@@ -1063,7 +1071,7 @@ try
 		kst_tab_meca.err_lav_fin = kst_tab_barcode.err_lav_fin 
 				
 //--- se elaborazione NO di simulazione
-		kst_tab_meca.st_tab_g_0.esegui_commit = "N" 
+		kst_tab_meca.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 		kst_esito = kuf1_armo.setta_errore_lav(kst_tab_meca)
 		
 		if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then //--- errore grave
@@ -1082,7 +1090,7 @@ try
 	kst_tab_artr.pl_barcode = kst_tab_barcode.pl_barcode
 	
 //--- se elaborazione NO di simulazione...
-	kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
+	kst_tab_artr.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 	kst_esito = kuf1_artr.chiudi_lavorazione(kst_tab_artr)
 	
 	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then //--- errore grave
@@ -1096,7 +1104,7 @@ try
 	kst_tab_artr.num_certif = 0
 
 //--- Crea ATTESTATO su ARTR - ritorna il num certificato   - COMMIT DEL LAVORO
-	kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
+	kst_tab_artr.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 	kst_esito = kuf1_artr.crea_attestato_dettaglio(kst_tab_artr)
 
 	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then //--- errore grave
@@ -1111,7 +1119,7 @@ try
 	
 	kst_tab_meca.id = kst_tab_barcode.id_meca
 	kst_tab_meca.data_lav_fin = kst_tab_barcode.data_lav_fin
-	kst_tab_meca.st_tab_g_0.esegui_commit = "N"
+	kst_tab_meca.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 	kst_esito = kuf1_armo.chiudi_lavorazione(kst_tab_meca)
 
 	if kst_esito.esito = kkg_esito.db_ko or kst_esito.esito = kkg_esito.ko then //--- errore grave
@@ -1178,7 +1186,7 @@ kuo_exception = create uo_exception
 		
 //--- Aggiorna gli archivi con i dati di Lavorazione ------------------------------------------------------
 //--- se elaborazione NO di simulazione...
-		kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+		kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 		kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini")
 
 //--- se verificato errore					
@@ -1597,14 +1605,14 @@ try
 							if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode) = 0 then
 								kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 								kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 								kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 							end if
 							if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
 								kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 								kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_meca)  // get del tipo ciclo pianificato
 								kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 								kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 							end if
 						end if
@@ -1617,7 +1625,7 @@ try
 				//--- se elaborazione NO di simulazione...
 					if k_simulazione <> "1" then
 			
-						kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+						kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 						kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini")
 		
 		//--- inserisce collo in ARTR
@@ -1668,14 +1676,14 @@ try
 										if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode_figlio) = 0 then
 											kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 											kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-											kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+											kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 											kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 										end if
 										if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode_figlio) = 1 then
 											kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 											kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_meca)  // get del tipo ciclo pianificato
 											kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-											kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+											kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
 											kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 										end if
 									end if
@@ -1919,14 +1927,14 @@ try
 								if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode) = 0 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 								end if
 								if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 									kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_meca)  // get del tipo ciclo pianificato
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 								end if
 
@@ -1942,13 +1950,13 @@ try
 								if kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode) = 0 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstunload
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi per E1 primo pallet uscito 
 								end if
 								if kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode) = 1 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastunload
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi su E1 ultimo pallet uscito 
 								end if
 							end if
@@ -1964,7 +1972,7 @@ try
 				//--- se elaborazione NO di simulazione...
 						if k_simulazione <> "1" then
 				
-							kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+							kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
 							kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini_fin") //AGGIORNA TAB
 				
 							if kst_esito.esito = kkg_esito.db_ko then //--- errore grave
@@ -1982,7 +1990,7 @@ try
 									
 				//--- se elaborazione NO di simulazione
 							if k_simulazione <> "1" then
-								kst_tab_meca.st_tab_g_0.esegui_commit = "N" 
+								kst_tab_meca.st_tab_g_0.esegui_commit = "S" 
 								kst_esito = kuf1_armo.setta_errore_lav(kst_tab_meca)  // AGGIORNA ERRORE SU MECA
 								
 								if kst_esito.esito = kkg_esito.db_ko then //--- errore grave
@@ -2003,7 +2011,7 @@ try
 				
 				//--- se elaborazione NO di simulazione...
 						if k_simulazione <> "1" then
-							kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
+							kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
 							kst_esito = kuf1_artr.chiudi_lavorazione(kst_tab_artr)
 							
 							if kst_esito.esito = kkg_esito.db_ko then //--- errore grave
@@ -2019,7 +2027,7 @@ try
 						if k_simulazione <> "1" then
 							
 		//--- Crea ATTESTATO su ARTR - ritorna il num certificato  
-							kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
+							kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
 							kst_esito = kuf1_artr.crea_attestato_dettaglio(kst_tab_artr)
 							
 							if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then //--- errore grave
@@ -2029,7 +2037,7 @@ try
 							end if
 
 		//--- Imposta i Tempi Impianto di trattamento sul BARCODE
-							kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+							kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
 							k_rc = kuf1_barcode.set_imptime_second(kst_tab_barcode)
 								
 						end if
@@ -2083,14 +2091,14 @@ try
 											if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode_figlio) = 0 then
 												kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 												kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 												kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 											end if
 											if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode_figlio) = 1 then
 												kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 												kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_meca)  // get del tipo ciclo pianificato
 												kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 												kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 											end if
 
@@ -2106,13 +2114,13 @@ try
 											if kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode_figlio) = 0 then
 												kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstunload
 												kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 												kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi su E1
 											end if
 											if kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode_figlio) = 1 then
 												kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastunload
 												kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+												kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
 												kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi su E1
 											end if
 										end if
@@ -2122,7 +2130,7 @@ try
 									chiudi_lav_barcode_figlio(kst_tab_barcode_figlio)
 
 		//--- Imposta i Tempi Impianto di trattamento sul BARCODE figlio
-									kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "N" 
+									kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "S" 
 									k_rc = kuf1_barcode.set_imptime_second(kst_tab_barcode_figlio)
 			
 									kguo_sqlca_db_magazzino.db_commit( )  
@@ -2270,7 +2278,7 @@ try
 	setnull(kst_tab_artr.data_fin) 
 	kst_tab_artr.pl_barcode = kst_tab_barcode_figli.pl_barcode
 	kst_tab_artr.id_armo = kst_tab_barcode_figli.id_armo
-	kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
+	kst_tab_artr.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable 
 	kst_esito = kuf1_artr.apri_lavorazione(kst_tab_artr)
 	
 	if trim(kst_esito.esito) = kkg_esito.db_ko then
@@ -2324,7 +2332,7 @@ try
 //	kst_tab_artr.colli = 1 
 //	kst_tab_artr.colli_groupage = 0 
 	kst_tab_artr.id_armo = kst_tab_barcode.id_armo
-	kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
+	kst_tab_artr.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable 
 	kst_esito = kuf1_artr.apri_lavorazione(kst_tab_artr)
 	
 	if trim(kst_esito.esito) = kkg_esito.db_ko then
@@ -3063,11 +3071,13 @@ try
 					
 //--- commit del lavoro					
 		if kst_esito.esito <> kkg_esito.db_ko then
-			if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S" then
+			if kst_esito.st_tab_g_0.esegui_commit = "N" then
+			else
 				kguo_sqlca_db_magazzino.db_commit()
 			end if
 		else
-			if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S" then
+			if kst_esito.st_tab_g_0.esegui_commit = "N" then
+			else
 				kguo_sqlca_db_magazzino.db_rollback( ) 
 			end if
 		end if

@@ -6,7 +6,7 @@ type cb_ritorna from commandbutton within w_sr_utenti_password
 end type
 type cb_aggiorna from commandbutton within w_sr_utenti_password
 end type
-type dw_pwd from datawindow within w_sr_utenti_password
+type dw_pwd from uo_d_std_1 within w_sr_utenti_password
 end type
 end forward
 
@@ -136,7 +136,7 @@ end function
 protected function string aggiorna_tabelle ();//
 //=== Update delle Tabelle
 string k_return = "0 "
-kuf_sr_sicurezza kuf1_sr_sicurezza
+kuf_sr_utenti kuf1_sr_utenti
 st_esito kst_esito
 
 
@@ -149,9 +149,9 @@ st_esito kst_esito
 	kist_tab_sr_utenti.id = dw_pwd.getitemnumber(dw_pwd.getrow(), "id")
 	kist_tab_sr_utenti.password = dw_pwd.getitemstring(dw_pwd.getrow(), "password_w")
 
-	kuf1_sr_sicurezza = create kuf_sr_sicurezza
-	kst_esito = kuf1_sr_sicurezza.tb_update_password ( kist_tab_sr_utenti )
-	destroy kuf1_sr_sicurezza
+	kuf1_sr_utenti = create kuf_sr_utenti
+	kst_esito = kuf1_sr_utenti.tb_update_password ( kist_tab_sr_utenti )
+	destroy kuf1_sr_utenti
 
 	if kst_esito.esito = "0" then
 
@@ -398,6 +398,7 @@ end on
 
 on w_sr_utenti_password.destroy
 call super::destroy
+if IsValid(MenuID) then destroy(MenuID)
 destroy(this.cb_ritorna)
 destroy(this.cb_aggiorna)
 destroy(this.dw_pwd)
@@ -412,10 +413,10 @@ event open;//
 //===								
 //
 long k_ctr
-datawindow kdw_1, kdw_2
-kuf_utility kuf1_utility  
-kuf_menu kuf1_menu
-st_tab_menu_window kst_tab_menu_window
+//uo_d_std_1 kdw_1, kdw_2
+//kuf_utility kuf1_utility  
+//kuf_menu kuf1_menu
+//st_tab_menu_window kst_tab_menu_window
 pointer kpointer_orig
 
 //--- INIZIO OPERAZIONI PRELIMINARI --------------------------------------------------------------------------
@@ -430,10 +431,6 @@ pointer kpointer_orig
 		ki_st_open_w.flag_adatta_win = kkg.adatta_win
 		ki_st_open_w.flag_modalita = "" 
 	end if
-	
-	
-//--- assegna il puntatore all'oggetto menu  x renderlo visibile negli script 
-//	ki_menu = this.menuid
 
 //--- assegna il puntatore alla Window x renderlo visibile negli script
 	kiw_this_window = this
@@ -445,34 +442,20 @@ pointer kpointer_orig
 //--- setta il titolo della window
 	set_titolo_window()
 
-//---- oggetto generico 
-//	kiuf1_parent = create kuf_parent
-
 //--- FINE !!!! OPERAZIONI PRELIMINARI --------------------------------------------------------------------------
 
 	kpointer_orig = setpointer(hourglass!)
 
-//	this.setredraw(false)
-
-
 //--- la primissima cosa che fa PERSONALIZZATA dalle windows FIGLIE
 	open_start_window()
 	
-	kuf1_utility = create kuf_utility
-
-////--- Legge le proprietà della Window (tab menu_window) 
-//	kuf1_menu = create kuf_menu
-//	kst_tab_menu_window.window = trim(this.ClassName())
-//	kuf1_menu.get_st_tab_menu_window( kst_tab_menu_window ) 
-//	destroy kuf1_menu
+	//kuf1_utility = create kuf_utility
 
 //--- altre operazioni
 	post event u_open( )
 	
-
 	u_win_show()
 
-		
 	setpointer(kpointer_orig )		
 
 
@@ -504,12 +487,11 @@ aggiorna( )
 
 end event
 
-type dw_pwd from datawindow within w_sr_utenti_password
+type dw_pwd from uo_d_std_1 within w_sr_utenti_password
 integer x = 5
 integer y = 8
 integer width = 2377
 integer height = 752
 string dataobject = "d_sr_utenti_password"
-boolean border = false
 end type
 

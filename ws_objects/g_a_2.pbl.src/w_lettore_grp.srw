@@ -46,6 +46,7 @@ private function integer u_crea_groupage_di_lav (long a_riga_dw_lista) throws uo
 private function boolean u_crea_groupage_scarta_barcode (long a_riga_dw_lista, ref string a_barcode[100])
 protected subroutine u_svuota ()
 private subroutine u_crea_groupage_check (long a_riga_dw_lista) throws uo_exception
+private function integer u_crea_groupage_campioni (long a_riga_dw_lista) throws uo_exception
 end prototypes
 
 public function string inizializza ();//
@@ -59,40 +60,29 @@ public function string inizializza ();//
 //
 string k_return="0 ", k_key = " "
 string k_codice 
-int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
 
-
-
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
 
 //--- eventualmente ho passato il Barcode
-	if LenA(trim(ki_st_open_w.key1)) = 0 then
-		k_codice = ""
-	else
+	if trim(ki_st_open_w.key1) > " " then
 		k_codice = trim(ki_st_open_w.key1)
 	end if
 
-
-	if k_importa <= 0 then // Nessuna importazione eseguita
+	SetPointer(kkg.pointer_attesa)
 
 //--- provo ad importare i nuovi Groupage dalla Cartella comune con il lettore
-		kiuf1_lettore_grp.popola_tab_lettore_grp()
+	kiuf1_lettore_grp.popola_tab_lettore_grp()
 
-		if dw_lista_0.retrieve()  < 1 then //k_codice, 0, 0, 0, 0) < 1 then
-			k_return = "1Nessun Groupage Trovato "
+	if dw_lista_0.retrieve()  < 1 then 
+		k_return = "1Nessun Groupage Trovato "
 
-			SetPointer(oldpointer)
-			
-			if k_codice = "" then k_codice = "ricerca completa"
-			messagebox("Lista Archivio Groupage da Lettore Vuota", &
-					"Nessun Codice Trovato per la richiesta fatta (" + k_codice + ") ")
-		end if
+		SetPointer(kkg.pointer_default)
+		
+		if k_codice = "" then k_codice = "tutto"
+		messagebox("Lista barcode Groupage inviati da Lettore", &
+				"Nessun Codice Trovato per la richiesta fatta (" + k_codice + ") ")
+	end if
 
-	end if		
-
-
+	SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -620,8 +610,9 @@ private function integer u_crea_groupage_rack ();/*
 */
 integer k_return = 0
 long k_riga_dw_lista=0 
-integer k_nr_bcode=0, k_nr_bcode_rack
+integer k_nr_bcode, k_nr_bcode_rack, k_nr_bcode_campioni
 string k_barcode_ok_from_rack[100]
+string k_msg
 st_tab_asdrackbarcode kst_tab_asdrackbarcode
 st_tab_lettore_grp kst_tab_lettore_grp
 st_esito kst_esito
@@ -658,11 +649,17 @@ try
 					u_crea_groupage_scarta_barcode(k_riga_dw_lista, k_barcode_ok_from_rack[])  // scarta i Barcode non coerenti con il Rack
 				end if
 			end if
+		
+			//--- scopre se il GRP contiene i codici CAMPIONI 
+			if dw_dett_0.find("id_armo_campione > 0", 0, dw_dett_0.rowcount()) > 0 then
+				k_nr_bcode_campioni += u_crea_groupage_campioni(k_riga_dw_lista)   // associa barcode Controcampioni
+			end if
 
 		//--- genera il 'classico' GRP
 			k_nr_bcode += u_crea_groupage_di_lav(k_riga_dw_lista)   // BUILD GROUPAGE DI BARCODE DI LAVORAZIONE
 			
 			dw_lista_0.setitem(k_riga_dw_lista, "k_importato", 1)  // mostra ope OK!
+			dw_lista_0.setitem(k_riga_dw_lista, "k_esito", "Barcode elaborati correttamente" )  // mostra esito di errore
 
 		end if
 			
@@ -681,28 +678,28 @@ try
 	
 	loop
 	
-	if k_nr_bcode > 0 or k_nr_bcode_rack > 0 then
-		if k_nr_bcode > 0 and k_nr_bcode_rack > 0 then
-			messagebox("Operazione Conclusa", "Sono stati associati " + string(k_nr_bcode) + " Barcode in Groupage " &
-						+ " e " + string(k_nr_bcode_rack) & 
-						+ " Schermati (rackcode). " )
-		else
-			if k_nr_bcode > 0 then
-				messagebox("Operazione Conclusa", "Sono stati associati " + string(k_nr_bcode) + " Barcode in Groupage")
-			else
-				messagebox("Operazione Conclusa", "Sono stati Schermati (rackcode) " + string(k_nr_bcode_rack) &
-						+ " Barcode, nessun barcode in groupage." )
-			end if
+	if k_nr_bcode > 0 or k_nr_bcode_rack > 0 or k_nr_bcode_campioni > 0 then
+		k_msg = "Sono stati associati: " 
+		if k_nr_bcode > 0  then
+			k_msg += kkg.acapo + string(k_nr_bcode) + " Barcode di Lavorazione in Groupage; " 
+		end if
+		if k_nr_bcode_rack > 0 then
+			k_msg += kkg.acapo + string(k_nr_bcode_rack) + " Schermature (rackcode); "
+		end if
+		if k_nr_bcode_campioni > 0 then
+			k_msg += kkg.acapo + string(k_nr_bcode_campioni) + " Controcampioni "
 		end if
 	else
-		messagebox( "Nessuna Operazione Eseguita", "Nessun Barcode di lavorazione è stato associato a Groupage e/o Schermato." )
+		k_msg = "Nessun Barcode di lavorazione è stato associato a Groupage e/o Schermato e/o a colli Campione." 
 	end if
+	messagebox("Operazione Conclusa", k_msg)
 
-	k_return = k_nr_bcode + k_nr_bcode_rack
+	k_return = k_nr_bcode + k_nr_bcode_rack + k_nr_bcode_campioni
 
 catch (uo_exception kuo_exception)
 	if k_riga_dw_lista > 0 then
 		dw_lista_0.setitem(k_riga_dw_lista, "k_importato", 2)  // mostra ope in errore
+		dw_lista_0.setitem(k_riga_dw_lista, "k_esito", kuo_exception.get_errtext( ) )  // mostra esito di errore
 	end if
 	kuo_exception.messaggio_utente( )
 	
@@ -714,9 +711,9 @@ return k_return
 end function
 
 private function integer u_crea_rack (long k_row_dw_lista_0, ref string k_barcode[100]) throws uo_exception;/*
---- Crea il RACK con i Barcode di Lavorazione (se tutto ok!)
---- Out: array dei barcode da mettere in Groupage (k_barcode)
---- ret: nr. barcode associati ai Rack  
+ Crea il RACK con i Barcode di Lavorazione (se tutto ok!)
+    Out: array dei barcode da mettere in Groupage (k_barcode)
+    ret: nr. barcode associati ai Rack  
 */
 integer k_return
 int k_rows_rack, k_rows_barcode, k_rows_add, k_row_rack, k_row_barcode, k_row_barcode_ok
@@ -747,7 +744,7 @@ try
 
 	for k_row_barcode = 1 to k_rows_barcode // scorre i barcode da mettere nel Rack
 			
-		if kds_2.getitemnumber(k_row_barcode, "id_asdrackcode") > 0 then // Scarta il RACK stesso
+		if kds_2.getitemnumber(k_row_barcode, "id_asdrackcode") > 0 or kds_2.getitemnumber(k_row_barcode, "id_armo_campione") > 0 then // Scarta il RACK e i CAMPIONI stesso
 		else
 
 			kst_tab_asdrackbarcode1.barcode = kds_2.getitemstring(k_row_barcode, "barcode")  // get barcode di lav
@@ -846,7 +843,9 @@ try
 	k_rows = dw_dett_0.rowcount( )
 	for k_row = 1 to k_rows
 
-		if dw_dett_0.object.id_asdrackcode[k_row] > 0 then // i RACK qui li scarta NON VANNO IN GRP
+		// i RACK e i CONTROCAMPIONI qui li scarta NON VANNO IN GRP
+		if dw_dett_0.object.id_asdrackcode[k_row] > 0 &
+						or dw_dett_0.getitemnumber(k_row, "id_armo_campione") > 0 then
 		else
 				
 			kst_tab_barcode_figlio.barcode = trim(dw_dett_0.object.barcode[k_row])
@@ -929,7 +928,9 @@ try
 			if dw_dett_0.object.id_asdrackcode[k_riga_figli] > 0 then // i RACK qui li scarta NON VANNO IN GRP
 				dw_dett_0.deleterow(k_riga_figli)
 				k_riga_figli --
+			elseif dw_dett_0.object.id_armo_campione[k_riga_figli] > 0 then // i CAMPIONI qui non li considera. SCARTA
 			else
+		// elabora i barcode di LAVVORAZIONE FIGLI
 				kst_tab_barcode_figlio.barcode = dw_dett_0.object.barcode[k_riga_figli]
 
 //--- controllo presenza del barcode FIGLIO
@@ -1019,7 +1020,7 @@ try
 		
 	if not kiuf_barcode.if_da_trattare(kst_tab_barcode_padre) then
 		kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_not_fnd )
-		kguo_exception.setmessage( "Il Barcode padre '" + trim(kst_tab_barcode_padre.barcode) + "' non è stato trovato tra quelli da Trattare. Operazione interrotta")
+		kguo_exception.setmessage( "Il Barcode padre '" + trim(kst_tab_barcode_padre.barcode) + "' non è tra quelli ancora da Trattare. Operazione interrotta")
 		throw kguo_exception
 	end if
 
@@ -1039,7 +1040,22 @@ try
 	for k_row = 1 to k_rows
 		
 		if dw_dett_0.object.id_asdrackcode[k_row] > 0 then // i RACK qui li scarta NON VANNO IN GRP
-		else
+		elseif dw_dett_0.object.id_armo_campione[k_row] > 0 then // qui controlla i CONTROCAMPIONI 
+		
+			// il Controcampione deve appartenere al Lotto del PADRE
+			if dw_dett_0.object.armo_campioni_id_armo[k_row] <> dw_dett_0.object.id_armo[k_row] then
+				kst_esito.esito = kkg_esito.ko
+				kst_esito.sqlerrtext = "Controcampione " + trim(kst_tab_barcode_figlio.barcode) &
+									+ " non appartiene al Lotto del barcode PADRE " &
+									+ trim(kst_tab_barcode_padre.barcode) &
+									+ " (" + string(dw_dett_0.object.armo_campioni_id_armo[k_row]) + "<>" + string(dw_dett_0.object.id_armo[k_row]) + ")" &
+									+ ", associazione non consentita! " 
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		
+		else  // infine Controlla i barcode da TRATTARE
+
 			kst_tab_barcode_figlio.barcode = trim(dw_dett_0.object.barcode[k_row])
 			kst_tab_barcode_figlio.tipo_cicli = dw_dett_0.object.barcode_tipo_cicli[k_row]
 			kst_tab_barcode_figlio.pl_barcode = dw_dett_0.object.pl_barcode[k_row]
@@ -1050,8 +1066,9 @@ try
 
 //--- controllo se i barcode possono diventare PADRE e FIGLIO 
 			if NOT kiuf_barcode.if_essere_barcode_figlio(kst_tab_barcode_figlio, kst_tab_barcode_padre) then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlerrtext = "Barcode Figlio non possibile: " + kst_tab_barcode_figlio.barcode 
+				kst_esito.esito = kkg_esito.ko
+				kst_esito.sqlerrtext = "Asscociazione con il barcode Figlio " + trim(kst_tab_barcode_figlio.barcode) &
+									+ " non consentita! " 
 				kguo_exception.set_esito(kst_esito)
 				throw kguo_exception
 			end if
@@ -1073,6 +1090,73 @@ end try
 
 
 end subroutine
+
+private function integer u_crea_groupage_campioni (long a_riga_dw_lista) throws uo_exception;/*
+ Associa il Barcode di Lavorazione al Controcampione
+*/
+integer k_return = 0
+long k_row, k_rows
+integer k_nr_bcode
+st_tab_barcode kst_tab_barcode
+st_tab_armo_campioni kst_tab_armo_campioni
+st_esito kst_esito
+kuf_armo_campioni kuf1_armo_campioni
+kuf_barcode kuf1_barcode
+
+
+try
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+	kuf1_armo_campioni = create kuf_armo_campioni
+	kuf1_barcode = create kuf_barcode
+
+
+	//kst_tab_barcode_padre.pl_barcode = dw_lista_0.object.pl_barcode[a_riga_dw_lista]
+	kst_tab_armo_campioni.barcode_lav = trim(dw_lista_0.object.barcode[a_riga_dw_lista])
+	
+	k_rows = dw_dett_0.rowcount( )  // lavora sul dw ottenuto (VISUALIZZA)
+	for k_row = 1 to k_rows
+	
+		if dw_dett_0.object.id_asdrackcode[k_row] > 0 then // Un Controcampione non può contenere RACK scarta!
+		else
+					
+			kst_tab_armo_campioni.id_armo_campione = dw_dett_0.getitemnumber(k_row, "id_armo_campione")
+			if kst_tab_armo_campioni.id_armo_campione > 0 then // E' un Controcampione provo a lavorarlo!
+			
+				kst_tab_armo_campioni.barcode = trim(dw_dett_0.object.barcode[k_row])
+					
+				kuf1_armo_campioni.set_barcode_lav(kst_tab_armo_campioni) // AGGIUNGE BARCODE DI LAV SUL CAMPIONE
+				kst_tab_barcode.barcode = kst_tab_armo_campioni.barcode_lav 
+				kuf1_barcode.set_flg_campione_si(kst_tab_barcode) // Set su BACRCODE del Flag CAMPIONE
+				
+				k_nr_bcode++  // nr Campioni associati correttamente al PADRE						
+					
+			end if
+		end if
+	
+	end for
+		
+	if k_nr_bcode > 0 then
+
+		kguo_sqlca_db_magazzino.db_commit( )
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	kguo_sqlca_db_magazzino.db_rollback( )
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_armo_campioni) then destroy kuf1_armo_campioni
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	
+end try
+
+
+return k_nr_bcode
+
+
+end function
 
 on w_lettore_grp.create
 int iCurrent
@@ -1160,6 +1244,7 @@ type st_orizzontal from w_g_tab0`st_orizzontal within w_lettore_grp
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_lettore_grp
+integer y = 20
 integer width = 3291
 integer height = 1024
 string dataobject = "d_lettore_grp_l"

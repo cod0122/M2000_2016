@@ -1345,6 +1345,8 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 		kuf1_armo = create kuf_armo
 		kuf1_ausiliari = create kuf_ausiliari
 		
+		kguo_sqlca_db_magazzino.db_commit( )  // forse sistema TemporalTable
+		
 		if kuf1_wm_pklist_testa.tb_select( kst_tab_wm_pklist ) then // legge la testata del PKLIST 
 
 //---- Leggo le righe Paking x salvarle in un array		
@@ -1420,7 +1422,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 					kist_tab_meca.id_meca_causale = kuf1_contratti.get_id_meca_causale(kst_tab_contratti)
 				end if
 			end if
-//--- Set STATO del Lotto potrebbe BLOCCARLO			
+//--- Set STATO del Lotto potrebbe da BLOCCARE			
 			kist_tab_meca.meca_blk_descrizione = "" 
 			kist_tab_meca.meca_blk_rich_autorizz = ""
 			kist_tab_meca.stato = kiuf_armo.ki_meca_stato_gen_da_completare 
@@ -1668,7 +1670,6 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 					
 					next
 					k_ctr_righe_pkilst_lastupdate = k_ctr_righe_pklist
-					
 					
 				loop
 				
