@@ -1035,9 +1035,12 @@ datastore kds_1
 			dw_dett_0.setitem(k_riga, "id_meca", dw_lista_0.getitemnumber(a_riga_master, "id_meca"))
 			dw_dett_0.setitem(k_riga, "data_int", dw_lista_0.getitemdate(a_riga_master, "data_int"))
 			dw_dett_0.setitem(k_riga, "num_int", dw_lista_0.getitemnumber(a_riga_master, "num_int"))
+			
 			dw_dett_0.setitem(k_riga, "barcode_lav", kds_1.getitemstring(k_ind,"barcode_lav"))
 			dw_dett_0.setitem(k_riga, "meca_dosimbozza_barcode", kds_1.getitemstring(k_ind,"barcode"))
 			dw_dett_0.setitem(k_riga, "barcode_dosimetro", kds_1.getitemstring(k_ind,"barcode_dosimetro"))
+			dw_dett_0.setitem(k_riga, "dosim_flg_tipo_dose", kds_1.getitemstring(k_ind,"dosim_flg_tipo_dose"))
+			
 			dw_dett_0.setitem(k_riga, "dosim_data", kguo_g.get_dataoggi( ) )
 			dw_dett_0.setitem(k_riga, "dosim_lotto_dosim", kist_tab_meca_dosimbozza_insert.dosim_lotto_dosim)
 			dw_dett_0.setitem(k_riga, "dosim_temperatura", kist_tab_meca_dosimbozza_insert.dosim_temperatura)

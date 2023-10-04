@@ -150,28 +150,28 @@ kuf_pl_barcode kuf1_pl_barcode
 				
 			case kuf1_treeview.kist_treeview_oggetto.pl_barcode_aperto_dett
 				k_query_where = k_query_where &
-				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_aperto) + "' " &
+				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_pl_aperto) + "' " &
 				   + " and (pl_barcode.data_sosp <= '" + string(KKG.DATA_ZERO) + "' or  pl_barcode.data_sosp is null) "
 //					+ " (pl_barcode.data_chiuso <= '" + string(KKG.DATA_ZERO) + "' or  pl_barcode.data_chiuso is null) " &
 
 					
 			case kuf1_treeview.kist_treeview_oggetto.pl_barcode_chiuso_dett
 				k_query_where = k_query_where &
-				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_chiuso) + "' " &
+				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_pl_chiuso) + "' " &
 				   + " and (pl_barcode.data_sosp <= '" + string(KKG.DATA_ZERO) + "' or  pl_barcode.data_sosp is null) " &
 //		      	+ " pl_barcode.data_chiuso > '" + string(KKG.DATA_ZERO) + "'  " &
 //				   + " and (pl_barcode.upd_data_fpilota <= '" + string(KKG.DATA_ZERO) + "' or  pl_barcode.upd_data_fpilota is null)  " 
 					
 			case kuf1_treeview.kist_treeview_oggetto.pl_barcode_gia_pilota_dett
 				k_query_where = k_query_where &
-				+ " pl_barcode.stato in ('" + trim(kuf1_pl_barcode.ki_stato_inviato) + "' " &
-				+ ",  '" + trim(kuf1_pl_barcode.ki_stato_consegnato) + "') " &
+				+ " pl_barcode.stato in ('" + trim(kuf1_pl_barcode.ki_stato_pl_inviato) + "' " &
+				+ ",  '" + trim(kuf1_pl_barcode.ki_stato_pl_consegnato) + "') " &
 				   + " and (pl_barcode.data_sosp <= '" + string(KKG.DATA_ZERO) + "' or  pl_barcode.data_sosp is null)  " 
 //		         + " pl_barcode.upd_data_fpilota > '" + string(KKG.DATA_ZERO) + "'  "  &
 
 			case kuf1_treeview.kist_treeview_oggetto.pl_barcode_respinto_dett
 				k_query_where = k_query_where &
-				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_respinto) + "' " 
+				+ " pl_barcode.stato = '" + trim(kuf1_pl_barcode.ki_stato_pl_respinto) + "' " 
 					
 			case kuf1_treeview.kist_treeview_oggetto.pl_barcode_sospeso_dett
 				k_query_where = k_query_where &
@@ -303,15 +303,15 @@ kuf_pl_barcode kuf1_pl_barcode
 					kst_tab_treeview.descrizione_tipo = "Sospeso, P.L. bloccato dall'operatore " 
 				else
 					choose case kst_tab_pl_barcode.stato
-						case kuf1_pl_barcode.ki_stato_aperto
+						case kuf1_pl_barcode.ki_stato_pl_aperto
 							kst_tab_treeview.descrizione_tipo = "Aperto  "
-						case kuf1_pl_barcode.ki_stato_chiuso
+						case kuf1_pl_barcode.ki_stato_pl_chiuso
 							kst_tab_treeview.descrizione_tipo = "Chiuso  "
-						case kuf1_pl_barcode.ki_stato_inviato
+						case kuf1_pl_barcode.ki_stato_pl_inviato
 							kst_tab_treeview.descrizione_tipo = "Inviato  "
-						case kuf1_pl_barcode.ki_stato_consegnato
+						case kuf1_pl_barcode.ki_stato_pl_consegnato
 							kst_tab_treeview.descrizione_tipo = "Consegnato  "
-						case kuf1_pl_barcode.ki_stato_respinto
+						case kuf1_pl_barcode.ki_stato_pl_respinto
 							kst_tab_treeview.descrizione_tipo = "Respinto  "
 						case else
 							kst_tab_treeview.descrizione_tipo = "?????  "

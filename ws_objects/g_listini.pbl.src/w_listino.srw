@@ -71,6 +71,7 @@ private subroutine cambia_periodo_elenco ()
 protected function boolean inserisci_dw10 ()
 protected subroutine attiva_tasti_0 ()
 public subroutine u_resize_1 ()
+private subroutine call_logtrace ()
 end prototypes
 
 private subroutine pulizia_righe ();//
@@ -1305,6 +1306,17 @@ protected subroutine attiva_menu ();//
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Custom015a!"
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
 
+//--- Vedi LOG da TemporalTable
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero8.visible = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+	end if
+
 //--- Attiva/Dis. Voci di menu
 	super::attiva_menu()
 
@@ -1327,6 +1339,10 @@ choose case LeftA(k_par_in, 2)
 
 	case kkg_flag_richiesta.libero3		//Elenco Mandanti
 		call_elenco_mandanti()
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
 
 	case else
 		super::smista_funz(k_par_in)
@@ -2173,6 +2189,41 @@ public subroutine u_resize_1 ();//
 	this.setredraw(true)
 //end if
 
+
+
+end subroutine
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace 
+long k_riga
+st_tab_listino kst_tab_listino
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+
+
+try   
+	k_riga = tab_1.tabpage_1.dw_1.getrow()
+	if k_riga > 0 then
+
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+	
+		kst_tab_listino.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id" ) 
+			
+		if kst_tab_listino.id  > 0 then
+			
+			kst_open_w.key1 = string(kst_tab_listino.id)
+			kst_open_w.key2 = kiuf_listino.get_id_programma(kkg_flag_modalita.visualizzazione )
+			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+			kuf1_logtrace_meca.u_open(kst_open_w)  
+
+		end if
+	end if 
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+end try
+	
 
 
 end subroutine

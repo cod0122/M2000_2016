@@ -6,8 +6,6 @@ end forward
 
 global type w_super from window
 boolean visible = false
-integer width = 0
-integer height = 0
 boolean titlebar = true
 string menuname = "m_main"
 boolean controlmenu = true
@@ -27,8 +25,9 @@ global w_super w_super
 
 type variables
 //
-protected string ki_win_titolo_orig = ""
-protected string ki_win_titolo_custom = ""  //prolungamento titolo x personalizzazione nelle window figlie  
+protected string ki_win_titolo_orig
+protected string ki_win_titolo_custom  //prolungamento titolo x personalizzazione nelle window figlie  
+protected string ki_win_titolo_powertip
 public st_open_w ki_st_open_w 
 protected boolean ki_utente_abilitato = true
 
@@ -944,7 +943,7 @@ boolean k_return = false
 string k_section, k_rcx, k_classname
 int k_ctr, k_n_ctrl
 long k_x, k_y, k_w, k_h
-boolean k_visible 
+boolean k_visible
 windowobject kwindowobject_1
 datawindow kdw_1
 SingleLineEdit kSingleLineEdit_1
@@ -1030,6 +1029,7 @@ w_super kw_super
 					end if
 				end if
 			
+				k_visible = false
 				kst_profilestring_ini.nome = k_section + "_" + k_classname + "_visible"
 				k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
 				if kst_profilestring_ini.esito = "0" then

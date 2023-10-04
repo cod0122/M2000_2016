@@ -55,6 +55,7 @@ private subroutine put_video_cliente (st_tab_clienti kst_tab_clienti)
 public function integer u_retrieve_dw_lista ()
 private subroutine u_modifica_massiva_data_scad ()
 private function long u_modifica_massiva_data_scad_esegue () throws uo_exception
+private subroutine call_logtrace ()
 end prototypes
 
 public function string inizializza ();//
@@ -552,7 +553,18 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero5.visible = true
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = true
 	end if	
-	
+
+//--- Vedi LOG da TemporalTable
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici (Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero8.visible = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+	end if
+
 
 //---
 	super::attiva_menu()
@@ -572,6 +584,10 @@ choose case LeftA(k_par_in, 2)
 
 	case KKG_FLAG_RICHIESTA.libero5		//modifica massiva data scadenze
 		u_modifica_massiva_data_scad( )
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
 		
 	case else
 		super::smista_funz(k_par_in)
@@ -1361,6 +1377,48 @@ end try
 return k_return
 
 end function
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace MECA
+long k_riga
+st_tab_contratti kst_tab_contratti
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+
+
+try   
+	
+	k_riga = dw_dett_0.getrow()
+	if k_riga > 0 then
+		kst_tab_contratti.codice = (dw_dett_0.getitemnumber(1, "codice" ))
+	else
+		k_riga = dw_lista_0.getselectedrow(0)
+		if k_riga > 0 then
+			kst_tab_contratti.codice = (dw_lista_0.getitemnumber(1, "codice" ))
+		end if
+	end if
+
+	if kst_tab_contratti.codice > 0 then
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+		
+		kst_open_w.key1 = string(kst_tab_contratti.codice)
+		kst_open_w.key2 = kiuf_contratti.get_id_programma(kkg_flag_modalita.visualizzazione )
+		kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+		kuf1_logtrace_meca.u_open(kst_open_w) 
+
+	end if
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+
+		
+end try
+	
+
+
+end subroutine
 
 on w_contratti.create
 int iCurrent

@@ -545,6 +545,8 @@ private subroutine u_dw_1_settransobject ();//
 			dw_1.settrans (kguo_sqlca_db_pilota)
 		case kguo_sqlca_db_e1.ki_title_id 
 			dw_1.settransobject (kguo_sqlca_db_e1)
+		case kguo_sqlca_db_plav.ki_title_id 
+			dw_1.settransobject (kguo_sqlca_db_plav)
 		case else
 			dw_1.settransobject (kguo_sqlca_db_magazzino)
 	end choose

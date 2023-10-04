@@ -40,6 +40,7 @@ protected subroutine set_titolo_window_personalizza ()
 public function boolean get_dati_cliente (ref st_tab_clienti kst_tab_clienti)
 private subroutine put_video_cliente (st_tab_clienti kst_tab_clienti)
 public function long u_retrieve_dw ()
+private subroutine call_logtrace ()
 end prototypes
 
 public function string inizializza ();//
@@ -434,7 +435,6 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "SelectApplication1!"
 //		ki_menu.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
 	end if
-//
 
 	if not m_main.m_strumenti.m_fin_gest_libero2.visible then
 		m_main.m_strumenti.m_fin_gest_libero2.text = "Mostra/Nascondi Capitolati Attivi"
@@ -448,7 +448,18 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 //		ki_menu.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	end if	
 
-//---
+//--- Vedi LOG da TemporalTable
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici (Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero8.visible = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+	end if
+
+
 	super::attiva_menu()
 
 
@@ -514,6 +525,10 @@ choose case LeftA(k_par_in, 2)
 
 	case KKG_FLAG_RICHIESTA.libero2		//Mostra/Nascondi righe
 		mostra_nascondi_in_lista()
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
 
 	case else
 		super::smista_funz(k_par_in)
@@ -784,6 +799,51 @@ return k_return
 
 
 end function
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace MECA
+long k_riga
+st_tab_sc_cf kst_tab_sc_cf
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+kuf_sc_cf kuf1_sc_cf
+
+
+try   
+	
+	kuf1_sc_cf = create kuf_sc_cf
+	
+	k_riga = dw_dett_0.getrow()
+	if k_riga > 0 then
+		kst_tab_sc_cf.codice = trim(dw_dett_0.getitemstring(1, "codice" ))
+	else
+		k_riga = dw_lista_0.getselectedrow(0)
+		if k_riga > 0 then
+			kst_tab_sc_cf.codice = trim(dw_lista_0.getitemstring(1, "codice" ))
+		end if
+	end if
+
+	if kst_tab_sc_cf.codice > " " then
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+		
+		kst_open_w.key1 = kst_tab_sc_cf.codice		
+		kst_open_w.key2 = kuf1_sc_cf.get_id_programma(kkg_flag_modalita.visualizzazione )
+		kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+		kuf1_logtrace_meca.u_open(kst_open_w) 
+
+	end if
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_sc_cf) then destroy kuf1_sc_cf
+		
+end try
+	
+
+
+end subroutine
 
 on w_sc_cf.create
 int iCurrent

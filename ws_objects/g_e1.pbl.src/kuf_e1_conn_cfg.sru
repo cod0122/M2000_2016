@@ -103,12 +103,9 @@ boolean k_return=false
 st_esito kst_esito 
 
 
+SetPointer(kkg.pointer_attesa)
 
-kst_esito.esito = kkg_esito.ok 
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if kst_tab_e1_conn_cfg.codice = 0 or isnull(kst_tab_e1_conn_cfg.codice) then kst_tab_e1_conn_cfg.codice = 1
  
@@ -158,7 +155,7 @@ if kst_tab_e1_conn_cfg.codice = 0 or isnull(kst_tab_e1_conn_cfg.codice) then kst
 
 	else
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Lettura Proprieta' Connessione E-ONE " + string(kst_tab_e1_conn_cfg.codice) + "~n~r  " &
+		kst_esito.SQLErrText = "Lettura Proprietà Connessione E-ONE " + string(kst_tab_e1_conn_cfg.codice) + kkg.acapo &
 									 + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		if kguo_sqlca_db_magazzino.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
@@ -173,8 +170,7 @@ if kst_tab_e1_conn_cfg.codice = 0 or isnull(kst_tab_e1_conn_cfg.codice) then kst
 		throw kguo_exception
 	end if
 
-
-
+	SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -299,9 +295,9 @@ kst_esito.nome_oggetto = this.classname()
 			
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.SQLErrText = &
-"Errore durante Impostazione Blocco Importazione in Proprieta' Packing-List Mandante ~n~r" &
-				+ " codice=" + string(kst_tab_e1_conn_cfg.codice, "####0") &
-				+ " ~n~rErrore-tab.'e1_conn_cfg':"	+ trim(sqlca.SQLErrText)
+"Errore durante Impostazione Blocco Connessione in Proprietà al DB di E-1 " &
+				+ kkg.acapo + "codice=" + string(kst_tab_e1_conn_cfg.codice, "####0") &
+				+ kkg.acapo + "Errore-tab.'e1_conn_cfg':"	+ trim(sqlca.SQLErrText)
 		if sqlca.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
 		else

@@ -2011,15 +2011,17 @@ try
 						 ,:kst_tab_sl_pt.descr 
 						 ,:kst_tab_sl_pt.dosim_et_descr 
 						 ,:kst_tab_prodotti.normative
-						  ;
-				
+						  ;				
 
 				loop
 
 //--- se Etichettatrice (1 etich) e NON ho stampato gia' l'etichetta del Dosimetro allora aggiungo un foglio vuoto se rif cambiato
 				if trim(kst_tab_base.barcode_modulo) = barcode_modulo_1etichetta and not k_barcode_etichetta_dosimetro_stampata then
-					printtext (ki_id_print_etichette, "-",  1, 1, kist_barcode_stampa.font[1,1])
-					PrintPage ( ki_id_print_etichette )
+					if kist_tab_barcode_stampa_save.num_int <> kst_tab_barcode.num_int then
+						kist_tab_barcode_stampa_save.num_int = kst_tab_barcode.num_int	
+						printtext (ki_id_print_etichette, "-",  1, 1, kist_barcode_stampa.font[1,1])
+						PrintPage ( ki_id_print_etichette )
+					end if
 				end if
 			
 			end if

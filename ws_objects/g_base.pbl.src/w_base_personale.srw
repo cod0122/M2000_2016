@@ -28,13 +28,13 @@ type cb_db_crm from commandbutton within tabpage_6
 end type
 type st_21 from statictext within tabpage_6
 end type
-type cb_db_previsioni from commandbutton within tabpage_6
-end type
-type st_23 from statictext within tabpage_6
+type cb_db_plav from commandbutton within tabpage_6
 end type
 type cb_db_e1 from commandbutton within tabpage_6
 end type
 type st_26 from statictext within tabpage_6
+end type
+type st_22 from statictext within tabpage_6
 end type
 type rr_1 from roundrectangle within tabpage_8
 end type
@@ -171,7 +171,7 @@ end type
 end forward
 
 global type w_base_personale from w_g_tab_3
-integer width = 3653
+integer width = 4914
 integer height = 1736
 string title = "Proprietà Personali"
 long backcolor = 67108864
@@ -2582,7 +2582,9 @@ boolean flatstyle = true
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_base_personale
-integer width = 3625
+integer x = 0
+integer y = 0
+integer width = 4622
 integer height = 1384
 integer taborder = 40
 long backcolor = 32567536
@@ -2657,7 +2659,7 @@ type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 string text = "Personalizza"
 long tabbackcolor = 67108864
@@ -2687,7 +2689,7 @@ type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 long backcolor = 67108864
 string text = " la mia Connessione"
@@ -2710,7 +2712,7 @@ end type
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 long backcolor = 67108864
@@ -2755,7 +2757,7 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 long backcolor = 67108864
@@ -2976,7 +2978,7 @@ end type
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 string text = " Contatori Procedura"
@@ -3020,7 +3022,7 @@ end type
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 long backcolor = 67108864
@@ -3036,10 +3038,10 @@ cb_db_web cb_db_web
 st_19 st_19
 cb_db_crm cb_db_crm
 st_21 st_21
-cb_db_previsioni cb_db_previsioni
-st_23 st_23
+cb_db_plav cb_db_plav
 cb_db_e1 cb_db_e1
 st_26 st_26
+st_22 st_22
 end type
 
 on tabpage_6.create
@@ -3051,10 +3053,10 @@ this.cb_db_web=create cb_db_web
 this.st_19=create st_19
 this.cb_db_crm=create cb_db_crm
 this.st_21=create st_21
-this.cb_db_previsioni=create cb_db_previsioni
-this.st_23=create st_23
+this.cb_db_plav=create cb_db_plav
 this.cb_db_e1=create cb_db_e1
 this.st_26=create st_26
+this.st_22=create st_22
 int iCurrent
 call super::create
 iCurrent=UpperBound(this.Control)
@@ -3066,10 +3068,10 @@ this.Control[iCurrent+5]=this.cb_db_web
 this.Control[iCurrent+6]=this.st_19
 this.Control[iCurrent+7]=this.cb_db_crm
 this.Control[iCurrent+8]=this.st_21
-this.Control[iCurrent+9]=this.cb_db_previsioni
-this.Control[iCurrent+10]=this.st_23
-this.Control[iCurrent+11]=this.cb_db_e1
-this.Control[iCurrent+12]=this.st_26
+this.Control[iCurrent+9]=this.cb_db_plav
+this.Control[iCurrent+10]=this.cb_db_e1
+this.Control[iCurrent+11]=this.st_26
+this.Control[iCurrent+12]=this.st_22
 end on
 
 on tabpage_6.destroy
@@ -3082,10 +3084,10 @@ destroy(this.cb_db_web)
 destroy(this.st_19)
 destroy(this.cb_db_crm)
 destroy(this.st_21)
-destroy(this.cb_db_previsioni)
-destroy(this.st_23)
+destroy(this.cb_db_plav)
 destroy(this.cb_db_e1)
 destroy(this.st_26)
+destroy(this.st_22)
 end on
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -3106,7 +3108,7 @@ end type
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 long backcolor = 67108864
 long tabbackcolor = 67108864
@@ -3127,7 +3129,7 @@ end type
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 long backcolor = 16777215
@@ -3267,7 +3269,7 @@ end type
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = true
 long backcolor = 16777215
@@ -3475,8 +3477,8 @@ end type
 type st_1 from statictext within tabpage_6
 integer x = 1157
 integer y = 84
-integer width = 1792
-integer height = 184
+integer width = 1979
+integer height = 168
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3486,14 +3488,14 @@ fontfamily fontfamily = swiss!
 string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
-string text = "Proprietà di scambio e accesso ai dati tra i Programmi di Gestione  Impianto  (PILOTA) e la Procedura M2000"
+string text = "Proprietà per scambio con il PILOTA dei dati Programmazione Impianto G2 (modalità deprecata)"
 boolean focusrectangle = false
 end type
 
 type cb_pilota_proprieta from commandbutton within tabpage_6
 integer x = 192
 integer y = 80
-integer width = 850
+integer width = 901
 integer height = 112
 integer taborder = 20
 boolean bringtotop = true
@@ -3503,7 +3505,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-string text = "Proprietà DB  Pilota Impianto "
+string text = "Proprietà DB Pilota Impianto G2"
 boolean flatstyle = true
 end type
 
@@ -3541,8 +3543,8 @@ end event
 
 type cb_db_wmf from commandbutton within tabpage_6
 integer x = 192
-integer y = 584
-integer width = 850
+integer y = 752
+integer width = 901
 integer height = 112
 integer taborder = 62
 boolean bringtotop = true
@@ -3595,7 +3597,7 @@ end event
 
 type st_18 from statictext within tabpage_6
 integer x = 1157
-integer y = 568
+integer y = 736
 integer width = 1792
 integer height = 184
 boolean bringtotop = true
@@ -3685,7 +3687,7 @@ end type
 
 type cb_db_crm from commandbutton within tabpage_6
 integer x = 192
-integer y = 856
+integer y = 1040
 integer width = 850
 integer height = 112
 integer taborder = 82
@@ -3739,7 +3741,7 @@ end event
 
 type st_21 from statictext within tabpage_6
 integer x = 1157
-integer y = 876
+integer y = 1064
 integer width = 1792
 integer height = 144
 boolean bringtotop = true
@@ -3755,10 +3757,10 @@ string text = "Proprietà di accesso ai dati di scambio con il CRM "
 boolean focusrectangle = false
 end type
 
-type cb_db_previsioni from commandbutton within tabpage_6
+type cb_db_plav from commandbutton within tabpage_6
 integer x = 192
-integer y = 1008
-integer width = 850
+integer y = 240
+integer width = 901
 integer height = 112
 integer taborder = 102
 boolean bringtotop = true
@@ -3768,69 +3770,40 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-boolean enabled = false
-string text = "Proprietà DB ~'Previsionali~'"
+string text = "Proprietà DB ~'Programmazione~'"
 boolean flatstyle = true
 end type
 
-event clicked;//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice sl_pt;
-//kuf_menu_window kuf1_menu_window 
-kuf_db_cfg kuf1_db_cfg
-st_open_w k_st_open_w
+event clicked;/*
+ Parametri : 
+ struttura st_open_w
+    key1=codice
+*/ 
+kuf_plav_conn_cfg kuf1_plav_conn_cfg
+st_open_w kst_open_w
 
 
-//kuf1_menu_window = create kuf_menu_window
-kuf1_db_cfg = create kuf_db_cfg
+kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
 
-K_st_open_w.id_programma = kuf1_db_cfg.get_id_programma(kkg_flag_modalita.modifica)
-K_st_open_w.flag_primo_giro = "S"
-K_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-K_st_open_w.flag_leggi_dw = " "
-K_st_open_w.key1 = kuf1_db_cfg.kki_codice_xprevisioni
-K_st_open_w.key2 = " "
-K_st_open_w.key3 = " "
-K_st_open_w.key4 = " "
-K_st_open_w.flag_where = " "
+kst_open_w.flag_modalita = kkg_flag_modalita.modifica
+kst_open_w.id_programma = kuf1_plav_conn_cfg.get_id_programma(kst_open_w.flag_modalita)
+kst_open_w.key1 = "1"
 
-kGuf_menu_window.open_w_tabelle(k_st_open_w)
+kuf1_plav_conn_cfg.u_open(kst_open_w)
 
-destroy kuf1_db_cfg
-//destroy kuf1_menu_window
+destroy kuf1_plav_conn_cfg
 
 
 
- 
+
+
 
 end event
 
-type st_23 from statictext within tabpage_6
-integer x = 1157
-integer y = 1032
-integer width = 1390
-integer height = 64
-boolean bringtotop = true
-integer textsize = -10
-integer weight = 400
-fontcharset fontcharset = ansi!
-fontpitch fontpitch = variable!
-fontfamily fontfamily = swiss!
-string facename = "Arial"
-long textcolor = 8388608
-long backcolor = 67108864
-string text = "Proprietà di accesso ai dati di Previsione (ACCESS)"
-boolean focusrectangle = false
-end type
-
 type cb_db_e1 from commandbutton within tabpage_6
 integer x = 192
-integer y = 304
-integer width = 850
+integer y = 500
+integer width = 901
 integer height = 112
 integer taborder = 72
 boolean bringtotop = true
@@ -3844,19 +3817,19 @@ string text = "Connessione E-ONE"
 boolean flatstyle = true
 end type
 
-event clicked;//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice sl_pt;
-//kuf_menu_window kuf1_menu_window 
+event clicked;/*
+ Parametri : 
+ struttura st_open_w
+ dati particolare programma
+ 
+ key1=codice
+ kuf_menu_window kuf1_menu_window 
+*/ 
 kuf_e1_conn_cfg kuf1_e1_conn_cfg
 st_open_w k_st_open_w
 
 
 kuf1_e1_conn_cfg = create kuf_e1_conn_cfg
-//kuf1_menu_window = create kuf_menu_window
 
 K_st_open_w.id_programma = kuf1_e1_conn_cfg.get_id_programma(kkg_flag_modalita.modifica)
 K_st_open_w.flag_primo_giro = "S"
@@ -3872,7 +3845,7 @@ K_st_open_w.flag_where = " "
 kGuf_menu_window.open_w_tabelle(k_st_open_w)
 
 destroy kuf1_e1_conn_cfg
-//destroy kuf1_menu_window
+
 
 
 
@@ -3882,7 +3855,7 @@ end event
 
 type st_26 from statictext within tabpage_6
 integer x = 1157
-integer y = 288
+integer y = 484
 integer width = 1792
 integer height = 184
 boolean bringtotop = true
@@ -3895,6 +3868,24 @@ string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
 string text = "Proprietà di scambio e accesso ai dati tra E-ONE e la Procedura M2000"
+boolean focusrectangle = false
+end type
+
+type st_22 from statictext within tabpage_6
+integer x = 1157
+integer y = 228
+integer width = 2213
+integer height = 168
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Proprietà per scambio con il PILOTA dei dati Programmazione Impianto G2 e G3 (nuova modalità)"
 boolean focusrectangle = false
 end type
 
@@ -4733,7 +4724,7 @@ type tabpage_10 from userobject within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 long backcolor = 16777215
 string text = " Kit"
@@ -4996,7 +4987,7 @@ type tabpage_11 from userobject within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 boolean enabled = false
 long backcolor = 16777215
@@ -5025,7 +5016,7 @@ type tabpage_12 from userobject within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 long backcolor = 16777215
 string text = "Log Segnalazioni"
@@ -5077,7 +5068,7 @@ type tabpage_13 from userobject within tab_1
 boolean visible = false
 integer x = 1033
 integer y = 16
-integer width = 2574
+integer width = 3570
 integer height = 1352
 long backcolor = 67108864
 string text = "Monitor"

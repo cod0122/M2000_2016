@@ -24,27 +24,6 @@ kuf_pilota_cmd kuf1_pilota_cmd
 kuo_sqlca_db_pilota kuo1_sqlca_db_pilota
 
 
-
-	
-//--- ripristina la path di lavoro
-//kGuf_data_base.setta_path_default()
-//
-//k_file = KG_PATH_PROCEDURA + KK_NOME_PROFILE_BASE
-//k_sezione="dbpilota"
-
-//if not FileExists ( k_file ) then
-//	kst_esito.esito = kkg_esito.not_fnd
-//	kst_esito.sqlcode = 0
-//	kst_esito.SQLErrText =  "Non trovato File x la definizione del 'DB Pilota': " + "~n~r"+ &
-//				+ trim(k_file) + " ~n~r" &
-//				+ "Impossibile stabilire la connessione con il DB ~n~r" +  &
-//				+ " ~n~rNon sara' possibile operare sugli archivi del Server dell'Impianto (il Pilota) ~n~r" 
-//	kuo_exception = create uo_exception								
-//	kuo_exception.set_esito(kst_esito)
-//	throw kuo_exception
-//
-//end if
-
 try
 
 //--- Puntatore Cursore da attesa.....
@@ -69,12 +48,12 @@ try
 			k_return = false
 			kst_esito.esito = kkg_esito.not_fnd
 			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText =  "Non trovata definizione del 'DB Pilota' in 'Proprietà Pilota' ~n~r"+ &
-						"Impossibile stabilire la connessione con il DB: ~n~r" +  &
+			kst_esito.SQLErrText =  "Non trovata definizione del 'DB Pilota' in 'Proprietà Pilota' "+ &
+						+ kkg.acapo + "Impossibile stabilire la connessione con il DB: ~n~r" +  &
 						"(" + trim(this.dbms) + " DbParm " + &
-						trim(this.dbparm) + ")~n~r" & 
-						+ "Definizione cercata nella Tabella: PILOTA_CFG~n~r" &
-						+ " ~n~rNon sara' possibile operare sugli archivi del Server dell'Impianto (il Pilota) ~n~r" 
+						trim(this.dbparm) + ") " & 
+						+ kkg.acapo + "Definizione cercata nella Tabella: PILOTA_CFG " &
+						+ kkg.acapo + "Non sara' possibile operare sugli archivi del Server dell'Impianto (il Pilota) ~n~r" 
 						
 			kguo_exception.inizializza()
 			kguo_exception.set_esito(kst_esito)

@@ -512,60 +512,46 @@ private function boolean x_db_profilo (st_tab_db_cfg kst_tab_db_cfg) throws uo_e
 //===	Ritorna: TRUE se tutto OK
 //===     Solleva una ECCEZIONE x errore
 //
-boolean k_return = true
+boolean k_return
 string k_file, k_sezione
 st_esito kst_esito
-pointer oldpointer  // Declares a pointer variable
-uo_exception kuo_exception
-//kuf_pilota_cmd kuf1_pilota_cmd
-//kuo_sqlca_db_xweb kuo1_sqlca_db_xweb
-//
-
-//=== Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 
 
-//--- setta il profile del DB
-//set_profilo_db(kst_tab_db_cfg)
-if kst_tab_db_cfg.cfg_dbms_scelta = ki_cfg_dbms_scelta_princ then
-	this.DBMS = kst_tab_db_cfg.cfg_dbms
-	this.DBParm = kst_tab_db_cfg.cfg_dbparm
-else
-	this.DBMS = kst_tab_db_cfg.cfg_dbms_alt
-	this.DBParm = kst_tab_db_cfg.cfg_dbparm_alt
-end if
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
-if kst_tab_db_cfg.cfg_autocommit = "true" then
-	this.AutoCommit = true
-else
-	this.AutoCommit = false
-end if
+	if kst_tab_db_cfg.cfg_dbms_scelta = ki_cfg_dbms_scelta_princ then
+		this.DBMS = kst_tab_db_cfg.cfg_dbms
+		this.DBParm = kst_tab_db_cfg.cfg_dbparm
+	else
+		this.DBMS = kst_tab_db_cfg.cfg_dbms_alt
+		this.DBParm = kst_tab_db_cfg.cfg_dbparm_alt
+	end if
+	
+	if kst_tab_db_cfg.cfg_autocommit = "true" then
+		this.AutoCommit = true
+	else
+		this.AutoCommit = false
+	end if
+	
+	if trim(this.dbms) = "nessuno"  then
+		SetPointer(kkg.pointer_default)
+		kst_esito.esito = kkg_esito.not_fnd
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText =  "Non trovata definizione del " + ki_db_descrizione + " in 'Proprietà Accesso al Database'."+ &
+					+ kkg.acapo + "Impossibile stabilire la connessione a: " +  &
+					+ " DbParm '" + trim(this.dbparm) + "' " & 
+					+ kkg.acapo + "Definizione cercata nella Tabella di Configurazione. " &
+					+ kkg.acapo+ "Non sarà possibile operare sugli archivi del Database! " 
+					
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	
+	end if
 
-if trim(this.dbms) = "nessuno"  then
-	k_return = false
-	kst_esito.esito = kkg_esito.not_fnd
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText =  "Non trovata definizione del " + ki_db_descrizione + " in 'Proprietà Accesso del DB' ~n~r"+ &
-				"Impossibile stabilire la connessione con il DB: ~n~r" +  &
-				"(" + trim(this.dbms) + " DbParm " + &
-				trim(this.dbparm) + ")~n~r" & 
-				+ "Definizione cercata nella Tabella: DB_CFG~n~r" &
-				+ " ~n~rNon sara' possibile operare sugli archivi del Database ~n~r" 
-				
-	kuo_exception = create uo_exception								
-	kuo_exception.set_esito(kst_esito)
-	throw kuo_exception
+	k_return = true
 
-end if
-
-
-SetPointer(oldpointer)
-
+	SetPointer(kkg.pointer_default)
 
 return k_return
 

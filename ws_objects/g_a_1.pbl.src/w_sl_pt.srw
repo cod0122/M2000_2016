@@ -49,6 +49,9 @@ protected subroutine inizializza_3 () throws uo_exception
 protected subroutine inizializza_2 () throws uo_exception
 private subroutine u_get_path_packingformin_file ()
 private subroutine u_open_packingformin_file ()
+protected subroutine attiva_menu ()
+protected subroutine smista_funz (string k_par_in)
+private subroutine call_logtrace ()
 end prototypes
 
 private function integer inserisci ();//
@@ -1485,6 +1488,79 @@ if k_file_path > " " then
 
 end if
 
+
+
+end subroutine
+
+protected subroutine attiva_menu ();
+//--- Vedi LOG da TemporalTable
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici (Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero8.visible = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+	end if
+
+
+	super::attiva_menu()
+
+end subroutine
+
+protected subroutine smista_funz (string k_par_in);/*
+ Smista le chiamate esterne alla window a seconda delle funzionalita' richieste
+ Usata per esempio dal menu popup
+ Par. input: stringa k_par_in 
+*/
+
+choose case trim(left(k_par_in, 3))
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
+	
+	case else // standard
+		super::smista_funz(k_par_in)
+		
+end choose
+
+
+
+end subroutine
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace MECA
+long k_riga
+st_tab_sl_pt kst_tab_sl_pt
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+
+
+try   
+	k_riga = tab_1.tabpage_1.dw_1.getrow()
+	if k_riga > 0 then
+
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+	
+		kst_tab_sl_pt.cod_sl_pt = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt" ))
+			
+		if kst_tab_sl_pt.cod_sl_pt > " " then
+			
+			kst_open_w.key1 = kst_tab_sl_pt.cod_sl_pt		
+			kst_open_w.key2 = kiuf_sl_pt.get_id_programma(kkg_flag_modalita.visualizzazione )
+			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+			kuf1_logtrace_meca.u_open(kst_open_w) 
+
+		end if
+	end if 
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+end try
+	
 
 
 end subroutine

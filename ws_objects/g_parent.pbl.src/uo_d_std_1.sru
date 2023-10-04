@@ -146,7 +146,9 @@ private kuf_ddw_grid kiuf_ddw_grid
 //--- nome dw old x evitare di rifare il link delle immagini x lo stesso dw
 private string ki_personalizza_dw_name = ""
 
-protected boolean ki_db_conn_standard = true   // indica se fare 'settransobject' su 'sqlca' in automatico su dw standard
+// indica se fare 'settransobject' 
+protected boolean ki_db_conn_standard = true   // 'settransobject' su 'sqlca' in automatico su dw standard
+protected boolean ki_db_conn_plav = false   // 'settransobject' su db 'plav' (Interfaccia Pilota)
 
 public boolean ki_dw_visibile_in_open_window = true   // indica se la dw è visibile subito appena aperta la window
 
@@ -681,11 +683,17 @@ event ue_aggiungi_riga(long a_riga);//
 end event
 
 event u_constructor();//
-//if this.dataobject <> "d_nulla" then
-//	this.POST SetTrans(sqlca)
+int k_rc
+
 if this.dataobject > " " and this.dataobject <> "d_nulla" then
 	if ki_db_conn_standard then
  		SetTransObject(kguo_sqlca_db_magazzino)
+	elseif ki_db_conn_plav then
+		try
+			kguo_sqlca_db_plav.db_connetti( ) // tenta la connessione al volo
+ 			k_rc = SetTransObject(kguo_sqlca_db_plav)
+		catch(uo_exception kuo_exception)
+		end try
 	end if
 	ki_personalizza_dw_name = ""
 	event u_personalizza_dw()

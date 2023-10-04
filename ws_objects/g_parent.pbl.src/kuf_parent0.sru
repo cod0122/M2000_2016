@@ -176,7 +176,7 @@ public subroutine _readme ();//-------------------------------------------------
 //--- Questa non è una funziona ma solo un documento di spiegazione dell'oggetto
 //-------------------------------------------------------------------------------------
 //---
-//--- Questo è l'oggetto PADRE di quasi tutti gli oggetti della Procedura
+//--- Questo è l'oggetto PADRE di quasi tutti gli oggetti (User Object)  della Procedura
 //--- 
 //--- get_descrizione e get_id_programma: dalle tabelle menu_window e menu_window_oggetti
 //--- if_sicurezza: verifica l'accesso dell'oggetto rispetto all'utente che lo sta usando - dalle tabelle della sicurezza sr_...

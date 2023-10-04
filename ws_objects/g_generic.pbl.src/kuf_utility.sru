@@ -137,6 +137,7 @@ public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref
 private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw)
 private subroutine old_u_dw_set_column_color (ref datawindow k_dw)
 public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw)
+public function string u_stringa_alfanum_spazio (string k_stringa)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -4891,7 +4892,7 @@ end function
 
 public function string u_stringa_alfanum (string k_stringa);//
 //--- restituisce campo con solo char alfabetici o numerici
-//--- esempio  'fabio 027 / 5'    torna   'fabio027'
+//--- esempio  'fabio 027 / 5'    torna   'fabio0275'
 //
 string k_return_stringa = ""
 int k_start_pos
@@ -5776,6 +5777,29 @@ else
 end if
 
 end subroutine
+
+public function string u_stringa_alfanum_spazio (string k_stringa);//
+//--- restituisce campo con solo char alfabetici o numerici o spazio
+//--- esempio  'fabio 027 / 5'    torna   'fabio 027 5'
+//
+string k_return_stringa = ""
+int k_start_pos
+
+	for k_start_pos = 1 to len(k_stringa) 
+		
+		choose case mid(k_stringa, k_start_pos, 1)
+			case "a" to "z" & 
+				 ,"A" to "Z" & 
+				 ,"0" to "9" &
+				 ," "
+				k_return_stringa += mid(k_stringa, k_start_pos, 1) 
+		end choose
+	next
+	
+return k_return_stringa		
+			
+
+end function
 
 on kuf_utility.create
 call super::create

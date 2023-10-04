@@ -64,8 +64,8 @@ uo_exception kuo_exception
 		else 
 			kst_esito.esito = kkg_esito.not_fnd
 			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Attenzione, manca il nome del file dati di accesso al DB. Operazione interrotta~n~r "&
-					+ "Il problema dovrebbe risolversi riavviando il programma altrimenti avvertire il tecnico." 
+			kst_esito.SQLErrText = "Attenzione, manca il nome del file dati di accesso al DB. Operazione interrotta "&
+							+ kkg.acapo +"Il problema dovrebbe risolversi riavviando il programma altrimenti avvertire il tecnico." 
 			kuo_exception = create uo_exception
 			kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_dati_insufficienti )
 			kuo_exception.set_esito( kst_esito )

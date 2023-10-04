@@ -9,14 +9,14 @@ end type
 global kuf_pl_barcode kuf_pl_barcode
 
 type variables
-//--- valori della colonna STATO
-public constant string ki_stato_aperto = "A"
-public constant string ki_stato_chiuso = "C"
-public constant string ki_stato_inelab = "E"
-public constant string ki_stato_inErrore = "X"
-public constant string ki_stato_inviato = "I"
-public constant string ki_stato_consegnato = "T"
-public constant string ki_stato_respinto = "R"
+//--- valori della colonna STATO (x vecchia modalità) e stato_pl eventi di consegna del Piano sulle tabelle di interfaccia con il PILOTA
+public constant string ki_stato_pl_aperto = "A"
+public constant string ki_stato_pl_chiuso = "C"
+public constant string ki_stato_pl_inelab = "E"      
+public constant string ki_stato_pl_inErrore = "X"    
+public constant string ki_stato_pl_inviato = "I"     
+public constant string ki_stato_pl_consegnato = "T"  
+public constant string ki_stato_pl_respinto = "R"    
 
 //--- valori della colonna PRIORITA
 public constant string k_priorita_urgente = "1"
@@ -76,6 +76,8 @@ public function boolean crea_file_pilota_dosimpos (ds_pl_barcode kds_pl_barcode,
 public function long get_codice_max () throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
 public function boolean if_pianificazione_figli_ok (ds_pl_barcode_dett kds_pl_barcode_dett_padri, ds_pl_barcode_dett kds_pl_barcode_dett_grp, string a_operazione) throws uo_exception
+public function uo_ds_std_1 get_pl_barcode_da_inviare_g2g3 (integer a_dd_meno) throws uo_exception
+public function boolean set_pl_barcode_stato_pl_id_programma (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
 end prototypes
 
 public function string tb_delete (ref st_tab_pl_barcode kst_tab_pl_barcode);//
@@ -178,7 +180,8 @@ kuf_base kuf1_base
 	kst_tab_pl_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_pl_barcode.x_utente = kGuf_data_base.prendi_x_utente()
 
-	if isnull(kst_tab_pl_barcode.stato) then kst_tab_pl_barcode.stato = ki_stato_aperto
+	if isnull(kst_tab_pl_barcode.stato) then kst_tab_pl_barcode.stato = ki_stato_pl_aperto
+	if isnull(kst_tab_pl_barcode.stato_pl) then kst_tab_pl_barcode.stato_pl = ki_stato_pl_aperto
 	if isnull(kst_tab_pl_barcode.priorita) then kst_tab_pl_barcode.priorita = k_priorita_normale
 	if isnull(kst_tab_pl_barcode.prima_del_barcode) then kst_tab_pl_barcode.prima_del_barcode = " "
 			
@@ -321,10 +324,12 @@ kuf_base kuf1_base
 				
 //				if not isnull(kst_tab_pl_barcode.data_chiuso) &
 //					and  kst_tab_pl_barcode.data_chiuso <> date(0) then
-					kst_tab_pl_barcode.stato = ki_stato_chiuso
+					kst_tab_pl_barcode.stato = ki_stato_pl_chiuso
+					kst_tab_pl_barcode.stato_pl = ki_stato_pl_chiuso
 	
 					update pl_barcode set 	 
 						 stato = :kst_tab_pl_barcode.stato,
+						 stato_pl = :kst_tab_pl_barcode.stato,
 						 data_chiuso = :kst_tab_pl_barcode.data_chiuso,
 						 upd_data_chiuso = :kst_tab_pl_barcode.x_datins,
 						 upd_utente_chiuso = :kst_tab_pl_barcode.x_utente,
@@ -375,7 +380,7 @@ kuf_base kuf1_base
 		end choose
 
 //--- se fatto UPDATE
-		if kst_esito.esito = kkg_esito.ok then
+		if kst_esito.esito = kkg_esito.ok then 
 			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 				if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N" then
 				else
@@ -546,19 +551,19 @@ st_esito kst_esito
 	choose case lower(k_tipo_stato)
 				
 		case "aperto"
-			kst_tab_pl_barcode.stato = 	ki_stato_aperto
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_aperto
 		case "chiuso"
-			kst_tab_pl_barcode.stato = 	ki_stato_chiuso
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_chiuso
 		case "in_elab"
-			kst_tab_pl_barcode.stato = 	ki_stato_inelab
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_inelab
 		case "inviato"
-			kst_tab_pl_barcode.stato = 	ki_stato_inviato
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_inviato
 		case "consegnato"
-			kst_tab_pl_barcode.stato = 	ki_stato_consegnato
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_consegnato
 		case "respinto"
-			kst_tab_pl_barcode.stato = 	ki_stato_respinto
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_respinto
 		case "inerrore"
-			kst_tab_pl_barcode.stato = 	ki_stato_inErrore
+			kst_tab_pl_barcode.stato = 	ki_stato_pl_inErrore
 		case else
 			kst_esito.sqlcode = sqlca.sqlcode
 			kst_esito.SQLErrText = "Errore interno Stato '" + k_tipo_stato + "' non Riconosciuto! (kuf_pl_barcode.set_pl_barcode_stato)" 									 
@@ -623,7 +628,7 @@ return k_return
 
 end function
 
-public function st_tab_pl_barcode get_pl_barcode_da_inviare () throws uo_exception;//
+public function st_tab_pl_barcode get_pl_barcode_da_inviare () throws uo_exception;// VECCHIA MODALITA' !!!!
 //====================================================================
 //=== Verifica e Torna il  Piano di Lavorazione  da inviare al Pilota
 //=== 
@@ -645,12 +650,7 @@ pointer oldpointer
 //=== Puntatore Cursore da attesa.....
 	oldpointer = SetPointer(HourGlass!)
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_pl_barcode.codice = 0
 
@@ -668,7 +668,7 @@ pointer oldpointer
 		throw kuo_exception
 	end if
 	
-	kst_tab_pl_barcode.stato = ki_stato_chiuso    // solo quei PL con lo STATO=CHIUSO
+	kst_tab_pl_barcode.stato = ki_stato_pl_chiuso    // solo quei PL con lo STATO=CHIUSO
 	
 //--- piglia il primo PL ancora da lavorare 	
 	declare c1_if_pl_barcode_da_inviare cursor for 
@@ -864,14 +864,15 @@ kst_tab_pl_barcode.note_2 = " "
 kst_tab_pl_barcode.data_chiuso = date(0)
 kst_tab_pl_barcode.data_sosp = date(0)
 kst_tab_pl_barcode.path_file_pilota = " "
-kst_tab_pl_barcode.stato = ki_stato_aperto
+kst_tab_pl_barcode.stato = ki_stato_pl_aperto
+kst_tab_pl_barcode.stato_pl = ki_stato_pl_aperto
 kst_tab_pl_barcode.priorita = k_priorita_normale
 
 destroy kuf1_base 
 
 end subroutine
 
-public function ds_pl_barcode get_ds_pl_barcode (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;//
+public function ds_pl_barcode get_ds_pl_barcode (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;//	
 //=== Torna DS PL_BARCODE valorizzato
 //---  Input: st_tab_pl_barcode con il codice del PL_BARCODE da generare
 //--- Output: Datastore ds_pl_barcode
@@ -880,45 +881,24 @@ public function ds_pl_barcode get_ds_pl_barcode (st_tab_pl_barcode kst_tab_pl_ba
 //---
 ds_pl_barcode kds_pl_barcode
 long k_riga
-constant string k_cost_alto = "2HMM", k_cost_basso = "2BMM", k_cost_fine = "NN"
-string k_giri, k_giri_p, k_giri_n, k_alto_basso, k_sep=","
-int k_filenum, k_byte
-string k_rc, k_path, k_file,  k_record = " "
-boolean k_return=false
-st_tab_barcode kst_tab_barcode
-st_esito kst_esito, kst_esito_err
-st_tab_meca kst_tab_meca
-st_tab_clienti kst_tab_clienti
-kuf_barcode kuf1_barcode
-kuf_pilota_cmd kuf1_pilota_cmd
-kuf_utility kuf1_utility
-uo_exception kuo_exception
 pointer oldpointer  // Declares a pointer variable
 
 
 oldpointer = SetPointer(HourGlass!)
 
-kuo_exception = create uo_exception
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.sqlerrtext = " "
-kst_esito.nome_oggetto = this.classname()
+kguo_exception.inizializza(this.classname())
 
 kds_pl_barcode = create ds_pl_barcode	
-kds_pl_barcode.settransobject(sqlca)
 	
 k_riga = kds_pl_barcode.retrieve(kst_tab_pl_barcode.codice)
-	
-if k_riga < 0 then	
-	kst_esito.esito = kkg_esito.bug
-	kst_esito.sqlcode = k_FileNum
-	kst_esito.SQLErrText = "Lettura fallita in tabella 'Pian.Lav. pl_barcode'. ~n~rCodice: "+string(k_riga)
-	kst_esito.nome_oggetto = this.classname()
-	kuo_exception.set_esito (kst_esito)
-	throw kuo_exception
+		
+if k_riga < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in lettura Barcode del Piano di Lavorazione, codice " + string(kst_tab_pl_barcode.codice) &
+				+ ". (" + kds_pl_barcode.dataobject + ") ")	
+	kguo_exception.scrivi_log( )
+	throw kguo_exception
 end if
-
 
 //=== riprisino Puntatore
 SetPointer(oldpointer)
@@ -1272,14 +1252,8 @@ boolean k_return = false
 long k_ctr
 st_esito kst_esito 
 
-
 	
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_pl_barcode.codice > 0 then
 
@@ -1303,7 +1277,7 @@ st_esito kst_esito
 			if sqlca.sqlcode = 100 then //--- se non trovato lo considero cmq chiuso!
 			else
 	
-				if kst_tab_pl_barcode.stato = ki_stato_aperto or isnull(kst_tab_pl_barcode.stato) then
+				if kst_tab_pl_barcode.stato = ki_stato_pl_aperto or isnull(kst_tab_pl_barcode.stato) then
 					k_return = true
 				end if
 			end if
@@ -3015,10 +2989,7 @@ kuf_pilota_cmd kuf1_pilota_cmd
 
 try
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Rimuove il file delle richieste se riguarda questo invio prima che lo legga il PILOTA
 	kuf1_pilota_cmd = create kuf_pilota_cmd
@@ -3035,11 +3006,13 @@ try
 
 	kst_tab_pl_barcode.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_pl_barcode.x_utente = kGuf_data_base.prendi_x_utente()
-	kst_tab_pl_barcode.stato = ki_stato_aperto
+	kst_tab_pl_barcode.stato = ki_stato_pl_aperto
+	kst_tab_pl_barcode.stato_pl = ki_stato_pl_aperto
 
 	update 	pl_barcode set 	 
 				data_chiuso = convert(date,'01.01.1899'),
 				stato = :kst_tab_pl_barcode.stato,
+				stato_pl = :kst_tab_pl_barcode.stato_pl,
 				x_datins = :kst_tab_pl_barcode.x_datins,
 				x_utente = :kst_tab_pl_barcode.x_utente
 			where codice = :kst_tab_pl_barcode.codice
@@ -4840,6 +4813,102 @@ finally
 	if isvalid(kuf1_asdrackbarcode) then destroy kuf1_asdrackbarcode
 
 end try
+
+return k_return
+
+end function
+
+public function uo_ds_std_1 get_pl_barcode_da_inviare_g2g3 (integer a_dd_meno) throws uo_exception;/*
+  Estrae i  Piani di Lavorazione  da inviare al Pilota (STATO_PL = 'C')
+  int: numero giorni indietro (999 o NULL = il default -7 giorni)
+  Rit: datastore con i dati pl da inviare
+*/
+date k_data_da
+long k_row
+uo_ds_std_1 kds_1
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if a_dd_meno <> 999 then
+		a_dd_meno = -1 * a_dd_meno
+	else
+		a_dd_meno = -7
+	end if
+	
+	k_data_da = relativedate(kguo_g.get_dataoggi( ), a_dd_meno)
+
+	kds_1 = create uo_ds_std_1
+	kds_1.dataobject = "ds_pl_barcode_chiusi"
+	kds_1.settransobject(kguo_sqlca_db_magazzino)
+	k_row = kds_1.retrieve(k_data_da)
+	if k_row < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(kds_1.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in ricerca Piani di Lavorazione chiusi dal " + string(k_data_da) + &
+					" (" + kds_1.dataobject + "). " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+		throw kguo_exception
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return kds_1
+
+end function
+
+public function boolean set_pl_barcode_stato_pl_id_programma (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;/*
+ Imposta lo stato del Piano di Lavorazione e il id del Programma Pilota Inviato 
+  Inp: st_tab_pl_barcode.stato_pl (vedi ki_stato_pl_....)
+                         id_programma id del programma inviato
+                         Codice 
+  Rit: boolean: TRUE=aggiornato
+*/
+boolean k_return 
+long k_ctr
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_pl_barcode.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_pl_barcode.x_utente = kGuf_data_base.prendi_x_utente()
+
+	update pl_barcode set 	 
+		 stato_pl = :kst_tab_pl_barcode.stato_pl
+		 ,id_programma = :kst_tab_pl_barcode.id_programma
+		 ,x_datins = :kst_tab_pl_barcode.x_datins
+		 ,x_utente = :kst_tab_pl_barcode.x_utente
+	where codice = :kst_tab_pl_barcode.codice
+	using kguo_sqlca_db_magazzino;
+
+
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		k_return = true
+	else
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Aggiornamento Stato a '" &
+										+ kst_tab_pl_barcode.stato_pl + "' " &
+										+ " id Programma " + string(kst_tab_pl_barcode.id_programma) + " nel Piano di Lavorazione (PL_BARCODE): " + string(kst_tab_pl_barcode.codice))
+			if kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+			throw kguo_exception
+		end if
+	end if
+
 
 return k_return
 

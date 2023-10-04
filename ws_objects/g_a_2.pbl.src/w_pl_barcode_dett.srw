@@ -30,6 +30,7 @@ string title = "Piano di Lavorazione"
 boolean hscrollbar = true
 boolean vscrollbar = true
 long backcolor = 16777215
+windowanimationstyle closeanimation = bottomroll!
 boolean ki_toolbar_window_presente = true
 boolean ki_reset_dopo_save_ok = false
 cb_chiudi cb_chiudi
@@ -615,8 +616,8 @@ st_esito kst_esito //, kst_esito_null
 	kst_tab_pl_barcode.data = dw_dett_0.getitemdate(1, "data")			
 	kst_tab_pl_barcode.data_chiuso = date(0) //dw_dett_0.getitemdate(1, "data_chiuso")			
 	kst_tab_pl_barcode.data_sosp = dw_dett_0.getitemdate(1, "data_sosp")			
-	kst_tab_pl_barcode.note_1 = dw_dett_0.getitemstring(1, "note_1")			
-	kst_tab_pl_barcode.note_2 = dw_dett_0.getitemstring(1, "note_2")			
+	kst_tab_pl_barcode.note_1 = trim(dw_dett_0.getitemstring(1, "note_1"))		
+	kst_tab_pl_barcode.note_2 = trim(dw_dett_0.getitemstring(1, "note_2"))
 	kst_tab_pl_barcode.stato = dw_dett_0.getitemstring(1, "stato")			
 	kst_tab_pl_barcode.priorita = dw_dett_0.getitemstring(1, "priorita")			
 	kst_tab_pl_barcode.prima_del_barcode = dw_dett_0.getitemstring(1, "prima_del_barcode")			
@@ -3700,13 +3701,16 @@ if not dw_dett_0.visible or k_forza_visible then
 	end if
 	dw_dett_0.object.b_chiudi.enabled = cb_chiudi.enabled
 	
-	dw_dett_0.width = 2587
-	dw_dett_0.height = 936
+	dw_dett_0.width = 3100
+	dw_dett_0.height = 1016
 	dw_dett_0.X = (this.width - dw_dett_0.width) / 2
 	dw_dett_0.y = (this.height - dw_dett_0.height) / 3
 	
+	dw_dett_0.enabled = true
+
 	dw_dett_0.visible = true
 	dw_dett_0.bringtotop = true
+	
 else
 	dw_dett_0.visible = false
 end if
@@ -7121,7 +7125,6 @@ event close;call super::close;//
 timer( 0 )
 //dw_meca.accepttext( )
 
-
 //--- registra la data piu' indietro su BASE cosi' da recuperarla al pross. giro 
 set_base_data_ini()
 
@@ -7306,6 +7309,13 @@ dw_prev.visible = false
 
 end event
 
+event closequery;call super::closequery;//
+if ki_exit_si then
+	dw_dett_0.visible = false
+end if
+
+end event
+
 type dw_print_0 from w_g_tab0`dw_print_0 within w_pl_barcode_dett
 end type
 
@@ -7405,16 +7415,17 @@ end type
 
 type dw_dett_0 from w_g_tab0`dw_dett_0 within w_pl_barcode_dett
 event ue_mousemove pbm_mousemove
-integer x = 873
-integer y = 872
-integer width = 2587
-integer height = 936
+integer x = 302
+integer y = 584
+integer width = 3099
+integer height = 1016
 integer taborder = 10
-boolean enabled = true
 boolean titlebar = true
 string title = "Proprieta~'  Piano di Lavorazione"
 string dataobject = "d_pl_barcode_testa_1"
 boolean controlmenu = true
+boolean vscrollbar = false
+boolean resizable = true
 boolean hsplitscroll = false
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_sort = false

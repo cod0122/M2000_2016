@@ -217,6 +217,8 @@ type m_-5 from menu within m_magazzino
 end type
 type m_inviapianoalpilota from menu within m_magazzino
 end type
+type m_inviapianoalpilotag2g3 from menu within m_magazzino
+end type
 type m_elaborazioniesterne from menu within m_magazzino
 end type
 type m_creapackinglistdaweb from menu within m_elaborazioniesterne
@@ -285,6 +287,7 @@ m_barcodemanuale m_barcodemanuale
 m_barcodedosimetro m_barcodedosimetro
 m_-5 m_-5
 m_inviapianoalpilota m_inviapianoalpilota
+m_inviapianoalpilotag2g3 m_inviapianoalpilotag2g3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
@@ -3650,6 +3653,7 @@ m_barcodemanuale m_barcodemanuale
 m_barcodedosimetro m_barcodedosimetro
 m_-5 m_-5
 m_inviapianoalpilota m_inviapianoalpilota
+m_inviapianoalpilotag2g3 m_inviapianoalpilotag2g3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
@@ -3699,6 +3703,7 @@ this.m_barcodemanuale=create m_barcodemanuale
 this.m_barcodedosimetro=create m_barcodedosimetro
 this.m_-5=create m_-5
 this.m_inviapianoalpilota=create m_inviapianoalpilota
+this.m_inviapianoalpilotag2g3=create m_inviapianoalpilotag2g3
 this.m_elaborazioniesterne=create m_elaborazioniesterne
 this.m_5=create m_5
 this.m_modificaprogrammazione=create m_modificaprogrammazione
@@ -3729,6 +3734,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_barcodemanuale
 this.Item[UpperBound(this.Item)+1]=this.m_barcodedosimetro
 this.Item[UpperBound(this.Item)+1]=this.m_-5
 this.Item[UpperBound(this.Item)+1]=this.m_inviapianoalpilota
+this.Item[UpperBound(this.Item)+1]=this.m_inviapianoalpilotag2g3
 this.Item[UpperBound(this.Item)+1]=this.m_elaborazioniesterne
 this.Item[UpperBound(this.Item)+1]=this.m_5
 this.Item[UpperBound(this.Item)+1]=this.m_modificaprogrammazione
@@ -3763,6 +3769,7 @@ destroy(this.m_barcodemanuale)
 destroy(this.m_barcodedosimetro)
 destroy(this.m_-5)
 destroy(this.m_inviapianoalpilota)
+destroy(this.m_inviapianoalpilotag2g3)
 destroy(this.m_elaborazioniesterne)
 destroy(this.m_5)
 destroy(this.m_modificaprogrammazione)
@@ -5739,6 +5746,94 @@ type m_inviapianoalpilota from menu within m_magazzino
 end type
 
 event clicked;//
+int k_richieste_evase
+kuf_plav kuf1_plav
+kuo_sqlca_db_plav kuo1_sqlca_db_plav
+		
+//--- apre la connessione al DB PILOTA
+try
+
+	kuf1_plav = create kuf_plav
+	kuo1_sqlca_db_plav = create kuo_sqlca_db_plav
+
+	SetPointer(kkg.pointer_attesa)
+	if kuo1_sqlca_db_plav.if_connessione_bloccata( ) then
+		SetPointer(kkg.pointer_default)
+		messagebox ("Invio Piani di Lavorazione al PILOTA" &
+							,"ATTENZIONE la Connessione alle tabelle Pilota è stata BLOCCATA!" &
+							+  kkg.acapo &
+							+ "Per sbloccarla occorre farlo da Connessioni in Proprietè Azienda." &
+						 ,stopsign!)
+		return
+	end if
+
+	SetPointer(kkg.pointer_default)
+	if messagebox ("Invio Piani di Lavorazione al PILOTA", &
+						"La Pianificazione sarà inviata alle tabelle 'PILOTA' solo se: " + kkg.acapo &
+							+ "     1-Piano di Lavoro Chiuso; " + kkg.acapo &
+							+ "     2-Connessione alle tabelle Pilota Aperta e server 'raggiungibile'. " &
+							+  kkg.acapo &
+							+ "Avviare l'operazione?" &
+						 ,question!, YesNo!, 2) = 1 then
+
+		SetPointer(kkg.pointer_attesa)
+		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro( )
+		if k_richieste_evase > 0 then
+			
+			SetPointer(kkg.pointer_default)
+			messagebox ("Invio Piani di Lavorazione al PILOTA", &
+					"Operazione conclusa correttamente. " + kkg.acapo &
+					 + string(k_richieste_evase) + " Piani di Lavoro inviati nelle tabelle di scambio con il 'PILOTA'. " &
+					 ,Information!) 
+		else
+			messagebox ("Invio Piani di Lavorazione al PILOTA", &
+					"Operazione conclusa. Ma nessun Piano di Lavoro chiuso ancora da inviare è stato trovato. " &
+					 ,Information!) 
+		end if
+	
+	end if
+	
+catch (uo_exception kuo_exception)
+	SetPointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_plav) then destroy kuf1_plav
+	if isvalid(kuo1_sqlca_db_plav) then destroy kuo1_sqlca_db_plav
+
+end try
+
+end event
+
+on m_inviapianoalpilota.create
+call super::create
+this.tag = "pilota_exp_p"
+this.text = "Invia Piano al Pilota "
+this.microhelp = "Crea il file di scambio da Piano di Lavorazione Chiuso per il Pilota"
+this.menuimage = "Destination5_2!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_inviapianoalpilota.destroy
+call super::destroy
+end on
+
+type m_inviapianoalpilotag2g3 from menu within m_magazzino
+end type
+
+event clicked;//
 kuf_pilota_cmd kuf1_pilota_cmd
 
 		
@@ -5792,12 +5887,12 @@ end try
 
 end event
 
-on m_inviapianoalpilota.create
+on m_inviapianoalpilotag2g3.create
 call super::create
 this.tag = "pilota_exp_p"
-this.text = "Invia Piano al Pilota "
-this.microhelp = "Crea il file di scambio da Piano di Lavorazione Chiuso per il Pilota"
-this.menuimage = "Destination5_2!"
+this.text = "Invia Piano G2 "
+this.microhelp = "Invia i Piani di Lavoro Chiusi alle tabelle del Pilota"
+this.menuimage = "Destination3!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -5813,7 +5908,7 @@ this.toolbarbackcolor = 10789024
 this.toolbarhighlightcolor = 10789024
 end on
 
-on m_inviapianoalpilota.destroy
+on m_inviapianoalpilotag2g3.destroy
 call super::destroy
 end on
 

@@ -139,7 +139,7 @@ return k_return
 end function
 
 public function long get_id_asddevice_last () throws uo_exception;/*
- Torna l'ultimo ID Device (Dispositivo Ausiiario caricato) 
+ Torna l'ultimo ID Device (Dispositivo Ausiliario caricato) 
  inp: 
  out: 
  ret: id_asddevice

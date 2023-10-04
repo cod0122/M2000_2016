@@ -578,7 +578,7 @@ boolean k_ristampa_gia_risposto=false, k_stampa_gia_risposto=false
 st_esito kst_esito
 
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_old
-st_tab_meca kst_tab_meca
+st_tab_meca kst_tab_meca, kst_tab_meca_save
 st_tab_armo kst_tab_armo
 
 st_treeview_data kst_treeview_data
@@ -629,8 +629,6 @@ try
 	
 		kuf1_barcode_stampa = create kuf_barcode_stampa
 		kuf1_armo = create kuf_armo
-//		kuf1_armo_inout = create kuf_armo_inout
-//		kuf1_wm_pklist_inout = create kuf_wm_pklist_inout
 			
 		ktvi_treeviewitem.data = kst_treeview_data 
 		kst_treeview_data_any = kst_treeview_data.struttura
@@ -682,10 +680,13 @@ try
 
 						kst_tab_meca.id = u_stampa_barcode_get_id_meca(kst_tab_barcode) 	//--- ricava ID_MECA							
 						
-						if kuf1_armo.if_stampa_etichetta_avvertenze(kst_tab_meca) then
-							kuf1_barcode_stampa.stampa_etichetta_riferimento_avvertenze (kst_tab_barcode.barcode, &
+						if kst_tab_meca_save.id <> kst_tab_meca.id then // VERIFICA LE AVVERTENZE SOLO SE SONO SU UN NUOVO RIFERIM
+							kst_tab_meca_save.id = kst_tab_meca.id
+							if kuf1_armo.if_stampa_etichetta_avvertenze(kst_tab_meca) then
+								kuf1_barcode_stampa.stampa_etichetta_riferimento_avvertenze (kst_tab_barcode.barcode, &
 																										 kst_tab_barcode.num_int, &
 																										 kst_tab_barcode.data_int)
+							end if
 						end if
 							
 						k_ctr = kuf1_barcode_stampa.stampa_etichetta_riferimento &
@@ -695,7 +696,10 @@ try
 						if k_ctr > 0 then
 							k_nr_barcode_stampati += k_ctr
 							
-							k_controcampioni = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(kst_tab_barcode.id_meca)
+	//--- Stampa eventuali etich. CONTROCAMPIONI solo in Stampa non in RISTAMPA							
+					      if k_barcode_da_stampare > 0 then 
+								k_controcampioni = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(kst_tab_barcode.id_meca)
+							end if
 							
 	//--- cancello item stampato dalla lista			
 							if k_stampa_da_listview then

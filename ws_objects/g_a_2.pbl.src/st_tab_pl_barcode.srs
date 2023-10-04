@@ -8,10 +8,12 @@ global type st_tab_pl_barcode from structure
 	date		data_chiuso
 	date		data_sosp
 	string		path_file_pilota
-	string		stato
+	string		stato		descriptor "comment" = "A=aperto,C=chiuso,E-X-T-R=stati di segnalazione vecchia modalità file"
+	string		stato_pl		descriptor "comment" = "E=in leborazione; X=consegna su tab x il Pilota completata;T=elaborato dal Pilota;R=respinto dal Pilota"
 	string		priorita
 	string		prima_del_barcode
 	long		pilota_cmd_num_rich		descriptor "comment" = "numero richiesta registrata in tab PILOTA_CMD"
+	long		id_programma		descriptor "comment" = "id del Programma Impianto inviato al pilota (da tabella programmi_richieste db sterigenics_pp)"
 	datetime		x_datins
 	string		x_utente
 end type

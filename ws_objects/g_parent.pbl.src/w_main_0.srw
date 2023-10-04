@@ -459,6 +459,11 @@ kuf_base kuf1_base
 		catch (uo_exception kuo_exception)
 			kuo_exception.messaggio_utente()
 		end try
+		try
+			KGuo_sqlca_db_plav.set_profilo_db()
+		catch (uo_exception kuo_exception3)
+			kuo_exception3.messaggio_utente()
+		end try
 
 //--- recupera tutte le window modalità docking
 //		try

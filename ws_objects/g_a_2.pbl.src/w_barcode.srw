@@ -66,6 +66,7 @@ protected subroutine attiva_tasti_0 ()
 private subroutine modifica_giri ()
 protected subroutine inizializza_3 () throws uo_exception
 protected subroutine inizializza_4 () throws uo_exception
+private subroutine call_logtrace ()
 end prototypes
 
 protected subroutine inizializza_1 ();//======================================================================
@@ -1053,6 +1054,15 @@ protected subroutine attiva_menu ();//
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemname = "cicli16.png"
 	//end if
 
+//--- Vedi LOG da TemporalTable
+	m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici del barcode (Log Trace)"
+	m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+	m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+	m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+	m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+	m_main.m_strumenti.m_fin_gest_libero8.visible = true
+	m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+
 	super::attiva_menu()
 
 	
@@ -1108,6 +1118,10 @@ choose case LeftA(k_par_in, 2)
 
 	case "l2"		//modifica i cilci del riferimento
 		modifica_giri()
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
 		
 	case else // standard
 		super::smista_funz(k_par_in)
@@ -1981,6 +1995,41 @@ finally
 	
 end try
 	
+end subroutine
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace MECA
+long k_riga
+st_tab_barcode kst_tab_barcode
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+
+
+try   
+	k_riga = tab_1.tabpage_1.dw_1.getrow()
+	if k_riga > 0 then
+
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+	
+		kst_tab_barcode.barcode = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "barcode" ))
+			
+		if kst_tab_barcode.barcode > " " then
+			
+			kst_open_w.key1 = trim(kst_tab_barcode.barcode)
+			kst_open_w.key2 = kiuf_barcode.get_id_programma(kkg_flag_modalita.visualizzazione )
+			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+			kuf1_logtrace_meca.u_open(kst_open_w)  
+
+		end if
+	end if 
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+end try
+	
+
+
 end subroutine
 
 on w_barcode.create

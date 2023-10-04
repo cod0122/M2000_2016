@@ -27,17 +27,20 @@ application KG_application
 //--- Definizione oggetti gestione DB (function user object)
 kuf_data_base kGuf_data_base
 
-//--- Definizione Oggetto connessione al DB PRINCIPALE (INFORMIX)
+//--- Definizione Oggetto connessione al DB PRINCIPALE (MS sql Server)
 Kuo_sqlca_db_magazzino KGuo_sqlca_db_magazzino
 
 //--- Definizione Oggetto connessione al DB PILOTA (MySql)
 kuo_sqlca_db_pilota KGuo_sqlca_db_pilota
 
-//--- Definizione Oggetto connessione al DB MAGAZZINO (sql Server)
+//--- Definizione Oggetto connessione al DB MAGAZZINO (MS sql Server)
 kuo_sqlca_db_wm kGuo_sqlca_db_wm
 
 //--- Definizione Oggetto connessione al DB E-ONE (ORACLE)
 kuo_sqlca_db_e1 kGuo_sqlca_db_e1
+
+//--- Definizione Oggetto connessione al DB per Interfaccia con il PILOTA (MS sql Server)
+kuo_sqlca_db_plav kGuo_sqlca_db_plav
 
 //--- Definizione oggetto x la Gestione degli ALLERT
 Kuf_memo_allarme KGuf_memo_allarme
@@ -475,8 +478,10 @@ end try
 KGuo_sqlca_db_pilota = create kuo_sqlca_db_pilota
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-WM (WarehoseManagement)
 KGuo_sqlca_db_wm = create kuo_sqlca_db_wm
-//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-E1 (in remoto gruppo STERIGENICS)
+//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-E1 (DB del sistema informativo remoto del gruppo STERIGENICS)
 KGuo_sqlca_db_e1 = create kuo_sqlca_db_e1
+//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-PLAV (Programmazione per Interfaccia con il Pilota)
+KGuo_sqlca_db_plav = create kuo_sqlca_db_plav
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-X-WEB (dati da inviare a SMART)
 //KGuo_sqlca_db_xweb = create kuo_sqlca_db_xweb
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-X-CRM (dati da inviare a SEDOC)
@@ -541,6 +546,15 @@ if isvalid(kguo_sqlca_db_e1) then
 		try
 			kguo_sqlca_db_e1.db_disconnetti()
 		catch (uo_exception kuo2_exception)
+		end try
+	end if
+end if
+//=== Se DB-PLAV connesso 
+if isvalid(kguo_sqlca_db_plav) then
+	if kguo_sqlca_db_plav.DBHandle ( ) > 0 then
+		try
+			kguo_sqlca_db_plav.db_disconnetti()
+		catch (uo_exception kuo3_exception)
 		end try
 	end if
 end if
@@ -613,6 +627,7 @@ if isvalid(kguf_memo_allarme) then destroy kguf_memo_allarme
 if isvalid(KGuo_sqlca_db_pilota) then destroy KGuo_sqlca_db_pilota 
 if isvalid(KGuo_sqlca_db_wm) then destroy KGuo_sqlca_db_wm
 if isvalid(KGuo_sqlca_db_e1) then destroy KGuo_sqlca_db_e1
+if isvalid(KGuo_sqlca_db_plav) then destroy KGuo_sqlca_db_plav
 //if isvalid(KGuf_base_docking) then destroy KGuf_base_docking 
 if isvalid(kGuo_exception) then destroy kGuo_exception 
 

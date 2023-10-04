@@ -1452,12 +1452,19 @@ try
 		end if
 	end if		
 
-catch (uo_exception kuo_exception1 )
+catch (uo_exception kuo_exception1)
+	kuo_exception = create uo_exception
+	kuo_exception.set_esito(kuo_exception1.kist_esito)
+	
+	try
 //=== Imposta la STATO in ERRORE
-	kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-	kuf1_pl_barcode.set_pl_barcode_stato("inErrore", kst_tab_pl_barcode) 
+		kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
+		kuf1_pl_barcode.set_pl_barcode_stato("inErrore", kst_tab_pl_barcode) 
+	catch (uo_exception kuo_exception2)
+		kuo_exception2.scrivi_log()
+	end try
 
-	throw kuo_exception1
+	throw kuo_exception
 
 finally
 	destroy kuf1_pl_barcode
@@ -1647,7 +1654,7 @@ pointer oldpointer  // Declares a pointer variable
 	kist_tab_pilota_cmd.pl_barcode_codice = kst_tab_pl_barcode.codice 
 	kist_tab_pilota_cmd.prima_del_barcode = kst_tab_pl_barcode.prima_del_barcode 
 	kist_tab_pilota_cmd.path_file_pl_barcode =  get_path_file_pl_barcode()+get_file_pl_barcode()
-
+ 
 	if_isnull_pilota_cmd(kist_tab_pilota_cmd)
 		
 	try
@@ -2209,7 +2216,7 @@ st_txt_pilota_answer kst_txt_pilota_answer
 st_tab_pl_barcode kst_tab_pl_barcode
 kuf_pl_barcode kuf1_pl_barcode
 uo_exception kuo_exception
-
+ 
 
 //=== Puntatore Cursore da attesa..... 
 oldpointer = SetPointer(HourGlass!)
@@ -2352,25 +2359,12 @@ st_tab_pilota_impostazioni kst_tab_pilota_impostazioni
 //=== Puntatore Cursore da attesa.....
 oldpointer = SetPointer(HourGlass!)
 
-
 kst_esito.esito = kkg_esito.ok
 kst_esito.sqlcode = 0
 kst_esito.SQLErrText = ""
 kst_esito.nome_oggetto = this.classname()
 
-
 kguo_sqlca_db_pilota.db_connetti()
-
-
-//	SELECT  queue_table.Ordine ,
-//           queue_table.Barcode ,
-//           queue_table.Posizione 
-//        FROM queue_table inner join impostazioni on
-//                      queue_table.ordine > cast(impostazioni.valore as decimal)
-//		where queue_table.Posizione = 'H'
-//			and impostazioni.variabile = 'num_intouchable'
-//			order by queue_table.Ordine
-//		 using kguo_sqlca_db_pilota;
 
 //--- recupera i dati di configurazione sul pilota
 kst_tab_pilota_impostazioni = get_pilota_pilota_impostazioni()
@@ -2456,8 +2450,7 @@ if kguo_sqlca_db_pilota.sqlcode = 0 then
 //--- esco dal ciclo se ho finito i contatori di fila 1 e fila 2 			
 				k_uscita = true 
 			end if
-		end if
-		 
+		end if	 
 	
 		fetch c_get_pilota_queue
 			 INTO 
@@ -2469,7 +2462,6 @@ if kguo_sqlca_db_pilota.sqlcode = 0 then
 				  :k_CicliFila1p,
 				  :k_CicliFila2p
 				 ;
-
 	loop 
 
 //--- valorizzo il barcode 

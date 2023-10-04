@@ -26,20 +26,13 @@ protected subroutine x_db_profilo () throws uo_exception;//
 //
 string k_file, k_sezione
 st_esito kst_esito
-pointer oldpointer  // Declares a pointer variable
 kuf_e1_conn_cfg kuf1_e1_conn_cfg
-//kuo_sqlca_db_e1 kuo_sqlca_db_e1
 
 
-//=== Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
+SetPointer(kkg.pointer_attesa)
+kst_esito = kguo_exception.inizializza(this.classname())
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 kuo_sqlca_db_e1 kuo1_sqlca_db_e1 
-	
 
 kuf1_e1_conn_cfg = create kuf_e1_conn_cfg
 
@@ -79,7 +72,7 @@ end if
 //if isvalid(kuo1_sqlca_db_e1) then destroy kuo1_sqlca_db_e1
 destroy kuf1_e1_conn_cfg 
 
-SetPointer(oldpointer)
+SetPointer(kkg.pointer_default)
 
 
 

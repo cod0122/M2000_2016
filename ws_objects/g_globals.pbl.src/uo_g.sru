@@ -142,6 +142,7 @@ public function string get_app_release ()
 public subroutine set_idprocedura (longlong a_handle)
 public function longlong get_idprocedura ()
 public subroutine xxxuse_col_background_input_field (ref datawindow adw, string a_col_name)
+public function datetime get_datetime_current_local ()
 end prototypes
 
 public subroutine set_attiva_suoni (boolean a_attiva_suoni);
@@ -265,7 +266,6 @@ public function datetime get_datetime_current ();//
 //--- Torna data ora UTC
 //
 datetime k_return, k_datetime_0
-st_esito kst_esito
 uo_exception kuo_exception
 
 		
@@ -282,14 +282,6 @@ uo_exception kuo_exception
 		kuo_exception.scrivi_log( )
 		k_return = datetime(Today(), now())  // ULTIMA SPIAGGIA PIGLIO LA DATA LOCALE
 	end if
-	
-	//--- scrive log per DEBUG 
-	//if kguo_g.kG_ScriviLog_attiva then
-	//	kguo_exception.inizializza( )
-	//	kst_esito.esito = kkg_esito.ko
-	//	kst_esito.sqlerrtext = "DEBUG DATETIME 4.4 get_datetime_current  k_return: " + string(k_return)
-	//	kguo_exception.set_esito(kst_esito)
-	//end if
 	
 
 return k_return
@@ -877,6 +869,18 @@ if isvalid(adw) then
 end if
 
 end subroutine
+
+public function datetime get_datetime_current_local ();/*
+   Torna data ora LOCALE
+*/
+datetime k_return
+
+		
+	k_return = datetime(today(), now())		
+
+return k_return
+
+end function
 
 on uo_g.create
 call super::create

@@ -200,12 +200,6 @@ end type
 type st_21 from w_base_personale`st_21 within tabpage_6
 end type
 
-type cb_db_previsioni from w_base_personale`cb_db_previsioni within tabpage_6
-end type
-
-type st_23 from w_base_personale`st_23 within tabpage_6
-end type
-
 type cb_db_e1 from w_base_personale`cb_db_e1 within tabpage_6
 end type
 

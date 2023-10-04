@@ -98,6 +98,7 @@ private function boolean u_print_barcode_1 (string k_barcode, ref datastore kds_
 private function integer u_print_barcode_0 (ref datastore kds_barcode_list)
 public subroutine u_rigenera_meca_dosim ()
 public subroutine u_autorizza_lotto ()
+private subroutine call_logtrace ()
 end prototypes
 
 protected subroutine inizializza_1 ();//
@@ -686,16 +687,16 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemname = "EditObject!"
 	end if
 
-////--- Rigenera alcuni dati del Lotto 		
-//	if not m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.text = "Allinea data di Fine Trattamento nei barcode del Lotto"
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.microhelp = "Allinea data in anomalia di Fine Trattamento nei Barcode del Lotto"
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled =  ki_consenti_modifica or ki_consenti_modalita_inserimento
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemtext =  "Trattamento,"+ m_main.m_strumenti.m_fin_gest_libero7.libero2.text
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible = false
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = true
-//		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemname = "EditObject!"
-//	end if
+//////--- Rigenera alcuni dati del Lotto 		
+////	if not m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.text = "Allinea data di Fine Trattamento nei barcode del Lotto"
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.microhelp = "Allinea data in anomalia di Fine Trattamento nei Barcode del Lotto"
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled =  ki_consenti_modifica or ki_consenti_modalita_inserimento
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemtext =  "Trattamento,"+ m_main.m_strumenti.m_fin_gest_libero7.libero2.text
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible = false
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = true
+////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemname = "EditObject!"
+////	end if
 
 //--- Genera PKLIST fittizia
 	if not m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
@@ -718,8 +719,18 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.visible = true
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemname = "Insert!"
 	end if
-	
 
+//--- Vedi LOG da TemporalTableLOTTO
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici del Lotto (Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero8.visible = true
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+	end if
+	
 //--- Genera DDT
 	if not m_main.m_strumenti.m_fin_gest_libero10.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
 		m_main.m_strumenti.m_fin_gest_libero10.text = "Crea/Vedi DDT di spedizione"
@@ -737,9 +748,6 @@ st_tab_meca kst_tab_meca
 //--- cambia menu 
 	choose case ki_tab_1_index_new //tab_1.selectedtab  
 		case 1 
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled =  ki_consenti_modifica
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  false
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  false
 			m_main.m_finestra.m_gestione.m_fin_inserimento.enabled = this.cb_inserisci.enabled
 			m_main.m_finestra.m_gestione.m_fin_inserimento.text = "Nuovo Lotto"
 			m_main.m_finestra.m_gestione.m_fin_inserimento.microhelp = "Carica nuovo Lotto (Riferimento)"
@@ -757,9 +765,6 @@ st_tab_meca kst_tab_meca
 			m_main.m_finestra.m_gestione.m_fin_modifica.microhelp = "Modifica Lotto (riga Riferimento)"
 			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Modifica," + m_main.m_finestra.m_gestione.m_fin_modifica.text 
 		case 2
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled = false
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  true
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  true
 			m_main.m_finestra.m_gestione.m_fin_elimina.enabled = this.cb_cancella.enabled
 			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina Riga Lotto"
 			m_main.m_finestra.m_gestione.m_fin_elimina.microhelp = "Elimina definitivamente la Riga Lotto (riga Riferimento) "
@@ -774,9 +779,6 @@ st_tab_meca kst_tab_meca
 			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Modifica," + m_main.m_finestra.m_gestione.m_fin_modifica.text 
 
 		case 3
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled = false
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  false
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  false
 			m_main.m_finestra.m_gestione.m_fin_elimina.enabled =  this.cb_cancella.enabled
 			m_main.m_finestra.m_gestione.m_fin_visualizza.enabled =  this.cb_visualizza.enabled
 			m_main.m_finestra.m_gestione.m_fin_modifica.enabled = this.cb_modifica.enabled
@@ -784,31 +786,16 @@ st_tab_meca kst_tab_meca
 			m_main.m_finestra.m_fin_stampa.toolbaritemtext = "Stampa Barcode"
 
 		case 4
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled = false
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  false
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  false
 			
 		case 5 // MEMO
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled = false
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  false
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  false
 			m_main.m_finestra.m_gestione.m_fin_inserimento.enabled = true 
 			m_main.m_finestra.m_gestione.m_fin_elimina.enabled = true // this.cb_cancella.enabled
 			m_main.m_finestra.m_gestione.m_fin_visualizza.enabled = true // this.cb_visualizza.enabled
 			m_main.m_finestra.m_gestione.m_fin_modifica.enabled = true // this.cb_modifica.enabled
 			
 		case else
-//			m_main.m_strumenti.m_fin_gest_libero1.enabled = false
-//			m_main.m_strumenti.m_fin_gest_libero2.enabled =  false
-//			m_main.m_strumenti.m_fin_gest_libero3.enabled =  false
 			
 	end choose	
-		
-	
-//	if ki_st_open_w.flag_primo_giro = 'S' then
-		
-//	end if
-
 
 	super::attiva_menu()
 
@@ -859,6 +846,10 @@ choose case trim(left(k_par_in, 3))
 //--- Nuova riga Lotto
 	case kkg_flag_richiesta.libero74
 		inserisci_riga()
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero8
+		call_logtrace()	
 		
 //--- DDT
 	case kkg_flag_richiesta.libero10
@@ -2446,6 +2437,41 @@ finally
 end try
 
 
+
+
+end subroutine
+
+private subroutine call_logtrace ();//
+//=== Open Window LogTrace MECA
+long k_riga
+st_tab_meca kst_tab_meca
+st_open_w kst_open_w
+kuf_logtrace_meca kuf1_logtrace_meca
+
+
+try   
+	k_riga = tab_1.tabpage_1.dw_1.getrow()
+	if k_riga > 0 then
+
+		kuf1_logtrace_meca = create kuf_logtrace_meca
+	
+		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca" ) 
+			
+		if kst_tab_meca.id  > 0 then
+			
+			kst_open_w.key1 = string(kst_tab_meca.id)
+			kst_open_w.key2 = kiuf_armo.get_id_programma(kkg_flag_modalita.visualizzazione )
+			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+			kuf1_logtrace_meca.u_open(kst_open_w)  
+
+		end if
+	end if 
+		
+catch (uo_exception	kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+end try
+	
 
 
 end subroutine

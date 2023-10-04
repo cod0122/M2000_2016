@@ -758,10 +758,10 @@ return kst_esito
 end function
 
 protected subroutine set_titolo_window ();//
-	if LenA(trim(ki_st_open_w.window_title )) > 0 then
-		ki_win_titolo_orig = "<" + trim(ki_st_open_w.id_programma) + "> " + ki_st_open_w.window_title 
+	if trim(ki_st_open_w.window_title) > " " then
+		ki_win_titolo_orig = trim(ki_st_open_w.window_title)
 	else
-		ki_win_titolo_orig = "<" + trim(ki_st_open_w.id_programma) + "> " + trim(this.title)
+		ki_win_titolo_orig = trim(this.title)
 	end if
 
 	if isnull(ki_st_open_w.id_programma) then
@@ -770,9 +770,10 @@ protected subroutine set_titolo_window ();//
 	if isnull(ki_st_open_w.window_title) then
 		ki_st_open_w.window_title = ki_win_titolo_orig
 	end if
+	ki_win_titolo_powertip = "(" + trim(ki_st_open_w.id_programma) + ") " + ki_win_titolo_orig
 
-	
-//	this.title = ki_win_titolo_orig + " " + trim(ki_win_titolo_custom)
+	this.powertiptext = ki_win_titolo_powertip
+	this.title = ki_win_titolo_orig 
 
 end subroutine
 
@@ -829,7 +830,10 @@ choose case trim(ki_st_open_w.flag_modalita)
 		this.title = ki_win_titolo_orig 
 end choose
 
-this.title += " " + trim(ki_win_titolo_custom)
+if trim(ki_win_titolo_custom) > " " then
+	this.title += " " + trim(ki_win_titolo_custom)
+end if
+
 
 
 

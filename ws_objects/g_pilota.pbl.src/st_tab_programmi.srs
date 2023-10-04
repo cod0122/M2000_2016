@@ -1,0 +1,11 @@
+﻿$PBExportHeader$st_tab_programmi.srs
+global type st_tab_programmi from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_programma
+	string		id_impianto		descriptor "comment" = "codice Impianto (vedi st_tab_impianti_modi)"
+	string		id_modo		descriptor "comment" = "Modalità trattamento Impianto (vedi st_tab_impianti_modi)"
+	string		barcode
+	integer		id_tipo_richiesta		descriptor "comment" = "1=Aggiunta Piano di Lavorazione (NUOVO PIANO);2=Aggiunta Piano di Lavorazione Prima del Barcode (NUOVO PIANO);3=Sostituzione del Piano di Lavorazione escluso 'Riserva'"
+	integer		id_pl_barcode		descriptor "comment" = "codice PL_BARCODE"
+end type
+
