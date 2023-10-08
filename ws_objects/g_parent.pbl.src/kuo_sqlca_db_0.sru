@@ -10,8 +10,10 @@ global kuo_sqlca_db_0 kuo_sqlca_db_0
 
 type variables
 //
+//--- identifica il DB es. "db_magazzino"
+public string ki_title_id = ""
 //--- mettere la descrizione del tipo di DB, serve x personalizzare eventuale messaggio all'utente
-protected string ki_db_descrizione = "" 
+public string ki_db_descrizione = "" 
 
 //--- valori della colonna blocca_richieste
 public constant string ki_blocca_connessione_no = "0" 
@@ -25,9 +27,6 @@ private constant string ki_cfg_dbms_scelta_muletto = "2"
 
 private integer ki_n_riconnessioni
 public boolean ki_conn_blk_msg_done 
-
-//--- identifica il DB es. "db_magazzino"
-public string ki_title_id = ""
 
 //--- utile per salvare i dati sqlerr ... 
 protected kuo_sqlca_db_0 kiuo_sqlca_db_0_saved

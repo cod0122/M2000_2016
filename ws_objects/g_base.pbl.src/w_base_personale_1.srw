@@ -200,10 +200,16 @@ end type
 type st_21 from w_base_personale`st_21 within tabpage_6
 end type
 
+type cb_db_plav from w_base_personale`cb_db_plav within tabpage_6
+end type
+
 type cb_db_e1 from w_base_personale`cb_db_e1 within tabpage_6
 end type
 
 type st_26 from w_base_personale`st_26 within tabpage_6
+end type
+
+type st_22 from w_base_personale`st_22 within tabpage_6
 end type
 
 type tabpage_7 from w_base_personale`tabpage_7 within tab_1
@@ -231,6 +237,9 @@ end type
 type dw_8 from w_base_personale`dw_8 within tabpage_8
 end type
 
+type rr_3 from w_base_personale`rr_3 within tabpage_8
+end type
+
 type rr_1 from w_base_personale`rr_1 within tabpage_8
 end type
 
@@ -249,28 +258,28 @@ end type
 type cb_ausiliari_2 from w_base_personale`cb_ausiliari_2 within tabpage_8
 end type
 
-type st_5 from w_base_personale`st_5 within tabpage_8
+type st_1_2 from w_base_personale`st_1_2 within tabpage_8
 end type
 
-type st_6 from w_base_personale`st_6 within tabpage_8
+type st_1_3 from w_base_personale`st_1_3 within tabpage_8
 end type
 
-type st_7 from w_base_personale`st_7 within tabpage_8
+type st_1_4 from w_base_personale`st_1_4 within tabpage_8
 end type
 
-type st_8 from w_base_personale`st_8 within tabpage_8
+type st_1_5 from w_base_personale`st_1_5 within tabpage_8
 end type
 
-type st_10 from w_base_personale`st_10 within tabpage_8
+type st_3_3 from w_base_personale`st_3_3 within tabpage_8
 end type
 
-type st_11 from w_base_personale`st_11 within tabpage_8
+type st_3_1 from w_base_personale`st_3_1 within tabpage_8
 end type
 
-type st_12 from w_base_personale`st_12 within tabpage_8
+type st_3_2 from w_base_personale`st_3_2 within tabpage_8
 end type
 
-type st_9 from w_base_personale`st_9 within tabpage_8
+type st_1_6 from w_base_personale`st_1_6 within tabpage_8
 end type
 
 type st_13 from w_base_personale`st_13 within tabpage_8
@@ -285,7 +294,7 @@ end type
 type st_16 from w_base_personale`st_16 within tabpage_8
 end type
 
-type st_17 from w_base_personale`st_17 within tabpage_8
+type st_1_1 from w_base_personale`st_1_1 within tabpage_8
 end type
 
 type cb_docpath from w_base_personale`cb_docpath within tabpage_8
@@ -307,6 +316,9 @@ type st_28 from w_base_personale`st_28 within tabpage_8
 end type
 
 type st_4 from w_base_personale`st_4 within tabpage_8
+end type
+
+type cb_ausiliari_3 from w_base_personale`cb_ausiliari_3 within tabpage_8
 end type
 
 type tabpage_9 from w_base_personale`tabpage_9 within tab_1
@@ -422,5 +434,8 @@ type dw_13 from w_base_personale`dw_13 within tabpage_13
 end type
 
 type st_duplica from w_base_personale`st_duplica within w_base_personale_1
+end type
+
+type st_1_7 from w_base_personale`st_1_7 within w_base_personale_1
 end type
 

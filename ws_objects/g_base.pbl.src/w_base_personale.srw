@@ -36,6 +36,8 @@ type st_26 from statictext within tabpage_6
 end type
 type st_22 from statictext within tabpage_6
 end type
+type rr_3 from roundrectangle within tabpage_8
+end type
 type rr_1 from roundrectangle within tabpage_8
 end type
 type rr_4 from roundrectangle within tabpage_8
@@ -48,21 +50,23 @@ type cb_ausiliari_1 from commandbutton within tabpage_8
 end type
 type cb_ausiliari_2 from commandbutton within tabpage_8
 end type
-type st_5 from statictext within tabpage_8
+type st_1_2 from statictext within tabpage_8
 end type
-type st_6 from statictext within tabpage_8
+type st_1_3 from statictext within tabpage_8
 end type
-type st_7 from statictext within tabpage_8
+type st_1_4 from statictext within tabpage_8
 end type
-type st_8 from statictext within tabpage_8
+type st_1_5 from statictext within tabpage_8
 end type
-type st_10 from statictext within tabpage_8
+type st_3_3 from statictext within tabpage_8
 end type
-type st_11 from statictext within tabpage_8
+type st_3_1 from statictext within tabpage_8
 end type
-type st_12 from statictext within tabpage_8
+type st_3_2 from statictext within tabpage_8
 end type
-type st_9 from statictext within tabpage_8
+type st_1_6 from statictext within tabpage_8
+end type
+type st_1_7 from statictext within tabpage_8
 end type
 type st_13 from statictext within tabpage_8
 end type
@@ -72,7 +76,7 @@ type st_15 from statictext within tabpage_8
 end type
 type st_16 from statictext within tabpage_8
 end type
-type st_17 from statictext within tabpage_8
+type st_1_1 from statictext within tabpage_8
 end type
 type cb_docpath from commandbutton within tabpage_8
 end type
@@ -87,6 +91,8 @@ end type
 type st_28 from statictext within tabpage_8
 end type
 type st_4 from statictext within tabpage_8
+end type
+type cb_ausiliari_3 from commandbutton within tabpage_8
 end type
 type st_cb_protemail from statictext within tabpage_9
 end type
@@ -172,7 +178,7 @@ end forward
 
 global type w_base_personale from w_g_tab_3
 integer width = 4914
-integer height = 1736
+integer height = 2308
 string title = "Proprietà Personali"
 long backcolor = 67108864
 string icon = "Form!"
@@ -2422,18 +2428,7 @@ else
 	end if
 end if
 
-
 end subroutine
-
-on w_base_personale.create
-int iCurrent
-call super::create
-end on
-
-on w_base_personale.destroy
-call super::destroy
-if IsValid(MenuID) then destroy(MenuID)
-end on
 
 event u_ricevi_da_elenco;call super::u_ricevi_da_elenco;//
 int k_return
@@ -2515,6 +2510,16 @@ string k_scheda = ""
 	
 
 end event
+
+on w_base_personale.create
+int iCurrent
+call super::create
+end on
+
+on w_base_personale.destroy
+call super::destroy
+if IsValid(MenuID) then destroy(MenuID)
+end on
 
 type dw_print_0 from w_g_tab_3`dw_print_0 within w_base_personale
 end type
@@ -3136,25 +3141,27 @@ long backcolor = 16777215
 string text = " Ausiliari"
 long tabbackcolor = 67108864
 string picturename = "ArrangeTables5_2!"
+rr_3 rr_3
 rr_1 rr_1
 rr_4 rr_4
 rr_2 rr_2
 st_3 st_3
 cb_ausiliari_1 cb_ausiliari_1
 cb_ausiliari_2 cb_ausiliari_2
-st_5 st_5
-st_6 st_6
-st_7 st_7
-st_8 st_8
-st_10 st_10
-st_11 st_11
-st_12 st_12
-st_9 st_9
+st_1_2 st_1_2
+st_1_3 st_1_3
+st_1_4 st_1_4
+st_1_5 st_1_5
+st_3_3 st_3_3
+st_3_1 st_3_1
+st_3_2 st_3_2
+st_1_6 st_1_6
+st_1_7 st_1_7
 st_13 st_13
 st_14 st_14
 st_15 st_15
 st_16 st_16
-st_17 st_17
+st_1_1 st_1_1
 cb_docpath cb_docpath
 st_20 st_20
 st_2 st_2
@@ -3162,28 +3169,31 @@ st_24 st_24
 st_25 st_25
 st_28 st_28
 st_4 st_4
+cb_ausiliari_3 cb_ausiliari_3
 end type
 
 on tabpage_8.create
+this.rr_3=create rr_3
 this.rr_1=create rr_1
 this.rr_4=create rr_4
 this.rr_2=create rr_2
 this.st_3=create st_3
 this.cb_ausiliari_1=create cb_ausiliari_1
 this.cb_ausiliari_2=create cb_ausiliari_2
-this.st_5=create st_5
-this.st_6=create st_6
-this.st_7=create st_7
-this.st_8=create st_8
-this.st_10=create st_10
-this.st_11=create st_11
-this.st_12=create st_12
-this.st_9=create st_9
+this.st_1_2=create st_1_2
+this.st_1_3=create st_1_3
+this.st_1_4=create st_1_4
+this.st_1_5=create st_1_5
+this.st_3_3=create st_3_3
+this.st_3_1=create st_3_1
+this.st_3_2=create st_3_2
+this.st_1_6=create st_1_6
+this.st_1_7=create st_1_7
 this.st_13=create st_13
 this.st_14=create st_14
 this.st_15=create st_15
 this.st_16=create st_16
-this.st_17=create st_17
+this.st_1_1=create st_1_1
 this.cb_docpath=create cb_docpath
 this.st_20=create st_20
 this.st_2=create st_2
@@ -3191,58 +3201,64 @@ this.st_24=create st_24
 this.st_25=create st_25
 this.st_28=create st_28
 this.st_4=create st_4
+this.cb_ausiliari_3=create cb_ausiliari_3
 int iCurrent
 call super::create
 iCurrent=UpperBound(this.Control)
-this.Control[iCurrent+1]=this.rr_1
-this.Control[iCurrent+2]=this.rr_4
-this.Control[iCurrent+3]=this.rr_2
-this.Control[iCurrent+4]=this.st_3
-this.Control[iCurrent+5]=this.cb_ausiliari_1
-this.Control[iCurrent+6]=this.cb_ausiliari_2
-this.Control[iCurrent+7]=this.st_5
-this.Control[iCurrent+8]=this.st_6
-this.Control[iCurrent+9]=this.st_7
-this.Control[iCurrent+10]=this.st_8
-this.Control[iCurrent+11]=this.st_10
-this.Control[iCurrent+12]=this.st_11
-this.Control[iCurrent+13]=this.st_12
-this.Control[iCurrent+14]=this.st_9
-this.Control[iCurrent+15]=this.st_13
-this.Control[iCurrent+16]=this.st_14
-this.Control[iCurrent+17]=this.st_15
-this.Control[iCurrent+18]=this.st_16
-this.Control[iCurrent+19]=this.st_17
-this.Control[iCurrent+20]=this.cb_docpath
-this.Control[iCurrent+21]=this.st_20
-this.Control[iCurrent+22]=this.st_2
-this.Control[iCurrent+23]=this.st_24
-this.Control[iCurrent+24]=this.st_25
-this.Control[iCurrent+25]=this.st_28
-this.Control[iCurrent+26]=this.st_4
+this.Control[iCurrent+1]=this.rr_3
+this.Control[iCurrent+2]=this.rr_1
+this.Control[iCurrent+3]=this.rr_4
+this.Control[iCurrent+4]=this.rr_2
+this.Control[iCurrent+5]=this.st_3
+this.Control[iCurrent+6]=this.cb_ausiliari_1
+this.Control[iCurrent+7]=this.cb_ausiliari_2
+this.Control[iCurrent+8]=this.st_1_2
+this.Control[iCurrent+9]=this.st_1_3
+this.Control[iCurrent+10]=this.st_1_4
+this.Control[iCurrent+11]=this.st_1_5
+this.Control[iCurrent+12]=this.st_3_3
+this.Control[iCurrent+13]=this.st_3_1
+this.Control[iCurrent+14]=this.st_3_2
+this.Control[iCurrent+15]=this.st_1_6
+this.Control[iCurrent+16]=this.st_1_7
+this.Control[iCurrent+17]=this.st_13
+this.Control[iCurrent+18]=this.st_14
+this.Control[iCurrent+19]=this.st_15
+this.Control[iCurrent+20]=this.st_16
+this.Control[iCurrent+21]=this.st_1_1
+this.Control[iCurrent+22]=this.cb_docpath
+this.Control[iCurrent+23]=this.st_20
+this.Control[iCurrent+24]=this.st_2
+this.Control[iCurrent+25]=this.st_24
+this.Control[iCurrent+26]=this.st_25
+this.Control[iCurrent+27]=this.st_28
+this.Control[iCurrent+28]=this.st_4
+this.Control[iCurrent+29]=this.cb_ausiliari_3
 end on
 
 on tabpage_8.destroy
 call super::destroy
+destroy(this.rr_3)
 destroy(this.rr_1)
 destroy(this.rr_4)
 destroy(this.rr_2)
 destroy(this.st_3)
 destroy(this.cb_ausiliari_1)
 destroy(this.cb_ausiliari_2)
-destroy(this.st_5)
-destroy(this.st_6)
-destroy(this.st_7)
-destroy(this.st_8)
-destroy(this.st_10)
-destroy(this.st_11)
-destroy(this.st_12)
-destroy(this.st_9)
+destroy(this.st_1_2)
+destroy(this.st_1_3)
+destroy(this.st_1_4)
+destroy(this.st_1_5)
+destroy(this.st_3_3)
+destroy(this.st_3_1)
+destroy(this.st_3_2)
+destroy(this.st_1_6)
+destroy(this.st_1_7)
 destroy(this.st_13)
 destroy(this.st_14)
 destroy(this.st_15)
 destroy(this.st_16)
-destroy(this.st_17)
+destroy(this.st_1_1)
 destroy(this.cb_docpath)
 destroy(this.st_20)
 destroy(this.st_2)
@@ -3250,6 +3266,7 @@ destroy(this.st_24)
 destroy(this.st_25)
 destroy(this.st_28)
 destroy(this.st_4)
+destroy(this.cb_ausiliari_3)
 end on
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
@@ -3889,6 +3906,19 @@ string text = "Proprietà per scambio con il PILOTA dei dati Programmazione Impi
 boolean focusrectangle = false
 end type
 
+type rr_3 from roundrectangle within tabpage_8
+long linecolor = 8388608
+linestyle linestyle = dot!
+integer linethickness = 4
+long fillcolor = 134217732
+integer x = 1819
+integer y = 396
+integer width = 759
+integer height = 840
+integer cornerheight = 40
+integer cornerwidth = 46
+end type
+
 type rr_1 from roundrectangle within tabpage_8
 long linecolor = 8388608
 linestyle linestyle = dot!
@@ -3907,7 +3937,7 @@ long linecolor = 8388608
 linestyle linestyle = dot!
 integer linethickness = 4
 long fillcolor = 134217732
-integer x = 1829
+integer x = 2738
 integer y = 396
 integer width = 759
 integer height = 840
@@ -3962,36 +3992,15 @@ string text = "Archivi Ausiliari 1"
 boolean flatstyle = true
 end type
 
-event clicked;//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice sl_pt;
-//kuf_menu_window kuf1_menu_window 
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-st_open_w k_st_open_w
+event clicked;//
+kuf_ausiliari kuf1_ausiliari
 
+kuf1_ausiliari = create kuf_ausiliari
 
-kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-//kuf1_menu_window = create kuf_menu_window
+kuf1_ausiliari.u_open(kkg_flag_modalita.visualizzazione)
 
+destroy kuf1_ausiliari
 
-K_st_open_w.id_programma = kkg_id_programma.ausiliari //kuf1_wm_pklist_cfg.get_id_programma(kkg_flag_modalita.modifica)
-K_st_open_w.flag_primo_giro = "S"
-K_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-K_st_open_w.flag_leggi_dw = " "
-K_st_open_w.key1 = " "
-K_st_open_w.key2 = " "
-K_st_open_w.key3 = " "
-K_st_open_w.key4 = " "
-K_st_open_w.flag_where = " "
-
-kGuf_menu_window.open_w_tabelle(k_st_open_w)
-
-destroy kuf1_wm_pklist_cfg
-//destroy kuf1_menu_window
 
 
 
@@ -4052,7 +4061,7 @@ destroy kuf1_wm_pklist_cfg
 
 end event
 
-type st_5 from statictext within tabpage_8
+type st_1_2 from statictext within tabpage_8
 integer x = 274
 integer y = 656
 integer width = 622
@@ -4074,7 +4083,7 @@ event clicked;//
 cb_ausiliari_1.triggerevent(clicked!)
 end event
 
-type st_6 from statictext within tabpage_8
+type st_1_3 from statictext within tabpage_8
 integer x = 274
 integer y = 720
 integer width = 622
@@ -4096,7 +4105,7 @@ event clicked;//
 cb_ausiliari_1.triggerevent(clicked!)
 end event
 
-type st_7 from statictext within tabpage_8
+type st_1_4 from statictext within tabpage_8
 integer x = 274
 integer y = 784
 integer width = 622
@@ -4118,7 +4127,7 @@ event clicked;//
 cb_ausiliari_1.triggerevent(clicked!)
 end event
 
-type st_8 from statictext within tabpage_8
+type st_1_5 from statictext within tabpage_8
 integer x = 274
 integer y = 848
 integer width = 622
@@ -4140,9 +4149,9 @@ event clicked;//
 cb_ausiliari_1.triggerevent(clicked!)
 end event
 
-type st_10 from statictext within tabpage_8
-integer x = 274
-integer y = 984
+type st_3_3 from statictext within tabpage_8
+integer x = 1929
+integer y = 720
 integer width = 622
 integer height = 64
 boolean bringtotop = true
@@ -4159,12 +4168,12 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_1.triggerevent(clicked!)
+cb_ausiliari_2.triggerevent(clicked!)
 end event
 
-type st_11 from statictext within tabpage_8
-integer x = 274
-integer y = 1052
+type st_3_1 from statictext within tabpage_8
+integer x = 1925
+integer y = 592
 integer width = 622
 integer height = 64
 boolean bringtotop = true
@@ -4181,12 +4190,12 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_1.triggerevent(clicked!)
+cb_ausiliari_2.triggerevent(clicked!)
 end event
 
-type st_12 from statictext within tabpage_8
-integer x = 274
-integer y = 1120
+type st_3_2 from statictext within tabpage_8
+integer x = 1929
+integer y = 656
 integer width = 622
 integer height = 64
 boolean bringtotop = true
@@ -4203,10 +4212,10 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_1.triggerevent(clicked!)
+cb_ausiliari_2.triggerevent(clicked!)
 end event
 
-type st_9 from statictext within tabpage_8
+type st_1_6 from statictext within tabpage_8
 integer x = 274
 integer y = 916
 integer width = 622
@@ -4221,6 +4230,28 @@ string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
 string text = "Causali Entrata Merce"
+boolean focusrectangle = false
+end type
+
+event clicked;//
+cb_ausiliari_1.triggerevent(clicked!)
+end event
+
+type st_1_7 from statictext within tabpage_8
+integer x = 274
+integer y = 984
+integer width = 622
+integer height = 64
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Impianto G3 (CICLI)"
 boolean focusrectangle = false
 end type
 
@@ -4316,7 +4347,7 @@ event clicked;//
 cb_ausiliari_2.triggerevent(clicked!)
 end event
 
-type st_17 from statictext within tabpage_8
+type st_1_1 from statictext within tabpage_8
 integer x = 274
 integer y = 592
 integer width = 622
@@ -4339,7 +4370,7 @@ cb_ausiliari_1.triggerevent(clicked!)
 end event
 
 type cb_docpath from commandbutton within tabpage_8
-integer x = 1874
+integer x = 2784
 integer y = 456
 integer width = 672
 integer height = 112
@@ -4393,7 +4424,7 @@ destroy kuf1_docpath
 end event
 
 type st_20 from statictext within tabpage_8
-integer x = 1947
+integer x = 2857
 integer y = 592
 integer width = 617
 integer height = 180
@@ -4527,6 +4558,35 @@ end type
 
 event clicked;//
 cb_ausiliari_2.triggerevent(clicked!)
+
+end event
+
+type cb_ausiliari_3 from commandbutton within tabpage_8
+integer x = 1865
+integer y = 456
+integer width = 672
+integer height = 112
+integer taborder = 30
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string text = "Archivi Ausiliari 3"
+boolean flatstyle = true
+end type
+
+event clicked;//
+kuf_ausiliari2 kuf1_ausiliari2
+
+kuf1_ausiliari2 = create kuf_ausiliari2
+
+kuf1_ausiliari2.u_open(kkg_flag_modalita.visualizzazione)
+
+destroy kuf1_ausiliari2
+
 
 end event
 

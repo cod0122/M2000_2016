@@ -55,6 +55,7 @@ public function long get_id_sl_pt_memo_max () throws uo_exception
 public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
+public function boolean tb_delete (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception
 end prototypes
 
 public function st_esito select_riga (ref st_tab_sl_pt k_st_tab_sl_pt);//
@@ -1374,6 +1375,48 @@ st_esito kst_esito
 
 
 end subroutine
+
+public function boolean tb_delete (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception;/*
+ Cancella rek nella tabella Trattamenti Impianto G3
+ Inp: st_tab_sl_pt_g3.id_sl_pt_g3
+ Rit:  TRUE=OK; 
+*/
+boolean k_return
+st_esito kst_esito
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+if ast_tab_sl_pt_g3.id_sl_pt_g3 > 0 then
+	
+	delete 
+			from sl_pt_g3
+			WHERE id_sl_pt_g3 = :ast_tab_sl_pt_g3.id_sl_pt_g3 
+			using kguo_sqlca_db_magazzino;
+			
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in Cancellazione dati Trattamento Impianto G3, Id " + string(ast_tab_sl_pt_g3.id_sl_pt_g3))
+		if ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
+
+		kguo_exception.inizializza( )
+		kguo_exception.set_esito( kst_esito)
+		throw kguo_exception
+	end if
+		
+	if ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+
+	k_return = true
+
+end if
+
+return k_return
+
+end function
 
 on kuf_sl_pt.create
 call super::create

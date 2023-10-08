@@ -114,6 +114,8 @@ public subroutine if_isnull_tb (ref st_tab_dosimpos kst_tab_dosimpos)
 public function st_esito tb_delete (st_tab_dosimpos kst_tab_dosimpos)
 public function boolean tb_select (ref st_tab_dosimpos kst_tab_dosimpos) throws uo_exception
 public function boolean tb_pagam_if_pag_anticipato (ref st_tab_pagam ast_tab_pagam) throws uo_exception
+public subroutine if_is_null (ref st_tab_g3cicli ast_tab_g3cicli)
+public function boolean tb_delete (st_tab_g3cicli ast_tab_g3cicli) throws uo_exception
 end prototypes
 
 public function string tb_banche_select (ref st_tab_banche k_st_tab_banche);//
@@ -3097,12 +3099,7 @@ st_esito kst_esito
 kuf_sr_sicurezza kuf1_sr_sicurezza
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kuf1_sr_sicurezza = create kuf_sr_sicurezza
 	
 	try
@@ -3110,7 +3107,7 @@ kuf_sr_sicurezza kuf1_sr_sicurezza
 		kst_tab_sr_settori_profili.sr_settore = ast_tab_sr_settori.sr_settore 
 		if kuf1_sr_sicurezza.if_presente_sr_settore(kst_tab_sr_settori_profili) > 0 then
 			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Settore non elminato perchè associato ai Profili in Sicurezza "
+			kst_esito.SQLErrText = "Settore non può essere eliminato perchè già associato ai Profili in Sicurezza "
 			kst_esito.esito = kkg_esito.err_logico
 			
 		else
@@ -3584,6 +3581,91 @@ end if
 
 
 return k_return
+
+end function
+
+public subroutine if_is_null (ref st_tab_g3cicli ast_tab_g3cicli);//---
+//--- toglie i NULL ai campi della tabella 
+//---
+if isnull(ast_tab_g3cicli.id_g3ciclo) then ast_tab_g3cicli.id_g3ciclo = 0
+if isnull(ast_tab_g3cicli.CODICE) then ast_tab_g3cicli.CODICE = ""
+if isnull(ast_tab_g3cicli.attivo) then ast_tab_g3cicli.attivo = 0
+if isnull(ast_tab_g3cicli.descr) then ast_tab_g3cicli.descr = ""
+if isnull(ast_tab_g3cicli.g3ciclo) then ast_tab_g3cicli.g3ciclo = ""
+if isnull(ast_tab_g3cicli.g3pass) then	ast_tab_g3cicli.g3pass = 0
+   
+end subroutine
+
+public function boolean tb_delete (st_tab_g3cicli ast_tab_g3cicli) throws uo_exception;/*
+ Cancella il rek dalla tabella G3CICLI Configura Cicli Impianto G3
+ Inp: st_tab_g3cicli.id_g3cicli
+*/
+boolean k_return
+long k_row
+uo_ds_std_1 kds_1
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	if ast_tab_g3cicli.id_g3ciclo > 0 then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Errore in Cancellazione Configurazione Ciclo Impianto G3. Id non indicato! " 
+		throw kguo_exception
+	end if
+		
+	kds_1 = create	uo_ds_std_1	
+	kds_1.dataobject = "ds_sl_pt_g3_x_id_g3ciclo"
+	kds_1.settransobject(kguo_sqlca_db_magazzino)
+	k_row = kds_1.retrieve(ast_tab_g3cicli.id_g3ciclo)
+	if k_row < 0 then
+		kguo_exception.set_esito(kds_1.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore lettura Cicli G3 sui Piano di Trattamento, " &
+														+ "durante operazione di cancellazione Configurazione Ciclo Impianto G3 id " &
+														+ string(ast_tab_g3cicli.id_g3ciclo) + ". " &
+														+ kkg.acapo + kds_1.kist_esito.sqlerrtext
+		throw kguo_exception
+	end if
+
+//-- DELETE
+	delete from g3cicli
+		where id_g3ciclo = :ast_tab_g3cicli.id_g3ciclo
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in Cancellazione Configurazione Ciclo Impianto G3, Id " + string(ast_tab_g3cicli.id_g3ciclo))
+					
+		if ast_tab_g3cicli.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_g3cicli.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if ast_tab_g3cicli.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_g3cicli.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		k_return = true
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if ast_tab_g3cicli.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_g3cicli.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kds_1) then destroy kds_1
+
+end try
+
+	
+return k_return
+
 
 end function
 

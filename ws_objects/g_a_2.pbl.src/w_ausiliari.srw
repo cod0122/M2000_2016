@@ -68,8 +68,6 @@ protected function string check_dati ()
 protected function string inizializza ()
 protected subroutine inizializza_5 () throws uo_exception
 protected subroutine inizializza_6 () throws uo_exception
-protected subroutine inizializza_7 () throws uo_exception
-protected subroutine inizializza_8 () throws uo_exception
 protected subroutine open_start_window ()
 protected function integer inserisci ()
 protected function integer visualizza ()
@@ -103,9 +101,11 @@ kuf_utility kuf1_utility
 st_tab_nazioni kst_tab_nazioni
 st_tab_cap kst_tab_cap
 st_tab_province kst_tab_province
+st_tab_g3cicli kst_tab_g3cicli
 
 
-//=== 
+kst_esito = kguo_exception.inizializza(this.classname())
+
 choose case tab_1.selectedtab 
 	case 1 
 		k_record = tab_1.tabpage_1.text //" Cod. IVA "
@@ -158,28 +158,14 @@ choose case tab_1.selectedtab
 			k_key = string(k_key_1)
 		end if
 	case 7
-		k_record = tab_1.tabpage_7.text //" Nazioni "
+		k_record = tab_1.tabpage_7.text //" g3Cicli "
 		k_riga = tab_1.tabpage_7.dw_7.getrow()	
 		if k_riga > 0 then
-			k_key = tab_1.tabpage_7.dw_7.getitemstring(k_riga, 1)
-			k_desc = tab_1.tabpage_7.dw_7.getitemstring(k_riga, 2)
-		end if
-	case 8
-		k_record = tab_1.tabpage_8.text //" CAP "
-		k_riga = tab_1.tabpage_8.dw_8.getrow()	
-		if k_riga > 0 then
-			k_key = tab_1.tabpage_8.dw_8.getitemstring(k_riga, 1)
-			k_desc = tab_1.tabpage_8.dw_8.getitemstring(k_riga, 2)
-		end if
-	case 9
-		k_record = tab_1.tabpage_9.text //" Province "
-		k_riga = tab_1.tabpage_9.dw_9.getrow()	
-		if k_riga > 0 then
-			k_key = tab_1.tabpage_9.dw_9.getitemstring(k_riga, 1)
-			k_desc = tab_1.tabpage_9.dw_9.getitemstring(k_riga, 2)
+			kst_tab_g3cicli.id_g3ciclo = tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "id_g3ciclo")
+			k_key = tab_1.tabpage_7.dw_7.getitemstring(k_riga, "codice")
+			k_desc = tab_1.tabpage_7.dw_7.getitemstring(k_riga, "descr")
 		end if
 end choose	
-
 
 
 //=== Se righe in lista
@@ -232,14 +218,11 @@ if k_riga > 0 and (isnull(k_key) = false or isnull(k_key_1) = false) then
 				case 6
 					kst_esito = kuf1_ausiliari.tb_delete_meca_causali(k_key_1) 
 				case 7
-					kst_tab_nazioni.id_nazione = k_key
-					kst_esito = kuf1_ausiliari.tb_delete_nazioni(kst_tab_nazioni) 
-				case 8
-					kst_tab_cap.cap = k_key
-					kst_esito = kuf1_ausiliari.tb_delete_cap(kst_tab_cap) 
-				case 9
-					kst_tab_province.sigla = k_key
-					kst_esito = kuf1_ausiliari.tb_delete(kst_tab_province) 
+					try
+						kuf1_ausiliari.tb_delete(kst_tab_g3cicli) 
+					catch (uo_exception kuo7_exception)
+						kst_esito = kuo7_exception.get_st_esito()
+					end try
 			end choose	
 			
 			if trim(kst_esito.esito) = "0" then
@@ -547,12 +530,13 @@ protected function string check_dati ();//
 string k_return = " "
 string k_errore = "0"
 long k_nr_righe, k_keyn
-int k_riga, k_riga_find, k_larg, k_lung, k_alt
+int k_riga, k_riga_find, k_larg, k_lung, k_alt, k_riga_next
 int k_nr_errori
 string k_key
 st_esito kst_esito
 st_tab_cap kst_tab_cap
 st_tab_nazioni kst_tab_nazioni
+st_tab_g3cicli kst_tab_g3cicli
 
 
 try
@@ -906,116 +890,110 @@ try
 	loop
 
 
-//=== Controllo altro tab
+//=== Controllo altro tab (g3cicli)
 	k_riga = tab_1.tabpage_7.dw_7.getnextmodified(0, primary!)
+	k_nr_righe = tab_1.tabpage_7.dw_7.rowcount( )
 
 	do while k_riga > 0  and k_nr_errori < 10
 
-
-		k_key = string(tab_1.tabpage_7.dw_7.getitemstring ( k_riga, "id_nazione"))
-		k_riga_find = tab_1.tabpage_7.dw_7.find("id_nazione = '" + k_key + "' ", 1, k_nr_righe) 
+//--- verifica il codice
+		kst_tab_g3cicli.codice = trim(tab_1.tabpage_7.dw_7.getitemstring ( k_riga, "codice"))
+		k_riga_find = tab_1.tabpage_7.dw_7.find("codice = '" + kst_tab_g3cicli.codice + "' ", 1, k_nr_righe) 
 		if k_riga_find > 0 and k_riga_find < k_nr_righe then
-			k_riga_find++
-			if tab_1.tabpage_7.dw_7.find("id_nazione = '" + k_key + "' ", k_riga_find, k_nr_righe) > 1 then
-				k_return = tab_1.tabpage_7.text + ": Nazione gia' in archivio " + "~n~r" 
-				k_return = k_return + "(Codice " + trim(k_key) + ") ~n~r"
+			k_riga_next = tab_1.tabpage_7.dw_7.find("codice = '" + kst_tab_g3cicli.codice + "' ", k_riga_find + 1, k_nr_righe)
+			if k_riga_next > 1 then
+				k_return += tab_1.tabpage_7.text + ": Codice '" + kst_tab_g3cicli.codice & 
+																+ "' già in archivio. " + kkg.acapo &
+																+ "Vedi le righe " + string(k_riga_find) + " e " + string(k_riga_next) &
+																+ kkg.acapo
 				k_errore = "3"
 				k_nr_errori++
 			end if
 		end if
-		if k_errore = "0" or k_errore = "4" then
-			if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.inserimento then
-				kst_tab_nazioni.id_nazione = trim(tab_1.tabpage_7.dw_7.getitemstring(k_riga, "id_nazione"))
-				if kiuf_ausiliari.if_gia_esiste(kst_tab_nazioni) then
-					k_return = tab_1.tabpage_7.text + ": Nazione gia' in archivio " + "~n~r" 
-					k_return = k_return + "(Codice " + trim(kst_tab_nazioni.id_nazione) + ") ~n~r"
+		// se il dw è visibile allora cerca
+		if tab_1.tabpage_7.dw_17.visible then
+			k_nr_righe = tab_1.tabpage_7.dw_17.rowcount( )
+			k_riga_find = tab_1.tabpage_7.dw_17.find("codice = '" + kst_tab_g3cicli.codice + "' ", 1, k_nr_righe) 
+			if k_riga_find > 0 then
+				kst_tab_g3cicli.g3ciclo = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "g3ciclo"))
+				kst_tab_g3cicli.g3pass = tab_1.tabpage_7.dw_17.getitemnumber ( k_riga_find, "g3pass")
+				k_return += tab_1.tabpage_7.text + ": Codice '" + kst_tab_g3cicli.codice & 
+																+ "' già in archivio. " + kkg.acapo &
+																+ " con: Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ kkg.acapo
+				k_errore = "3"
+				k_nr_errori++
+			end if
+		end if
+		
+//--- verifica Ciclo+PASS
+		kst_tab_g3cicli.g3ciclo = trim(tab_1.tabpage_7.dw_7.getitemstring ( k_riga, "g3ciclo"))
+		kst_tab_g3cicli.g3pass = tab_1.tabpage_7.dw_7.getitemnumber ( k_riga, "g3pass")
+		k_riga_find = tab_1.tabpage_7.dw_7.find("g3ciclo = '" + kst_tab_g3cicli.g3ciclo + "' ", 1, k_nr_righe) 
+		if k_riga_find > 0 and k_riga_find < k_nr_righe then
+			k_riga_next = tab_1.tabpage_7.dw_7.find("g3ciclo = '" + kst_tab_g3cicli.g3ciclo + "' ", k_riga_find + 1, k_nr_righe) 
+			if k_riga_next > 1 then
+				
+				kst_tab_g3cicli.descr = trim(tab_1.tabpage_7.dw_7.getitemstring (k_riga_next, "descr"))
+				k_riga_next = tab_1.tabpage_7.dw_7.find("g3pass = " + string(kst_tab_g3cicli.g3pass) + " ", k_riga_next, k_riga_next) 
+				if k_riga_next > 1 then
+				
+					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ "già in archivio. " + kkg.acapo &
+															   + kkg.acapo + "con descr. '" + kst_tab_g3cicli.descr + "'. "& 
+																+ "Vedi le righe " + string(k_riga_find) + " e " + string(k_riga_next) &
+																+ kkg.acapo
 					k_errore = "3"
 					k_nr_errori++
-		
+				else
+				
+					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo + "' già in archivio" &
+															   + "con il Codice '" + kst_tab_g3cicli.codice + "'. " & 
+																+ kkg.acapo + "Prego verificare prima della conferma. " &
+																+ kkg.acapo
+					k_errore = "4"
 				end if
 			end if
 		end if
-//		tab_1.tabpage_7.dw_7.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
-//		tab_1.tabpage_7.dw_7.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
+		// se il dw è visibile allora cerca
+		if tab_1.tabpage_7.dw_17.visible then
+			k_nr_righe = tab_1.tabpage_7.dw_17.rowcount( )
+			k_riga_find = tab_1.tabpage_7.dw_17.find("g3ciclo = '" + kst_tab_g3cicli.g3ciclo + "' ", 1, k_nr_righe) 
+			if k_riga_find > 0 then
+				kst_tab_g3cicli.codice = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "codice"))
+				kst_tab_g3cicli.descr = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "descr"))
+				k_riga_next = tab_1.tabpage_7.dw_17.find("g3pass = " + string(kst_tab_g3cicli.g3pass) + " ", k_riga_find, k_riga_find) 
+				if k_riga_next > 1 then
+					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ "già in archivio " + kkg.acapo &
+															   + "con il Codice '" + kst_tab_g3cicli.codice + "'. "& 
+															   + kkg.acapo + "descr. '" + kst_tab_g3cicli.descr + "'. "& 
+																+ kkg.acapo
+					k_errore = "3"
+					k_nr_errori++
+				else
+					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo + "' già in archivio " &
+															   + "con il Codice '" + kst_tab_g3cicli.codice + "'. "& 
+															   + kkg.acapo + "descr. '" + kst_tab_g3cicli.descr + "'. "& 
+																+ kkg.acapo + "Prego verificare prima della conferma. " &
+																+ kkg.acapo
+					k_errore = "4"
+				end if
+			end if
+		end if
+		
+		if k_errore = "0" or k_errore = "4" then
+			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
+			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
+		end if
 
 		k_riga = tab_1.tabpage_7.dw_7.getnextmodified(k_riga, primary!)
 
 	loop
 	
-//=== Controllo altro tab
-	k_riga = tab_1.tabpage_8.dw_8.getnextmodified(0, primary!)
-
-	do while k_riga > 0  and k_nr_errori < 10
-
-		k_key = string(tab_1.tabpage_8.dw_8.getitemstring ( k_riga, "cap"))
-		k_riga_find = tab_1.tabpage_8.dw_8.find("cap = '" + k_key + "' ", 1, k_nr_righe) 
-		if k_riga_find > 0 and k_riga_find < k_nr_righe then
-			k_riga_find++
-			if tab_1.tabpage_8.dw_8.find("cap = '" + k_key + "' ", k_riga_find, k_nr_righe) > 1 then
-				k_return = tab_1.tabpage_8.text + ": CAP postale gia' in archivio " + "~n~r" 
-				k_return = k_return + "(CAP " + trim(k_key) + ") ~n~r"
-				k_errore = "3"
-				k_nr_errori++
-			end if
-		end if
-		if k_errore = "0" or k_errore = "4" then
-			if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.inserimento then
-				kst_tab_cap.cap = trim(tab_1.tabpage_8.dw_8.getitemstring(k_riga, "cap"))
-				if kiuf_ausiliari.if_gia_esiste(kst_tab_cap) then
-					k_return = tab_1.tabpage_8.text + ": CAP postale gia' in archivio " + "~n~r" 
-					k_return = k_return + "(CAP " + trim(kst_tab_cap.cap) + ") ~n~r"
-					k_errore = "3"
-					k_nr_errori++
-		
-				end if
-			end if
-		end if
-//		tab_1.tabpage_7.dw_7.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
-//		tab_1.tabpage_7.dw_7.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
-
-		k_riga = tab_1.tabpage_8.dw_8.getnextmodified(k_riga, primary!)
-
-	loop
-	
-	
-//=== Controllo altro tab
-	k_riga = tab_1.tabpage_9.dw_9.getnextmodified(0, primary!)
-	k_nr_righe = tab_1.tabpage_9.dw_9.rowcount()
-
-	do while k_riga > 0  and k_nr_errori < 10
-
-
-		if k_errore = "0" or k_errore = "4" then // and k_riga <= k_nr_righe then
-			k_key = string(tab_1.tabpage_9.dw_9.getitemstring ( k_riga, "sigla"))
-			k_riga_find = tab_1.tabpage_9.dw_9.find("sigla = '" + k_key + "' ", 1, k_nr_righe) 
-			if k_riga_find > 0 and k_riga_find < k_nr_righe then
-				k_riga_find++
-				if tab_1.tabpage_9.dw_9.find("sigla = '" + k_key + "' ", k_riga_find, k_nr_righe) > 1 then
-					k_return = tab_1.tabpage_9.text + ": Sigla gia' in archivio " + "~n~r" 
-					k_return = k_return + "(Sigla " + trim(k_key) + ") ~n~r"
-					k_errore = "3"
-					k_nr_errori++
-				end if
-			end if
-		end if
-		if k_errore = "0" or k_errore = "4" then
-			if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.inserimento then
-				select sigla
-					into :k_key
-					from province
-					where sigla = :k_key;
-				if sqlca.sqlcode = 0 then
-					k_return = tab_1.tabpage_5.text + ": Sigla gia' in archivio " + "~n~r" 
-					k_return = k_return + "(Sigla " + trim(k_key) + ") ~n~r"
-					k_errore = "3"
-					k_nr_errori++
-				end if
-			end if
-		end if
-
-		k_riga = tab_1.tabpage_9.dw_9.getnextmodified(k_riga, primary!)
-
-	loop
 
 catch (uo_exception kuo_exception)
 	kst_esito = kuo_exception.get_st_esito()
@@ -1075,30 +1053,16 @@ protected subroutine inizializza_6 () throws uo_exception;//
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 
-	u_retrieve("d_nazioni_l")
+	u_retrieve("d_g3cicli_l")
+	
+	if tab_1.tabpage_7.dw_7.ki_flag_modalita = kkg_flag_modalita.modifica then
+		tab_1.tabpage_7.dw_7.setcolumn("g3ciclo")
+	else
+		if tab_1.tabpage_7.dw_7.ki_flag_modalita = kkg_flag_modalita.inserimento then
+			tab_1.tabpage_7.dw_7.setcolumn("codice")
+		end if
+	end if
 		
-
-end subroutine
-
-protected subroutine inizializza_7 () throws uo_exception;//
-//======================================================================
-//=== Inizializzazione della Windows
-//=== Ripristino DW; tasti; e retrieve liste
-//======================================================================
-
-	u_retrieve("d_cap_l")
-		
-
-end subroutine
-
-protected subroutine inizializza_8 () throws uo_exception;//
-//======================================================================
-//=== Inizializzazione della Windows
-//=== Ripristino DW; tasti; e retrieve liste
-//======================================================================
-
-	u_retrieve("d_prov_l")
-
 
 end subroutine
 
@@ -1109,7 +1073,7 @@ tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
 end subroutine
 
 protected function integer inserisci ();//
-int k_return=1, k_ind
+int k_return, k_ind
 long k_ctr
 uo_d_std_1 kdw_x, kdw_y
 kuf_utility kuf1_utility
@@ -1172,7 +1136,7 @@ kuf_utility kuf1_utility
 	u_set_dw_selezionata()		
 	u_set_modalita(kkg_flag_modalita.inserimento)
 
-	k_return = 0
+	k_return = k_ctr
 
 return (k_return)
 end function
@@ -1446,7 +1410,7 @@ statictext ktxt_1
 end subroutine
 
 public function integer u_retrieve (string a_dataobject);//
-long k_rows	
+long k_rows, k_row
 	
 	
 	u_set_dw_selezionata( )
@@ -1474,7 +1438,10 @@ long k_rows
 		end if
 		kidw_selezionata.GroupCalc()	
 	else
-		inserisci()
+		k_row = inserisci()
+		if k_row > 0 then
+			kidw_selezionata.setrow(k_row)
+		end if
 	end if
  
 	u_proteggi_sproteggi()
@@ -1751,7 +1718,8 @@ end if
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_ausiliari
-integer x = 46
+integer x = 0
+integer y = 0
 integer width = 1833
 integer textsize = -9
 fontcharset fontcharset = ansi!
@@ -2064,7 +2032,7 @@ integer width = 754
 integer height = 1112
 boolean enabled = true
 long backcolor = 32501743
-string text = "Nazioni"
+string text = "Impianto G3"
 st_orizzontal_17 st_orizzontal_17
 dw_17 dw_17
 end type
@@ -2090,7 +2058,7 @@ end type
 
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
 boolean enabled = true
-string dataobject = "d_nazioni_l"
+string dataobject = "d_g3cicli_l"
 end type
 
 event dw_7::doubleclicked;//
@@ -2099,14 +2067,12 @@ event dw_7::doubleclicked;//
 end event
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
-boolean visible = true
 integer x = 1061
 integer y = 16
 integer width = 754
 integer height = 1112
-boolean enabled = true
 long backcolor = 32501743
-string text = "C.A.P.~r~nPostali"
+string text = "..."
 st_orizzontal_18 st_orizzontal_18
 dw_18 dw_18
 end type
@@ -2131,8 +2097,6 @@ type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
 end type
 
 type dw_8 from w_g_tab_3`dw_8 within tabpage_8
-boolean enabled = true
-string dataobject = "d_cap_l"
 end type
 
 event dw_8::doubleclicked;//
@@ -2141,14 +2105,12 @@ event dw_8::doubleclicked;//
 end event
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
-boolean visible = true
 integer x = 1061
 integer y = 16
 integer width = 754
 integer height = 1112
-boolean enabled = true
 long backcolor = 32501743
-string text = "Province"
+string text = "..."
 string powertiptext = "Elenco province"
 st_orizzontal_19 st_orizzontal_19
 dw_19 dw_19
@@ -2174,8 +2136,6 @@ type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
 end type
 
 type dw_9 from w_g_tab_3`dw_9 within tabpage_9
-boolean enabled = true
-string dataobject = "d_prov_l"
 end type
 
 event dw_9::doubleclicked;//

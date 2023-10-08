@@ -5746,6 +5746,88 @@ type m_inviapianoalpilota from menu within m_magazzino
 end type
 
 event clicked;//
+kuf_pilota_cmd kuf1_pilota_cmd
+
+		
+//--- apre la connessione al DB PILOTA
+try
+
+	SetPointer(kkg.pointer_attesa)
+	kuf1_pilota_cmd = create kuf_pilota_cmd
+	kuf1_pilota_cmd.get_path_file_pl_barcode()  // solo X testare se PATH raggiungibile
+	SetPointer(kkg.pointer_default)
+
+	if messagebox ("Generazione del file 'Piano di Lavorazione'", &
+						"Il file di Pianificazione per il 'PILOTA' sarà creato solo se:~n~r" &
+						+"     1-l'ultima Richiesta e' stata evasa positivamente~n~r" &
+						+"     2-almeno un Piano di Lavoro nello stato di 'Chiuso' (ovvero da Inviare)~n~r" &
+						+" ~n~r" &
+						+ "Avviare l'operazione?" &
+						 ,question!, YesNo!, 2) = 1 then
+
+		if kuf1_pilota_cmd.job_pianificazione_lavorazioni() then
+			
+			SetPointer(kkg.pointer_attesa)
+			kuf1_pilota_cmd.get_pilota_cfg()
+			
+			SetPointer(kkg.pointer_default)
+			messagebox ("Generazione File Piano di Lavorazione", &
+					"L'operazione conclusa correttamente.~n~r" &
+					+ "E' stato creato il file del Piano di Lavoro per il 'PILOTA' nella cartella:~n~r" &
+					+ kuf1_pilota_cmd.kist_tab_pilota_cfg.path_file_pl_barcode &
+					+ kuf1_pilota_cmd.kist_tab_pilota_cfg.ultimo_nome_file_pl_barcode &
+					 ,Information!) 
+		else
+			messagebox ("Generazione File Piano di Lavorazione", &
+					"Operazione conclusa.~n~rNessun file del Piano di Lavoro creato, per uno dei seguenti motivi:~n~r" &
+						+ "   1-Nessun Piano di Lavoro nello stato di Chiuso~n~r" &
+						+ "   2-Un Piano precedentemente creato non è ancora stato evaso dal Pilota (non scaduto)~n~r" &
+						+" ~n~r" &
+					 ,Information!) 
+		end if
+	
+	end if
+	
+catch (uo_exception kuo_exception)
+	SetPointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
+
+end try
+
+end event
+
+on m_inviapianoalpilota.create
+call super::create
+this.tag = "pilota_exp_p"
+this.text = "Invia Piano al Pilota "
+this.microhelp = "Crea il file di scambio da Piano di Lavorazione Chiuso per il Pilota"
+this.menuimage = "Destination5_2!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_inviapianoalpilota.destroy
+call super::destroy
+end on
+
+type m_inviapianoalpilotag2g3 from menu within m_magazzino
+end type
+
+event clicked;//
 int k_richieste_evase
 kuf_plav kuf1_plav
 kuo_sqlca_db_plav kuo1_sqlca_db_plav
@@ -5800,88 +5882,6 @@ catch (uo_exception kuo_exception)
 finally
 	if isvalid(kuf1_plav) then destroy kuf1_plav
 	if isvalid(kuo1_sqlca_db_plav) then destroy kuo1_sqlca_db_plav
-
-end try
-
-end event
-
-on m_inviapianoalpilota.create
-call super::create
-this.tag = "pilota_exp_p"
-this.text = "Invia Piano al Pilota "
-this.microhelp = "Crea il file di scambio da Piano di Lavorazione Chiuso per il Pilota"
-this.menuimage = "Destination5_2!"
-this.menustyle = contemporarymenu!
-this.menubackcolor = 12632256
-this.menuhighlightcolor = 8388736
-this.textsize = -10
-this.weight = 400
-this.facename = "Verdana"
-this.titlebackcolor = 12632256
-this.bitmapbackcolor = 12632256
-this.menubitmaps = true
-this.toolbarstyle = contemporarytoolbar!
-this.toolbartextcolor = 134217746
-this.toolbarbackcolor = 10789024
-this.toolbarhighlightcolor = 10789024
-end on
-
-on m_inviapianoalpilota.destroy
-call super::destroy
-end on
-
-type m_inviapianoalpilotag2g3 from menu within m_magazzino
-end type
-
-event clicked;//
-kuf_pilota_cmd kuf1_pilota_cmd
-
-		
-//--- apre la connessione al DB PILOTA
-try
-
-	SetPointer(kkg.pointer_attesa)
-	kuf1_pilota_cmd = create kuf_pilota_cmd
-	kuf1_pilota_cmd.get_path_file_pl_barcode()  // solo X testare se PATH raggiungibile
-	SetPointer(kkg.pointer_default)
-
-	if messagebox ("Generazione del file 'Piano di Lavorazione'", &
-						"Il file di Pianificazione per il 'PILOTA' sarà creato solo se:~n~r" &
-						+"     1-l'ultima Richiesta e' stata evasa positivamente~n~r" &
-						+"     2-almeno un Piano di Lavoro nello stato di 'Chiuso' (ovvero da Inviare)~n~r" &
-						+" ~n~r" &
-						+ "Avviare l'operazione?" &
-						 ,question!, YesNo!, 2) = 1 then
-
-		if kuf1_pilota_cmd.job_pianificazione_lavorazioni() then
-			
-			SetPointer(kkg.pointer_attesa)
-			kuf1_pilota_cmd.get_pilota_cfg()
-			
-			SetPointer(kkg.pointer_default)
-			messagebox ("Generazione File Piano di Lavorazione", &
-					"L'operazione conclusa correttamente.~n~r" &
-					+ "E' stato creato il file del Piano di Lavoro per il 'PILOTA' nella cartella:~n~r" &
-					+ kuf1_pilota_cmd.kist_tab_pilota_cfg.path_file_pl_barcode &
-					+ kuf1_pilota_cmd.kist_tab_pilota_cfg.ultimo_nome_file_pl_barcode &
-					 ,Information!) 
-		else
-			messagebox ("Generazione File Piano di Lavorazione", &
-					"Operazione conclusa.~n~rNessun file del Piano di Lavoro creato, per uno dei seguenti motivi:~n~r" &
-						+ "   1-Nessun Piano di Lavoro nello stato di Chiuso~n~r" &
-						+ "   2-Un Piano precedentemente creato non è ancora stato evaso dal Pilota (non scaduto)~n~r" &
-						+" ~n~r" &
-					 ,Information!) 
-		end if
-	
-	end if
-	
-catch (uo_exception kuo_exception)
-	SetPointer(kkg.pointer_default)
-	kuo_exception.messaggio_utente()
-
-finally
-	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
 
 end try
 
@@ -9563,9 +9563,9 @@ end event
 on m_fin_modifica.create
 call super::create
 this.tag = "mo"
-this.text = "Modifica~tCtrl+M"
+this.text = "Modifica~tF2"
 this.enabled = false
-this.shortcut = 333
+this.shortcut = 113
 this.microhelp = "Apri in modalità Modifica per aggiornare i dati"
 this.toolbaritemvisible = false
 this.toolbaritemname = "edit48.png"

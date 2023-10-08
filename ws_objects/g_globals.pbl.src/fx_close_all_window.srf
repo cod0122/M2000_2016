@@ -20,6 +20,8 @@ int k_rc
 					if k_rc = 0 then
 						wSheet = w_main.GetFirstSheet()
 					end if
+				else
+					k_rc = 1
 				end if
 			loop
 			

@@ -1,0 +1,13 @@
+﻿$PBExportHeader$st_tab_g3cicli.srs
+global type st_tab_g3cicli from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_g3ciclo
+	string		codice
+	byte		attivo		descriptor "comment" = "1=attivo"
+	string		g3ciclo		descriptor "comment" = "codice collegato a quello indicato in IMPIANTO (probabilmente)"
+	string		descr
+	integer		g3pass		descriptor "comment" = "2 o 4 PASS"
+	datetime		x_datins
+	string		x_utente
+end type
+
