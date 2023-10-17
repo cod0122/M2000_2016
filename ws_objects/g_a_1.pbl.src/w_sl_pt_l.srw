@@ -37,7 +37,6 @@ private function string cancella ();//
 string k_descr, k_cod_sl_pt
 string k_errore = "0 ", k_errore1 = "0 "
 long k_riga
-//kuf_sl_pt  kuf1_sl_pt  
 
 
 k_riga = dw_lista_0.getrow()	
@@ -46,56 +45,36 @@ if k_riga > 0 then
 	k_cod_sl_pt = dw_lista_0.getitemstring(k_riga, "cod_sl_pt")
 
 	if isnull(k_descr) = true or trim(k_descr) = "" then
-		k_descr = "SL-PT senza descrizione" 
+		k_descr = "PT senza descrizione" 
 	end if
 	
 //=== Richiesta di conferma della eliminazione del rek
-	if messagebox("Elimina SL-PT", "Sei sicuro di voler Cancellare : ~n~r" &
+	if messagebox("Cancellazione Piano di Trattamento", "Sei sicuro di voler Cancellare : ~n~r" &
 	         + k_cod_sl_pt + " " + k_descr, &
 				question!, yesno!, 2) = 1 then
  
-//=== Creo l'oggetto che ha la funzione x cancellare la tabella
-//		kuf1_sl_pt = create kuf_sl_pt
-		
+	 	try
 //=== Cancella la riga dal data windows di lista
-		k_errore = kiuf_sl_pt.tb_delete(k_cod_sl_pt) 
-		if LeftA(k_errore, 1) = "0" then
-	
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
+			kiuf_sl_pt.tb_delete(k_cod_sl_pt) 
+			
+			kGuf_data_base.db_commit()
+			
+			dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
+			dw_lista_0.deleterow(k_riga)
+					
+		catch (uo_exception kuo_exception)
+			
+			k_errore = kuo_exception.kist_esito.sqlerrtext + " (" + string(kuo_exception.kist_esito.sqlcode) + ") " 
+			messagebox("Cancellazione in errore", k_errore)
 
-			else
-
-				dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
-				dw_lista_0.deleterow(k_riga)
-
-			end if
-
-			dw_lista_0.setfocus()
-
-		else
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
-
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
-	
+		finally
 			attiva_tasti()
-
-		end if
-
-//=== Distruggo l'oggetto che ha avuto la funzione x cancellare la tabella
-//		destroy kuf1_sl_pt
+			dw_lista_0.setfocus()
+			
+		end try
 
 	else
-		messagebox("Elimina SL-PT", "Operazione Annullata !!")
+		messagebox("Cancellazione", "Operazione Annullata.")
 
 	end if
 end if

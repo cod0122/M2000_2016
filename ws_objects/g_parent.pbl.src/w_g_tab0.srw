@@ -2003,12 +2003,14 @@ lancia la funzione di Cancellazione
 */
 boolean k_return = false
 string k_esito_funzioneX
+string k_flag_modalita_saved
 
 
 try
 	kguo_exception.inizializza(this.classname( ))
 	
 	if dw_lista_0.rowcount( ) > 0 or (not dw_lista_0.enabled and dw_dett_0.enabled and dw_dett_0.rowcount( ) > 0)  then 
+		k_flag_modalita_saved = ki_st_open_w.flag_modalita
 		ki_st_open_w.flag_modalita = ast_open_w.flag_modalita
 		dw_dett_0.ki_flag_modalita = ast_open_w.flag_modalita
 		k_esito_funzioneX = cancella( )
@@ -2018,6 +2020,9 @@ try
 				kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w)
 			end if
 		end if
+		
+		ki_st_open_w.flag_modalita = k_flag_modalita_saved
+
 	end if
 			
 catch (uo_exception kuo_exception)

@@ -1,6 +1,6 @@
 ﻿$PBExportHeader$uo_d_std_1.sru
 forward
-global type uo_d_std_1 from datawindow
+global type uo_d_std_1 from uo_d_std_0
 end type
 end forward
 
@@ -8,18 +8,16 @@ shared variables
 
 end variables
 
-global type uo_d_std_1 from datawindow
+global type uo_d_std_1 from uo_d_std_0
 boolean visible = false
 integer width = 1344
 integer height = 836
 boolean enabled = false
-string title = "none"
 string dataobject = "d_nulla"
 boolean hscrollbar = true
 boolean vscrollbar = true
 boolean border = false
 boolean hsplitscroll = true
-boolean livescroll = true
 event ue_dwnkey pbm_dwnkey
 event u_doppio_click ( long a_row )
 event u_pigiato_enter pbm_dwnprocessenter
@@ -61,7 +59,7 @@ public string ki_icona_selezionata = "UserObject5!"
 public boolean ki_disattiva_moment_cb_aggiorna = true
 
 //--- Operazione a cui e' sottoposta la dw (x default è Visualizzazione) utile x i LINK
-public string ki_flag_modalita = ""
+//public string ki_flag_modalita = ""
 
 //--- attiva/disattiva i LINK
 private kuf_link_zoom kiuf_link_zoom
@@ -94,6 +92,9 @@ public boolean ki_d_std_1_attiva_SORT = true
 //--- Attiva/disattiva il Cerca....
 public boolean ki_d_std_1_attiva_CERCA = true
 
+//--- Attiva selezione MULTIPLA delle righe
+public boolean ki_select_multirows = true
+
 //--- ultima riga selezionatatrsa
 public long ki_UltRigaSel = 0
 
@@ -118,8 +119,7 @@ private uo_d_std_1 kidw_dragdrop_this
 private uo_d_std_1 kidw_source
 
 //--- variabile gestione x errori DB
-public:
-st_esito kist_esito
+//public st_esito kist_esito
 
 //--- tipo datawindow (Processing)
 public constant string kki_tipo_processing_form="0"
@@ -162,7 +162,7 @@ private kuf_menu_popup kiuf_menu_popup
 
 private uo_exception kiuo_exception
 
-private string ki_column_background_before_active[2]     // colore sfondo colonna appena prime del focus (salva nome e colore background)
+//private string ki_column_background_before_active[2]     // colore sfondo colonna appena prime del focus (salva nome e colore background)
 
 end variables
 
@@ -185,14 +185,13 @@ protected function boolean link_standard_call (datawindow adw_link, string a_nom
 public subroutine u_fine_primo_giro ()
 public function boolean u_group_ricalc ()
 public function boolean u_rowscopy_form_ds (datastore kds_1)
-public function long u_selectrow_onclick (long a_riga)
 public function boolean u_sort (readonly string a_name_header)
 private function string u_sort_get_type (readonly string k_colname, string k_coltype)
 private subroutine u_set_riga_new ()
 public function boolean if_link_enabled ()
-public subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake)
-public function string u_get_evaluate (string a_field, string a_field_describe)
 public subroutine u_set_column_color ()
+public function long u_selectrow_onclick (long a_row)
+public subroutine u_proteggi ()
 end prototypes
 
 event ue_dwnkey;//
@@ -1389,106 +1388,6 @@ return k_return
 
 end function
 
-public function long u_selectrow_onclick (long a_riga);//
-//long k_return=0
-long k_riga_ctr //, k_riga_ini, k_riga_fin, k_riga_select
-//int k_ctr
-
-
-
-//--- seleziona le righe del DW solo x i tipi GRID
-if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
-	
-//	if ki_UltRigaSel = 0 then	
-//		if a_riga  > 0 then 
-//			ki_UltRigaSel = a_riga
-//		else
-//			if this.getselectedrow ( 0 ) > 0 then
-//				ki_UltRigaSel = this.getselectedrow ( 0 )
-//			else
-//				if this.getrow() > 0 then
-//					a_riga = this.getrow ( )
-//					ki_UltRigaSel = a_riga
-//				else
-//					ki_UltRigaSel = 0
-//				end if
-//			end if
-//		end if
-//	end if
-	
-////--- ctrl+click	per seleziona/deseleziona riga
-	if keydown( keycontrol! ) then
-//		
-//		if a_riga > 0 then 
-//			if this.isselected( a_riga) then
-//				this.selectrow ( a_riga, false )
-//			else
-//				this.selectrow ( a_riga, true )
-//			end if
-//		end if
-//		
-	else
-		 
-//--- shift+click	per selezionare tutte le righe comprese tra
-		if keydown( keyshift! ) then 
-//			this.setredraw ( false )
-//			if this.getselectedrow ( 0 ) = 0 then
-//				k_riga_ini = a_riga
-//			else
-//				k_riga_ini = this.getrow()
-//			end if
-//			k_riga_fin = a_riga
-//			ki_UltRigaSel = a_riga
-//			if k_riga_ini > k_riga_fin then
-//				for k_riga_ctr = k_riga_ini to k_riga_fin step -1 
-//					this.selectrow ( k_riga_ctr, true )
-//				next
-//			else
-//				for k_riga_ctr = k_riga_ini to k_riga_fin 
-//					this.selectrow ( k_riga_ctr, true )
-//				next
-//			end if
-//			this.setredraw ( true )
-			if ki_UltRigaSel = 0 then ki_UltRigaSel = this.getselectedrow(0)
-			if ki_UltRigaSel < a_riga then
-				for k_riga_ctr = ki_UltRigaSel to a_riga step 1
-					this.selectrow ( k_riga_ctr, true )
-				next
-			else
-				for k_riga_ctr = ki_UltRigaSel to a_riga step -1
-					this.selectrow ( k_riga_ctr, true )
-				next
-			end if
-			
-		else
-	
-	//--- solo click		
-			//if a_riga > 0 then
-			//	if not this.isselected(a_riga) then
-				//	this.selectrow ( 0, false )
-				//	this.selectrow ( a_riga, true )
-			//	end if
-			//end if 
-		end if 
-		
-	end if
-
-	if a_riga > 0 then
-		ki_UltRigaSel = a_riga
-		this.setrow(a_riga)
-	end if
-	
-end if
-
-
-////this.setrow( a_riga )
-//if a_riga > 0 then
-//	k_return = a_riga
-//end if
-
-return ki_UltRigaSel 
-end function
-
 public function boolean u_sort (readonly string a_name_header);//---
 //--- Ordina le righe x la colonna pigiata (click su campo di testata)
 //---
@@ -1759,123 +1658,6 @@ else
 end if
 end function
 
-public subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake);/*
- usa il backgrond color di default per segnalare il cursore sul campo
-      Da chiamare dal event itemfocuschanged di un dw
-      Inp: a_col_name = nome colonna su cui si trova il cursore
-		     a_remake = TRUE se rifa la colonna come Attiva 
-*/
-string k_rc
-string k_style, k_modify
-
-
-	if a_remake then
-		if ki_column_background_before_active[1] > " " then
-			a_col_name = ki_column_background_before_active[1]
-			ki_column_background_before_active[1] = ""
-		else
-			return
-		end if
-	else
-		if ki_column_background_before_active[1] = a_col_name then
-			return
-		end if
-	end if
-
-//--- fa solo se ci sono le condizioni altrimenti via!
-	if this.rowcount() = 0 or this.Describe("DataWindow.ReadOnly") = "yes" or (this.ki_flag_modalita <> kkg_flag_modalita.modifica and this.ki_flag_modalita <> kkg_flag_modalita.inserimento) then
-		return 
-	end if
-
-//--- fa solo se ci sono le condizioni altrimenti via!
-//	if this.Object.DataWindow.Processing <> kki_tipo_processing_form then
-//		return 
-//	end if
-
-//--- Riristino del colore di sfondo originale della colonna precedente
-	if ki_column_background_before_active[1] > " " and ki_column_background_before_active[1] <> a_col_name then 
-		if this.Describe("DataWindow.ReadOnly") = "yes" then
-			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " "
-		else
-			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + ki_column_background_before_active[2] + " "
-		end if
-	end if
-
-	if this.Describe("DataWindow.ReadOnly") = "yes" then
-	else
-
-		if a_col_name > " " then
-			if this.Describe(a_col_name + ".TabSequence") > "0" and this.Describe("Evaluate("+a_col_name + ".Protect"+")") <> "1" then
-					
-	//--- Salva colore di sfondo originale
-				if ki_column_background_before_active[1] <> a_col_name then
-					ki_column_background_before_active[1] = a_col_name
-					ki_column_background_before_active[2] = u_get_evaluate( a_col_name, "Background.Color")
-				end if
-			
-				k_modify += a_col_name + ".Background.Mode='0' " + a_col_name + ".Background.Color='" + ki_column_background_before_active[2] &
-								+ "~t IF ( getrow() = currentRow()," + kkg_colore.INPUT_FIELD + "," + ki_column_background_before_active[2] + ")'"   
-				
-				if k_modify > " " then
-					k_rc = this.modify(k_modify)
-					k_modify = ""
-				end if	
-				
-				k_style = trim(this.Describe(a_col_name  + ".Edit.Style"))
-				if k_style = "edit" then
-				//--- ripristina autoselect se impostato, ma solo se EDIT altrimenti blocca il riempimento come nel dropdowncalendar
-					k_rc = this.describe(a_col_name + ".Edit.AutoSelect")
-					if k_rc = 'yes' or k_rc = "?" then
-						this.SelectText(1, Len(this.GetText()))
-					end if
-				end if
-			end if
-		end if
-	end if
-
-	if k_modify > " " then
-		k_rc = this.modify(k_modify)
-	end if
-end subroutine
-
-public function string u_get_evaluate (string a_field, string a_field_describe);/*
-   torna il valore dopo si un EXPRESSION
-*/
-
-string ls_value, ls_eval
-long ll_row
-
-ll_row = this.GetRow()
-ls_value = this.describe(a_field + "." + a_field_describe)
-
-IF NOT IsNumber(ls_value) THEN   
-
-	if ll_row > 0 then
-	// Get the expression following the tab (~t)   
-		ls_value = Right(ls_value, Len(ls_value) - Pos(ls_value, "~t"))   
-	
-	// Build string for Describe. Include a leading   
-	// quote to match the trailing quote that remains
-		ls_eval = "Evaluate(~"" + ls_value + ", " + String(ll_row) + ")"   
-
-		ls_value = this.Describe(ls_eval)
-		
-		IF NOT IsNumber(ls_value) THEN   
-			ls_value = "0" //"!"
-		end if
-		
-	else
-		
-		ls_value = "0" //"!"
-		
-	end if
-
-END IF
-
-return ls_value
-
-end function
-
 public subroutine u_set_column_color ();/*
    Imposta il COLOR del testo a seconda del background
 */
@@ -1932,10 +1714,159 @@ long k_backgroundColor, k_n
 
 end subroutine
 
+public function long u_selectrow_onclick (long a_row);//
+//long k_return=0
+long k_row_ctr //, k_riga_ini, k_riga_fin, k_riga_select
+//int k_ctr
+
+
+
+//--- seleziona le righe del DW solo x i tipi GRID
+if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
+	
+//
+	if not ki_select_multirows then
+		This.SetRow(a_row)
+		This.SelectRow(0, FALSE)
+		if a_row > 0 then
+			This.SelectRow(a_row, TRUE)
+		end if
+	
+		return a_row   // EXIT
+	end if
+	
+//	if ki_UltRigaSel = 0 then	
+//		if a_row  > 0 then 
+//			ki_UltRigaSel = a_row
+//		else
+//			if this.getselectedrow ( 0 ) > 0 then
+//				ki_UltRigaSel = this.getselectedrow ( 0 )
+//			else
+//				if this.getrow() > 0 then
+//					a_row = this.getrow ( )
+//					ki_UltRigaSel = a_row
+//				else
+//					ki_UltRigaSel = 0
+//				end if
+//			end if
+//		end if
+//	end if
+	
+////--- ctrl+click	per seleziona/deseleziona riga
+	if keydown( keycontrol! ) then
+//		
+//		if a_row > 0 then 
+//			if this.isselected( a_row) then
+//				this.selectrow ( a_row, false )
+//			else
+//				this.selectrow ( a_row, true )
+//			end if
+//		end if
+//		
+	else
+		 
+//--- shift+click	per selezionare tutte le righe comprese tra
+		if keydown( keyshift! ) then 
+//			this.setredraw ( false )
+//			if this.getselectedrow ( 0 ) = 0 then
+//				k_riga_ini = a_row
+//			else
+//				k_riga_ini = this.getrow()
+//			end if
+//			k_riga_fin = a_row
+//			ki_UltRigaSel = a_row
+//			if k_riga_ini > k_riga_fin then
+//				for k_row_ctr = k_riga_ini to k_riga_fin step -1 
+//					this.selectrow ( k_row_ctr, true )
+//				next
+//			else
+//				for k_row_ctr = k_riga_ini to k_riga_fin 
+//					this.selectrow ( k_row_ctr, true )
+//				next
+//			end if
+//			this.setredraw ( true )
+			if ki_UltRigaSel = 0 then ki_UltRigaSel = this.getselectedrow(0)
+			if ki_UltRigaSel < a_row then
+				for k_row_ctr = ki_UltRigaSel to a_row step 1
+					this.selectrow ( k_row_ctr, true )
+				next
+			else
+				for k_row_ctr = ki_UltRigaSel to a_row step -1
+					this.selectrow ( k_row_ctr, true )
+				next
+			end if
+			
+		else
+	
+	//--- solo click		
+			//if a_row > 0 then
+			//	if not this.isselected(a_row) then
+				//	this.selectrow ( 0, false )
+				//	this.selectrow ( a_row, true )
+			//	end if
+			//end if 
+		end if 
+		
+	end if
+
+	if a_row > 0 then
+		ki_UltRigaSel = a_row
+		this.setrow(a_row)
+	end if
+	
+end if
+
+
+////this.setrow( a_row )
+//if a_row > 0 then
+//	k_return = a_row
+//end if
+
+return ki_UltRigaSel 
+end function
+
+public subroutine u_proteggi ();/*
+Protegge o sproteggi campi del form per i campi con Tab-order > 0
+     Input: il datawindow e la proprietà ki_flag_modalita
+*/
+int k_ctr, k_colcount
+string k_tabsequence
+
+
+choose case this.ki_flag_modalita
+		
+	case kkg_flag_modalita.visualizzazione &
+			,kkg_flag_modalita.cancellazione 
+//		u_proteggi_dw("1", 0, adw_1) 	//--- protezione di tutto
+
+	case kkg_flag_modalita.inserimento &
+			,kkg_flag_modalita.modifica
+		k_colcount = integer(this.Describe("DataWindow.Column.Count"))
+
+		for k_ctr = 1 to k_colcount 
+
+//--- estrae Describe("<Columnname>.TabSequence")
+			k_tabsequence = trim(this.Describe("#" + trim(string(k_ctr,"###")) + ".TabSequence"))
+
+			if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
+	//			u_proteggi_dw("0", k_ctr, adw_1) 	//--- Sprotezione del campo
+			else
+	//			u_proteggi_dw("1", k_ctr, adw_1) 	//--- Sprotezione del campo
+			end if
+		
+		next
+
+end choose
+
+
+end subroutine
+
 on uo_d_std_1.create
+call super::create
 end on
 
 on uo_d_std_1.destroy
+call super::destroy
 end on
 
 event clicked;//
@@ -1945,8 +1876,6 @@ long k_x,k_x_1, k_rc
 datawindow kdw_link
 datawindowchild kdwc_link
 
-
-//this.setredraw(false)
 
 k_name = trim(dwo.Name)
 

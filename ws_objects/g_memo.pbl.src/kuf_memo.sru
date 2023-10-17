@@ -62,10 +62,10 @@ public function st_memo get_st_memo ()
 public subroutine set_st_memo (st_memo kst_memo)
 public function long aggiorna (st_memo ast_memo) throws uo_exception
 private subroutine aggiorna_altri_archivi (st_memo ast_memo) throws uo_exception
-public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo)
 public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception
 private subroutine u_open_window_old (string a_flag_modalita)
 public function st_memo get_st_memo_da_ds (ref datastore ads_1) throws uo_exception
+public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo) throws uo_exception
 end prototypes
 
 public function long get_ult_id_memo () throws uo_exception;//
@@ -635,7 +635,7 @@ if ast_tab_memo.id_memo > 0 then
 
 //--- cancella prima gli Archivi correlati 
 	kst_tab_memo = ast_tab_memo
-	kst_tab_memo.st_tab_g_0.esegui_commit = "N"
+	kst_tab_memo.st_tab_g_0.esegui_commit = "N" 
 	tb_delete_altri_archivi(kst_tab_memo) 
 		
 //--- cancella il MEMO	
@@ -1388,7 +1388,7 @@ ast_memo.st_tab_sl_pt_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
 if trim(ast_memo.st_tab_sl_pt_memo.cod_sl_pt) > " " then
 	kuf1_sl_pt.memo_save(ast_memo.st_tab_sl_pt_memo)
 else	
-	kuf1_sl_pt.tb_delete(ast_memo.st_tab_sl_pt_memo)
+	kuf1_sl_pt.tb_delete(ast_memo.st_tab_sl_pt_memo) 
 end if
 
 //---- aggiorna Avvisi memo 
@@ -1405,76 +1405,6 @@ if ast_memo.st_tab_memo.tipo_sv > " " then
 		kuf1_memo_utenti.memo_save(kst_tab_memo_utenti)
 	end for
 end if
-end subroutine
-
-public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo);//
-st_tab_clienti_memo kst_tab_clienti_memo
-st_tab_meca_memo kst_tab_meca_memo
-st_tab_sl_pt_memo kst_tab_sl_pt_memo
-st_tab_memo_utenti kst_tab_memo_utenti
-st_tab_memo_link kst_tab_memo_link
-st_tab_meca_ddt_in kst_tab_meca_ddt_in
-st_esito kst_esito
-kuf_memo_link kuf1_memo_link
-kuf_memo_utenti kuf1_memo_utenti
-kuf_clienti kuf1_clienti
-kuf_armo_inout kuf1_armo_inout
-kuf_sl_pt kuf1_sl_pt
-kuf_meca_ddt_in kuf1_meca_ddt_in
-
-
-try 
-
-//--- cancella prima il link agli allegati
-		kuf1_memo_link = create kuf_memo_link
-		kst_tab_memo_link.id_memo = ast_tab_memo.id_memo 
-		kst_tab_memo_link.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
-		kuf1_memo_link.tb_delete_x_id_memo(kst_tab_memo_link)
-
-//--- cancella il MEMO nel cliente		
-		kuf1_clienti = create kuf_clienti
-		kst_tab_clienti_memo.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
-		kst_tab_clienti_memo.id_memo = ast_tab_memo.id_memo
-		kuf1_clienti.tb_delete(kst_tab_clienti_memo)
-//--- cancella il MEMO nel Lotto		
-		kuf1_armo_inout = create kuf_armo_inout
-		kst_tab_meca_memo.st_tab_g_0.esegui_commit =  ast_tab_memo.st_tab_g_0.esegui_commit
-		kst_tab_meca_memo.id_memo = ast_tab_memo.id_memo
-		kuf1_armo_inout.tb_delete(kst_tab_meca_memo)
-//--- cancella il MEMO nel PT		
-		kuf1_sl_pt = create kuf_sl_pt
-		kst_tab_sl_pt_memo.st_tab_g_0.esegui_commit =  ast_tab_memo.st_tab_g_0.esegui_commit
-		kst_tab_sl_pt_memo.id_memo = ast_tab_memo.id_memo
-		kuf1_sl_pt.tb_delete(kst_tab_sl_pt_memo)
-//--- cancella Avviso MEMO Utenti
-		kuf1_memo_utenti = create kuf_memo_utenti
-		kst_tab_memo_utenti.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
-		kst_tab_memo_utenti.id_memo = ast_tab_memo.id_memo
-		kuf1_memo_utenti.tb_delete(kst_tab_memo_utenti)
-//--- cancella riferimento al MEMO (DDT mittente)
-		kuf1_meca_ddt_in = create kuf_meca_ddt_in
-		kst_tab_meca_ddt_in.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
-		kst_tab_meca_ddt_in.id_memo = ast_tab_memo.id_memo
-		kuf1_meca_ddt_in.tb_delete_x_id_memo(kst_tab_meca_ddt_in)
-
-
-//finally 
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_memo_link) then destroy kuf1_memo_link 
-	if isvalid(kuf1_clienti) then destroy kuf1_clienti 
-	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout 
-	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt 
-	if isvalid(kuf1_memo_utenti) then destroy kuf1_memo_utenti 
-	if isvalid(kuf1_meca_ddt_in) then destroy kuf1_meca_ddt_in 
-	
-end try
-
-
-
 end subroutine
 
 public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception;//
@@ -1607,6 +1537,76 @@ kuf_meca_memo kuf1_meca_memo
 return kst_memo
 
 end function
+
+public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo) throws uo_exception;//
+st_tab_clienti_memo kst_tab_clienti_memo
+st_tab_meca_memo kst_tab_meca_memo
+st_tab_sl_pt_memo kst_tab_sl_pt_memo
+st_tab_memo_utenti kst_tab_memo_utenti
+st_tab_memo_link kst_tab_memo_link
+st_tab_meca_ddt_in kst_tab_meca_ddt_in
+st_esito kst_esito
+kuf_memo_link kuf1_memo_link
+kuf_memo_utenti kuf1_memo_utenti
+kuf_clienti kuf1_clienti
+kuf_armo_inout kuf1_armo_inout
+kuf_sl_pt kuf1_sl_pt
+kuf_meca_ddt_in kuf1_meca_ddt_in
+ 
+
+try 
+
+//--- cancella prima il link agli allegati
+		kuf1_memo_link = create kuf_memo_link
+		kst_tab_memo_link.id_memo = ast_tab_memo.id_memo 
+		kst_tab_memo_link.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
+		kuf1_memo_link.tb_delete_x_id_memo(kst_tab_memo_link)
+
+//--- cancella il MEMO nel cliente		
+		kuf1_clienti = create kuf_clienti
+		kst_tab_clienti_memo.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
+		kst_tab_clienti_memo.id_memo = ast_tab_memo.id_memo
+		kuf1_clienti.tb_delete(kst_tab_clienti_memo)
+//--- cancella il MEMO nel Lotto		
+		kuf1_armo_inout = create kuf_armo_inout
+		kst_tab_meca_memo.st_tab_g_0.esegui_commit =  ast_tab_memo.st_tab_g_0.esegui_commit
+		kst_tab_meca_memo.id_memo = ast_tab_memo.id_memo
+		kuf1_armo_inout.tb_delete(kst_tab_meca_memo)
+//--- cancella il MEMO nel PT		
+		kuf1_sl_pt = create kuf_sl_pt
+		kst_tab_sl_pt_memo.st_tab_g_0.esegui_commit =  ast_tab_memo.st_tab_g_0.esegui_commit
+		kst_tab_sl_pt_memo.id_memo = ast_tab_memo.id_memo
+		kuf1_sl_pt.tb_delete(kst_tab_sl_pt_memo)
+//--- cancella Avviso MEMO Utenti
+		kuf1_memo_utenti = create kuf_memo_utenti
+		kst_tab_memo_utenti.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
+		kst_tab_memo_utenti.id_memo = ast_tab_memo.id_memo
+		kuf1_memo_utenti.tb_delete(kst_tab_memo_utenti)
+//--- cancella riferimento al MEMO (DDT mittente)
+		kuf1_meca_ddt_in = create kuf_meca_ddt_in
+		kst_tab_meca_ddt_in.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
+		kst_tab_meca_ddt_in.id_memo = ast_tab_memo.id_memo
+		kuf1_meca_ddt_in.tb_delete_x_id_memo(kst_tab_meca_ddt_in)
+
+
+//finally 
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_memo_link) then destroy kuf1_memo_link 
+	if isvalid(kuf1_clienti) then destroy kuf1_clienti 
+	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout 
+	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt 
+	if isvalid(kuf1_memo_utenti) then destroy kuf1_memo_utenti 
+	if isvalid(kuf1_meca_ddt_in) then destroy kuf1_meca_ddt_in 
+	
+end try
+
+
+
+end subroutine
 
 on kuf_memo.create
 call super::create

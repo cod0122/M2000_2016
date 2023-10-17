@@ -38,7 +38,6 @@ public function st_esito select_riga (ref st_tab_sl_pt k_st_tab_sl_pt)
 public function boolean abilita_modifica_giri ()
 public function st_esito check_formale_giri_in_lav (st_tab_sl_pt kst_tab_sl_pt)
 public subroutine if_isnull (st_tab_sl_pt kst_tab_sl_pt)
-public function string tb_delete (string k_codice)
 public function boolean link_call (ref datawindow adw_1, string a_campo_link) throws uo_exception
 public function boolean get_descr (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
 public subroutine get_misure (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
@@ -55,7 +54,7 @@ public function long get_id_sl_pt_memo_max () throws uo_exception
 public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
-public function boolean tb_delete (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception
+public function boolean tb_delete (string k_codice) throws uo_exception
 end prototypes
 
 public function st_esito select_riga (ref st_tab_sl_pt k_st_tab_sl_pt);//
@@ -302,118 +301,6 @@ if isnull(kst_tab_sl_pt.dosim_delta_bcode) then kst_tab_sl_pt.dosim_delta_bcode 
 if isnull(kst_tab_sl_pt.dosim_et_descr) then kst_tab_sl_pt.dosim_et_descr = ""
 
 end subroutine
-
-public function string tb_delete (string k_codice);//
-//====================================================================
-//=== Cancella il rek dalla tabella sl_pt
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===   dal 2 char in poi descrizione dell'errore
-//====================================================================
-
-string k_return = "0 "
-boolean k_autorizza
-st_tab_listino kst_tab_listino
-string k_rag_soc
-st_esito kst_esito
-//st_open_w kst_open_w
-//kuf_sicurezza kuf1_sicurezza
-
-
-//kst_open_w = kst_open_w
-//kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-//kst_open_w.id_programma = kkg_id_programma_sl_pt
-//
-////--- controlla se utente autorizzato alla funzione in atto
-//kuf1_sicurezza = create kuf_sicurezza
-//k_autorizza = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-//destroy kuf1_sicurezza
-
-try
-	k_autorizza = if_sicurezza(kkg_flag_modalita.cancellazione)
-	
-	if not k_autorizza then
-	
-		k_return = "1" + "La funzione richiesta non e' stata abilitata"
-	
-	else
-	
-	
-	//=== Controllo se codice presente su CONTRATTI/LISTINI
-		DECLARE listino CURSOR FOR  
-			  SELECT listino.cod_cli,
-						listino.cod_art,
-						clienti.rag_soc_10,
-						listino.id,
-						contratti.codice
-				FROM contratti LEFT OUTER JOIN listino ON 
-					  contratti.codice = listino.contratto  
-									 left outer join clienti on 
-						listino.cod_cli = clienti.codice
-				WHERE contratti.sl_pt = :k_codice 
-						using kguo_sqlca_db_magazzino;
-	
-	
-		open listino;
-		if kguo_sqlca_db_magazzino.sqlCode = 0 then
-		
-			fetch listino INTO 
-			             :kst_tab_listino.cod_cli,
-						:kst_tab_listino.cod_art,
-						:k_rag_soc,
-						:kst_tab_listino.id,
-						:kst_tab_listino.contratto
-						;
-		
-			if kguo_sqlca_db_magazzino.sqlCode = 0 then
-				k_return = "2" + "Piano di Trattamento su Listino " + string(kst_tab_listino.id) + ", cliente:  ~n~r" + &
-					string(kst_tab_listino.cod_cli, "#") + " - " + trim(k_rag_soc) + "  ~n~r Articolo: " + &
-					trim(kst_tab_listino.cod_art) + "~n~r" 	
-			end if
-			close listino;
-		end if
-			
-		if left(k_return, 1) = "0" then
-			
-			delete from sl_pt
-					where cod_sl_pt = :k_codice 
-						using kguo_sqlca_db_magazzino;
-		
-			if kguo_sqlca_db_magazzino.sqlCode <> 0 then
-		
-				k_return = "1" + kguo_sqlca_db_magazzino.SQLErrText
-
-			else
-				
-//--- Rimuove le posizioni dei dosimetri
-				delete 
-					from sl_pt_dosimpos
-					WHERE cod_sl_pt = :k_codice
-					using kguo_sqlca_db_magazzino;
-
-//--- Rimuove i MEMO
-				delete 
-					from sl_pt_memo
-					WHERE cod_sl_pt = :k_codice
-					using kguo_sqlca_db_magazzino;
-					
-			end if
-			
-			kguo_sqlca_db_magazzino.db_commit()
-			
-		end if
-	end if
-
-catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	k_return = "1" + trim(kst_esito.SQLErrText) + " (" +trim(this.classname()) + ")"
-	
-	
-end try
-
-return k_return
-end function
 
 public function boolean link_call (ref datawindow adw_1, string a_campo_link) throws uo_exception;//--------------------------------------------------------------------------------------------------------------
 //--- Attiva LINK cliccato (funzione di ZOOM)
@@ -1376,46 +1263,132 @@ st_esito kst_esito
 
 end subroutine
 
-public function boolean tb_delete (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception;/*
- Cancella rek nella tabella Trattamenti Impianto G3
- Inp: st_tab_sl_pt_g3.id_sl_pt_g3
- Rit:  TRUE=OK; 
+public function boolean tb_delete (string k_codice) throws uo_exception;/*
+  Cancella il rek dalla tabella sl_pt e i dati correlati
+  Inp: codice cod_sl_pt
+  
 */
-boolean k_return
+boolean k_return 
+boolean k_open_listino
+st_tab_listino kst_tab_listino
+string k_rag_soc
 st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+try
 
-if ast_tab_sl_pt_g3.id_sl_pt_g3 > 0 then
+	kst_esito = kguo_exception.inizializza(this.classname())
+	if_sicurezza(kkg_flag_modalita.cancellazione)
 	
-	delete 
-			from sl_pt_g3
-			WHERE id_sl_pt_g3 = :ast_tab_sl_pt_g3.id_sl_pt_g3 
-			using kguo_sqlca_db_magazzino;
+	//=== Controllo se codice presente su CONTRATTI/LISTINI
+	DECLARE listino CURSOR FOR  
+			  SELECT listino.cod_cli,
+						listino.cod_art,
+						clienti.rag_soc_10,
+						listino.id,
+						contratti.codice
+				FROM contratti LEFT OUTER JOIN listino ON 
+					  contratti.codice = listino.contratto  
+									 left outer join clienti on 
+						listino.cod_cli = clienti.codice
+				WHERE contratti.sl_pt = :k_codice 
+						using kguo_sqlca_db_magazzino;
+	
+	
+	open listino;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' " &
+														+ ", durante tentativo di lettura del Listino.")
+		throw kguo_exception
+	end if
+	
+	k_open_listino = true
+	
+	fetch listino INTO 
+					:kst_tab_listino.cod_cli,
+					:kst_tab_listino.cod_art,
+					:k_rag_soc,
+					:kst_tab_listino.id,
+					:kst_tab_listino.contratto
+					;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' " &
+														+ ", durante lettura del Listino.")
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlCode = 0 then
 			
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
-						"Errore in Cancellazione dati Trattamento Impianto G3, Id " + string(ast_tab_sl_pt_g3.id_sl_pt_g3))
-		if ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_rollback( )
-		end if
+										"Piano di Trattamento su Listino " + string(kst_tab_listino.id) + ", cliente:  " &
+										+ kkg.acapo + 	string(kst_tab_listino.cod_cli, "#") + " - " + trim(k_rag_soc) + " " &
+										+ kkg.acapo + "Articolo: " + trim(kst_tab_listino.cod_art) + " ")
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+		
+	end if
 
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito( kst_esito)
+	delete from sl_pt
+			where cod_sl_pt = :k_codice 
+				using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' ")
 		throw kguo_exception
 	end if
 		
-	if ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sl_pt_g3.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_commit( )
+//--- Rimuove le posizioni dei dosimetri
+	delete 
+		from sl_pt_dosimpos
+		WHERE cod_sl_pt = :k_codice
+		using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' " &
+														+ ", durante rimozione delle Posizioni dei Dosimetri.")
+		throw kguo_exception
 	end if
 
+//--- Rimuove dati G3
+	delete 
+		from sl_pt_g3
+		WHERE cod_sl_pt = :k_codice
+		using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' " &
+														+ ", durante rimozione dati Trattamento Impianto G3.")
+		throw kguo_exception
+	end if
+
+//--- Rimuove i MEMO
+	delete 
+		from sl_pt_memo
+		WHERE cod_sl_pt = :k_codice
+		using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Piano di Trattamento '" + trim(k_codice) + "' " &
+														+ ", durante rimozione dati Memo collegati.")
+		throw kguo_exception
+	end if
+
+	kguo_sqlca_db_magazzino.db_commit()
+	
 	k_return = true
 
-end if
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	
+	kguo_sqlca_db_magazzino.db_rollback()
+	
+	throw kuo_exception
+	
+finally
+	if k_open_listino then
+		close listino;
+	end if
+
+	
+end try
 
 return k_return
-
 end function
 
 on kuf_sl_pt.create

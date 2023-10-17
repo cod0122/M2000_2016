@@ -56,6 +56,7 @@ try
 
 	if_sicurezza(kkg_flag_modalita.anteprima)  // verifica sicurezza
 
+	SetPointer(kkg.pointer_attesa)
 	kdsi_elenco_output = create uo_ds_std_1
 
 	kst_esito = kguo_exception.inizializza(this.classname())
@@ -130,9 +131,9 @@ try
 			kguo_exception.setmessage(u_get_errmsg_nontrovato(kkg_flag_modalita.elenco))
 			throw kguo_exception
 		
-	end if
+		end if
 
-end if
+	end if
 
 
 catch (uo_exception kuo_exception)
@@ -141,6 +142,7 @@ catch (uo_exception kuo_exception)
 finally 
 	if isvalid(kuf1_asdrackcode) then destroy kuf1_asdrackcode
 	if isvalid(kuf1_elenco) then destroy kuf1_elenco
+	SetPointer(kkg.pointer_default)
 	
 
 end try

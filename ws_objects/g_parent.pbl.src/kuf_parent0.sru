@@ -165,7 +165,7 @@ public function string u_get_errmsg_nontrovato (string a_modalita);//
 //--- passare la modalita altrimenti nulla
 //
 if trim(a_modalita) > " " then
-	return "Nessun " + ki_msgErrOggetto + " disponibile (" + this.get_id_programma(a_modalita) + "). " 
+	return "Nessun " + ki_msgErrOggetto + " disponibile. <" + this.get_id_programma(a_modalita) + "> " 
 else
 	return "Nessun " + ki_msgErrOggetto + " disponibile. " 
 end if

@@ -107,6 +107,9 @@ choose case a_button
 	case "b_listino_pregruppo"
 		k_return = "id_listino_pregruppo"
 
+	case "k_cod_sl_pt"
+		k_return = "cod_sl_pt"
+		
 //	case "b_qtna_note"
 //		k_return = "b_qtna_note"
 
@@ -136,7 +139,8 @@ choose case a_button
 		, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
 		, "b_email_rubrica" &
 	   , "b_asdrackbarcode", "b_asdrackbarcode_1" &
-		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print"
+		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print" &
+		, "b_sl_pt_g3"
 		k_return = a_button
 		
 		
@@ -296,6 +300,11 @@ string k_num_colonne, k_nome, k_nome_orig
 						end if
 					end if
 					
+//--- In questi casi solo pointer=HyperLink!
+				case "k_cod_sl_pt"
+					adw_1.Modify("#" + trim(string(k_ctr,"###"))+".pointer = 'HyperLink!' ")
+					 
+					 
 				case "num_fatt"  //, "data_fatt" 
 					if adw_1.Object.DataWindow.Type <> "Form" then
 						if trim(adw_1.Describe("num_fatt.x"))  <> "!" then 
@@ -505,6 +514,9 @@ choose case k_nome_link
 		
 	case "k_hyperlink", "url_cust_packing_in", "url"
 		kuf1_parent = create using "kuf_webbrowser"
+		
+	case "b_sl_pt_g3"
+		kuf1_parent = create using "kuf_sl_pt_g3"
 
 	case else
 		k_return = false
@@ -533,10 +545,12 @@ int k_len
 		k_len = 9
 	else
 		k_len = len(k_nome_cliccato)
-		if isnumber(mid(k_nome_cliccato, k_len, 1)) then // se con un numero allora accorcia
-			k_len --
-			if isnumber(mid(k_nome_cliccato, k_len, 1)) then // se con un numero allora accorcia
+		if isnumber(mid(k_nome_cliccato, k_len, 1)) then // se finale con un numero allora accorcia
+			if mid(k_nome_cliccato, k_len - 1, 2) <> 'g3' then // ECCEZIONE!
 				k_len --
+				if isnumber(mid(k_nome_cliccato, k_len, 1)) then // se finale ancora con un numero allora accorcia
+					k_len --
+				end if
 			end if
 			if mid(k_nome_cliccato, k_len, 1) = "_" then // se c'e' un "_" (underscore) allora accorcia
 				k_len --

@@ -21,6 +21,7 @@ private boolean ki_cambio_giri_autorizzato=false
 private boolean ki_b_reset_proposta=false
 private st_tab_sl_pt kist_tab_sl_pt_orig
 private kuf_sl_pt kiuf_sl_pt
+private kuf_sl_pt_g3 kiuf_sl_pt_g3
 
 end variables
 
@@ -45,154 +46,47 @@ public subroutine u_set_dw_clienti_child ()
 protected subroutine attiva_tasti_0 ()
 protected subroutine pulizia_righe ()
 protected subroutine u_pulizia_righe_dosimpos ()
-protected subroutine inizializza_3 () throws uo_exception
-protected subroutine inizializza_2 () throws uo_exception
 private subroutine u_get_path_packingformin_file ()
 private subroutine u_open_packingformin_file ()
 protected subroutine attiva_menu ()
 protected subroutine smista_funz (string k_par_in)
 private subroutine call_logtrace ()
+protected subroutine inizializza_6 () throws uo_exception
+protected subroutine inizializza_4 () throws uo_exception
+protected subroutine inizializza_3 () throws uo_exception
+protected subroutine u_pulizia_righe_g3 ()
+private subroutine u_put_video_g3cicli (st_tab_g3cicli ast_tab_g3cicli)
+public function datawindowchild u_getchild_g3cicli_codice ()
+public function st_tab_g3cicli u_get_st_tab_g3cicli (string a_g3cicli_codice)
 end prototypes
 
 private function integer inserisci ();//
 int k_return=1, k_ctr
-string k_errore="0 "
-date k_data
-string k_codice
-long k_riga
-//datawindowchild kdwc_cliente, kdwc_cliente_1, kdwc_cliente_2 
-//kuf_base kuf1_base
+long k_row
 
 
-//=== Controllo se ho modificato dei dati nella DW DETTAGLIO
-//if left(dati_modif(""), 1) = "1" then //Richisto Aggiornamento
-
-//=== Controllo congruenza dei dati caricati e Aggiornamento  
-//=== Ritorna 1 char : 0=tutto OK; 1=errore grave;
-//===                : 2=errore non grave dati aggiornati;
-//===			         : 3=LIBERO
-//===      il resto della stringa contiene la descrizione dell'errore   
-//	k_errore = aggiorna_dati()
-
-//end if
-
-
-if LeftA(k_errore, 1) = "0" then
-
-//=== Pulizia dei campi
 	attiva_tasti()
 
 //=== Aggiunge una riga al data windows
 	choose case tab_1.selectedtab 
 		case  1 
-	
-//			tab_1.tabpage_1.dw_1.getchild("clienti_a_rag_soc_1", kdwc_cliente)
-
-//			kdwc_cliente.settransobject(sqlca)
-	
 			tab_1.tabpage_1.dw_1.insertrow(0)
-			
-//			tab_1.tabpage_1.dw_1.setitem(1, "cod_sl_pt", "")
-			
 			tab_1.tabpage_1.dw_1.setcolumn(1)
 			
 		case 2 // posizioni dosimetri
-			k_riga = tab_1.tabpage_2.dw_2.insertrow(0)
-			tab_1.tabpage_2.dw_2.setitem(k_riga, "seq", k_riga*10)
+			k_row = tab_1.tabpage_2.dw_2.insertrow(0)
+			tab_1.tabpage_2.dw_2.setitem(k_row, "seq", k_row*10)
 			tab_1.tabpage_2.dw_2.setcolumn("dosimpos_codice")
 			
-		case 3 // dati listino
-			k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "codice")
-////=== Riempe indirizzo di Spedizione da DW_1
-//			if k_codice > 0 then
-//				k_riga = tab_1.tabpage_2.dw_2.insertrow(0)
-//	
-//				tab_1.tabpage_2.dw_2.setitem(k_riga, "codice", k_codice)
-//				tab_1.tabpage_2.dw_2.setitem(k_riga, "clie_3", k_codice)
-//	
-//				tab_1.tabpage_2.dw_2.scrolltorow(k_riga)
-//				tab_1.tabpage_2.dw_2.setrow(k_riga)
-//				tab_1.tabpage_2.dw_2.setcolumn(1)
-//			end if
-//			
-//		case 3 // Listino
-//			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-//				 
-//			if k_id_cliente > 0 and k_codice > 0 then
-//				tab_1.tabpage_3.dw_3.Modify("codice.CheckBox.On='"+ &
-//										string(k_codice, "#####")+"'")
-//
-////=== Parametri : commessa, cliente, flag di rek commessa + altri prot non abbinati
-//				if tab_1.tabpage_3.dw_3.retrieve(k_codice, k_id_cliente, 1) > 0 then
-//					tab_1.tabpage_3.dw_3.scrolltorow(1)
-//					tab_1.tabpage_3.dw_3.setrow(1)
-//					tab_1.tabpage_3.dw_3.setcolumn(1)
-////=== Imposto il protocollo messo in testata
-//					k_id_protocollo = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_protocollo")
-//					if k_id_protocollo > 0 then 
-//						k_ctr = tab_1.tabpage_3.dw_3.find("id_protocollo=" + &
-//											string(k_id_protocollo, "#####"), 0, &
-//											tab_1.tabpage_3.dw_3.rowcount())
-//						if k_ctr > 0 then 
-//							if tab_1.tabpage_3.dw_3.getitemnumber(k_ctr, "codice") = 0 or & 
-//								isnull(tab_1.tabpage_3.dw_3.getitemnumber(k_ctr, "codice")) then 
-//							
-//								tab_1.tabpage_3.dw_3.setitem(k_ctr, "codice", k_codice)
-//							end if
-//						end if
-//					end if
-//
-//				end if
-//			end if
-//
-			
-		case 4 
-//			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-	
-//			if k_codice > 0 then
-//				k_riga = tab_1.tabpage_4.dw_4.insertrow(0)
-//
-//				tab_1.tabpage_4.dw_4.setitem(k_riga, "codice", k_codice)
-//				tab_1.tabpage_4.dw_4.scrolltorow(k_riga)
-//				tab_1.tabpage_4.dw_4.setrow(k_riga)
-//				tab_1.tabpage_4.dw_4.setcolumn(1)
-//
-////				if tab_1.tabpage_4.dw_41.rowcount() = 0 then
-////					k_riga = tab_1.tabpage_4.dw_41.insertrow(0)
-////
-////					tab_1.tabpage_4.dw_41.setitem(k_riga, "codice", k_codice)
-////					tab_1.tabpage_4.dw_41.scrolltorow(k_riga)
-////					tab_1.tabpage_4.dw_41.setrow(k_riga)
-////					tab_1.tabpage_4.dw_41.setcolumn(1)
-////				end if
-//			end if
-			
-//		case 5 // 
-//			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-//	
-////			if k_codice > 0 then
-//				k_riga = tab_1.tabpage_4.dw_4.insertrow(0)
-//
-//				tab_1.tabpage_4.dw_4.setitem(k_riga, "codice", k_codice)
-//				tab_1.tabpage_4.dw_4.scrolltorow(k_riga)
-//				tab_1.tabpage_4.dw_4.setrow(k_riga)
-//				tab_1.tabpage_4.dw_4.setcolumn(1)
-//
-////				if tab_1.tabpage_4.dw_41.rowcount() = 0 then
-////					k_riga = tab_1.tabpage_4.dw_41.insertrow(0)
-////
-////					tab_1.tabpage_4.dw_41.setitem(k_riga, "codice", k_codice)
-////					tab_1.tabpage_4.dw_41.scrolltorow(k_riga)
-////					tab_1.tabpage_4.dw_41.setrow(k_riga)
-////					tab_1.tabpage_4.dw_41.setcolumn(1)
-////				end if
-//			end if
+		case 4 // Impianto G3
+			k_row = tab_1.tabpage_4.dw_4.insertrow(0)
+			tab_1.tabpage_4.dw_4.setitem(k_row, "cod_sl_pt", tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt"))
+			tab_1.tabpage_4.dw_4.setcolumn("ngiri")
 			
 	end choose	
 
 	k_return = 0
 
-end if
 
 return (k_return)
 
@@ -291,27 +185,48 @@ st_tab_sl_pt kst_tab_sl_pt
 		next
 	end if
 	
+
+//--- dati Trattamenti Impianto G3	
+	k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")
+	if trim(k_codice) > " " then
+		k_riga = tab_1.tabpage_4.dw_4.getnextmodified(0, primary!)
+		do while k_riga > 0  
+			if tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "id_sl_pt_g3") > 0 then
+			else
+				tab_1.tabpage_4.dw_4.setitem(k_riga, "id_sl_pt_g3", 0)
+			end if
+			if tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "ngiri") > 0 then
+			else
+				tab_1.tabpage_4.dw_4.setitem(k_riga, "ngiri", 0)
+			end if
+			if trim(tab_1.tabpage_4.dw_4.getitemstring(k_riga, "descr")) > " " then
+			else
+				tab_1.tabpage_4.dw_4.setitem(k_riga, "descr", "")
+			end if
+			tab_1.tabpage_4.dw_4.setitem(k_riga, "cod_sl_pt", k_codice)
+			tab_1.tabpage_4.dw_4.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
+			tab_1.tabpage_4.dw_4.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
+			k_riga = tab_1.tabpage_4.dw_4.getnextmodified(k_riga, primary!)
+		loop
+	end if
 	
 end subroutine
 
-protected function integer cancella ();////
-////=== Cancellazione rekord dal DB
-////=== Ritorna : 0=OK 1=KO 2=non eseguita
-////
+protected function integer cancella ();//
+//=== Cancellazione rekord dal DB
+//=== Ritorna : 0=OK 1=KO 2=non eseguita
+//
 int k_return=0
 string k_desc, k_record, k_record_1, k_key = " "
 long  k_nro=0, k_id_fase
 string k_errore = "0 ", k_errore1 = "0 ", k_nro_fatt
 long k_riga, k_seq
 date k_data
-//kuf_sl_pt  kuf1_sl_pt
 
 
-
-//=== 
 choose case tab_1.selectedtab 
 	case 1 
-		k_record = " Piano di Trattamento SL-PT "
+		k_record = " Piano di Trattamento (PT) "
 		k_riga = tab_1.tabpage_1.dw_1.getrow()	
 		if k_riga > 0 then
 			if tab_1.tabpage_1.dw_1.getitemstatus(k_riga, 0, primary!) <> new! and &
@@ -322,110 +237,57 @@ choose case tab_1.selectedtab
 					k_desc = "senza descrizione" 
 				end if
 				k_record_1 = &
-					"Sei sicuro di voler eliminare il SL-PT~n~r" + &
-					trim(k_key) +  &
-					"~n~r" + trim(k_desc) + " ?"
+					"Sei sicuro di voler eliminare il Piano di Trattamento '" + &
+					trim(k_key) +  "' " &
+					+ kkg.acapo + trim(k_desc) + " ?"
 			else
 				tab_1.tabpage_1.dw_1.deleterow(k_riga)
 			end if
 		end if
-//	case 2
-//		k_record = " Indirizzo Commerciale "
-//		k_riga = tab_1.tabpage_2.dw_2.getrow()	
-//		if k_riga > 0 then
-//			if tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> new! and &
-//				tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
-//				k_key = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "clie_c")
-//				k_desc = tab_1.tabpage_2.dw_2.getitemstring(k_riga, "rag_soc_1_c")
-//				if isnull(k_desc) = true or trim(k_desc) = "" then
-//					k_desc = "senza ragione sociale" 
-//				end if
-//				k_record_1 = &
-//					"Sei sicuro di voler eliminare l'Indirizzo Commerciale di~n~r" + &
-//					string(k_key, "#####") + " " + trim(k_desc) + " ?"
-//			else
-//				tab_1.tabpage_2.dw_2.deleterow(k_riga)
-//			end if
-//		end if
-//	case 4
-//		k_record = " Fattura di anticipo "
-//		k_riga = tab_1.tabpage_4.dw_4.getrow()	
-//		if k_riga > 0 then
-//			if tab_1.tabpage_4.dw_4.getitemstatus(k_riga, 0, primary!) <> new! and &
-//				tab_1.tabpage_4.dw_4.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
-//				k_key = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "id_commessa")
-//				k_nro_fatt = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "id_fattura")
-//				k_data = tab_1.tabpage_4.dw_4.getitemdate(k_riga, "data_fattura")
-//				k_record_1 = &
-//					"Sei sicuro di voler eliminare la Fattura~n~r" + &
-//					trim(k_nro_fatt) + " del " + string(k_data, "dd-mm-yy") + " ?"
-//			else
-//				tab_1.tabpage_4.dw_4.deleterow(k_riga)
-//			end if
-//		end if
+
 end choose	
 
-
-
+		
 //=== Se righe in lista
-if k_riga > 0 and LenA(trim(k_key)) > 0 then
-	
-//=== Richiesta di conferma della eliminazione del rek
-	if messagebox("Elimina" + k_record, k_record_1, &
-		question!, yesno!, 1) = 1 then
- 
-//=== Cancella la riga dal data windows di lista
-		choose case tab_1.selectedtab 
-			case 1 
-				k_errore = kiuf_sl_pt.tb_delete(k_key) 
-//			case 2
-//				k_errore = kuf1_sl_pt.tb_delete_ind_comm(k_key) 
-		end choose	
-		if LeftA(k_errore, 1) = "0" then
-
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				k_return = 1
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-
-			else
-				
-				choose case tab_1.selectedtab 
-					case 1 
-						tab_1.tabpage_1.dw_1.deleterow(k_riga)
+if k_riga > 0 and trim(k_key) > " " then
+		
+	//=== Richiesta di conferma della eliminazione del rek
+	if messagebox("Cancellare " + k_record, k_record_1, question!, yesno!, 1) = 1 then
+	 
+	 	try
+	//=== Cancella la riga dal data windows di lista
+			choose case tab_1.selectedtab 
+				case 1 
+					kiuf_sl_pt.tb_delete(k_key) 
+	//			case 2
+	//				k_errore = kuf1_sl_pt.tb_delete_ind_comm(k_key) 
+			end choose	
+			
+			kGuf_data_base.db_commit()
+			
+			choose case tab_1.selectedtab 
+				case 1 
+					tab_1.tabpage_1.dw_1.deleterow(k_riga)
 //					case 2
 //						tab_1.tabpage_2.dw_2.deleterow(k_riga)
-				end choose	
-
-			end if
-
-		else
+			end choose	
+					
+		catch (uo_exception kuo_exception)
+			
+			k_errore = "1" + kuo_exception.kist_esito.sqlerrtext + " (" + string(kuo_exception.kist_esito.sqlcode) + ") " 
 			k_return = 1
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
-
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-					"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
-			attiva_tasti()
-
-		end if
-
-
+			messagebox("Cancellazione in errore", MidA(k_errore, 2))
+	
+		end try
+	
+		attiva_tasti()
+	
 	else
-		messagebox("Elimina" + k_record,  "Operazione Annullata !!")
+		messagebox("Cancellazione" + k_record,  "Operazione Annullata !!")
 		k_return = 2
 	end if
-
-
 end if
-
-
+	
 choose case tab_1.selectedtab 
 	case 1 
 		tab_1.tabpage_1.dw_1.setfocus()
@@ -434,7 +296,7 @@ choose case tab_1.selectedtab
 //		tab_1.tabpage_2.dw_2.setfocus()
 //		tab_1.tabpage_2.dw_2.setcolumn(1)
 end choose	
-
+	
 
 return k_return
 
@@ -461,12 +323,12 @@ long k_codice_1
 	if sqlca.sqlcode = 0 then
 
 		if messagebox("Piano gia' in Archivio", & 
-					"Vuoi modificare il Piano di Trattamento: ~n~r"+ &
-					trim(k_codice)+ " " +trim(k_descr), question!, yesno!, 2) = 1 then
+					"Vuoi modificare il codice del Piano di Trattamento: "  &
+					+ kkg.acapo + trim(k_codice) + " " +trim(k_descr), question!, yesno!, 2) = 1 then
 		
 //			tab_1.tabpage_1.dw_1.reset()
 
-			ki_st_open_w.flag_modalita = "mo"
+			ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 			ki_st_open_w.key1 = trim(k_codice) 
 
 			tab_1.tabpage_1.dw_1.reset()
@@ -523,12 +385,12 @@ int k_dosim_x_bcode, k_ctr, k_righe
 				k_rc = tab_1.tabpage_2.dw_2.modify( "k_dosim_x_bcode=" + string(k_dosim_x_bcode))
 			end if
 	
+			tab_1.tabpage_2.dw_2.ki_flag_modalita = tab_1.tabpage_1.dw_1.ki_flag_modalita
+			tab_1.tabpage_2.dw_2.u_proteggi_sproteggi_dw( )
 			attiva_tasti()
 			tab_1.tabpage_2.dw_2.setfocus()
 				
-		end if
-	
-		
+		end if		
 	end if
 	
 
@@ -575,7 +437,7 @@ try
 		else
 		
 			kguo_sqlca_db_magazzino.db_rollback()
-			k_return="1Fallito aggiornamento archivio '" + tab_1.tabpage_1.text + "' ~n~r" 
+			k_return="1Fallito aggiornamento archivio '" + tab_1.tabpage_1.text + "' " + kkg.acapo 
 			
 		end if
 	end if
@@ -595,7 +457,7 @@ try
 				kguo_exception.inizializza(this.classname())
 				kguo_exception.kist_esito.esito = kkg_esito.db_ko
 				kguo_exception.kist_esito.sqlerrtext = &
-					     "Fallito aggiornamento archivio '" + tab_1.tabpage_2.text + "' ~n~r" &
+					     "Fallito aggiornamento archivio '" + tab_1.tabpage_2.text + "' " + kkg.acapo &
 				         + "Errore: " + trim(tab_1.tabpage_2.dw_2.kist_esito.sqlerrtext) &
 							+ " (" + string(tab_1.tabpage_2.dw_2.kist_esito.sqlcode) + ")"
 				throw kguo_exception
@@ -605,21 +467,47 @@ try
 			
 		end if
 	end if
+
+//=== Aggiorna, se modificato, la TABPAGE_4
+	if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0 OR &
+		tab_1.tabpage_4.dw_4.getnextmodified(0, delete!) > 0 OR &
+		tab_1.tabpage_4.dw_4.deletedcount( ) > 0 &
+		then
 	
-	//=== Aggiorna, se modificato, la TABPAGE_3
-	if tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0 OR &
-		tab_1.tabpage_3.dw_3.getnextmodified(0, delete!) > 0 OR &
-		tab_1.tabpage_3.dw_3.deletedcount( ) > 0 then
+		if tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt") > " " then
+			
+	//--- update dati Trattamenti G3			
+			k_rc = tab_1.tabpage_4.dw_4.update()
+			
+			if k_rc < 0 then
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.kist_esito.esito = kkg_esito.db_ko
+				kguo_exception.kist_esito.sqlerrtext = &
+					     "Fallito aggiornamento archivio '" + tab_1.tabpage_4.text + "' " + kkg.acapo &
+				         + "Errore: " + trim(tab_1.tabpage_4.dw_4.kist_esito.sqlerrtext) &
+							+ " (" + string(tab_1.tabpage_4.dw_4.kist_esito.sqlcode) + ")"
+				throw kguo_exception
+			end if
+			
+			k_rc = tab_1.tabpage_4.dw_4.resetupdate()
+			
+		end if
+	end if
+	
+	//=== Aggiorna, se modificato, la TABPAGE_5
+	if tab_1.tabpage_5.dw_5.getnextmodified(0, primary!) > 0 OR &
+		tab_1.tabpage_5.dw_5.getnextmodified(0, delete!) > 0 OR &
+		tab_1.tabpage_5.dw_5.deletedcount( ) > 0 then
 	
 		kuf1_asdslpt = create kuf_asdslpt
 		
-		k_rows = tab_1.tabpage_3.dw_3.rowcount( )
+		k_rows = tab_1.tabpage_5.dw_5.rowcount( )
 	
 		for k_row = 1 to k_rows
 			
-			kst_tab_asdslpt.id_asdslpt = tab_1.tabpage_3.dw_3.getitemnumber(k_row, "id_asdslpt")
+			kst_tab_asdslpt.id_asdslpt = tab_1.tabpage_5.dw_5.getitemnumber(k_row, "id_asdslpt")
 			
-			k_associato = tab_1.tabpage_3.dw_3.getitemnumber(k_row, "k_associato")
+			k_associato = tab_1.tabpage_5.dw_5.getitemnumber(k_row, "k_associato")
 			
 			if kst_tab_asdslpt.id_asdslpt > 0 then
 				if k_associato = 0 then  // associazione da rimuovere 
@@ -631,7 +519,7 @@ try
 				if k_associato = 1 then  // associazione da caricare
 				
 					kst_tab_asdslpt.cod_sl_pt = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")
-					kst_tab_asdslpt.id_asddevice = tab_1.tabpage_3.dw_3.getitemnumber(k_row, "id_asddevice")
+					kst_tab_asdslpt.id_asddevice = tab_1.tabpage_5.dw_5.getitemnumber(k_row, "id_asddevice")
 					kuf1_asdslpt.u_add(kst_tab_asdslpt)
 				
 				end if
@@ -639,7 +527,7 @@ try
 			
 		next
 	
-		tab_1.tabpage_3.dw_3.ResetUpdate()
+		tab_1.tabpage_5.dw_5.ResetUpdate()
 
 
 	end if
@@ -676,11 +564,8 @@ string  k_key
 string k_fine_ciclo=""
 int k_ctr=0
 int k_err_ins, k_rc
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 kuf_sl_pt_cambio_giri kuf1_sl_pt_cambio_giri
-
-//=== 
-//tab_1.tabpage_4.dw_41.settransobject(sqlca)
 
 
 if tab_1.tabpage_1.dw_1.rowcount() = 0 then
@@ -758,24 +643,20 @@ end if
 ki_cambio_giri_autorizzato = false
 ki_b_reset_proposta = false
 
+	tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
+	tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw( )
 //--- Inabilita campi alla modifica se Vsualizzazione
-   kuf1_utility = create kuf_utility 
    if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.visualizzazione or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.cancellazione then
 	
-      kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
-
 	else		
 //--- popola dw child dw clienti 
 		u_set_dw_clienti_child()
 		
 		ki_b_reset_proposta = true
 
-//--- S-protezione campi per riabilitare la modifica a parte la chiave
-      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
-
 //--- Inabilita campo cliente per la modifica se Funzione MODIFICA
 		if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
-   	   kuf1_utility.u_proteggi_dw("1", 1, tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw( "1", 1)
 		end if
 
 		try
@@ -792,7 +673,6 @@ ki_b_reset_proposta = false
 		end try
 
 	end if
-	destroy kuf1_utility
 	
 
 return "0"
@@ -809,37 +689,39 @@ protected function string check_dati ();//
 
 string k_return = ""
 string k_errore = "0"
-long k_nr_righe
-int k_riga, k_num_file=0, k_num_file_p=0, k_num_diff_giri_fila1, k_num_diff_giri_fila2
+int k_rows
+int k_row, k_row_next, k_row_find
+int k_num_file=0, k_num_file_p=0, k_num_diff_giri_fila1, k_num_diff_giri_fila2
 int k_nr_errori
 string k_key_str, k_rcx
 string k_stato, k_tipo
 string k_key
+st_tab_sl_pt_g3 kst_tab_sl_pt_g3
 
 
 
 //=== Controllo il primo tab
-	k_nr_righe = tab_1.tabpage_1.dw_1.rowcount()
+	k_rows = tab_1.tabpage_1.dw_1.rowcount()
 	k_nr_errori = 0
-	k_riga = 1
+	k_row = 1
 
-	k_key = tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "cod_sl_pt") 
+	k_key = tab_1.tabpage_1.dw_1.getitemstring ( k_row, "cod_sl_pt") 
 	if isnull(k_key) or LenA(trim(k_key)) = 0 then
 		k_return = tab_1.tabpage_1.text + ": Manca il codice SL-PT! " + "~n~r"
 		k_errore = "3"
 		k_nr_errori++
 	end if
-	if isnull(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "descr")) = true then
+	if isnull(tab_1.tabpage_1.dw_1.getitemstring ( k_row, "descr")) = true then
 		k_return = k_return + tab_1.tabpage_1.text + ": Manca la descrizione; " + "~n~r" 
 		k_errore = "3"
 		k_nr_errori++
 	end if
 
 	if k_errore = "0" then
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dose_min") > 0  &
-		   and (tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dose_min") >   &
-		    tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dose_max")  &
-			 or isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dose_max"))) then
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dose_min") > 0  &
+		   and (tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dose_min") >   &
+		    tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dose_max")  &
+			 or isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dose_max"))) then
 			k_return = k_return + tab_1.tabpage_1.text + ": Dose Massima minore della Minima; " &
 			           + "~n~r" 
 			k_errore = "1"
@@ -847,9 +729,9 @@ string k_key
 		end if
 	end if
 	if k_errore = "0" then
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgminmin") > 0  &
-		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgminmin") >   &
-		    tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgminmax")  &
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmin") > 0  &
+		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmin") >   &
+		    tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmax")  &
 			 then
 			k_return = k_return + tab_1.tabpage_1.text + ": valore Massimo di 'Dose Target Minima' minore del Minimo; " &
 			           + "~n~r" 
@@ -858,9 +740,9 @@ string k_key
 		end if
 	end if
 	if k_errore = "0" then
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmin") > 0  &
-		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmin") >   &
-		    tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmax")  &
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") > 0  &
+		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") >   &
+		    tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmax")  &
 			 then
 			k_return = k_return + tab_1.tabpage_1.text + ": valore Massimo di 'Dose Target Massima' minore del Minimo; " &
 			           + "~n~r" 
@@ -869,9 +751,9 @@ string k_key
 		end if
 	end if
 	if k_errore = "0" then
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmin") > 0  &
-		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmin") >   &
-		    tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "dosetgmaxmax")  &
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") > 0  &
+		   and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") >   &
+		    tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmax")  &
 			 then
 			k_return = k_return + tab_1.tabpage_1.text + ": valore Massimo di 'Dose Target Massima' minore del Minimo; " &
 			           + "~n~r" 
@@ -881,11 +763,11 @@ string k_key
 	end if
 
 //--- il file deve iniziare con il BARRA di inizio cartella, se non c'è l'aggiunge
-	k_rcx = trim(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "packingformin_file"))
+	k_rcx = trim(tab_1.tabpage_1.dw_1.getitemstring ( k_row, "packingformin_file"))
    if k_rcx> " " then
 	   if left(k_rcx, 1) = kkg.path_sep then
 		else
-	      tab_1.tabpage_1.dw_1.setitem( k_riga, "packingformin_file", (kkg.path_sep + k_rcx)) 
+	      tab_1.tabpage_1.dw_1.setitem( k_row, "packingformin_file", (kkg.path_sep + k_rcx)) 
 		end if
 	end if
 
@@ -893,51 +775,51 @@ string k_key
 	if k_errore = "0" then
 		k_num_file = 0           // numero file valorizzate
 		k_num_file_p = 0         // numero file permutate valorizzate 
-		if isnull(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "tipo_cicli")) = true then
-			tab_1.tabpage_1.dw_1.setitem( k_riga, "tipo_cicli", "0") 
+		if isnull(tab_1.tabpage_1.dw_1.getitemstring ( k_row, "tipo_cicli")) = true then
+			tab_1.tabpage_1.dw_1.setitem( k_row, "tipo_cicli", "0") 
 		end if
 //--- quante 'file' sono valorizzate?		
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1") > 0 then
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1") > 0 then
 			k_num_file++
-		   if isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1p")) then
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_1p", tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1"))
+		   if isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1p")) then
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_1p", tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1"))
 			end if
 		else
-			if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1p") > 0 &
-		      and (isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1")) &
-		       or tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1") = 0) then
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_1", 0)
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1p") > 0 &
+		      and (isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1")) &
+		       or tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1") = 0) then
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_1", 0)
 			else
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_1", 0)
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_1p", 0)
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_1", 0)
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_1p", 0)
 			end if
 		end if
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2") > 0 then
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2") > 0 then
 			k_num_file++
-		   if isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2p")) then
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_2p", tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2"))
+		   if isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2p")) then
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_2p", tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2"))
 			end if
 		else
-			if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2p") > 0 &
-		      and (isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2")) &
-		       or tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2") = 0) then
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_2", 0)
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2p") > 0 &
+		      and (isnull(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2")) &
+		       or tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2") = 0) then
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_2", 0)
 			else
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_2", 0)
-				tab_1.tabpage_1.dw_1.setitem( k_riga, "fila_2p", 0)
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_2", 0)
+				tab_1.tabpage_1.dw_1.setitem( k_row, "fila_2p", 0)
 			end if
 		end if
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1p") > 0 then
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1p") > 0 then
 			k_num_file_p++
 		end if
-		if tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2p") > 0 then
+		if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2p") > 0 then
 			k_num_file_p++
 		end if
 
-//		k_num_diff_giri_fila1 = abs(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1") - tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_1p"))
-//		k_num_diff_giri_fila2 = abs(tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2") - tab_1.tabpage_1.dw_1.getitemnumber ( k_riga, "fila_2p"))
+//		k_num_diff_giri_fila1 = abs(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1") - tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_1p"))
+//		k_num_diff_giri_fila2 = abs(tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2") - tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "fila_2p"))
 
-		choose case tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "tipo_cicli")
+		choose case tab_1.tabpage_1.dw_1.getitemstring ( k_row, "tipo_cicli")
 //--- ciclo normale ( valorizza fila 1 o fila 2) //???? con permutazione identica )
 			case "0"
 				if (k_num_file > 1 or k_num_file_p > 1) then
@@ -962,12 +844,40 @@ string k_key
 	end if
 
 	if k_errore = "0" then
-	
-		tab_1.tabpage_1.dw_1.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
-		tab_1.tabpage_1.dw_1.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
-
-		
+		tab_1.tabpage_1.dw_1.setitem(k_row, "x_datins", kGuf_data_base.prendi_x_datins())
+		tab_1.tabpage_1.dw_1.setitem(k_row, "x_utente", kGuf_data_base.prendi_x_utente())
 	end if
+
+
+//=== Controllo Trattamenti Impianto G3
+	k_row = tab_1.tabpage_4.dw_4.getnextmodified(0, primary!)
+	k_rows = tab_1.tabpage_4.dw_4.rowcount( )
+
+	do while k_row > 0  and k_nr_errori < 10
+
+//--- verifica il codice
+		kst_tab_sl_pt_g3.id_g3ciclo = tab_1.tabpage_4.dw_4.getitemnumber( k_row, "id_g3ciclo")
+		if kst_tab_sl_pt_g3.id_g3ciclo > 0 then
+			k_row_find = tab_1.tabpage_4.dw_4.find("id_g3ciclo = " + string(kst_tab_sl_pt_g3.id_g3ciclo) + " ", 1, k_rows) 
+			if k_row_find > 0 and k_row_find < k_rows then
+				k_row_next = tab_1.tabpage_4.dw_4.find("id_g3ciclo = " + string(kst_tab_sl_pt_g3.id_g3ciclo) + " ", k_row_find + 1, k_rows)
+				if k_row_next > 1 then
+					k_return += tab_1.tabpage_4.text + ": Codice '" + trim(tab_1.tabpage_4.dw_4.getitemstring( k_row, "g3cicli_codice")) & 
+																	+ " id " + string(kst_tab_sl_pt_g3.id_g3ciclo) &
+																	+ "' già in archivio. " + kkg.acapo &
+																	+ "Vedi le righe " + string(k_row_find) + " e " + string(k_row_next) &
+																	+ kkg.acapo
+					k_errore = "3"
+					k_nr_errori++
+				end if
+			end if
+			
+		end if
+	
+		k_row = tab_1.tabpage_4.dw_4.getnextmodified(k_row, primary!)
+
+	loop
+	
 
 
 return k_errore + k_return
@@ -980,6 +890,9 @@ kiuf_sl_pt = create kuf_sl_pt
 
 tab_1.tabpage_2.dw_2.modify( "k_delete.visible=1")
 tab_1.tabpage_2.dw_2.modify( "b_delete.visible=1")
+
+tab_1.tabpage_4.dw_4.modify( "k_delete.visible=1")
+tab_1.tabpage_4.dw_4.modify( "b_delete.visible=1")
 
 
 end subroutine
@@ -1240,7 +1153,6 @@ else
 				tab_1.tabpage_1.dw_1.modify( "b_reset_proposta.enabled=0")
 			end if
 
-
 		case 2
 			k_riga = tab_1.tabpage_2.dw_2.getrow()
 			if k_riga <= 0 then
@@ -1255,13 +1167,27 @@ else
 				tab_1.tabpage_2.dw_2.modify("b_delete.enabled=0") 
 			end if
 
-		case 3
+		case 4
+			k_riga = tab_1.tabpage_4.dw_4.getrow()
+			if k_riga <= 0 then
+				cb_inserisci.enabled = false
+				cb_inserisci.default = false
+				cb_cancella.enabled = false
+				cb_aggiorna.enabled = false
+			end if
+			if cb_aggiorna.enabled then
+				tab_1.tabpage_4.dw_4.modify("b_delete.enabled=1") 
+			else
+				tab_1.tabpage_4.dw_4.modify("b_delete.enabled=0") 
+			end if
+
+		case 5
 				cb_inserisci.enabled = false
 				cb_inserisci.default = false
 				//cb_aggiorna.enabled = false
 				cb_cancella.enabled = false
 
-		case 4
+		case 7
 				cb_inserisci.enabled = false
 				cb_inserisci.default = false
 				cb_aggiorna.enabled = false
@@ -1272,136 +1198,30 @@ end if
 
 end subroutine
 
-protected subroutine pulizia_righe ();//=== Oltre a confermare ACCEPTTEXT toglie righe da non UPDATE
+protected subroutine pulizia_righe ();//=== toglie righe da non UPDATE
 //
 
 u_pulizia_righe_dosimpos()
+u_pulizia_righe_g3()
+
 end subroutine
 
-protected subroutine u_pulizia_righe_dosimpos ();//=== Oltre a confermare ACCEPTTEXT toglie righe da non UPDATE
-//
+protected subroutine u_pulizia_righe_dosimpos ();//--- Toglie righe da non UPDATE
 string k_key
-long k_riga, k_ctr
+long k_rows, k_row
 
 
 
-k_riga = tab_1.tabpage_2.dw_2.rowcount ( )
-for k_ctr = k_riga to 1 step -1
+k_rows = tab_1.tabpage_2.dw_2.rowcount ( )
+for k_row = k_rows to 1 step -1
 
-	if tab_1.tabpage_2.dw_2.getitemstatus(k_ctr, 0, primary!) = newmodified! then 
-		if trim(tab_1.tabpage_2.dw_2.getitemstring(k_ctr, "dosimpos_codice")) > " " then
+	if tab_1.tabpage_2.dw_2.getitemstatus(k_row, 0, primary!) = newmodified! then 
+		if trim(tab_1.tabpage_2.dw_2.getitemstring(k_row, "dosimpos_codice")) > " " then
 		else
-			tab_1.tabpage_2.dw_2.deleterow(k_ctr)
+			tab_1.tabpage_2.dw_2.deleterow(k_row)
 		end if
 	end if
 next
-
-
-end subroutine
-
-protected subroutine inizializza_3 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
-//======================================================================
-//
-string k_codice
-string k_scelta
-
-
-
-	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
-		k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")  
-		k_scelta = trim(ki_st_open_w.flag_modalita)
-
-////=== Se cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
-//	if k_codice = 0 then
-//		inserisci()
-//		k_codice = tab_1.tabpage_4.dw_4.getitemnumber(1, "codice")  
-//	end if
-
-//=== Se tab_1 non ha righe INSERISCI_tab_1 altrimenti controllo che righe sono
-//=== Se le righe presenti non c'entrano con il cliente allora resetto		
-		if tab_1.tabpage_4.dw_4.rowcount() > 0 then
-			if tab_1.tabpage_4.dw_4.getitemstring(1, "sl_pt") <> k_codice then 
-				tab_1.tabpage_4.dw_4.reset()
-			end if
-		end if
-	
-		if tab_1.tabpage_4.dw_4.rowcount() < 1 then
-	
-//if tab_1.tabpage_4.dw_4.rowcount() = 0 then
-	
-
-//	k_key = long(mid(st_parametri.text, 3, 10))
-
-
-
-//=== Retrive 
-			if tab_1.tabpage_4.dw_4.retrieve(0, date(0), k_codice, 0) <= 0 then
-
-//			inserisci()
-			else
-				attiva_tasti()
-			end if				
-		else
-			attiva_tasti()
-		end if
-	
-		tab_1.tabpage_4.dw_4.setfocus()
-		
-	end if
-	
-
-
-
-end subroutine
-
-protected subroutine inizializza_2 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
-//======================================================================
-//
-string k_codice, k_rc
-int k_ctr, k_righe
-string k_show_all 
-
-
-	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
-		k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")  
-		
-		if trim(k_codice) > " " then 
-		
-	//=== Se le righe presenti non c'entrano con il codice della prima mappa allora resetto		
-			if tab_1.tabpage_3.dw_3.rowcount() > 0 then
-				if tab_1.tabpage_3.dw_3.getitemstring(1, "cod_sl_pt") <> k_codice then 
-					tab_1.tabpage_3.dw_3.reset()
-				end if
-			end if
-	
-			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-				k_show_all = "S"
-			else
-				k_show_all = "N"
-			end if
-				
-			k_righe = tab_1.tabpage_3.dw_3.rowcount()
-			if k_righe = 0 or tab_1.tabpage_3.dw_3.ki_flag_modalita <> ki_st_open_w.flag_modalita then
-				tab_1.tabpage_3.dw_3.ki_flag_modalita = ki_st_open_w.flag_modalita
-				k_righe = tab_1.tabpage_3.dw_3.retrieve(k_codice, k_show_all) 
-			end if
-
-			kuf_utility kuf1_utility
-			kuf1_utility = create kuf_utility 
-			kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_3.dw_3)
-			destroy kuf1_utility
-
-			attiva_tasti()
-			tab_1.tabpage_3.dw_3.setfocus()
-				
-		end if
-	
-		
-	end if
-	
-
 
 
 end subroutine
@@ -1565,6 +1385,233 @@ end try
 
 end subroutine
 
+protected subroutine inizializza_6 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_codice
+string k_scelta
+
+
+
+	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+		k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")  
+		k_scelta = trim(ki_st_open_w.flag_modalita)
+
+////=== Se cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
+//	if k_codice = 0 then
+//		inserisci()
+//		k_codice = tab_1.tabpage_7.dw_7.getitemnumber(1, "codice")  
+//	end if
+
+//=== Se tab_1 non ha righe INSERISCI_tab_1 altrimenti controllo che righe sono
+//=== Se le righe presenti non c'entrano con il cliente allora resetto		
+		if tab_1.tabpage_7.dw_7.rowcount() > 0 then
+			if tab_1.tabpage_7.dw_7.getitemstring(1, "sl_pt") <> k_codice then 
+				tab_1.tabpage_7.dw_7.reset()
+			end if
+		end if
+	
+		if tab_1.tabpage_7.dw_7.rowcount() < 1 then
+	
+//if tab_1.tabpage_7.dw_7.rowcount() = 0 then
+	
+
+//	k_key = long(mid(st_parametri.text, 3, 10))
+
+
+
+//=== Retrive 
+			if tab_1.tabpage_7.dw_7.retrieve(0, date(0), k_codice, 0) <= 0 then
+
+//			inserisci()
+			else
+				attiva_tasti()
+			end if				
+		else
+			attiva_tasti()
+		end if
+	
+		tab_1.tabpage_7.dw_7.setfocus()
+		
+	end if
+	
+
+
+
+end subroutine
+
+protected subroutine inizializza_4 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_codice, k_rc
+int k_ctr, k_righe
+string k_show_all 
+
+
+	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+		k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")  
+		
+		if trim(k_codice) > " " then 
+		
+	//=== Se le righe presenti non c'entrano con il codice della prima mappa allora resetto		
+			if tab_1.tabpage_5.dw_5.rowcount() > 0 then
+				if tab_1.tabpage_5.dw_5.getitemstring(1, "cod_sl_pt") <> k_codice then 
+					tab_1.tabpage_5.dw_5.reset()
+				end if
+			end if
+	
+			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+				k_show_all = "S"
+			else
+				k_show_all = "N"
+			end if
+				
+			k_righe = tab_1.tabpage_5.dw_5.rowcount()
+			if k_righe = 0 or tab_1.tabpage_5.dw_5.ki_flag_modalita <> ki_st_open_w.flag_modalita then
+				tab_1.tabpage_5.dw_5.ki_flag_modalita = ki_st_open_w.flag_modalita
+				k_righe = tab_1.tabpage_5.dw_5.retrieve(k_codice, k_show_all) 
+			end if
+
+			kuf_utility kuf1_utility
+			kuf1_utility = create kuf_utility 
+			kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_5.dw_5)
+			destroy kuf1_utility
+
+			attiva_tasti()
+			tab_1.tabpage_5.dw_5.setfocus()
+				
+		end if
+	
+		
+	end if
+	
+
+
+
+end subroutine
+
+protected subroutine inizializza_3 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_codice
+int k_rows, k_rc
+
+
+	u_pulizia_righe_g3()	
+
+	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+		k_codice = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt"))
+		if k_codice > " " then 
+		
+	//=== Se le righe presenti non c'entrano con il codice della prima mappa allora resetto		
+			if tab_1.tabpage_4.dw_4.rowcount() > 0 then
+				if tab_1.tabpage_4.dw_4.getitemstring(1, "cod_sl_pt") <> k_codice then 
+					tab_1.tabpage_4.dw_4.reset()
+				end if
+			end if
+	
+			k_rows = tab_1.tabpage_4.dw_4.rowcount()
+			if k_rows = 0 then
+				k_rows = tab_1.tabpage_4.dw_4.retrieve(k_codice) 
+			end if
+
+			attiva_tasti()
+			
+			if  tab_1.tabpage_4.dw_4.rowcount() = 0 and ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+				inserisci()
+			end if
+
+			tab_1.tabpage_4.dw_4.ki_flag_modalita = tab_1.tabpage_1.dw_1.ki_flag_modalita
+			tab_1.tabpage_4.dw_4.u_proteggi_sproteggi_dw( )
+
+			if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+				u_getchild_g3cicli_codice()
+			end if
+			
+			tab_1.tabpage_4.dw_4.setfocus()
+				
+		end if
+	end if
+	
+
+end subroutine
+
+protected subroutine u_pulizia_righe_g3 ();//--- Toglie righe da non UPDATE
+string k_key
+long k_rows, k_row
+
+
+
+k_rows = tab_1.tabpage_4.dw_4.rowcount ( )
+for k_row = k_rows to 1 step -1
+
+	if tab_1.tabpage_4.dw_4.getitemstatus(k_row, 0, primary!) = newmodified! then 
+		if tab_1.tabpage_4.dw_4.getitemnumber(k_row, "id_g3ciclo") > 0 then
+		else
+			tab_1.tabpage_4.dw_4.deleterow(k_row)
+		end if
+	end if
+next
+
+
+end subroutine
+
+private subroutine u_put_video_g3cicli (st_tab_g3cicli ast_tab_g3cicli);//
+
+tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_attivo", ast_tab_g3cicli.attivo)
+tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_g3ciclo", ast_tab_g3cicli.g3ciclo )
+tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_g3pass", ast_tab_g3cicli.g3pass )
+tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_descr", ast_tab_g3cicli.descr )
+tab_1.tabpage_4.dw_4.setitem( 1, "id_g3ciclo", ast_tab_g3cicli.id_g3ciclo )
+
+attiva_tasti()
+
+
+end subroutine
+
+public function datawindowchild u_getchild_g3cicli_codice ();//
+int k_rc
+string k_cod_sl_pt
+datawindowchild  kdwc_1
+		
+
+	k_cod_sl_pt = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt"))
+	if k_cod_sl_pt > " " then 
+		tab_1.tabpage_4.dw_4.getchild("g3cicli_codice", kdwc_1)
+		kdwc_1.settransobject(kguo_sqlca_db_magazzino)
+		if kdwc_1.rowcount() = 0 then
+			k_rc = kdwc_1.retrieve(k_cod_sl_pt)
+			kdwc_1.insertrow(1)
+		end if	
+	end if	
+
+return kdwc_1
+end function
+
+public function st_tab_g3cicli u_get_st_tab_g3cicli (string a_g3cicli_codice);//
+int k_row
+st_tab_g3cicli kst_tab_g3cicli
+datawindowchild  kdwc_1
+		
+		
+	kdwc_1 =	u_getchild_g3cicli_codice( )
+	if kdwc_1.rowcount() > 0 then
+		k_row = kdwc_1.find("codice = '" + trim(a_g3cicli_codice) + "'", 1, kdwc_1.rowcount())
+		if k_row > 0 then
+			kst_tab_g3cicli.attivo	= kdwc_1.getitemnumber(k_row, "attivo")  
+			kst_tab_g3cicli.g3ciclo = kdwc_1.getitemstring(k_row, "g3ciclo") 
+			kst_tab_g3cicli.g3pass 	= kdwc_1.getitemnumber(k_row, "g3pass")  
+			kst_tab_g3cicli.descr 	= kdwc_1.getitemstring(k_row, "descr")   
+			kst_tab_g3cicli.id_g3ciclo= kdwc_1.getitemnumber(k_row, "id_g3ciclo")  	
+		end if
+	end if	
+
+return kst_tab_g3cicli
+end function
+
 on w_sl_pt.create
 int iCurrent
 call super::create
@@ -1679,14 +1726,14 @@ end on
 
 event tab_1::u_constructor;//
 							// 1     2     3     4     5     6     7     8     9   
-ki_tabpage_enabled = {true, true, true, true, false, false, false, false, false} // disabilita alcune tabpage
+ki_tabpage_enabled = {true, true, true, true, true, true, true, false, false} // disabilita alcune tabpage
 super::event u_constructor( )
 
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 long backcolor = 32238571
-string text = " PT "
+string text = "Testata"
 long tabbackcolor = 32435950
 long picturemaskcolor = 31646434
 end type
@@ -1795,6 +1842,9 @@ choose case dwo.name
 	case "p_img_packingformin_file_vedi" 
 		u_open_packingformin_file()
 		
+	case else
+		super::event clicked(xpos, ypos, row, dwo)
+		
 end choose
 	
 
@@ -1889,17 +1939,12 @@ type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
 end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
-boolean visible = true
-boolean enabled = true
-string text = "Disp.Ausiliari"
 end type
 
 type dw_3 from w_g_tab_3`dw_3 within tabpage_3
 integer y = 44
 integer width = 2967
 integer height = 1232
-boolean enabled = true
-string dataobject = "d_asddevice_l_x_cod_sl_pt"
 boolean ki_link_standard_sempre_possibile = true
 end type
 
@@ -1913,7 +1958,7 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
 boolean enabled = true
-string text = "Listini"
+string text = "Impianto G3"
 ln_1 ln_1
 end type
 
@@ -1931,37 +1976,48 @@ destroy(this.ln_1)
 end on
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+boolean visible = true
 integer width = 2939
 integer height = 1116
 integer taborder = 10
 boolean enabled = true
-string dataobject = "d_clienti_listino_sl_pt"
+string dataobject = "d_sl_pt_g3_l"
+boolean ki_select_multirows = false
 end type
 
-event dw_4::getfocus;call super::getfocus;//getfocus
-if This.getSelectedRow(0) <= 0 then
-	This.SelectRow(1, TRUE)
-end if
-//
+event dw_4::itemchanged;call super::itemchanged;//
+string k_codice
 
-end event
 
-event dw_4::clicked;call super::clicked;//
-This.SetRow(row)
-This.SelectRow(0, FALSE)
-if row > 0 then
-	This.SelectRow(row, TRUE)
+if dwo.name = "g3cicli_codice" then
+   k_codice = upper(trim(data))
+	if k_codice > " " then
+		u_put_video_g3cicli( u_get_st_tab_g3cicli(k_codice) )
+	end if
 end if
 
+	
 end event
 
-event rowfocuschanged;//
-This.SelectRow(0, FALSE)
-this.SelectRow(currentrow, TRUE)
+event dw_4::buttonclicked;call super::buttonclicked;//
+string k_msg
 
-end event
-
-event dw_4::ue_dwnkey;//
+if dwo.name = "b_delete" then
+	if this.getitemnumber(row, "id_sl_pt_g3") > 0 then
+		try
+			if not kiuf_sl_pt_g3.if_delete(this.getitemnumber(row, "id_sl_pt_g3"), k_msg) then
+				messagebox("Cancellazione bloccata", k_msg, stopsign!)
+				return 0
+			end if
+		catch (uo_exception kuo_exception)
+			kuo_exception.messaggio_utente()
+			return 0
+		end try
+	end if
+	this.deleterow(row)
+	attiva_tasti()
+end if
+	
 
 end event
 
@@ -1969,38 +2025,21 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
-string text = ""
+boolean visible = true
+boolean enabled = true
+string text = "Disp.Ausiliari"
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
+boolean visible = true
 integer width = 2935
 integer height = 1172
+boolean enabled = true
+string dataobject = "d_asddevice_l_x_cod_sl_pt"
 end type
 
-event dw_5::clicked;call super::clicked;//
-This.SetRow(row)
-This.SelectRow(0, FALSE)
-if row > 0 then
-	This.SelectRow(row, TRUE)
-end if
-
-end event
-
-event dw_5::getfocus;call super::getfocus;//getfocus
-if This.getSelectedRow(0) <= 0 then
-	This.SelectRow(1, TRUE)
-end if
-//
-
-end event
-
-event rowfocuschanged;//
-This.SelectRow(0, FALSE)
-this.SelectRow(currentrow, TRUE)
-
-end event
-
-event dw_5::ue_dwnkey;//
+event dw_5::doubleclicked;call super::doubleclicked;//
+// disattiva evento
 end event
 
 type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
@@ -2016,13 +2055,37 @@ type dw_6 from w_g_tab_3`dw_6 within tabpage_6
 end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+boolean visible = true
+boolean enabled = true
+string text = "Listini"
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
 end type
 
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
+boolean visible = true
+boolean enabled = true
+string dataobject = "d_clienti_listino_sl_pt"
 end type
+
+event dw_7::rowfocuschanged;call super::rowfocuschanged;////
+//This.SelectRow(0, FALSE)
+//this.SelectRow(currentrow, TRUE)
+//
+end event
+
+event dw_7::ue_dwnkey;//
+
+end event
+
+event dw_7::getfocus;call super::getfocus;//getfocus
+if This.getSelectedRow(0) <= 0 then
+	This.SelectRow(1, TRUE)
+end if
+//
+
+end event
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 end type
