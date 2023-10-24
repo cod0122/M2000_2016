@@ -381,7 +381,6 @@ st_proteggi kst_proteggi
 
 			if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
 				if k_type = "column" then
-					//k_rcx = trim(this.Describe(k_name + ".Protect"))
 					k_modify += k_name + ".Protect='"+trim(kst_proteggi.protect)+"'" + " "
 				end if
 			end if

@@ -390,8 +390,8 @@ event u_personalizza_dw();//
 		try
 			u_set_riga_new()  // colora la riga se x_datins = dataoggi
 			
-			if ki_last_dataobject <> this.dataobject or ki_last_modalita <> kkg_flag_modalita.modifica then
-				link_standard_imposta() 
+			if ki_last_dataobject <> this.dataobject or ki_last_modalita <> ki_flag_modalita then //kkg_flag_modalita.modifica then
+				link_standard_imposta() // imposta i link graficamente
 	
 				ki_last_dataobject = this.dataobject 
 				ki_last_modalita = ki_flag_modalita
@@ -895,19 +895,14 @@ private subroutine link_standard_imposta ();//----------------------------------
 //--- Imposta nel DW i "Link Standard" ovvero mette il campo in blu con "manina" come cursore
 //---
 //-----------------------------------------------------------------------------------------------------------------------------------------------
-kuf_link_zoom kuf1_link_zoom
-
 
 //--- Se NON sono in modalita' Inserimento/Modifica oppure ho indicato LINK SEMPRE POSSIBILE 
 	if if_link_enabled( ) then
 			
-		kuf1_link_zoom = create kuf_link_zoom
-		kuf1_link_zoom.link_standard_imposta_p (kidw_this) // attiva i tasti con il LINK
+		kiuf_link_zoom.link_standard_imposta_p(kidw_this) // configura graficamente i campi per il LINK
 
 	end if
-	
-
-
+	kiuf_link_zoom.link_standard_imposta_hyperlink(kidw_this) // mette il puntatore a manina sui LINK
 
 end subroutine
 
@@ -1260,7 +1255,6 @@ string k_nome_link_button = " "
 string k_protect = "", k_taborder="", k_valore=""
 int k_taborder_n = 0
 boolean k_zoom_ok = false, k_press_KeyControl
-//kuf_link_zoom kuf1_link_zoom
 
 
 try 
@@ -1270,8 +1264,6 @@ try
 	if (ki_button_standard_attivi or ki_link_standard_attivi) then
 
 		setpointer (kkg.pointer_attesa)	
-		
-//		kuf1_link_zoom = create kuf_link_zoom
 		
 		if KeyDown(KeyControl!) then k_press_KeyControl = true
 		
@@ -1593,7 +1585,6 @@ private subroutine u_set_riga_new ();/*
 long k_num_colonne_nr, k_ctr=1, k_pos
 string k_num_colonne, k_colore, K_RET, k_str, k_colore_orig, k_str_modify=""
 string k_dataoggi_x
-kuf_link_zoom kuf1_link_zoom
 
 
 	if not ki_colora_riga_aggiornata then

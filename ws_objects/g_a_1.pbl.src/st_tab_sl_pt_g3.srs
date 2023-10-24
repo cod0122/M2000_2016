@@ -6,6 +6,11 @@ global type st_tab_sl_pt_g3 from structure
 	long		id_g3ciclo		descriptor "comment" = "ID codice cilclo e modalità"
 	integer		ngiri		descriptor "comment" = "numero giri"
 	string		descr		descriptor "comment" = "riga note"
+	datetime		proposta_data		descriptor "comment" = "data di aggiornamento dati solo proposti"
+	string		proposta_utente		descriptor "comment" = "utente di aggiornamento dati solo proposti"
+	integer		g3status		descriptor "comment" = "0=Caricato; 5=dati convalidati quindi effettivi da usare per il trattamento; 9=disatiivato"
+	datetime		convalida_data		descriptor "comment" = "data convalida"
+	string		convalida_utente		descriptor "comment" = "utente di convalida"
 	datetime		x_datins
 	string		x_utente
 end type

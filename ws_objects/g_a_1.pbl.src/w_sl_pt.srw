@@ -1563,7 +1563,7 @@ private subroutine u_put_video_g3cicli (st_tab_g3cicli ast_tab_g3cicli);//
 
 tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_attivo", ast_tab_g3cicli.attivo)
 tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_g3ciclo", ast_tab_g3cicli.g3ciclo )
-tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_g3pass", ast_tab_g3cicli.g3pass )
+tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_g3npass", ast_tab_g3cicli.g3npass )
 tab_1.tabpage_4.dw_4.setitem( 1, "g3cicli_descr", ast_tab_g3cicli.descr )
 tab_1.tabpage_4.dw_4.setitem( 1, "id_g3ciclo", ast_tab_g3cicli.id_g3ciclo )
 
@@ -1603,7 +1603,7 @@ datawindowchild  kdwc_1
 		if k_row > 0 then
 			kst_tab_g3cicli.attivo	= kdwc_1.getitemnumber(k_row, "attivo")  
 			kst_tab_g3cicli.g3ciclo = kdwc_1.getitemstring(k_row, "g3ciclo") 
-			kst_tab_g3cicli.g3pass 	= kdwc_1.getitemnumber(k_row, "g3pass")  
+			kst_tab_g3cicli.g3npass 	= kdwc_1.getitemnumber(k_row, "g3npass")  
 			kst_tab_g3cicli.descr 	= kdwc_1.getitemstring(k_row, "descr")   
 			kst_tab_g3cicli.id_g3ciclo= kdwc_1.getitemnumber(k_row, "id_g3ciclo")  	
 		end if
@@ -1839,8 +1839,15 @@ choose case dwo.name
 	   if (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
 			u_get_path_packingformin_file()
 		end if
+		
 	case "p_img_packingformin_file_vedi" 
 		u_open_packingformin_file()
+				
+	case "b_sl_pt_dosimpos" 
+		tab_1.selecttab(2)
+		
+	case "b_sl_pt_g3" 
+		tab_1.selecttab(4)
 		
 	case else
 		super::event clicked(xpos, ypos, row, dwo)

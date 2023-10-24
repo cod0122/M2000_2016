@@ -840,7 +840,7 @@ protected function string inizializza ();//
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-string k_scelta
+string k_scelta, k_rcx
 string k_stato = "0"
 string  k_key
 string k_fine_ciclo=""
@@ -999,6 +999,8 @@ if k_errore = 0 then
 				kuf1_utility.u_proteggi_dw("1", "barcode_causale", tab_1.tabpage_1.dw_1) //proteggi campo
 				kuf1_utility.u_proteggi_dw("1", "flg_dosimetro", tab_1.tabpage_1.dw_1) //proteggi campo
 		   	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+				k_rcx = tab_1.tabpage_1.dw_1.Modify("barcode_causale.Tooltip.Enabled=1 flg_dosimetro.Tooltip.Enabled=1")
+				k_rcx = tab_1.tabpage_1.dw_1.Modify("barcode_causale.Tooltip.Tip='Già Pianificato, Non modificabile.' flg_dosimetro.Tooltip.Enabled=Tip='Già Pianificato, Non modificabile.'")
 			end if
 		end if
 	end if
@@ -2093,7 +2095,6 @@ if isvalid(kst_open_w) then
 										 kdsi_elenco_input.getitemnumber(long(kst_open_w.key3), "dose"))
 					
 						end if
-						attiva_tasti( )
 					end if
 
 				case kuf1_barcode.kk_dw_nome_barcode_l_padri_potenziali
@@ -2103,8 +2104,6 @@ if isvalid(kst_open_w) then
 						k_return = 1
 						kst_tab_barcode.barcode = kdsi_elenco_input.getitemstring(long(kst_open_w.key3), "barcode_padre")
 						aggiungi_barcode_padre(kst_tab_barcode)
-						
-						attiva_tasti( )
 					end if
 
 				case kuf1_barcode.kk_dw_nome_barcode_l_figli_potenziali
@@ -2118,7 +2117,6 @@ if isvalid(kst_open_w) then
 						end if
 						aggiungi_barcode_figlio(kst_tab_barcode)
 						
-						attiva_tasti( )
 					end if
 					
 			end choose
@@ -2126,6 +2124,8 @@ if isvalid(kst_open_w) then
 		end if
 
 end if
+
+attiva_tasti( )
 
 return k_return
 end event
@@ -2334,11 +2334,11 @@ end if
 	
 end event
 
-event dw_1::clicked;call super::clicked;//
+event dw_1::clicked;//
 //=== Premuto pulsante nella DW
 //
 int k_rc
-date k_data, k_data_int
+//date k_data, k_data_int
 long k_num_int, k_id
 string k_cod_sl_pt
 st_tab_barcode kst_tab_barcode
@@ -2349,53 +2349,48 @@ kuf_menu_window kuf1_menu_window
 kuf_barcode_tree kuf1_barcode
 
 
-if dwo.name = "b_meca" or dwo.name = "b_armo" or dwo.name = "b_sl_pt" or dwo.name = "xb_barcode_lav" &
-   or dwo.name = "barcode_lav_t" or dwo.name = "xb_barcode_figli" or dwo.name = "barcode_figli_t" then
-									
-	tab_1.tabpage_1.dw_1.accepttext()
-	
-//--- ricavo la data di partenza della lista
-	k_data = tab_1.tabpage_1.dw_1.getitemdate(row, "barcode_data")
-	k_data = RelativeDate ( k_data, -365 )
-	
-//--- popolo il datasore (dw non visuale) per appoggio elenco
-	if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
 
-	if dwo.name = "xb_barcode_lav" then
-
-		call_elenco_barcode_padri_potenziali()			
-
-	else	
-	if dwo.name = "xb_barcode_figli" then
-
-		call_elenco_barcode_figli_potenziali()			
-
-	else	
-			
-	if dwo.name = "barcode_figli_t" then
-		tab_1.selectedtab = 2
-
-	else
+choose case dwo.name 
+				
+	case "b_flg_dosimetro" 
+		tab_1.selecttab(3)
 		
-	if dwo.name = "barcode_lav_t" then
+	case "b_asdrackbarcode_1" 
+		tab_1.selecttab(4)
+		
+	case "b_armo_colli_campioni_barcode_lav" 
+		tab_1.selecttab(5)
+
+	case "xb_barcode_lav" 
+		call_elenco_barcode_padri_potenziali()			
+		
+	case "xb_barcode_figli" 
+		call_elenco_barcode_figli_potenziali()			
+		
+	case "barcode_figli_t" 
+		tab_1.selecttab(2)
+
+	case "barcode_lav_t" 
+											
+		tab_1.tabpage_1.dw_1.accepttext()
+		
+	//--- ricavo la data di partenza della lista
+//			k_data = tab_1.tabpage_1.dw_1.getitemdate(row, "barcode_data")
+//			k_data = RelativeDate ( k_data, -365 )
+		
+	//--- popolo il datasore (dw non visuale) per appoggio elenco
+		if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
+	
 		kst_tab_barcode.barcode = this.getitemstring(this.getrow(), "barcode_lav")
 	
 		kuf1_barcode = create kuf_barcode_tree
 		kst_esito = kuf1_barcode.anteprima ( kdsi_elenco_output, kst_tab_barcode )
 		destroy kuf1_barcode
 		kst_open_w.key1 = "Dettaglio Barcode : " + trim(string(kst_tab_barcode.barcode,"@@@ @@@@@@@@@")) 
-					
-				
-	end if
-	
+						
 		if kdsi_elenco_output.rowcount() > 0 then
 	
 			k_window = kGuf_data_base.prendi_win_attiva()
-			
-	//--- chiamare la window di elenco
-	//
-	//=== Parametri : 
-	//=== struttura st_open_w
 			kst_open_w.id_programma =kkg_id_programma_elenco
 			kst_open_w.flag_primo_giro = "S"
 			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
@@ -2410,20 +2405,14 @@ if dwo.name = "b_meca" or dwo.name = "b_armo" or dwo.name = "b_sl_pt" or dwo.nam
 			kuf1_menu_window = create kuf_menu_window 
 			kuf1_menu_window.open_w_tabelle(kst_open_w)
 			destroy kuf1_menu_window
+		end if	
+		
+	case else
+		super::event clicked(xpos, ypos, row, dwo)
 	
-//		else
-//			
-//			messagebox("Elenco Dati", &
-//						"Nessun valore disponibile. ")
-			
-			
-		end if
-	end if
-	end if
-	end if
-end if
+end choose
 
-//
+
 end event
 
 type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1

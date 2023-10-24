@@ -50,7 +50,10 @@ global type st_tab_barcode from structure
 	integer		g3ngiri		descriptor "comment" = "Impianto G3 numero giri "
 	long		id_sl_pt_g3		descriptor "comment" = "id tabella Piano di trattemento G3"
 	string		g3ciclo		descriptor "comment" = "codice CICLO configurato su Impianto G3"
-	integer		g3pass		descriptor "comment" = "2PASS, 4PASS per G3"
+	integer		g3npass		descriptor "comment" = "2PASS, 4PASS per G3"
+	integer		lav_g3ngiri		descriptor "comment" = "Impianto G3 numero giri effettivamente Trattati"
+	string		lav_g3ciclo		descriptor "comment" = "codice CICLO configurato su Impianto G3 effettivamente usato x il Trattatamento"
+	integer		lav_g3npass		descriptor "comment" = "2PASS, 4PASS per G3 effettivamente usato x il Trattatamento"
 	datetime		x_datins
 	string		x_utente
 end type

@@ -555,9 +555,16 @@ st_esito kst_esito
 			 lav_fila_1p,
 			 lav_fila_2p,
 			 err_lav_fin,
-			 err_lav_ok,
-			 x_datins,
-			 x_utente
+			 err_lav_ok
+			,g3ngiri 
+			,id_sl_pt_g3
+			,g3ciclo 
+			,g3npass 
+			,lav_g3ngiri
+			,lav_g3ciclo
+			,lav_g3npass 	
+			,x_datins
+			,x_utente
 		into
 	       :kst_tab_barcode.data,
 	       :kst_tab_barcode.barcode_lav,
@@ -587,9 +594,16 @@ st_esito kst_esito
 			 :kst_tab_barcode.lav_fila_1p,
 			 :kst_tab_barcode.lav_fila_2p,
 			 :kst_tab_barcode.err_lav_fin,
-			 :kst_tab_barcode.err_lav_ok,
-			 :kst_tab_barcode.x_datins,
-			 :kst_tab_barcode.x_utente
+			 :kst_tab_barcode.err_lav_ok
+			,:kst_tab_barcode.g3ngiri 
+			,:kst_tab_barcode.id_sl_pt_g3
+			,:kst_tab_barcode.g3ciclo 
+			,:kst_tab_barcode.g3npass 
+			,:kst_tab_barcode.lav_g3ngiri
+			,:kst_tab_barcode.lav_g3ciclo
+			,:kst_tab_barcode.lav_g3npass 
+			,:kst_tab_barcode.x_datins
+			,:kst_tab_barcode.x_utente
 		from barcode
 		where barcode = :kst_tab_barcode.barcode
 		using kguo_sqlca_db_magazzino;
@@ -1213,6 +1227,14 @@ if isnull(kst_tab_barcode.modgiri_utente) then kst_tab_barcode.modgiri_utente = 
 if isnull(kst_tab_barcode.x_datins) then kst_tab_barcode.x_datins = datetime(date(0))
 if isnull(kst_tab_barcode.x_utente) then kst_tab_barcode.x_utente = ""
 if isnull(kst_tab_barcode.imptime_second) then kst_tab_barcode.imptime_second = 0
+
+if isnull(kst_tab_barcode.g3ngiri) then kst_tab_barcode.g3ngiri = 0
+if isnull(kst_tab_barcode.id_sl_pt_g3) then  kst_tab_barcode.id_sl_pt_g3 = 0
+if isnull(kst_tab_barcode.g3ciclo) then kst_tab_barcode.g3ciclo = ""
+if isnull(kst_tab_barcode.g3npass) then	 kst_tab_barcode.g3npass = 0
+if isnull(kst_tab_barcode.lav_g3ngiri) then  kst_tab_barcode.lav_g3ngiri = 0
+if isnull(kst_tab_barcode.lav_g3ciclo) then  kst_tab_barcode.lav_g3ciclo = ""
+if isnull(kst_tab_barcode.lav_g3npass) then   kst_tab_barcode.lav_g3npass = 0
 
   
 end subroutine
@@ -2529,11 +2551,8 @@ string k_causale
 long k_return=0
 st_esito kst_esito
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	k_causale = ki_causale_non_trattare
 
@@ -2587,12 +2606,7 @@ st_esito kst_esito
 
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	SELECT count(*) into :k_return
 		 FROM barcode
@@ -3651,10 +3665,7 @@ st_esito kst_esito
 
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_barcode.data_lav_ini = KKG.DATA_ZERO
 
@@ -3750,10 +3761,7 @@ long k_return=0
 st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	k_causale = ki_causale_non_trattare
 
@@ -4322,10 +4330,7 @@ int k_ctr = 0
 st_esito kst_esito 
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_barcode.id_meca > 0 then
 

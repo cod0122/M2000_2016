@@ -13,6 +13,7 @@ public function string get_link_da_button (string a_button)
 public subroutine link_standard_imposta_p (readonly datawindow adw_1)
 public function boolean link_standard_call_p (ref datawindow adw_link, string a_nome_link) throws uo_exception
 private function integer get_len_nome (string k_nome_cliccato)
+public subroutine link_standard_imposta_hyperlink (readonly datawindow adw_1)
 end prototypes
 
 public function string get_link_da_button (string a_button);//-----------------------------------------------------------------------------------------------------------------------------------------------
@@ -298,12 +299,7 @@ string k_num_colonne, k_nome, k_nome_orig
 							adw_1.Modify(k_nome + "_t" + trim(string(k_ctr,"###"))+&
 										  ".pointer = 'HyperLink!' " )
 						end if
-					end if
-					
-//--- In questi casi solo pointer=HyperLink!
-				case "k_cod_sl_pt"
-					adw_1.Modify("#" + trim(string(k_ctr,"###"))+".pointer = 'HyperLink!' ")
-					 
+					end if					 
 					 
 				case "num_fatt"  //, "data_fatt" 
 					if adw_1.Object.DataWindow.Type <> "Form" then
@@ -560,6 +556,37 @@ int k_len
 
 return k_len
 end function
+
+public subroutine link_standard_imposta_hyperlink (readonly datawindow adw_1);/*
+  Imposta il puntatore a HyperLink (la manina)
+*/
+int k_num_colonne_nr, k_ctr=1, k_len
+string k_num_colonne, k_nome, k_nome_orig
+
+
+	k_num_colonne = adw_1.Object.DataWindow.Column.Count
+	if isnumber(k_num_colonne) then
+		k_num_colonne_nr = integer(k_num_colonne)
+	else
+		k_num_colonne_nr = 99
+	end if
+	
+	for k_ctr = 1 to k_num_colonne_nr
+		
+		k_nome_orig=trim(lower(adw_1.Describe("#" + trim(string(k_ctr,"###"))+".name")))
+		
+		k_len = get_len_nome(k_nome_orig)
+		k_nome = mid(k_nome_orig, 1, k_len)
+		choose case k_nome
+				
+//--- In questi casi solo pointer=HyperLink!
+			case "k_cod_sl_pt", "b_armo_colli_campioni_barcode_lav", "b_asdrackbarcode_1", "b_flg_dosimetro"
+				adw_1.Modify("#" + trim(string(k_ctr,"###"))+".pointer = 'HyperLink!' ")				 
+			
+		end choose
+
+	next
+end subroutine
 
 on kuf_link_zoom.create
 call super::create

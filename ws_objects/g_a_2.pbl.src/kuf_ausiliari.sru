@@ -3592,7 +3592,7 @@ if isnull(ast_tab_g3cicli.CODICE) then ast_tab_g3cicli.CODICE = ""
 if isnull(ast_tab_g3cicli.attivo) then ast_tab_g3cicli.attivo = 0
 if isnull(ast_tab_g3cicli.descr) then ast_tab_g3cicli.descr = ""
 if isnull(ast_tab_g3cicli.g3ciclo) then ast_tab_g3cicli.g3ciclo = ""
-if isnull(ast_tab_g3cicli.g3pass) then	ast_tab_g3cicli.g3pass = 0
+if isnull(ast_tab_g3cicli.g3npass) then	ast_tab_g3cicli.g3npass = 0
    
 end subroutine
 

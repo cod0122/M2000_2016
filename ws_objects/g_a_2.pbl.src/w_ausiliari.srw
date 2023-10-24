@@ -916,11 +916,11 @@ try
 			k_riga_find = tab_1.tabpage_7.dw_17.find("codice = '" + kst_tab_g3cicli.codice + "' ", 1, k_nr_righe) 
 			if k_riga_find > 0 then
 				kst_tab_g3cicli.g3ciclo = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "g3ciclo"))
-				kst_tab_g3cicli.g3pass = tab_1.tabpage_7.dw_17.getitemnumber ( k_riga_find, "g3pass")
+				kst_tab_g3cicli.g3npass = tab_1.tabpage_7.dw_17.getitemnumber ( k_riga_find, "g3npass")
 				k_return += tab_1.tabpage_7.text + ": Codice '" + kst_tab_g3cicli.codice & 
 																+ "' già in archivio. " + kkg.acapo &
 																+ " con: Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
-																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3npass) + " Pass " &
 																+ kkg.acapo
 				k_errore = "3"
 				k_nr_errori++
@@ -929,18 +929,18 @@ try
 		
 //--- verifica Ciclo+PASS
 		kst_tab_g3cicli.g3ciclo = trim(tab_1.tabpage_7.dw_7.getitemstring ( k_riga, "g3ciclo"))
-		kst_tab_g3cicli.g3pass = tab_1.tabpage_7.dw_7.getitemnumber ( k_riga, "g3pass")
+		kst_tab_g3cicli.g3npass = tab_1.tabpage_7.dw_7.getitemnumber ( k_riga, "g3npass")
 		k_riga_find = tab_1.tabpage_7.dw_7.find("g3ciclo = '" + kst_tab_g3cicli.g3ciclo + "' ", 1, k_nr_righe) 
 		if k_riga_find > 0 and k_riga_find < k_nr_righe then
 			k_riga_next = tab_1.tabpage_7.dw_7.find("g3ciclo = '" + kst_tab_g3cicli.g3ciclo + "' ", k_riga_find + 1, k_nr_righe) 
 			if k_riga_next > 1 then
 				
 				kst_tab_g3cicli.descr = trim(tab_1.tabpage_7.dw_7.getitemstring (k_riga_next, "descr"))
-				k_riga_next = tab_1.tabpage_7.dw_7.find("g3pass = " + string(kst_tab_g3cicli.g3pass) + " ", k_riga_next, k_riga_next) 
+				k_riga_next = tab_1.tabpage_7.dw_7.find("g3npass = " + string(kst_tab_g3cicli.g3npass) + " ", k_riga_next, k_riga_next) 
 				if k_riga_next > 1 then
 				
 					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
-																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3npass) + " Pass " &
 																+ "già in archivio. " + kkg.acapo &
 															   + kkg.acapo + "con descr. '" + kst_tab_g3cicli.descr + "'. "& 
 																+ "Vedi le righe " + string(k_riga_find) + " e " + string(k_riga_next) &
@@ -964,10 +964,10 @@ try
 			if k_riga_find > 0 then
 				kst_tab_g3cicli.codice = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "codice"))
 				kst_tab_g3cicli.descr = trim(tab_1.tabpage_7.dw_17.getitemstring ( k_riga_find, "descr"))
-				k_riga_next = tab_1.tabpage_7.dw_17.find("g3pass = " + string(kst_tab_g3cicli.g3pass) + " ", k_riga_find, k_riga_find) 
+				k_riga_next = tab_1.tabpage_7.dw_17.find("g3npass = " + string(kst_tab_g3cicli.g3npass) + " ", k_riga_find, k_riga_find) 
 				if k_riga_next > 1 then
 					k_return += tab_1.tabpage_7.text + ": Ciclo G3 '" + kst_tab_g3cicli.g3ciclo & 
-																+ "' e Modalità " + string(kst_tab_g3cicli.g3pass) + " Pass " &
+																+ "' e Modalità " + string(kst_tab_g3cicli.g3npass) + " Pass " &
 																+ "già in archivio " + kkg.acapo &
 															   + "con il Codice '" + kst_tab_g3cicli.codice + "'. "& 
 															   + kkg.acapo + "descr. '" + kst_tab_g3cicli.descr + "'. "& 
