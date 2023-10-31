@@ -297,7 +297,11 @@ kst_esito.nome_oggetto = this.classname()
 return kst_esito
 end function
 
-public function integer u_get_col_len (string a_table, string a_col);//
+public function integer u_get_col_len (string a_table, string a_col);/*
+  Torna lunghezza della colonna
+  inp: nome tabella; nome colonna
+  rit: lunghezza
+*/
 int k_return 
 datastore kds_1
 

@@ -175,15 +175,16 @@ public function string u_get_consegna_tempi (ref st_tab_meca kst_tab_meca) throw
 public function integer u_allarme_cliente () throws uo_exception
 protected subroutine inizializza_7 () throws uo_exception
 private function integer u_get_nr_bcode_presenti () throws uo_exception
-public function long u_e1_importa_wo_so () throws uo_exception
-public function integer u_e1_importa_barcode () throws uo_exception
 protected function integer u_inizializza_4 () throws uo_exception
-public function datetime u_e1_importa_data_ent () throws uo_exception
 protected function string u_e1_importa_all (boolean k_msg_show) throws uo_exception
 protected function string aggiorna_dati ()
 private function integer get_totale_campionecolli ()
 private subroutine u_genera_barcode_armo_campioni () throws uo_exception
 private subroutine u_rimuove_barcode_armo_campioni ()
+private function string u_e1_importa_e1srst () throws uo_exception
+private function integer u_e1_importa_barcode () throws uo_exception
+private function datetime u_e1_importa_data_ent () throws uo_exception
+private function long u_e1_importa_wo_so () throws uo_exception
 end prototypes
 
 protected function string aggiorna ();//
@@ -4942,128 +4943,6 @@ return k_return
 
 end function
 
-public function long u_e1_importa_wo_so () throws uo_exception;//
-//--- Importa da E1 i codice WO e SO
-//--- torna il WO
-//
-int k_return
-st_tab_meca kst_tab_meca
-
-
-//--- Puntatore Cursore da attesa.....
-	SetPointer(kkg.POINTER_ATTESA)
-
-	if ki_e1_enabled then
-		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
-		if kst_tab_meca.id > 0 then
-
-			if tab_1.tabpage_1.dw_1.getitemnumber(1, "e1doco") > 0 then
-			else
-
-				kst_tab_meca.e1doco = kiuf_armo.get_e1doco(kst_tab_meca)		// get su MECA del WO
-				tab_1.tabpage_1.dw_1.setitem(1, "e1doco", kst_tab_meca.e1doco)
-				tab_1.tabpage_1.dw_1.setitemstatus( 1,  "e1doco", primary!, NotModified!)
-				
-				k_return = kst_tab_meca.e1doco
-
-			end if
-			if tab_1.tabpage_1.dw_1.getitemnumber(1, "e1rorn") > 0 then
-			else
-
-				kst_tab_meca.e1rorn = kiuf_armo.get_e1rorn(kst_tab_meca)		// get su MECA del SO
-				tab_1.tabpage_1.dw_1.setitem(1, "e1rorn", kst_tab_meca.e1rorn)
-				tab_1.tabpage_1.dw_1.setitemstatus( 1,  "e1rorn", primary!, NotModified!)
-
-			end if
-				
-		end if
-	end if
-	
-
-return k_return
-
-end function
-
-public function integer u_e1_importa_barcode () throws uo_exception;//
-//--- Controlla se E1 ha i barcode pronti ed evantualemnte aggiorna se manca il e1doco su testata Lotto (MECA)
-//--- torna nr barcode generati
-//
-int k_return
-int k_nr_barcode
-string k_avvertenze
-st_tab_meca kst_tab_meca
-st_tab_armo kst_tab_armo
-st_tab_barcode kst_tab_barcode
-
-
-//					k_nr_barcode = u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
-//					if ki_genera_barcode then
-//						if ki_e1_enabled then
-//						else
-//							k_nr_colli = u_get_nr_colli_xbcode( )
-//							k_nr_barcode = u_get_nr_bcode_presenti() // barcode importati/generati 
-//							if k_nr_barcode <> k_nr_colli then
-//								kguo_exception.setmessage(  &
-//									"Attenzione, è necessario rigenerare i Barcode per questo Lotto, ne risultano "+ string(k_nr_barcode) +" invece di "+ string(k_nr_colli) +". ~n~r" + &
-//									"(ID lotto: " + string(kist_tab_meca.id) + ") " )
-//							else
-//								kguo_exception.setmessage(  &
-//									"Attenzione, è necessario rigenerare i Barcode per questo Lotto, ne devono essere ricreati " + string(k_nr_barcode) + " nuovi. ~n~r" + &
-//									"(ID lotto: " + string(kist_tab_meca.id) + ") " )
-//							end if
-//						end if
-//					end if	
-
-
-try
-
-//--- Puntatore Cursore da attesa.....
-	SetPointer(kkg.POINTER_ATTESA)
-
-	if ki_e1_enabled then
-		u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
-		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
-		if kst_tab_meca.id > 0 &
-		  			and not ki_e1_richiesta_importa_eseguita &
-					and tab_1.tabpage_7.dw_7.rowcount( ) > 0 &
-					and ki_genera_barcode then  // se asn su Tab 7 è già generato ecc...
-			ki_e1_richiesta_importa_eseguita = true // x evitare di fare troppe richieste
-			
-			kst_tab_barcode.id_meca = kst_tab_meca.id
-			k_nr_barcode = kiuf_barcode_ini.u_e1_importa_barcode(kst_tab_barcode) //Importa barcode se E1 li ha creati
-			
-			if k_nr_barcode > 0 then
-				k_return = k_nr_barcode
-				
-				u_inizializza_4( )
-				
-				kst_tab_armo.id_meca = kst_tab_meca.id
-				kst_tab_armo.colli_2 = kiuf_armo.get_colli_lotto(kst_tab_armo)   // get del nr colli entrati
-				
-				SetPointer(kkg.POINTER_default)
-				kguo_exception.inizializza( )
-				if kst_tab_armo.colli_2 <> k_nr_barcode then  // verifica se nr colli entrati corrisponde con i barcode generati
-					kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_generico)
-					k_avvertenze = "ATTENZIONE: sono stati importati in automatico " + string(k_nr_barcode) + " barcode rispetto a " + string(kst_tab_armo.colli_2) + " colli entrati, prego controllare!"
-					kguo_exception.messaggio_utente("Anomalia Importazione Barcode da E1", k_avvertenze)
-					u_write_avvertenze(k_avvertenze)
-				end if					
-			end if
-		end if
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	SetPointer(kkg.POINTER_default)
-
-end try
-
-return k_return
-
-end function
-
 protected function integer u_inizializza_4 () throws uo_exception;//======================================================================
 //=== Inizializzazione del TAB 4 controllandone i valori se gia' presenti
 //======================================================================
@@ -5099,51 +4978,6 @@ end if
 return (k_rows - k_row_deleted)
 end function
 
-public function datetime u_e1_importa_data_ent () throws uo_exception;//
-//--- Importa da E1 evantuale data di antrata a magazzino
-//
-datetime k_return
-st_tab_meca kst_tab_meca
-kuf_meca_set_data_ent kuf1_meca_set_data_ent
-
-
-try
-
-	SetPointer(kkg.POINTER_ATTESA)
-
-	if ki_e1_enabled then
-
-		kst_tab_meca.data_ent = tab_1.tabpage_1.dw_1.getitemdatetime(1, "data_ent")
-		if kst_tab_meca.data_ent > datetime(date(0), time(0)) then
-		else
-			kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
-			kst_tab_meca.e1doco = tab_1.tabpage_1.dw_1.getitemnumber(1, "e1doco")
-			kst_tab_meca.e1rorn = tab_1.tabpage_1.dw_1.getitemnumber(1, "e1rorn")
-	
-			if kst_tab_meca.id > 0 and (kst_tab_meca.e1doco > 0 or kst_tab_meca.e1rorn > 0) then
-				kuf1_meca_set_data_ent = create kuf_meca_set_data_ent
-				if kuf1_meca_set_data_ent.u_set_data_ent_lotto(kst_tab_meca) > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "data_ent", kst_tab_meca.data_ent)
-					k_return =  kst_tab_meca.data_ent
-				end if
-			end if
-			
-		end if
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	if isvalid(kuf1_meca_set_data_ent) then destroy kuf1_meca_set_data_ent
-	SetPointer(kkg.POINTER_DEFAULT)
-	
-end try
-
-return k_return
-
-end function
-
 protected function string u_e1_importa_all (boolean k_msg_show) throws uo_exception;//---------------------------------------------------------------------
 //--- Importa dati da E1
 //---------------------------------------------------------------------
@@ -5151,7 +4985,7 @@ protected function string u_e1_importa_all (boolean k_msg_show) throws uo_except
 datetime k_data_ent
 int k_n_bcode
 long k_wo
-string k_msg, k_msgErr
+string k_msg, k_msgErr, k_e1srst
 
 
 if ki_e1_enabled then
@@ -5183,6 +5017,19 @@ if ki_e1_enabled then
 		end if
 		k_msg += "la data di entrata Lotto: " + string(k_data_ent) 
 	end if
+
+//--- importa STATO
+	k_e1srst = u_e1_importa_e1srst()
+	if trim(k_e1srst) > " " then
+		if k_msg > " " then
+			k_msg += " e "
+		else
+			k_msg = "E' stato importato "
+		end if
+		k_msg += "lo STATO del Lotto a: " + trim(k_e1srst) 
+	end if
+
+//--- fine	
 	if k_msg > " " then
 		k_msg += "."
 		u_write_avvertenze("Importazione dati da E1: " + trim(k_msg))
@@ -5429,6 +5276,207 @@ finally
 
 end try
 end subroutine
+
+private function string u_e1_importa_e1srst () throws uo_exception;/*
+ Importa da E1 lo STATO del WO
+ torna e1srst
+*/
+string k_return
+st_tab_meca kst_tab_meca
+
+
+	SetPointer(kkg.POINTER_ATTESA)
+
+	if ki_e1_enabled then
+		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+		if kst_tab_meca.id > 0 then
+
+			if tab_1.tabpage_1.dw_1.getitemnumber(1, "e1doco") > 0 then
+			else
+
+				kst_tab_meca.e1srst = kiuf_armo.get_e1srst(kst_tab_meca)		
+				
+				tab_1.tabpage_1.dw_1.setitem(1, "e1srst", kst_tab_meca.e1srst)
+				//tab_1.tabpage_1.dw_1.setitemstatus( 1,  "e1srst", primary!, NotModified!)
+				
+				k_return = kst_tab_meca.e1srst
+
+			end if
+				
+		end if
+	end if
+	
+
+return k_return
+
+end function
+
+private function integer u_e1_importa_barcode () throws uo_exception;//
+//--- Controlla se E1 ha i barcode pronti ed evantualemnte aggiorna se manca il e1doco su testata Lotto (MECA)
+//--- torna nr barcode generati
+//
+int k_return
+int k_nr_barcode
+string k_avvertenze
+st_tab_meca kst_tab_meca
+st_tab_armo kst_tab_armo
+st_tab_barcode kst_tab_barcode
+
+
+//					k_nr_barcode = u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
+//					if ki_genera_barcode then
+//						if ki_e1_enabled then
+//						else
+//							k_nr_colli = u_get_nr_colli_xbcode( )
+//							k_nr_barcode = u_get_nr_bcode_presenti() // barcode importati/generati 
+//							if k_nr_barcode <> k_nr_colli then
+//								kguo_exception.setmessage(  &
+//									"Attenzione, è necessario rigenerare i Barcode per questo Lotto, ne risultano "+ string(k_nr_barcode) +" invece di "+ string(k_nr_colli) +". ~n~r" + &
+//									"(ID lotto: " + string(kist_tab_meca.id) + ") " )
+//							else
+//								kguo_exception.setmessage(  &
+//									"Attenzione, è necessario rigenerare i Barcode per questo Lotto, ne devono essere ricreati " + string(k_nr_barcode) + " nuovi. ~n~r" + &
+//									"(ID lotto: " + string(kist_tab_meca.id) + ") " )
+//							end if
+//						end if
+//					end if	
+
+
+try
+
+//--- Puntatore Cursore da attesa.....
+	SetPointer(kkg.POINTER_ATTESA)
+
+	if ki_e1_enabled then
+		u_set_ki_genera_barcode()	// imposta il flag x generare o meno i barcode e torna il numero barcode da generare
+		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+		if kst_tab_meca.id > 0 &
+		  			and not ki_e1_richiesta_importa_eseguita &
+					and tab_1.tabpage_7.dw_7.rowcount( ) > 0 &
+					and ki_genera_barcode then  // se asn su Tab 7 è già generato ecc...
+			ki_e1_richiesta_importa_eseguita = true // x evitare di fare troppe richieste
+			
+			kst_tab_barcode.id_meca = kst_tab_meca.id
+			k_nr_barcode = kiuf_barcode_ini.u_e1_importa_barcode(kst_tab_barcode) //Importa barcode se E1 li ha creati
+			
+			if k_nr_barcode > 0 then
+				k_return = k_nr_barcode
+				
+				u_inizializza_4( )
+				
+				kst_tab_armo.id_meca = kst_tab_meca.id
+				kst_tab_armo.colli_2 = kiuf_armo.get_colli_lotto(kst_tab_armo)   // get del nr colli entrati
+				
+				SetPointer(kkg.POINTER_default)
+				kguo_exception.inizializza( )
+				if kst_tab_armo.colli_2 <> k_nr_barcode then  // verifica se nr colli entrati corrisponde con i barcode generati
+					kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_generico)
+					k_avvertenze = "ATTENZIONE: sono stati importati in automatico " + string(k_nr_barcode) + " barcode rispetto a " + string(kst_tab_armo.colli_2) + " colli entrati, prego controllare!"
+					kguo_exception.messaggio_utente("Anomalia Importazione Barcode da E1", k_avvertenze)
+					u_write_avvertenze(k_avvertenze)
+				end if					
+			end if
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	SetPointer(kkg.POINTER_default)
+
+end try
+
+return k_return
+
+end function
+
+private function datetime u_e1_importa_data_ent () throws uo_exception;//
+//--- Importa da E1 evantuale data di antrata a magazzino
+//
+datetime k_return
+st_tab_meca kst_tab_meca
+kuf_meca_set_data_ent kuf1_meca_set_data_ent
+
+
+try
+
+	SetPointer(kkg.POINTER_ATTESA)
+
+	if ki_e1_enabled then
+
+		kst_tab_meca.data_ent = tab_1.tabpage_1.dw_1.getitemdatetime(1, "data_ent")
+		if kst_tab_meca.data_ent > datetime(date(0), time(0)) then
+		else
+			kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+			kst_tab_meca.e1doco = tab_1.tabpage_1.dw_1.getitemnumber(1, "e1doco")
+			kst_tab_meca.e1rorn = tab_1.tabpage_1.dw_1.getitemnumber(1, "e1rorn")
+	
+			if kst_tab_meca.id > 0 and (kst_tab_meca.e1doco > 0 or kst_tab_meca.e1rorn > 0) then
+				kuf1_meca_set_data_ent = create kuf_meca_set_data_ent
+				if kuf1_meca_set_data_ent.u_set_data_ent_lotto(kst_tab_meca) > 0 then
+					tab_1.tabpage_1.dw_1.setitem(1, "data_ent", kst_tab_meca.data_ent)
+					k_return =  kst_tab_meca.data_ent
+				end if
+			end if
+			
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_meca_set_data_ent) then destroy kuf1_meca_set_data_ent
+	SetPointer(kkg.POINTER_DEFAULT)
+	
+end try
+
+return k_return
+
+end function
+
+private function long u_e1_importa_wo_so () throws uo_exception;//
+//--- Importa da E1 i codice WO e SO
+//--- torna il WO
+//
+int k_return
+st_tab_meca kst_tab_meca
+
+
+//--- Puntatore Cursore da attesa.....
+	SetPointer(kkg.POINTER_ATTESA)
+
+	if ki_e1_enabled then
+		kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
+		if kst_tab_meca.id > 0 then
+
+			if tab_1.tabpage_1.dw_1.getitemnumber(1, "e1doco") > 0 then
+			else
+
+				kst_tab_meca.e1doco = kiuf_armo.get_e1doco(kst_tab_meca)		// get su MECA del WO
+				tab_1.tabpage_1.dw_1.setitem(1, "e1doco", kst_tab_meca.e1doco)
+				tab_1.tabpage_1.dw_1.setitemstatus( 1,  "e1doco", primary!, NotModified!)
+				
+				k_return = kst_tab_meca.e1doco
+
+			end if
+			if tab_1.tabpage_1.dw_1.getitemnumber(1, "e1rorn") > 0 then
+			else
+
+				kst_tab_meca.e1rorn = kiuf_armo.get_e1rorn(kst_tab_meca)		// get su MECA del SO
+				tab_1.tabpage_1.dw_1.setitem(1, "e1rorn", kst_tab_meca.e1rorn)
+				tab_1.tabpage_1.dw_1.setitemstatus( 1,  "e1rorn", primary!, NotModified!)
+
+			end if
+				
+		end if
+	end if
+	
+
+return k_return
+
+end function
 
 on w_lotto.create
 int iCurrent

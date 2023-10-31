@@ -250,10 +250,7 @@ st_tab_sl_pt_memo kst_tab_sl_pt_memo
 st_tab_memo_utenti kst_tab_memo_utenti
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
 
@@ -310,6 +307,8 @@ if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.fl
 		kst_memo.st_tab_sl_pt_memo = kst_tab_sl_pt_memo
 		kst_memo.st_tab_memo.st_tab_g_0.esegui_commit = "S"
 		kist_memo.st_tab_memo.id_memo = kiuf_memo.aggiorna(kst_memo)  //AGGIORNA TUTTI I  DATI MEMO
+
+		tab_1.tabpage_2.dw_2.setitem(1, "note", kst_memo.st_tab_memo.note)  // nel caso fossero state aggiustate....
 		
 	catch (uo_exception kuo_exception)
 		kst_esito = kuo_exception.get_st_esito()

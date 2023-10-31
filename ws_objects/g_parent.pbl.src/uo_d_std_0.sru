@@ -202,11 +202,11 @@ st_proteggi kst_proteggi
 
 //--- protezione campi per impedire la modifica
 	if k_operazione = "1" or k_operazione = "5" then  //proteggi
-		kst_proteggi.color=string(KKG_COLORE.campo_disattivo) //rgb(192,192,192))
+		kst_proteggi.color_background=string(KKG_COLORE.campo_disattivo) //rgb(192,192,192))
 		kst_proteggi.color_text=string(KKG_COLORE.campo_disattivo_text) //rgb(192,192,192))
 	else   // sproteggi
 		if k_operazione = "0" or k_operazione = "4" then  //sproteggi
-			kst_proteggi.color=string(KKG_COLORE.CAMPO_ATTIVO) //rgb(255,255,255))
+			kst_proteggi.color_background=string(KKG_COLORE.CAMPO_ATTIVO) //rgb(255,255,255))
 			kst_proteggi.color_text=string(KKG_COLORE.campo_attivo_text) //rgb(192,192,192))
 		end if
 	end if
@@ -356,14 +356,14 @@ st_proteggi kst_proteggi
 				k_style = trim(this.Describe(k_name  + ".Edit.Style"))
 				if k_style = "checkbox" or k_style = "radiobuttons" then
 					if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
-						k_modify += k_name +".color='" + kst_proteggi.color + "' " 
+						k_modify += k_name +".color='" + kst_proteggi.color_text + "' " 
 					end if
 					
 				else
 					if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
 					
 						k_modify += k_name + ".Background.Mode='0' " &
- 											+ k_name +".Background.Color='" + kst_proteggi.color + "' "  &
+ 											+ k_name +".Background.Color='" + kst_proteggi.color_background + "' "  &
 				           			   + k_name +".color='" + kst_proteggi.color_text + "' " 
 							
 						if k_type = "column" then

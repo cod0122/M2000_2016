@@ -39,7 +39,6 @@ forward prototypes
 public function long get_ult_id_memo () throws uo_exception
 public function boolean if_esiste (st_tab_memo ast_tab_memo) throws uo_exception
 public subroutine if_isnull (ref st_tab_memo ast_tab_memo)
-public function long tb_add (st_tab_memo ast_tab_memo) throws uo_exception
 public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_memo ast_tab_memo)
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 public function string get_note (st_tab_memo ast_tab_memo) throws uo_exception
@@ -60,12 +59,14 @@ public function boolean u_if_sicurezza (ref st_tab_memo ast_tab_memo, string a_f
 public function boolean u_attiva_funzione (st_memo ast_memo, string a_flag_modalita) throws uo_exception
 public function st_memo get_st_memo ()
 public subroutine set_st_memo (st_memo kst_memo)
-public function long aggiorna (st_memo ast_memo) throws uo_exception
 private subroutine aggiorna_altri_archivi (st_memo ast_memo) throws uo_exception
 public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception
 private subroutine u_open_window_old (string a_flag_modalita)
 public function st_memo get_st_memo_da_ds (ref datastore ads_1) throws uo_exception
-public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo) throws uo_exception
+public function long tb_add (ref st_tab_memo ast_tab_memo) throws uo_exception
+public subroutine tb_delete_altri_archivi (ref st_tab_memo ast_tab_memo) throws uo_exception
+private subroutine u_set_x_add_update (ref st_tab_memo ast_tab_memo)
+public function long aggiorna (ref st_memo ast_memo) throws uo_exception
 end prototypes
 
 public function long get_ult_id_memo () throws uo_exception;//
@@ -171,107 +172,6 @@ if isnull(ast_tab_memo.x_utente) then	ast_tab_memo.x_utente = ""
 
 
 end subroutine
-
-public function long tb_add (st_tab_memo ast_tab_memo) throws uo_exception;//
-//--------------------------------------------------------------------
-//--- Aggiunge riga in tabella  MEMO 
-//--- 
-//--- Input: st_tab_memo.id_memo
-//--- Ritorna ID_MEMO
-//--- 
-//--- x errore grave lancia exception
-//--------------------------------------------------------------------
-// 
-long k_return = 0
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-st_open_w kst_open_w
-boolean k_autorizza
-
-	
-try
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//	if if_sicurezza(kkg_flag_modalita.modifica ) then 
-
-	//--- imposto dati utente e data aggiornamento
-		ast_tab_memo.x_datins = kGuf_data_base.prendi_x_datins()
-		ast_tab_memo.x_utente = kGuf_data_base.prendi_x_utente()
-		
-		if ast_tab_memo.dataora_ins > datetime(date(0)) then
-		else
-			ast_tab_memo.dataora_ins = kGuf_data_base.prendi_x_datins()
-			ast_tab_memo.utente_ins = kGuf_data_base.prendi_x_utente()
-		end if
-
-	//--- toglie valori NULL
-		if_isnull(ast_tab_memo)
-		  // id_memo,
-	    INSERT INTO memo
-				 (
-				  TIPO_MEMO,
-				  tipo_sv,
-				  permessi,
-				  dataora_ins, 
-				  utente_ins,
-				  titolo,   
-				  note,   
-				  x_datins,
-				  x_utente
-				  )
-			  VALUES ( 
-				  :ast_tab_memo.TIPO_MEMO,
-				  :ast_tab_memo.tipo_sv,
-				  :ast_tab_memo.permessi,
-				  :ast_tab_memo.dataora_ins, 
-				  :ast_tab_memo.utente_ins, 
-				  :ast_tab_memo.titolo,   
-				  :ast_tab_memo.note,   
-				  :ast_tab_memo.x_datins,   
-				  :ast_tab_memo.x_utente
-			      )
-		USING kguo_sqlca_db_magazzino;
-		
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = sqlca.sqlcode
-				kst_esito.SQLErrText = "Errore Aggiornamento MEMO~n~r" + trim(sqlca.SQLErrText) 
-				if ast_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_memo.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_rollback( )
-				end if
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito( kst_esito)
-				throw kguo_exception
-			end if
-		else
-			//ast_tab_memo.id_memo = long(kguo_sqlca_db_magazzino.SQLReturnData)
-			ast_tab_memo.id_memo = get_ult_id_memo( ) // get del ID appena generato
-
-			if len(ast_tab_memo.memo) > 0 then
-				tb_update_memo(ast_tab_memo)  // aggiorna il BLOB con i dati (memo)
-			end if
-			if ast_tab_memo.id_memo > 0 then
-				k_return = ast_tab_memo.id_memo
-			end if
-			
-		end if
-//	end if
-
-		if ast_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_memo.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception 
-end try
-
-
-
-return k_return
-end function
 
 public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_memo ast_tab_memo);//
 //=== 
@@ -472,11 +372,7 @@ st_esito kst_esito
 string	 k_return = ""
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 SELECT 
 		  note
@@ -977,6 +873,8 @@ try
 	
 //	if if_sicurezza(kkg_flag_modalita.modifica ) then 
 
+		u_set_x_add_update(ast_tab_memo)   // imposta campi comuni a INSERT/UPDATE
+
 	//--- imposto dati utente e data aggiornamento
 		ast_tab_memo.x_datins = kGuf_data_base.prendi_x_datins()
 		ast_tab_memo.x_utente = kGuf_data_base.prendi_x_utente()
@@ -1290,67 +1188,6 @@ kist_memo = kst_memo
 
 end subroutine
 
-public function long aggiorna (st_memo ast_memo) throws uo_exception;//--------------------------------------------------------------------
-//--- Aggiorna riga in tabella  MEMO 
-//--- 
-//--- Input: st_tab_memo.id_memo (che può essere zero se nuovo)
-//--- Ritorna ID_MEMO
-//--- 
-//--- x errore grave lancia exception
-//--------------------------------------------------------------------
-// 
-long	k_return = 0
-st_tab_memo kst_tab_memo
-
-try
-
-	kst_tab_memo = ast_memo.st_tab_memo
-	kst_tab_memo.st_tab_g_0.esegui_commit = "N"
-	
-	if kst_tab_memo.id_memo > 0 then
-		if if_esiste( kst_tab_memo) then
-		else
-			kst_tab_memo.id_memo = 0 
-		end if
-	end if
-
-	if kst_tab_memo.id_memo	> 0 then
-		tb_update(kst_tab_memo )
-	else
-		kst_tab_memo.id_memo = tb_add(kst_tab_memo)
-	end if
-
-//--- aggiorna altri archivi correlati al MEMO
-	ast_memo.st_tab_memo.id_memo = kst_tab_memo.id_memo
-	ast_memo.st_tab_clienti_memo.id_memo = kst_tab_memo.id_memo
-	ast_memo.st_tab_meca_memo.id_memo = kst_tab_memo.id_memo
-	ast_memo.st_tab_sl_pt_memo.id_memo = kst_tab_memo.id_memo
-	ast_memo.st_tab_meca_memo.st_tab_g_0 = kst_tab_memo.st_tab_g_0
-	aggiorna_altri_archivi(ast_memo)
-	
-
-//--- faccio la COMMIT
-	if ast_memo.st_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_memo.st_tab_memo.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_commit( )
-	end if
-
-	if kst_tab_memo.id_memo > 0 then
-		k_return = kst_tab_memo.id_memo
-	end if
-
-	
-catch (uo_exception kuo_exception)
-//--- faccio ROLLBACK
-	if ast_memo.st_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_memo.st_tab_memo.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
-	throw kuo_exception
-end try
-
-
-return k_return
-end function
-
 private subroutine aggiorna_altri_archivi (st_memo ast_memo) throws uo_exception;//----------------------------------------------------------------------------------------------
 //--- Aggiorna gli altri archivi collegati al MEMO
 //---
@@ -1538,7 +1375,104 @@ return kst_memo
 
 end function
 
-public subroutine tb_delete_altri_archivi (st_tab_memo ast_tab_memo) throws uo_exception;//
+public function long tb_add (ref st_tab_memo ast_tab_memo) throws uo_exception;//
+//--------------------------------------------------------------------
+//--- Aggiunge riga in tabella  MEMO 
+//--- 
+//--- Input: st_tab_memo.id_memo
+//--- Ritorna ID_MEMO
+//--- 
+//--- x errore grave lancia exception
+//--------------------------------------------------------------------
+// 
+long k_return = 0
+int k_len
+st_esito kst_esito
+
+	
+try
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+//	if if_sicurezza(kkg_flag_modalita.modifica ) then 
+
+		u_set_x_add_update(ast_tab_memo)   // imposta campi comuni a INSERT/UPDATE
+
+	//--- imposto dati utente e data di inserimento
+		if ast_tab_memo.dataora_ins > datetime(date(0)) then
+		else
+			ast_tab_memo.dataora_ins = kGuf_data_base.prendi_x_datins()
+			ast_tab_memo.utente_ins = kGuf_data_base.prendi_x_utente()
+		end if
+
+	//--- toglie valori NULL
+		if_isnull(ast_tab_memo)
+		
+	   INSERT INTO memo
+				 (
+				  TIPO_MEMO,
+				  tipo_sv,
+				  permessi,
+				  dataora_ins, 
+				  utente_ins,
+				  titolo,   
+				  note,   
+				  x_datins,
+				  x_utente
+				  )
+			  VALUES ( 
+				  :ast_tab_memo.TIPO_MEMO,
+				  :ast_tab_memo.tipo_sv,
+				  :ast_tab_memo.permessi,
+				  :ast_tab_memo.dataora_ins, 
+				  :ast_tab_memo.utente_ins, 
+				  :ast_tab_memo.titolo,   
+				  :ast_tab_memo.note,   
+				  :ast_tab_memo.x_datins,   
+				  :ast_tab_memo.x_utente
+			      )
+		USING kguo_sqlca_db_magazzino;
+		
+		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kst_esito.esito = kkg_esito.db_ko
+				kst_esito.sqlcode = sqlca.sqlcode
+				kst_esito.SQLErrText = "Errore Aggiornamento MEMO~n~r" + trim(sqlca.SQLErrText) 
+				if ast_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_memo.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_rollback( )
+				end if
+				kguo_exception.inizializza( )
+				kguo_exception.set_esito( kst_esito)
+				throw kguo_exception
+			end if
+		else
+			//ast_tab_memo.id_memo = long(kguo_sqlca_db_magazzino.SQLReturnData)
+			ast_tab_memo.id_memo = get_ult_id_memo( ) // get del ID appena generato
+
+			if len(ast_tab_memo.memo) > 0 then
+				tb_update_memo(ast_tab_memo)  // aggiorna il BLOB con i dati (memo)
+			end if
+			if ast_tab_memo.id_memo > 0 then
+				k_return = ast_tab_memo.id_memo
+			end if
+			
+		end if
+
+		if ast_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_memo.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception 
+	
+finally
+	
+end try
+
+return k_return
+end function
+
+public subroutine tb_delete_altri_archivi (ref st_tab_memo ast_tab_memo) throws uo_exception;//
 st_tab_clienti_memo kst_tab_clienti_memo
 st_tab_meca_memo kst_tab_meca_memo
 st_tab_sl_pt_memo kst_tab_sl_pt_memo
@@ -1607,6 +1541,95 @@ end try
 
 
 end subroutine
+
+private subroutine u_set_x_add_update (ref st_tab_memo ast_tab_memo);//--- Imposta campi comuni x INSERT/UPDATE
+int k_len
+kuf_utility kuf1_utility
+
+
+	kguo_exception.inizializza(this.classname())
+
+//--- trimma le NOTE
+	kuf1_utility = create kuf_utility 
+	ast_tab_memo.note = kuf1_utility.u_stringa_alfanum_spazio(ast_tab_memo.note)
+	k_len = kguo_sqlca_db_magazzino.u_get_col_len("memo", "note")
+	if len(trim(ast_tab_memo.note)) > k_len then
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn
+		kguo_exception.kist_esito.sqlerrtext = "Attenzione campo Note '" + trim(ast_tab_memo.note) + "' troppo lungo, oltre i " &
+											+ string(k_len) +  " caratteri. E' Stato Troncato a '" + left(trim(ast_tab_memo.note), k_len) + "'."
+		kguo_exception.scrivi_log( )
+		ast_tab_memo.note = left(trim(ast_tab_memo.note), k_len)			
+	end if
+
+//--- imposto dati utente e data aggiornamento
+	ast_tab_memo.x_datins = kGuf_data_base.prendi_x_datins()
+	ast_tab_memo.x_utente = kGuf_data_base.prendi_x_utente()
+		
+
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+
+end subroutine
+
+public function long aggiorna (ref st_memo ast_memo) throws uo_exception;//--------------------------------------------------------------------
+//--- Aggiorna riga in tabella  MEMO 
+//--- 
+//--- Input: st_tab_memo.id_memo (che può essere zero se nuovo)
+//--- Ritorna ID_MEMO
+//--- 
+//--- x errore grave lancia exception
+//--------------------------------------------------------------------
+// 
+long	k_return = 0
+st_tab_memo kst_tab_memo
+
+try
+
+	kst_tab_memo = ast_memo.st_tab_memo
+	kst_tab_memo.st_tab_g_0.esegui_commit = "N"
+	
+	if kst_tab_memo.id_memo > 0 then
+		if if_esiste( kst_tab_memo) then
+		else
+			kst_tab_memo.id_memo = 0 
+		end if
+	end if
+
+	if kst_tab_memo.id_memo	> 0 then
+		tb_update(kst_tab_memo )
+	else
+		kst_tab_memo.id_memo = tb_add(kst_tab_memo)
+	end if
+
+//--- aggiorna altri archivi correlati al MEMO
+	ast_memo.st_tab_memo.id_memo = kst_tab_memo.id_memo
+	ast_memo.st_tab_clienti_memo.id_memo = kst_tab_memo.id_memo
+	ast_memo.st_tab_meca_memo.id_memo = kst_tab_memo.id_memo
+	ast_memo.st_tab_sl_pt_memo.id_memo = kst_tab_memo.id_memo
+	ast_memo.st_tab_meca_memo.st_tab_g_0 = kst_tab_memo.st_tab_g_0
+	aggiorna_altri_archivi(ast_memo)
+	
+
+//--- faccio la COMMIT
+	if ast_memo.st_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_memo.st_tab_memo.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+
+	if kst_tab_memo.id_memo > 0 then
+		k_return = kst_tab_memo.id_memo
+	end if
+
+	
+catch (uo_exception kuo_exception)
+//--- faccio ROLLBACK
+	if ast_memo.st_tab_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_memo.st_tab_memo.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+end try
+
+
+return k_return
+end function
 
 on kuf_memo.create
 call super::create

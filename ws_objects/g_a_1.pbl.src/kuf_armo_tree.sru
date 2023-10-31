@@ -4162,16 +4162,9 @@ try
 			kuf1_armo_prezzi.link_call(kdw_1, k_campo_link )
 			k_return = false
 	
-			
 		case "p_meca_memo_elenco"
 			kst_tab_meca.id = kdw_1.getitemnumber(k_row, "id_meca")
 			if kst_tab_meca.id > 0 then
-	//			kuf1_armo = create kuf_armo
-				kst_esito = kiuf_armo.anteprima_elenco_memo( kdsi_elenco_output, kst_tab_meca )
-				if kst_esito.esito <> kkg_esito.ok then
-					kguo_exception.set_esito( kst_esito)
-					throw kguo_exception
-				end if
 				k_title = "Fascicoli Memo " + k_title + " (id=" + string(kst_tab_meca.id) + " " 
 			else
 				k_return = false
@@ -4221,6 +4214,9 @@ try
 
 			case "meca_1_print"
 				kst_esito = kiuf_armo.anteprima_meca_print ( kdsi_elenco_output, kst_tab_meca )
+
+			case "p_meca_memo_elenco"
+				kst_esito = kiuf_armo.anteprima_elenco_memo( kdsi_elenco_output, kst_tab_meca )
 
 			case else				
 				kst_esito = kiuf_armo.anteprima_riga ( kdsi_elenco_output, kst_tab_armo )
