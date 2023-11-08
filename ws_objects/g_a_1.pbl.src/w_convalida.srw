@@ -1001,7 +1001,7 @@ private subroutine u_refresh_icone ();//
 	dw_lista_0.event u_personalizza_dw( )   //carica eventuali ICONE
 	dw_lista_0.groupcalc( )
 	dw_dett_0.event u_personalizza_dw( )   //carica eventuali ICONE
-
+ 
 end subroutine
 
 private function integer u_retrieve_dw_lista ();//---

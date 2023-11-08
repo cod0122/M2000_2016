@@ -168,7 +168,6 @@ end variables
 
 forward prototypes
 public function boolean u_filtra_record (string k_filtro)
-public function long u_get_riga_atpointer (string k_nome_campo)
 private subroutine link_standard_imposta ()
 private subroutine u_drag_scroll (long row)
 public subroutine set_flag_modalita (string a_flag_modalita)
@@ -192,6 +191,7 @@ public function boolean if_link_enabled ()
 public subroutine u_set_column_color ()
 public function long u_selectrow_onclick (long a_row)
 public subroutine u_proteggi ()
+public function long u_get_riga_atpointer (ref string k_nome_campo)
 end prototypes
 
 event ue_dwnkey;//
@@ -852,40 +852,6 @@ long k_ctr, k_rc
 		
 		
 return k_return
-
-end function
-
-public function long u_get_riga_atpointer (string k_nome_campo);//
-//--- tenta di trovare il numero di riga con o senza nome-campo 
-//
-long k_riga=0
-string k_rigax
-//long k_ctr
-
-
-//	k_stringa = this.GetObjectAtPointer()
-//	if k_stringa <> "" then
-
-//--- potrebbe essere un tree per cui prendo il NUMERO RIGA se ho premuto su un NODO
-	k_rigax = this.GetObjectAtPointer()
-	if k_rigax <> "" then
-		
-		//k_ctr = len(k_rigax)
-		if trim(k_nome_campo) > " " then
-			k_rigax = Replace ( k_rigax, pos( k_rigax,trim(k_nome_campo), 1) , len(trim(k_nome_campo)) , space(len(trim(k_nome_campo))) )
-		else
-			k_rigax = right(k_rigax, len(k_rigax) - pos(k_rigax, "~t"))
-		end if
-		if isnumber(trim(k_rigax)) then 
-			k_riga = long(trim(k_rigax))
-		else
-			k_riga = 0
-		end if
-	
-	end if
-
-return k_riga
-
 
 end function
 
@@ -1851,6 +1817,39 @@ end choose
 
 
 end subroutine
+
+public function long u_get_riga_atpointer (ref string k_nome_campo);/*
+   tenta di trovare il numero di riga con o senza nome-campo sul quale è il puntatore
+	inp: nome_campo il nome della colonna se manca prova a impostarlo dal puntatore
+	out: nome_campo se era lasciato vuoto
+	ret: numero di riga
+*/
+long k_riga=0
+string k_rigax
+
+
+//--- potrebbe essere un tree per cui prendo il NUMERO RIGA se ho premuto su un NODO
+	k_rigax = trim(this.GetObjectAtPointer())  // torna ad esempio: id_meca~t23   colonna id_meca riga 23 o  id_meca_t~t15 campo in testata e la riga 15 è la prima visibile sotto 
+	if k_rigax > " " then
+		
+		if trim(k_nome_campo) > " " then
+			k_rigax = Replace ( k_rigax, pos( k_rigax,trim(k_nome_campo), 1), len(trim(k_nome_campo)) , space(len(trim(k_nome_campo))) )
+		else
+			k_nome_campo = left(k_rigax, pos(k_rigax, "~t") - 1)
+			k_rigax = right(k_rigax, len(k_rigax) - pos(k_rigax, "~t"))
+		end if
+		if isnumber(trim(k_rigax)) then 
+			k_riga = long(trim(k_rigax))
+		else
+			k_riga = 0
+		end if
+	
+	end if
+
+return k_riga
+
+
+end function
 
 on uo_d_std_1.create
 call super::create

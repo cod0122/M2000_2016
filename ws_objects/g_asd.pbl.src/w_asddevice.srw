@@ -417,7 +417,7 @@ try
 	ki_resize_dw_dett = true
 	u_resize()
 	dw_dett_0.setfocus()		
-	u_personalizza_dw ()
+	u_personalizza_dw (kkg_flag_modalita.inserimento)
 	attiva_tasti()
 	dw_dett_0.SetColumn("des")
 	
@@ -992,8 +992,6 @@ type st_orizzontal from w_g_tab0`st_orizzontal within w_asddevice
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_asddevice
-integer x = 0
-integer y = 0
 integer width = 2866
 integer height = 864
 string dataobject = "d_asddevice_l"

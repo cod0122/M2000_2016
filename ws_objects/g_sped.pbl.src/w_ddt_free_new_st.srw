@@ -140,7 +140,7 @@ try
 	
 	popola_lista_da_st()
 	
-	kist_sped_ddt[] = kst_sped_ddt_vuota[]
+	kist_sped_ddt[] = kst_sped_ddt_vuota[]  
 	
 	dw_documenti.setfocus()
 
@@ -680,6 +680,9 @@ if IsValid(MenuID) then destroy(MenuID)
 destroy(this.ddlb_copie)
 destroy(this.gb_copie)
 end on
+
+type dw_print_0 from w_g_tab_st`dw_print_0 within w_ddt_free_new_st
+end type
 
 type st_ritorna from w_g_tab_st`st_ritorna within w_ddt_free_new_st
 end type

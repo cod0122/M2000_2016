@@ -488,7 +488,7 @@ try
 	
 //--- pone i link nel dw
 	u_personalizza_dw()
-
+ 
 	for k_ctr = 1 to UpperBound(kist_sped_ddt[])
 		if kist_sped_ddt [k_ctr].kst_tab_sped.num_bolla_out > 0 then 
 			k_bolla_trovata = true
@@ -874,6 +874,9 @@ destroy(this.ddlb_copie)
 destroy(this.cbx_forza_wm_camion_caricato)
 destroy(this.gb_copie)
 end on
+
+type dw_print_0 from w_g_tab_st`dw_print_0 within w_ddt_new_st
+end type
 
 type st_ritorna from w_g_tab_st`st_ritorna within w_ddt_new_st
 integer x = 2638

@@ -272,7 +272,7 @@ lancia la funzione di Inserimento
 	Out: boolean: TRUE = OK
 */
 boolean k_return 
-
+ 
 try
 	kguo_exception.inizializza(this.classname( ))
 	

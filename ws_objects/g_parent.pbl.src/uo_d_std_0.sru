@@ -303,8 +303,6 @@ string k_modify
 st_proteggi kst_proteggi
 
 
-	this.setredraw(false)
-
 	if a_modify > " " then
 		
 		k_modify = a_modify + " "
@@ -391,6 +389,7 @@ st_proteggi kst_proteggi
 		k_ctr = k_ctr + 1 
 
 	loop while k_ctr <= k_num_colonne_nr and k_id_campo = 0
+
 
 return k_modify
 

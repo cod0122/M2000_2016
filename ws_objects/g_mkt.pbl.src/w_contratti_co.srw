@@ -620,7 +620,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 	proteggi_campi()
 
 end if
-
+ 
 //--- ripropone eventaulemnete i link
 tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
 tab_1.tabpage_1.dw_1.event u_personalizza_dw()
@@ -1546,6 +1546,9 @@ return k_return
 
 end event
 
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_contratti_co
+end type
+
 type st_ritorna from w_g_tab_3`st_ritorna within w_contratti_co
 end type
 
@@ -2087,7 +2090,6 @@ end type
 
 type dw_2 from w_g_tab_3`dw_2 within tabpage_2
 boolean visible = true
-integer x = 0
 integer width = 2981
 integer height = 1228
 boolean enabled = true
@@ -2102,7 +2104,6 @@ end type
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 integer width = 3035
 integer height = 1256
-boolean enabled = false
 string text = "tab"
 end type
 
@@ -2119,7 +2120,6 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 integer width = 3035
 integer height = 1256
-boolean enabled = false
 string text = "tab"
 ln_1 ln_1
 end type
@@ -2163,7 +2163,6 @@ end type
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 integer width = 3035
 integer height = 1256
-boolean enabled = false
 string text = "tab"
 end type
 

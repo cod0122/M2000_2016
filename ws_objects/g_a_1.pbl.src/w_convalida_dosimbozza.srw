@@ -868,10 +868,7 @@ public subroutine set_dw_dett_0_dataobject ();//
 		dw_dett_0.selectrow( 0, false)
 	end if
 	dw_dett_0.event u_constructor( )
-	//dw_dett_0.settransobject(kguo_sqlca_db_magazzino)
-	
-	//dw_dett_0.event u_personalizza_dw( )   //carica eventuali ICONE
-	
+	  
 end subroutine
 
 private function double calcola_coeff_a_s (st_tab_meca_dosimbozza ast_tab_meca_dosimbozza);//
@@ -1347,7 +1344,6 @@ integer width = 2784
 integer height = 1148
 boolean enabled = true
 string dataobject = "d_convalida_dosimbozza"
-borderstyle borderstyle = stylelowered!
 boolean ki_link_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_sort = false

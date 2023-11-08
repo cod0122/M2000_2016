@@ -334,7 +334,7 @@ end function
 public subroutine elenco_esiti (boolean k_visibile);//
 kuf_esito_operazioni kuf1_esito_operazioni
 datetime k_ts
-
+ 
 
 if k_visibile then
 
@@ -869,10 +869,15 @@ end subroutine
 public subroutine u_set_dw_documenti_prezzo_nuovo ();//
 //---- Calcola PREZZO simulato nuovo
 //
+string  k_rcx
 dec k_soglia_min = 0.00, k_soglia_max = 0.00, k_percento = 0.00, k_importo=0.00
+kuf_utility kuf1_utility
+string k_percento_x
 string k_espressione = "if (prezzo > 0 "
 
 
+	kuf1_utility = create kuf_utility
+	
 	k_soglia_min = dw_box.getitemnumber( 1, "soglia_min")
 	if k_soglia_min > 0 then
 		k_espressione += " and prezzo >= " + string(k_soglia_min)
@@ -880,17 +885,14 @@ string k_espressione = "if (prezzo > 0 "
 	k_soglia_max = dw_box.getitemnumber( 1, "soglia_max")
 	if k_soglia_max > 0 then
 		k_espressione += " and prezzo <= " + string(k_soglia_max)
-	else
-		if k_soglia_min > 0 then
-			k_espressione += " and prezzo <= 9999999 "
-		end if
 	end if
 	
 	choose case dw_box.getitemstring( 1, "tipo")
 		case "P"
 			k_percento = dw_box.getitemnumber( 1, "percento")
 			if k_percento <> 0 then
-				k_espressione += ", prezzo * (1 + " + string(k_percento) + "/100), 0) "
+				k_percento_x = kuf1_utility.u_num_itatousa(string(k_percento))
+				k_espressione += ", prezzo * (1 + " + k_percento_x + "/100), 0) "
 			end if
 		case "I"
 			k_importo = dw_box.getitemnumber( 1, "importo")
@@ -900,11 +902,11 @@ string k_espressione = "if (prezzo > 0 "
 		case "N"
 			k_espressione = "0" 
 	end choose
+
+	k_rcx = dw_documenti.modify("k_prezzo.expression = '" + k_espressione + "' ")
+
+	destroy kuf1_utility
 	
-	dw_documenti.modify("k_prezzo.expression = '" + k_espressione + "' ")
-
-
-
 end subroutine
 
 public function boolean u_get_prezzo_nuovo (ref double a_prezzo);//

@@ -801,7 +801,7 @@ kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
 //--- funzione utile alla sincronizzazione con la window di ritorno (come il navigatore)
 		kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w)
 		
-		u_personalizza_dw ()
+		u_personalizza_dw (kst_open_w.flag_modalita)
 	end if
 //end if
 end event

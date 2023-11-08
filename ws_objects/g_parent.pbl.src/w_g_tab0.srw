@@ -88,7 +88,6 @@ protected function string aggiorna_tabelle ()
 protected function integer select_riga (long k_riga)
 protected subroutine mostra_nascondi_dw ()
 protected function string inizializza_post ()
-protected subroutine u_personalizza_dw ()
 protected subroutine fine_primo_giro ()
 protected function string leggi_riga ()
 protected function boolean aggiorna_tabelle_altre () throws uo_exception
@@ -120,6 +119,7 @@ protected function boolean u_lancia_funzione_del (ref st_open_w ast_open_w)
 protected subroutine riempi_id ()
 public function string u_lancia_funzione_update ()
 public function string u_lancia_funzione_if_modificato ()
+protected subroutine u_personalizza_dw (string a_flag_modalita)
 end prototypes
 
 protected function string check_dati ();//======================================================================
@@ -207,15 +207,27 @@ st_open_w kst_open_w
 		k_campo_key = "#1"
 	end if
 
-	choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
-		
-		case 'CH'
-			k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-		
-	 	case else
-			k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-
-	end choose
+	if dw_lista_0.visible then
+		if dw_lista_0.getrow() > 0 then
+			choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
+				case 'CH'
+					k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+				case else
+					k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+			end choose
+		end if
+	else
+		if dw_dett_0.visible then
+			if dw_dett_0.getrow() > 0 then
+				choose case upper(Left(dw_dett_0.Describe(k_campo_key + ".Coltype"),2))
+					case 'CH'
+						k_key = dw_dett_0.getitemstring(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+					case else
+						k_key = dw_dett_0.getitemnumber(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+				end choose
+			end if
+		end if
+	end if
 
 	if trim(string(k_key)) > " " then 
 
@@ -644,17 +656,16 @@ boolean k_insersci = false
 //=== Puntatore Cursore da attesa.....
 	setpointer(kkg.pointer_attesa)	
 
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
+	if dw_lista_0.visible then
+		k_riga_getrow = dw_lista_0.getrow()  // salvo il nr. di riga su cui ero
+		dw_lista_0.ki_d_std_1_primo_giro = true
+	else
+		if dw_dett_0.visible then
+			k_riga_getrow = dw_dett_0.getrow()  // salvo il nr. di riga su cui ero
+			dw_dett_0.ki_d_std_1_primo_giro = true
+		end if
+	end if
 
-	dw_lista_0.ki_d_std_1_primo_giro = true
-
-//	dw_dett_0.SetRedraw (false)
-//	dw_lista_0.SetRedraw (false)
-
-
-//=== salvo il nr. di riga su cui ero
-	k_riga_getrow = dw_lista_0.getrow()
 	if k_riga_getrow <= 0 then
 		k_riga_getrow = 1
 	end if
@@ -667,9 +678,7 @@ boolean k_insersci = false
 
 //=== Se avevo specificato qualcosa nella ricerca tento il posizionamento
 		if isvalid(kguo_g.KGuf_trova) then
-//			if isvalid(kguo_g.KGuf_trova.get_window_trova()) then
-				u_trova_in_dw(KKG_FLAG_RICHIESTA.trova_ancora )
-//			end if
+			u_trova_in_dw(KKG_FLAG_RICHIESTA.trova_ancora )
 		end if
  
 	else  
@@ -689,8 +698,6 @@ boolean k_insersci = false
 			if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento and cb_inserisci.enabled then 
 			
 				k_insersci = true
-//				cb_inserisci.postevent(clicked!)
-				
 				
 			else
 			
@@ -704,7 +711,6 @@ boolean k_insersci = false
 			
 		catch (uo_exception kuo_exception)
 		end try
-
 
 	end if
 	
@@ -721,16 +727,7 @@ boolean k_insersci = false
 	//--- fa delle cose personalizzate per i figli
 			inizializza_post()
 			
-	//		attiva_tasti()
-	
-	//		dw_dett_0.SetRedraw (true)
-	//		dw_lista_0.SetRedraw (true)
-	
-	//	 	SetPointer(kkg.pointer_default)
-	
 		else
-	
-	//	 	SetPointer(kkg.pointer_default)
 	
 	//--- FORZA USCITA!!!
 			cb_ritorna.post event clicked( )
@@ -830,7 +827,7 @@ protected function integer modifica ();//===
 int k_return
 any k_key
 string k_campo_key=""
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 kuf_parent kuf1_parent 
 st_tab_g_0 kst_tab_g_0 
 st_open_w kst_open_w	
@@ -842,16 +839,28 @@ st_open_w kst_open_w
 		k_campo_key = "#1"
 	end if
 
-	choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
-		
-		case 'CH'
-			k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-		
-	 	case else
-			k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-
-	end choose
-
+	if dw_lista_0.visible then 
+		if dw_lista_0.getrow() > 0 then
+			choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
+				case 'CH'
+					k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+				case else
+					k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+			end choose
+		end if
+	else
+		if dw_dett_0.visible then 
+			if dw_dett_0.getrow() > 0 then
+				choose case upper(Left(dw_dett_0.Describe(k_campo_key + ".Coltype"),2))
+					case 'CH'
+						k_key = dw_dett_0.getitemstring(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+					case else
+						k_key = dw_dett_0.getitemnumber(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+				end choose
+			end if
+		end if
+	end if
+			
 	if trim(string(k_key)) > " " then 
 
 		kst_open_w.flag_modalita = kkg_flag_modalita.modifica
@@ -883,14 +892,16 @@ st_open_w kst_open_w
 				ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 		
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
+				//kuf1_utility = create kuf_utility
+				//kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
+				dw_dett_0.u_proteggi_dw("0", 0)
 	
 //--- Inabilita campo cliente per la modifica se Funzione MODIFICA
 				if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
-					kuf1_utility.u_proteggi_dw("1", 1, dw_dett_0)
+					dw_dett_0.u_proteggi_dw("1", 1)
+					//kuf1_utility.u_proteggi_dw("1", 1, dw_dett_0)
 				end if
-				destroy kuf1_utility
+				//destroy kuf1_utility
 			end if
 		end if		
 	end if		
@@ -906,7 +917,7 @@ protected function integer visualizza ();//===
 int k_return
 any k_key
 string k_campo_key=""
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 kuf_parent kuf1_parent 
 st_tab_g_0 kst_tab_g_0 
 st_open_w kst_open_w	
@@ -918,15 +929,27 @@ st_open_w kst_open_w
 		k_campo_key = "#1"
 	end if
 
-	choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
-		
-		case 'CH'
-			k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-		
-	 	case else
-			k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-
-	end choose
+	if dw_lista_0.visible then 
+		if dw_lista_0.getrow() > 0 then
+			choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
+				case 'CH'
+					k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+				case else
+					k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
+			end choose
+		end if
+	else
+		if dw_dett_0.visible then 
+			if dw_dett_0.getrow() > 0 then
+				choose case upper(Left(dw_dett_0.Describe(k_campo_key + ".Coltype"),2))
+					case 'CH'
+						k_key = dw_dett_0.getitemstring(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+					case else
+						k_key = dw_dett_0.getitemnumber(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
+				end choose
+			end if
+		end if
+	end if
 
 	if trim(string(k_key)) > " " then 
 
@@ -959,9 +982,10 @@ st_open_w kst_open_w
 				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
 		
 //--- Protezione campi per disabilitare la modifica 
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("1", 0, dw_dett_0)
-				destroy kuf1_utility
+				//kuf1_utility = create kuf_utility
+				//kuf1_utility.u_proteggi_dw("1", 0, dw_dett_0)
+				//destroy kuf1_utility
+				dw_dett_0.u_proteggi_dw("1", 0)
 
 			end if
 		end if		
@@ -981,40 +1005,46 @@ protected function string leggi_liste ();//=====================================
 //
 string k_return="0 "
 long k_riga
+uo_d_std_1 kdw_1
 
 
 try
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
+
+	if dw_lista_0.visible then 
+		kdw_1 = dw_lista_0
+	else
+		if dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+		else
+			return "0 "
+		end if
+	end if
 	
-	dw_lista_0.setredraw(false)
+	kdw_1.setredraw(false)
 
 	if ki_riga_selezionata = 0 then
-		k_riga = dw_lista_0.getrow()
+		k_riga = kdw_1.getrow()
 	else
 		k_riga = ki_riga_selezionata
 	end if
 	
 	inizializza()
 	
-	if dw_lista_0.rowcount() > 0 then
-		if k_riga > dw_lista_0.rowcount() then
-			k_riga = dw_lista_0.rowcount() 
+	if kdw_1.rowcount() > 0 then
+		if k_riga > kdw_1.rowcount() then
+			k_riga = kdw_1.rowcount() 
 		else
 			if k_riga = 0 then
 				k_riga = 1
 			end if
 		end if
-		dw_lista_0.sort()
-//		if k_riga > 3 then
-//			dw_lista_0.scrolltorow(k_riga - 3)
-//		else
-			dw_lista_0.scrolltorow(k_riga)
-//		end if
-		dw_lista_0.setrow(k_riga)
-		dw_lista_0.selectrow(0 , false)
+		kdw_1.sort()
+		kdw_1.scrolltorow(k_riga)
+		kdw_1.setrow(k_riga)
+		kdw_1.selectrow(0 , false)
 //--- se di tipo GRID allora seleziona		
-		if dw_lista_0.Object.DataWindow.Processing = "1" then
-			dw_lista_0.selectrow(k_riga , true)
+		if kdw_1.Object.DataWindow.Processing = "1" then
+			kdw_1.selectrow(k_riga , true)
 		end if
 	else
 
@@ -1028,7 +1058,7 @@ catch (uo_exception kuo_exception)
 
 finally
 	attiva_tasti( )
-	dw_lista_0.setredraw(true)
+	kdw_1.setredraw(true)
 
 end try
 	
@@ -1156,23 +1186,34 @@ end subroutine
 protected function string inizializza_post ();//
 string k_return
 long k_riga
+uo_d_std_1 kdw_1
 
 
 if not ki_exit_si then
 
+	if dw_lista_0.visible then 
+		kdw_1 = dw_lista_0
+	else
+		if dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+		else
+			return "0"
+		end if
+	end if
+
 //---- Tenta il posizionamento sulla riga di Inizio lista dell'ultima exit
 	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
-		if dw_lista_0.enabled and dw_lista_0.rowcount( ) > 1 then 
-			k_riga = kGuf_data_base.dw_setta_riga(trim(ki_syntaxquery), dw_lista_0)
-			if k_riga > 0 and k_riga <= dw_lista_0.rowcount( ) then 
+		if kdw_1.enabled and kdw_1.rowcount( ) > 1 then 
+			k_riga = kGuf_data_base.dw_setta_riga(trim(ki_syntaxquery), kdw_1)
+			if k_riga > 0 and k_riga <= kdw_1.rowcount( ) then 
 				if k_riga > 1 then
-					dw_lista_0.scrolltorow( k_riga - 1)
+					kdw_1.scrolltorow( k_riga - 1)
 				else 
-					dw_lista_0.scrolltorow( k_riga )
+					kdw_1.scrolltorow( k_riga )
 				end if
-				dw_lista_0.selectrow(k_riga, true)
-				dw_lista_0.setrow(k_riga)
-				dw_lista_0.setfocus( )
+				kdw_1.selectrow(k_riga, true)
+				kdw_1.setrow(k_riga)
+				kdw_1.setfocus( )
 			end if
 		end if
 	end if
@@ -1186,18 +1227,6 @@ end if
 return k_return
 
 end function
-
-protected subroutine u_personalizza_dw ();//---
-//--- Personalizza DW
-//---
-
-	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita 
-	dw_dett_0.event u_personalizza_dw()
-	
-
-
-
-end subroutine
 
 protected subroutine fine_primo_giro ();//
 super::fine_primo_giro()
@@ -1213,16 +1242,25 @@ protected function string leggi_riga ();//======================================
 //
 string k_return="0 "
 long k_riga
+uo_d_std_1 kdw_1
 
 
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
+	if dw_lista_0.visible then 
+		kdw_1 = dw_lista_0
+	else
+		if dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+		else
+			return "0 "
+		end if
+	end if
 
-	k_riga = dw_lista_0.getrow()
+	k_riga = kdw_1.getrow()
 	
-	if k_riga > dw_lista_0.rowcount() or k_riga = 0 then
+	if k_riga > kdw_1.rowcount() or k_riga = 0 then
 		k_return = "1 "
 	else
-		k_riga = dw_lista_0.ReselectRow(k_riga)
+		k_riga = kdw_1.ReselectRow(k_riga)
 	end if
 	if k_riga < 1 then
 		k_return = "1 "
@@ -1232,10 +1270,10 @@ long k_riga
 	if k_return <> "0 " then
 //		k_return = leggi_liste( )
 	else
-		dw_lista_0.SetRedraw (false)
-		dw_lista_0.GroupCalc()
-		dw_lista_0.SetRedraw (true)
-		dw_lista_0.setfocus()
+		kdw_1.SetRedraw (false)
+		kdw_1.GroupCalc()
+		kdw_1.SetRedraw (true)
+		kdw_1.setfocus()
 	end if
 	
 return k_return
@@ -1265,10 +1303,16 @@ protected subroutine leggi_liste_reset ();//
 //======================================================================
 //
 
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
-
-	ki_riga_selezionata = dw_lista_0.getrow()
-	dw_lista_0.reset()
+	if dw_lista_0.visible then 
+		ki_riga_selezionata = dw_lista_0.getrow()
+		dw_lista_0.reset()
+	else
+		if dw_dett_0.visible then 
+			ki_riga_selezionata = dw_dett_0.getrow()
+			dw_dett_0.reset()
+		end if
+	end if
+		
 
 
 
@@ -1318,42 +1362,54 @@ protected subroutine inizializza_lista_ok (long a_riga_posiziona);//
 //=== input: riga di posizionamento
 //
 int k_return=0
+uo_d_std_1 kdw_1
 
 
-//	SetPointer(kkg.pointer_attesa )
+	if dw_lista_0.visible then 
+		kdw_1 = dw_lista_0
+	else
+		if dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+		else
+			return
+		end if
+	end if
 
 //=== posizionamento sulla riga su cui ero
-	if dw_lista_0.rowcount() > 0 then 
-		if dw_lista_0.getrow() = 0 then
-			if a_riga_posiziona > dw_lista_0.rowcount() then
-				a_riga_posiziona = dw_lista_0.rowcount()
+	if kdw_1.rowcount() > 0 then 
+		if kdw_1.getrow() = 0 then
+			if a_riga_posiziona > kdw_1.rowcount() then
+				a_riga_posiziona = kdw_1.rowcount()
 			end if
 		else
-			a_riga_posiziona = dw_lista_0.getrow()
+			a_riga_posiziona = kdw_1.getrow()
 		end if
 
-		dw_lista_0.setrow(a_riga_posiziona)
-		dw_lista_0.selectrow(0, false)
+		kdw_1.setrow(a_riga_posiziona)
+		kdw_1.selectrow(0, false)
 		if a_riga_posiziona > 1 then
-			dw_lista_0.selectrow(a_riga_posiziona, true)
+			kdw_1.selectrow(a_riga_posiziona, true)
 		end if
-		dw_lista_0.scrolltorow(a_riga_posiziona)
+		kdw_1.scrolltorow(a_riga_posiziona)
 	end if		
 		
 //=== 
 	if ki_st_open_w.flag_primo_giro = "S" then  //se sono su giro di prima volta 
 	
 		if not dw_guida.visible then
-			if dw_dett_0.visible = true and dw_dett_0.rowcount() = 0 then
-				dw_dett_0.setrow(1)
-				dw_dett_0.setcolumn(1)
-			end if
-	
-			if dw_lista_0.visible = true then
-				dw_lista_0.setfocus()
-			else
-				if dw_dett_0.visible = true then
-					dw_dett_0.setfocus()
+			if dw_lista_0.visible then 
+				
+				if dw_dett_0.visible = true and dw_dett_0.rowcount() = 0 then
+					dw_dett_0.setrow(1)
+					dw_dett_0.setcolumn(1)
+				end if
+		
+				if kdw_1.visible = true then
+					kdw_1.setfocus()
+				else
+					if dw_dett_0.visible = true then
+						dw_dett_0.setfocus()
+					end if
 				end if
 			end if
 		end if
@@ -1363,7 +1419,7 @@ int k_return=0
 end subroutine
 
 protected function integer inserisci ();//
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 kuf_parent kuf1_parent
 st_open_w kst_open_w
 st_tab_g_0 kst_tab_g_0
@@ -1389,9 +1445,10 @@ st_tab_g_0 kst_tab_g_0
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento 
 	
 	//--- S-protezione campi per riabilitare la modifica a parte la chiave
-		kuf1_utility = create kuf_utility
-		kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
-		destroy kuf1_utility
+		//kuf1_utility = create kuf_utility
+		//kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
+		//destroy kuf1_utility
+		dw_dett_0.u_proteggi_dw("0", 0)
 	
 		dw_dett_0.reset()
 	
@@ -1420,11 +1477,19 @@ protected function string inizializza () throws uo_exception;//
 //======================================================================
 //
 string k_return="0 "
+long k_rows
 
 
-	if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
-
-	if dw_lista_0.retrieve() < 1 then
+	if dw_lista_0.visible then
+		if not isvalid(dw_lista_0) then dw_lista_0 = dw_lista_0
+		k_rows = dw_lista_0.retrieve()
+	else
+		if dw_dett_0.visible then
+			k_rows = dw_dett_0.retrieve()
+		end if
+	end if
+		
+	if k_rows < 1 then
 		k_return = "1Nessuna Informazione trovata "
 
 		messagebox("Elenco Vuoto", &
@@ -1495,9 +1560,7 @@ public function boolean u_lancia_funzione_imvc (st_open_w ast_open_w);/*
  Rit: boolean: TRUE = OK
 */
 boolean k_return = false
-long k_riga=0
-int k_esito_funzione=0
-string k_errore="0 ", k_esito_funzioneX="0"
+string k_errore="0 "
 string k_dati_modificati
 st_open_w kst_open_w
 
@@ -1703,6 +1766,7 @@ long k_dock_x = 0, k_dock_y = -0
 		k_height = this.WorkSpaceHeight()
 		k_guida_y = 0 - k_dock_y
 	end if
+	
 //--- se tutte due le dw sono visibili allora....
 	if ki_resize_dw_dett and (dw_lista_0.visible or dw_lista_0.ki_dw_visibile_in_open_window) then
 
@@ -1735,7 +1799,7 @@ long k_dock_x = 0, k_dock_y = -0
 			if ki_resize_dw_dett or dw_dett_0.ki_dw_visibile_in_open_window then
 				ki_resize_dw_dett = true
 				dw_dett_0.x = 1 //st_orizzontal.x 
-				dw_dett_0.y = k_guida_height + k_guida_y //+ 1
+				dw_dett_0.y = k_guida_height + k_guida_y + 5 
 				dw_dett_0.width = st_orizzontal.width
 				dw_dett_0.height = k_height  
 			end if
@@ -1837,18 +1901,24 @@ try
 
 	
 	if dw_lista_0.rowcount( ) > 0 or (not dw_lista_0.enabled and dw_dett_0.enabled and dw_dett_0.rowcount( ) > 0)  then 
-		dw_dett_0.reset()
+		if dw_lista_0.visible then
+			dw_dett_0.reset()
+		end if
 		ki_st_open_w.flag_modalita = ast_open_w.flag_modalita
 		dw_dett_0.ki_flag_modalita = ast_open_w.flag_modalita
 		if visualizza() > 0 then
 			k_return = true
 			
+			if dw_lista_0.visible then
+				if dw_dett_0.rowcount( ) > 0 and dw_dett_0.enabled then
+					ki_resize_dw_dett = true
+					u_resize()
+				end if
+			end if
 			if dw_dett_0.rowcount( ) > 0 and dw_dett_0.enabled then
-				ki_resize_dw_dett = true
-				u_resize()
 				dw_dett_0.setfocus()		
 
-				u_personalizza_dw ()
+				u_personalizza_dw (ast_open_w.flag_modalita)
 //--- posizionamento della riga in modo che si veda							
 				if dw_lista_0.getrow( ) > 0 then
 					dw_lista_0.scrolltorow(dw_lista_0.getrow( ))
@@ -1886,22 +1956,28 @@ try
 	kguo_exception.inizializza(this.classname( ))
 
 	if dw_lista_0.rowcount( ) > 0 or (not dw_lista_0.enabled and dw_dett_0.enabled and dw_dett_0.rowcount( ) > 0)  then 
-		dw_dett_0.reset()
+		if dw_lista_0.visible then
+			dw_dett_0.reset()
+		end if
 		ki_st_open_w.flag_modalita = ast_open_w.flag_modalita
 		dw_dett_0.ki_flag_modalita = ast_open_w.flag_modalita
 		if modifica( ) > 0 then
 			k_return = true
 			
+			if dw_lista_0.visible then
+				if dw_dett_0.rowcount( ) > 0 and dw_dett_0.enabled then
+					ki_resize_dw_dett = true
+					u_resize()
+				end if
+			end if
 			if dw_dett_0.rowcount( ) > 0 and dw_dett_0.enabled then
-				ki_resize_dw_dett = true
-				u_resize()
 				dw_dett_0.setfocus()		
 	
-				u_personalizza_dw ()
-				dw_dett_0.resetupdate( )
+				u_personalizza_dw (ast_open_w.flag_modalita)
+				dw_dett_0.resetupdate()
 	
 	//--- posizionamento della riga in modo che si veda							
-				if dw_lista_0.getrow( ) > 0 then
+				if dw_lista_0.visible and dw_lista_0.getrow( ) > 0 then
 					dw_lista_0.scrolltorow(dw_lista_0.getrow( ))
 				end if
 			end if
@@ -1936,20 +2012,27 @@ boolean k_return
 try
 	kguo_exception.inizializza(this.classname( ))
 
-	dw_dett_0.reset()
+	if dw_lista_0.visible then
+		dw_dett_0.reset()
+	end if
 	ki_st_open_w.flag_modalita = ast_open_w.flag_modalita
 	dw_dett_0.ki_flag_modalita = ast_open_w.flag_modalita
 	inserisci( )
 	k_return = true
 	
-	if dw_dett_0.enabled then
-		ki_resize_dw_dett = true
-		u_resize()
-		dw_dett_0.setfocus()		
-
-		u_personalizza_dw ()
-	end if
+	if dw_lista_0.visible then
+		
+		if dw_dett_0.enabled then
+			ki_resize_dw_dett = true
+			u_resize()
+			dw_dett_0.setfocus()		
 	
+		end if
+	end if
+
+	if dw_dett_0.enabled then
+		u_personalizza_dw (ast_open_w.flag_modalita)
+	end if
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -1971,7 +2054,8 @@ boolean k_return = false
 try
 	kguo_exception.inizializza(this.classname( ))
 	
-	if dw_lista_0.rowcount( ) > 0 or (not dw_lista_0.enabled and dw_dett_0.enabled and dw_dett_0.rowcount( ) > 0)  then 
+	if dw_lista_0.rowcount( ) > 0 &
+			or	(not (dw_lista_0.enabled or dw_lista_0.visible) and dw_dett_0.enabled and dw_dett_0.rowcount( ) > 0)  then 
 		ki_st_open_w.flag_modalita = ast_open_w.flag_modalita
 		dw_dett_0.ki_flag_modalita = ast_open_w.flag_modalita
 		k_return = u_duplica()
@@ -1981,7 +2065,7 @@ try
 			ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
 		end if
 		dw_dett_0.setfocus()		
-		u_personalizza_dw ()
+		u_personalizza_dw (ki_st_open_w.flag_modalita)
 	end if
 			
 catch (uo_exception kuo_exception)
@@ -2125,6 +2209,18 @@ return k_return
 
 
 end function
+
+protected subroutine u_personalizza_dw (string a_flag_modalita);//---
+//--- Personalizza DW
+//---
+
+	dw_dett_0.ki_flag_modalita = a_flag_modalita
+	dw_dett_0.event u_personalizza_dw()
+	
+
+
+
+end subroutine
 
 event closequery;call super::closequery;//
 //=== Controllo prima della chiusura della Windows

@@ -251,33 +251,34 @@ try
 			end if
 			if k_valore > " " then  // presuppone ci sia la descrizione
 			else
-				k_errori ++
 				k_tipo_errore="3"      // errore in questo campo: dati insuff.
 				ads_inp.modify("#2.tag = '" + k_tipo_errore + "' ")
 				kst_esito.esito = kkg_esito.DATI_INSUFF
+				if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
 				kst_esito.sqlerrtext = "Manca valore nel campo '" &
 						+ trim(ads_inp.describe(ads_inp.describe("#2.name") + "_t.text")) &
-						+ "' alla riga " + string(k_riga) &
-						+ "~n~r"  
+						+ "' alla riga " + string(k_riga)
+				k_errori ++
 			end if
 		else
-			k_errori ++
 			k_tipo_errore="3"      // errore in questo campo: dati insuff.
 			ads_inp.modify("#1.tag = '" + k_tipo_errore + "' ")
 			kst_esito.esito = kkg_esito.DATI_INSUFF
+			if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
 			kst_esito.sqlerrtext = "Manca valore nel campo '" &
 						+ trim(ads_inp.describe(ads_inp.describe("#1.name") + "_t.text")) &
-						+ "' alla riga " + string(k_riga) &
-						+ "~n~r"  
+						+ "' alla riga " + string(k_riga) 
+			k_errori ++
 		end if
 
 		if k_tipo_errore = "0" or k_tipo_errore = "4" or k_tipo_errore = kkg_esito.DATI_WRN  then
 			if ads_inp.find("#1 = '" + k_valore  + "'", k_riga, k_nr_righe) > 0 then
-				k_errori ++
 				k_tipo_errore="1"      // errore in questo campo: logico
 				ads_inp.modify("#1.tag = '" + k_tipo_errore + "' ")
 				kst_esito.esito = kkg_esito.ERR_LOGICO
-				kst_esito.sqlerrtext = "Codice " + k_valore + " già in elenco " + "~n~r" 
+				if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
+				kst_esito.sqlerrtext = "Codice " + k_valore + " già in elenco " 
+				k_errori ++
 			end if
 		end if
 

@@ -3161,7 +3161,7 @@ boolean k_duplica
 st_open_w kst_open_w
 
 
-try
+try 
 	k_duplica = u_duplica()
 	if k_duplica then
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica

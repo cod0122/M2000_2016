@@ -129,6 +129,8 @@ type m_lotti from menu within m_magazzino
 end type
 type m_caricalotto from menu within m_magazzino
 end type
+type m_lottiparziali from menu within m_magazzino
+end type
 type m_lottisd from menu within m_magazzino
 end type
 type m_-4 from menu within m_magazzino
@@ -264,6 +266,7 @@ m_mag_navigatore m_mag_navigatore
 m_marketing m_marketing
 m_lotti m_lotti
 m_caricalotto m_caricalotto
+m_lottiparziali m_lottiparziali
 m_lottisd m_lottisd
 m_-4 m_-4
 m_groupage m_groupage
@@ -3630,6 +3633,7 @@ m_mag_navigatore m_mag_navigatore
 m_marketing m_marketing
 m_lotti m_lotti
 m_caricalotto m_caricalotto
+m_lottiparziali m_lottiparziali
 m_lottisd m_lottisd
 m_-4 m_-4
 m_groupage m_groupage
@@ -3680,6 +3684,7 @@ this.m_mag_navigatore=create m_mag_navigatore
 this.m_marketing=create m_marketing
 this.m_lotti=create m_lotti
 this.m_caricalotto=create m_caricalotto
+this.m_lottiparziali=create m_lottiparziali
 this.m_lottisd=create m_lottisd
 this.m_-4=create m_-4
 this.m_groupage=create m_groupage
@@ -3711,6 +3716,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_mag_navigatore
 this.Item[UpperBound(this.Item)+1]=this.m_marketing
 this.Item[UpperBound(this.Item)+1]=this.m_lotti
 this.Item[UpperBound(this.Item)+1]=this.m_caricalotto
+this.Item[UpperBound(this.Item)+1]=this.m_lottiparziali
 this.Item[UpperBound(this.Item)+1]=this.m_lottisd
 this.Item[UpperBound(this.Item)+1]=this.m_-4
 this.Item[UpperBound(this.Item)+1]=this.m_groupage
@@ -3746,6 +3752,7 @@ destroy(this.m_mag_navigatore)
 destroy(this.m_marketing)
 destroy(this.m_lotti)
 destroy(this.m_caricalotto)
+destroy(this.m_lottiparziali)
 destroy(this.m_lottisd)
 destroy(this.m_-4)
 destroy(this.m_groupage)
@@ -3899,12 +3906,11 @@ end type
 
 event clicked;//
 kuf_armo kuf1_armo
-string k_modalita = kkg_flag_modalita.elenco
 
 
 	kuf1_armo = create kuf_armo
 
-	kuf1_armo.u_open(k_modalita)
+	kuf1_armo.u_open(kkg_flag_modalita.elenco)
 
 	destroy kuf1_armo
 
@@ -3997,6 +4003,43 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_caricalotto.destroy
+call super::destroy
+end on
+
+type m_lottiparziali from menu within m_magazzino
+end type
+
+event clicked;//
+kuf_meca_parziali kuf1_meca_parziali
+
+
+	kuf1_meca_parziali = create kuf_meca_parziali
+
+	kuf1_meca_parziali.u_open(kkg_flag_modalita.elenco)
+
+	destroy kuf1_meca_parziali
+
+end event
+
+on m_lottiparziali.create
+call super::create
+this.text = "Lotti Parziali"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_lottiparziali.destroy
 call super::destroy
 end on
 

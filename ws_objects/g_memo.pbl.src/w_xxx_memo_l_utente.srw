@@ -465,7 +465,7 @@ kst_open_w.flag_modalita = kst_open_w_arg.flag_modalita
 					u_resize()
 					dw_dett_0.setfocus()		
 	
-					u_personalizza_dw ()
+					u_personalizza_dw (kst_open_w.flag_modalita)
 				end if
 				
 				
@@ -480,7 +480,7 @@ kst_open_w.flag_modalita = kst_open_w_arg.flag_modalita
 							u_resize()
 							dw_dett_0.setfocus()		
 			
-							u_personalizza_dw ()
+							u_personalizza_dw (kst_open_w.flag_modalita)
 						end if
 					else
 						kguo_exception.inizializza( )
@@ -500,7 +500,7 @@ kst_open_w.flag_modalita = kst_open_w_arg.flag_modalita
 							u_resize()
 							dw_dett_0.setfocus()		
 			
-							u_personalizza_dw ()
+							u_personalizza_dw (kst_open_w.flag_modalita)
 						end if
 					else
 						kguo_exception.inizializza( )
@@ -557,6 +557,9 @@ event timer;call super::timer;////
 //end if
 //
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_xxx_memo_l_utente
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_xxx_memo_l_utente
 end type
@@ -716,6 +719,9 @@ string k_stato_cercato
 	SetPointer(kkg.pointer_default)
 
 end event
+
+type st_duplica from w_g_tab0`st_duplica within w_xxx_memo_l_utente
+end type
 
 type dw_periodo from uo_dw_periodo within w_xxx_memo_l_utente
 integer x = 416
