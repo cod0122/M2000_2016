@@ -1,0 +1,34 @@
+﻿$PBExportHeader$st_tab_sl_pt_g3.srs
+global type st_tab_sl_pt_g3 from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_sl_pt_g3		descriptor "comment" = "semplicemente x avere una chiave univoca"
+	string		cod_sl_pt
+	integer		mis_x
+	integer		mis_y
+	integer		mis_z
+	string		peso		descriptor "comment" = "peso minimo"
+	string		pesomax		descriptor "comment" = "peso massimo"
+	decimal { 3 }		densita		descriptor "comment" = "densità minimo"
+	decimal { 3 }		densitamax		descriptor "comment" = "densità massimo"
+	integer		dosim_x_bcode		descriptor "comment" = "numero di dosimetri per barcode"
+	integer		dosim_delta_bcode		descriptor "comment" = "ogni quanti barcode. Es. se c'è 8 il dosimetro sarà sul plt 1, 9, 17, 25 ecc... "
+	string		dosim_et_descr		descriptor "comment" = "testo da stampare su etichetta dosimetro riga 1"
+	string		dosim_et_descr_1		descriptor "comment" = "testo da stampare su etichetta dosimetro riga 2"
+	decimal { 2 }		dosetgminmin		descriptor "comment" = "dose 'target minima': range minimo"
+	decimal { 2 }		dosetgminmax		descriptor "comment" = "dose 'target minima': range massimo"
+	decimal { 2 }		dosetgmaxmin		descriptor "comment" = "dose 'target massima': range minimo"
+	decimal { 2 }		dosetgmaxmax		descriptor "comment" = "dose 'target massima': range massimo"
+	decimal { 3 }		dosetgminfattcorr		descriptor "comment" = "fattore di correzione 'punto di monitoraggio/dose minima'"
+	decimal { 3 }		dosetgmaxfattcorr		descriptor "comment" = "fattore di correzione 'punto di monitoraggio/dose massima'"
+	string		dosetgmintcalc		descriptor "comment" = "'tipo di calcolo dose minima': 'N=Dose misurata', 'S=Dose per fattore di correzione'"
+	string		dosetgmaxtcalc		descriptor "comment" = "'tipo di calcolo dose massima': 'N=Dose misurata', 'S=Dose per fattore di correzione'"
+	string		cert_st_dose_min		descriptor "comment" = "flag Attestato: in stampa la dose minima applicata in lavorazione"
+	string		cert_st_dose_max		descriptor "comment" = "flag Attestato: in stampa la dose massima applicata in lavorazione"
+	string		cert_st_data_ini		descriptor "comment" = "flag Attestato: in stampa la data di inizio lavorazione"
+	string		cert_st_data_fin		descriptor "comment" = "flag Attestato: in stampa la data di fine lavorazione"
+	decimal { 1 }		unitwork		descriptor "comment" = "unità di trattamento: simile a occupazione impianto ma più rivolto al materiale in trattamento solitamente è 100% (se vuoto) o 50% "
+	integer		savedosimeter		descriptor "comment" = "1=risparmia il dosimetro sull'ultimo pallet quando ad esempio è già su quello precedente"
+	datetime		x_datins
+	string		x_utente
+end type
+

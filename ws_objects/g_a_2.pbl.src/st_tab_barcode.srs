@@ -47,13 +47,13 @@ global type st_tab_barcode from structure
 	string		modgiri_utente		descriptor "comment" = "utente che ha modificato i giri"
 	long		imptime_second		descriptor "comment" = "tempo tot in secondi impiegato nei cicli impianto"
 	datetime		data_join_plt		descriptor "comment" = "data di associazione con il bcode del pkl mittente"
-	integer		g3ngiri		descriptor "comment" = "Impianto G3 numero giri "
-	long		id_sl_pt_g3		descriptor "comment" = "id tabella Piano di trattemento G3"
-	string		g3ciclo		descriptor "comment" = "codice CICLO configurato su Impianto G3"
-	integer		g3npass		descriptor "comment" = "2PASS, 4PASS per G3"
-	integer		lav_g3ngiri		descriptor "comment" = "Impianto G3 numero giri effettivamente Trattati"
-	string		lav_g3ciclo		descriptor "comment" = "codice CICLO configurato su Impianto G3 effettivamente usato x il Trattatamento"
-	integer		lav_g3npass		descriptor "comment" = "2PASS, 4PASS per G3 effettivamente usato x il Trattatamento"
+	long		id_sl_pt_g3_lav		descriptor "comment" = "id tabella Piani trattementi G3"
+	integer		g3ngiri		descriptor "comment" = "Numero giri in Programmazione da fare"
+	integer		g3ciclo		descriptor "comment" = "CICLO in Programmazione da fare"
+	integer		g3npass		descriptor "comment" = "2PASS, 4PASS in Programmazione da fare"
+	integer		g3lav_ngiri		descriptor "comment" = "Numero giri effetuati in G3"
+	integer		g3lav_ciclo		descriptor "comment" = "CICLO di Trattatamento in G3"
+	integer		g3lav_npass		descriptor "comment" = "2PASS, 4PASS  Trattato in G3"
 	datetime		x_datins
 	string		x_utente
 end type

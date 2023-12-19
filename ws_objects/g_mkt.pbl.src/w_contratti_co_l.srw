@@ -620,6 +620,9 @@ if isvalid(kiuf_contratti_co) then destroy kiuf_contratti_co
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_contratti_co_l
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_contratti_co_l
 end type
 
@@ -912,7 +915,6 @@ integer width = 2807
 integer height = 708
 integer taborder = 120
 string dataobject = "d_contratti_co_l"
-borderstyle borderstyle = stylelowered!
 end type
 
 type dw_guida from w_g_tab0`dw_guida within w_contratti_co_l
@@ -1176,7 +1178,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.rb_stampa.x) + long(this.object.rb_stampa.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 180
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

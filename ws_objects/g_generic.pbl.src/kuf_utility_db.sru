@@ -42,6 +42,7 @@ private function boolean u_crea_view_v_temptable_sl_pt_dosimpos () throws uo_exc
 private function boolean u_crea_view_v_temptable_sc_cf () throws uo_exception
 private function boolean u_crea_view_v_temptable_contratti () throws uo_exception
 private function boolean u_crea_view_v_temptable_listino () throws uo_exception
+private function boolean u_crea_view_v_temptable_sl_pt_g3 () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -586,6 +587,8 @@ try
 	krc = u_crea_view_v_temptable_certif( )
 	if not krc then k_return=false
 	krc = u_crea_view_v_temptable_sl_pt( )
+	if not krc then k_return=false	
+	krc = u_crea_view_v_temptable_sl_pt_g3( )
 	if not krc then k_return=false	
 	krc = u_crea_view_v_temptable_sl_pt_dosimpos( )
 	if not krc then k_return=false	
@@ -1196,8 +1199,6 @@ st_esito kst_esito
 uo_exception kuo_exception
  
 
-
-
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
@@ -1206,12 +1207,13 @@ uo_exception kuo_exception
 			+ " (id_armo , " &
 			+ " contati, " & 
          + " contati_orig, " & 
-         + " data_ent,    " & 
-         + " data_int,    " & 
-         + " num_int,    " & 
+         + " data_ent, " & 
+         + " data_int, " & 
+         + " num_int,  " & 
          + " contratto,    " & 
-         + " area_mag,     " & 
+         + " area_mag, " & 
 			+ " area_mag_pos, "  &
+         + " impianto, " & 
          + " mc_co,    " & 
          + " sc_cf,    " & 
          + " sl_pt,    " & 
@@ -1247,7 +1249,8 @@ uo_exception kuo_exception
          + " meca.num_int,    " & 
          + " meca.contratto,    " & 
          + " isnull(meca.area_mag, ''),     " & 
-			+ " substring(meca.area_mag, 5, 1), "  &
+			+ " isnull(substring(meca.area_mag, 5, 1), ''), "  &
+         + " isnull(meca.impianto, 2) , " & 
          + " contratti.mc_co,    " & 
          + " isnull(contratti.sc_cf, ''),    " & 
          + " contratti.sl_pt,    " & 
@@ -1259,11 +1262,11 @@ uo_exception kuo_exception
          + " meca.data_bolla_in,   " & 
          + " consegna_data, " & 
          + " CONVERT(DATETIME, CONVERT(CHAR(8), consegna_data, 112) + ' ' + CONVERT(CHAR(8), coalesce(consegna_ora, '00:00:00'), 108)) , " &
-			+ " coalesce(barcode.pl_barcode, 0), " &
-         + " barcode.fila_1,    " & 
-         + " barcode.fila_2,    " & 
-         + " barcode.fila_1p,    " & 
-         + " barcode.fila_2p,    " & 
+			+ " isnull(barcode.pl_barcode, 0), " &
+         + " isnull(barcode.fila_1, 0),    " & 
+         + " isnull(barcode.fila_2, 0),    " & 
+         + " isnull(barcode.fila_1p, 0),    " & 
+         + " isnull(barcode.fila_2p, 0),    " & 
          + " isnull(max(barcode.groupage), '') as grp " & 
          + " ,meca.stato_in_attenzione " & 
          + " ,meca.id " & 
@@ -1289,6 +1292,7 @@ uo_exception kuo_exception
          + " meca.num_int,   " &
          + " meca.contratto,  "  &
          + " meca.area_mag,   " &
+         + " meca.impianto,   " &
          + " contratti.mc_co,  "  &
          + " contratti.sc_cf,  "  &
          + " contratti.sl_pt,  "  &
@@ -2445,6 +2449,8 @@ uo_exception kuo_exception
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmanome')) cs_invoicefirmanome " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoicefirmaruolo')) cs_invoicefirmaruolo " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoiceorigin')) cs_invoiceorigin " & 
+		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoiceproducer')) cs_invoiceproducer " & 
+		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.cs.invoiceproduceraddress')) cs_invoiceproduceraddress " & 		
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata'))  else null  end accettazione_arrivodata  " &
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo')) else 0 end accettazione_e1wo " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg') > '0' then convert(decimal(8,3), JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg')) else 0.0000 end accettazione_pesolordoxlottokg " & 
@@ -4576,7 +4582,7 @@ end function
 
 private function boolean u_crea_view_v_temptable_sl_pt () throws uo_exception;//
 //=== Estemporanea da lanciare una sola volta
-//=== Crae tabella View  'v_temptable_armo' 
+//=== Crae tabella View  'v_temptable_sl_pt' 
 //===
 int k_errore
 boolean k_return = true
@@ -4653,6 +4659,7 @@ uo_exception kuo_exception
             + ",isnull(unitwork, 0.0) unitwork "&
             + ",isnull(savedosimeter, 0) savedosimeter "&
             + ",isnull(packingformin_file, '') packingformin_file "&
+            + ",isnull(impianto, 0) impianto "&
 		+ "  , x_utente " &
 		+ "  , nextdescr = LAG(descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nexttipo_icli = LAG(tipo_cicli) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -4706,6 +4713,7 @@ uo_exception kuo_exception
 		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextsavedosimeter = LAG(savedosimeter) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextpackingformin_file = LAG(packingformin_file) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextimpianto = LAG(impianto) OVER (PARTITION BY impianto ORDER BY x_ValidFrom) " &
 		+ "  , nextx_utente = LAG(x_utente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  FROM sl_pt " &
 		+ "  union all " &
@@ -4766,6 +4774,7 @@ uo_exception kuo_exception
             + ",isnull(unitwork, 0.0) unitwork "&
             + ",isnull(savedosimeter, 0) savedosimeter "&
             + ",isnull(packingformin_file, '') packingformin_file "&
+            + ",isnull(impianto, 0) impianto "&
 		+ "  , x_utente " &
 		+ "  , nextdescr = LAG(descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nexttipo_icli = LAG(tipo_cicli) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -4819,6 +4828,7 @@ uo_exception kuo_exception
 		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextsavedosimeter = LAG(savedosimeter) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextpackingformin_file = LAG(packingformin_file) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextimpianto = LAG(impianto) OVER (PARTITION BY impianto ORDER BY x_ValidFrom) " &
 		+ "  , nextx_utente = LAG(x_utente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  FROM sl_ptH " &
 		+ " ) " &
@@ -4883,6 +4893,7 @@ uo_exception kuo_exception
 		   + "   ,('Unità di lavoro', 'unitwork' , CAST(unitwork AS NVARCHAR(4000)), CAST(nextunitwork AS NVARCHAR(4000))) " &
 		   + "   ,('Salva dosimetro', 'savedosimeter' , CAST(savedosimeter AS NVARCHAR(4000)), CAST(nextsavedosimeter AS NVARCHAR(4000))) " &
 		   + "   ,('Packing form nel file', 'packingformin_file' , CAST(packingformin_file AS NVARCHAR(4000)), CAST(nextpackingformin_file AS NVARCHAR(4000))) " &
+		   + "   ,('Impianto (predef.)', 'impianto' , CAST(impianto AS NVARCHAR(4000)), CAST(nextimpianto AS NVARCHAR(4000))) " &
 		+ " 	   ) CA( coltext, colname, value, nextvalue)" &
 		+ " WHERE  EXISTS(SELECT value" &
 		      + " EXCEPT" &
@@ -4978,6 +4989,7 @@ uo_exception kuo_exception
 		+ " ,x_ValidTo " & 
             + " ,id_sl_pt_dosimpos " &
             + " ,cod_sl_pt " &
+            + " ,isnull(impianto, 0) impianto "&
             + " ,isnull(seq, 0) seq "&
             + " ,isnull(id_dosimpos, 0) id_dosimpos "&
             + " ,isnull(dosim_flg_tipo_dose, '') dosim_flg_tipo_dose "&
@@ -4988,6 +5000,7 @@ uo_exception kuo_exception
             + " ,isnull(posycm, 0) posycm "&
             + " ,isnull(poszcm, 0) poszcm "&
 		+ " ,x_utente " &
+		+ " ,nextimpianto = LAG(impianto) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextseq = LAG(seq) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextid_dosimpos = LAG(id_dosimpos) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextdosim_flg_tipo_dose = LAG(dosim_flg_tipo_dose) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
@@ -5006,6 +5019,7 @@ uo_exception kuo_exception
 		+ " ,x_ValidTo " &
             + " ,id_sl_pt_dosimpos " &
             + " ,cod_sl_pt " &
+            + " ,isnull(impianto, 0) impianto "&
             + " ,isnull(seq, 0) seq "&
             + " ,isnull(id_dosimpos, 0) id_dosimpos "&
             + " ,isnull(dosim_flg_tipo_dose, '') dosim_flg_tipo_dose "&
@@ -5016,6 +5030,7 @@ uo_exception kuo_exception
             + " ,isnull(posycm, 0) posycm "&
             + " ,isnull(poszcm, 0) poszcm "&
 		+ " ,x_utente " &
+		+ " ,nextimpianto = LAG(impianto) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextseq = LAG(seq) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextid_dosimpos = LAG(id_dosimpos) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
 		+ " ,nextdosim_flg_tipo_dose = LAG(dosim_flg_tipo_dose) OVER (PARTITION BY id_sl_pt_dosimpos ORDER BY x_ValidFrom) " &
@@ -5032,6 +5047,7 @@ uo_exception kuo_exception
 		+ "      AS (  " &
 		+ " SELECT id_sl_pt_dosimpos " &
       + "  , cod_sl_pt " &
+      + "  , impianto " &
       + "  , seq " &
 		+ "  , coltext			 " &
 		+ "  , colname			 " &
@@ -5052,11 +5068,12 @@ uo_exception kuo_exception
 		+ " WHERE  EXISTS(SELECT value" &
 		      + " EXCEPT" &
 		      + " SELECT nextvalue)" &
-		      + " group by cod_sl_pt, seq, id_sl_pt_dosimpos," &
+		      + " group by cod_sl_pt, impianto, seq, id_sl_pt_dosimpos," &
 		       + " coltext, Colname, value " &
 		+ " )" &
   	 	 + " SELECT id_sl_pt_dosimpos " &
             + " ,cod_sl_pt " &
+		      + " ,impianto " &
             + " ,seq " &
       		+ " ,coltext	as colonna" &
       		+ " ,colname	as colname" &
@@ -5792,6 +5809,239 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_temptable_listino' completata." 
+		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
+		kuo_exception.set_esito(kst_esito )
+		kuo_exception.scrivi_log()
+		destroy kuo_exception
+	end if
+	 
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_temptable_sl_pt_g3 () throws uo_exception;//
+//=== Estemporanea da lanciare una sola volta
+//=== Crae tabella View  'v_temptable_sl_pt_g3' 
+//===
+int k_errore
+boolean k_return = true
+string k_sql
+st_esito kst_esito
+uo_exception kuo_exception
+
+
+
+//=== Puntatore Cursore da attesa..... 
+	SetPointer(kkg.pointer_attesa)
+
+	kuo_exception = create uo_exception
+	kst_esito = kuo_exception.inizializza(this.classname())
+
+	k_sql = "create view v_temptable_sl_pt_g3  " &
+	  + " as " &
+	   + " WITH T " &
+		+ "AS ( " & 
+		+ "SELECT " &                                                                                                 
+		+ "  '*' as Attuale " & 
+		+ "  , x_ValidFrom  " & 
+		+ "  , x_ValidTo " & 
+            + ",cod_sl_pt " &
+	         + ",isnull(peso, '') peso "&
+            + ",isnull(pesomax, '') pesomax "&
+            + ",isnull(mis_x, 0) mis_x "&
+            + ",isnull(mis_y, 0) mis_y "&
+            + ",isnull(mis_z, 0) mis_z "&
+            + ",isnull(dosim_x_bcode, 0) dosim_x_bcode "&
+            + ",isnull(dosim_delta_bcode, 0) dosim_delta_bcode "&
+            + ",isnull(dosim_et_descr, '') dosim_et_descr "&
+            + ",isnull(dosim_et_descr_1, '') dosim_et_descr_1 "&
+            + ",isnull(dosetgminmin, 0.0) dosetgminmin "&
+            + ",isnull(dosetgminmax, 0.0) dosetgminmax "&
+            + ",isnull(dosetgmaxmin, 0.0) dosetgmaxmin "&
+            + ",isnull(dosetgmaxmax, 0.0) dosetgmaxmax "&
+            + ",isnull(dosetgminfattcorr, 0.0) dosetgminfattcorr "&
+            + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
+            + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
+            + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(densita, 0.0) densita "&
+            + ",isnull(densitamax, 0.0) densitamax "&
+            + ",isnull(unitwork, 0.0) unitwork "&
+            + ",isnull(savedosimeter, 0) savedosimeter "&
+            + ",isnull(notecliente, '') notecliente "&
+	         + ",isnull(note_descr, '') note_descr "&
+		+ "  , x_utente " &
+		+ "  , nextpeso = LAG(peso) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextpesomax = LAG(pesomax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_x = LAG(mis_x) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_y= LAG(mis_y) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_z= LAG(mis_z) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_x_bcode = LAG(dosim_x_bcode) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_delta_bcode = LAG(dosim_delta_bcode) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_et_descr = LAG(dosim_et_descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_et_descr_1 = LAG(dosim_et_descr_1) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminmin = LAG(dosetgminmin) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminmax = LAG(dosetgminmax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxmin = LAG(dosetgmaxmin) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxmax = LAG(dosetgmaxmax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr = LAG(dosetgminfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextsavedosimeter = LAG(savedosimeter) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextnotecliente = LAG(notecliente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextnote_descr = LAG(note_descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextx_utente = LAG(x_utente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  FROM sl_pt_g3 " &
+		+ "  union all " &
+		+ "SELECT " &                                                                                                 
+		+ "  ' ' as Attuale " &
+		+ "  , x_ValidFrom  " &
+		+ "  , x_ValidTo " &
+            + ",cod_sl_pt " &
+	         + ",isnull(peso, '') peso "&
+            + ",isnull(pesomax, '') pesomax "&
+            + ",isnull(mis_x, 0) mis_x "&
+            + ",isnull(mis_y, 0) mis_y "&
+            + ",isnull(mis_z, 0) mis_z "&
+            + ",isnull(dosim_x_bcode, 0) dosim_x_bcode "&
+            + ",isnull(dosim_delta_bcode, 0) dosim_delta_bcode "&
+            + ",isnull(dosim_et_descr, '') dosim_et_descr "&
+            + ",isnull(dosim_et_descr_1, '') dosim_et_descr_1 "&
+            + ",isnull(dosetgminmin, 0.0) dosetgminmin "&
+            + ",isnull(dosetgminmax, 0.0) dosetgminmax "&
+            + ",isnull(dosetgmaxmin, 0.0) dosetgmaxmin "&
+            + ",isnull(dosetgmaxmax, 0.0) dosetgmaxmax "&
+            + ",isnull(dosetgminfattcorr, 0.0) dosetgminfattcorr "&
+            + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
+            + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
+            + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(densita, 0.0) densita "&
+            + ",isnull(densitamax, 0.0) densitamax "&
+            + ",isnull(unitwork, 0.0) unitwork "&
+            + ",isnull(savedosimeter, 0) savedosimeter "&
+            + ",isnull(notecliente, '') notecliente "&
+	         + ",isnull(note_descr, '') note_descr "&
+		+ "  , x_utente " &
+		+ "  , nextpeso = LAG(peso) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextpesomax = LAG(pesomax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_x = LAG(mis_x) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_y= LAG(mis_y) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextmis_z= LAG(mis_z) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_x_bcode = LAG(dosim_x_bcode) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_delta_bcode = LAG(dosim_delta_bcode) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_et_descr = LAG(dosim_et_descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosim_et_descr_1 = LAG(dosim_et_descr_1) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminmin = LAG(dosetgminmin) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminmax = LAG(dosetgminmax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxmin = LAG(dosetgmaxmin) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxmax = LAG(dosetgmaxmax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr = LAG(dosetgminfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextsavedosimeter = LAG(savedosimeter) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextnotecliente = LAG(notecliente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextnote_descr = LAG(note_descr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextx_utente = LAG(x_utente) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  FROM sl_pt_g3H " &
+		+ " ) " &
+		+ ",  T1 " &
+		+ "      AS (  " &
+		+ " SELECT t.cod_sl_pt " &
+		+ "  , coltext			 " &
+		+ "  , colname			 " &
+		+ "  , value			 " &
+		+ "  , max(Attuale) attuale " &
+		+ "  , min(x_ValidFrom) x_validfrom " &
+		+ " FROM  T  " &
+		   + "   CROSS APPLY ( VALUES " &
+		   + "   ('Peso', 'peso' , CAST(peso AS NVARCHAR(4000)), CAST(nextpeso AS NVARCHAR(4000))) " &
+		   + "   ,('Peso max', 'pesomax' , CAST(pesomax AS NVARCHAR(4000)), CAST(nextpesomax AS NVARCHAR(4000))) " &
+		   + "   ,('Mis.x', 'mis_x' , CAST(mis_x AS NVARCHAR(4000)), CAST(nextmis_x AS NVARCHAR(4000))) " &
+		   + "   ,('Mis.y', 'mis_y' , CAST(mis_y AS NVARCHAR(4000)), CAST(nextmis_y AS NVARCHAR(4000))) " &
+		   + "   ,('Mis.z', 'mis_z' , CAST(mis_z AS NVARCHAR(4000)), CAST(nextmis_z AS NVARCHAR(4000))) " &
+		   + "   ,('Dosim. per barcode', 'dosim_x_bcode' , CAST(dosim_x_bcode AS NVARCHAR(4000)), CAST(nextdosim_x_bcode AS NVARCHAR(4000))) " &
+		   + "   ,('Dosim. delta barcode', 'dosim_delta_bcode' , CAST(dosim_delta_bcode AS NVARCHAR(4000)), CAST(nextdosim_delta_bcode AS NVARCHAR(4000))) " &
+		   + "   ,('Dosim. descr. etichetta', 'dosim_et_descr' , CAST(dosim_et_descr AS NVARCHAR(4000)), CAST(nextdosim_et_descr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. min.', 'dosetgminmin' , CAST(dosetgminmin AS NVARCHAR(4000)), CAST(nextdosetgminmin AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. max', 'dosetgminmax' , CAST(dosetgminmax AS NVARCHAR(4000)), CAST(nextdosetgminmax AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. fatt. correz.', 'dosetgminfattcorr' , CAST(dosetgminfattcorr AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. tipo calc.', 'dosetgmintcalc' , CAST(dosetgmintcalc AS NVARCHAR(4000)), CAST(nextdosetgmintcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. min.', 'dosetgmaxmin' , CAST(dosetgmaxmin AS NVARCHAR(4000)), CAST(nextdosetgmaxmin AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. max', 'dosetgmaxmax' , CAST(dosetgmaxmax AS NVARCHAR(4000)), CAST(nextdosetgmaxmax AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. fatt. correz.', 'dosetgmaxfattcorr' , CAST(dosetgmaxfattcorr AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. tipo calc.', 'dosetgmaxtcalc' , CAST(dosetgmaxtcalc AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Densità', 'densita' , CAST(densita AS NVARCHAR(4000)), CAST(nextdensita AS NVARCHAR(4000))) " &
+		   + "   ,('Densità max', 'densitamax' , CAST(densitamax AS NVARCHAR(4000)), CAST(nextdensitamax AS NVARCHAR(4000))) " &
+		   + "   ,('Unità di lavoro', 'unitwork' , CAST(unitwork AS NVARCHAR(4000)), CAST(nextunitwork AS NVARCHAR(4000))) " &
+		   + "   ,('Salva dosimetro', 'savedosimeter' , CAST(savedosimeter AS NVARCHAR(4000)), CAST(nextsavedosimeter AS NVARCHAR(4000))) " &
+		   + "   ,('Note cliente', 'notecliente' , CAST(notecliente AS NVARCHAR(4000)), CAST(nextnotecliente AS NVARCHAR(4000))) " &
+		   + "   ,('Note', 'note_descr' , CAST(note_descr AS NVARCHAR(4000)), CAST(nextnote_descr AS NVARCHAR(4000))) " &
+		+ " 	   ) CA( coltext, colname, value, nextvalue)" &
+		+ " WHERE  EXISTS(SELECT value" &
+		      + " EXCEPT" &
+		      + " SELECT nextvalue)" &
+		      + " group by cod_sl_pt," &
+		      + "  coltext, Colname, value " &
+		+ " )" &
+  	 	 + " SELECT t1.cod_sl_pt " &
+      		+ " , coltext	as colonna" &
+      		+ " , colname	as colname" &
+      		+ " , value		as valore" &
+      		+ " , Attuale	as 'Attuale'" &
+      		+ " , x_ValidFrom as 'Valido_dal'" &
+      		+ " , (select t2.x_utente from t t2 where t2.x_ValidFrom = t1.x_ValidFrom and t2.cod_sl_pt = t1.cod_sl_pt) as utente " &
+		+ " FROM  T1 "
+		  
+     // + "  where id_meca = 274041          " &
+     //   + " ORDER  BY id_meca, " &
+     //       + " id_armo, " &
+     //       + " Colonna " &
+     //       + " Valido_dal " 
+
+	EXECUTE IMMEDIATE "drop VIEW v_temptable_sl_pt_g3 " using sqlca;
+
+	EXECUTE IMMEDIATE :k_sql using sqlca;
+
+	if sqlca.sqlcode <> 0 then
+		k_return = false
+		k_errore = 1
+		SetPointer(kkg.pointer_default)
+		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.sqlerrtext = "Errore durante creazione View (v_temptable_sl_pt_g3): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
+		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
+		kuo_exception.set_esito(kst_esito )
+		throw kuo_exception
+//	else
+//		k_sql = "grant select on v_meca_pl_v1 to ixuser as informix"		
+//		EXECUTE IMMEDIATE :k_sql using sqlca;
+//		if sqlca.sqlcode <> 0 then
+//			k_return = false
+//			k_errore = 1
+//			SetPointer(kkg.pointer_default)
+//			kst_esito.esito = kkg_esito.db_ko
+//			kst_esito.sqlcode = sqlca.sqlcode
+//			kst_esito.sqlerrtext = "Errore durante GRANT View (v_meca_pl_v1): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
+//			kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
+//			kuo_exception.set_esito(kst_esito )
+//			throw kuo_exception
+//		end if	
+	end if	
+			
+	SetPointer(kkg.pointer_default)
+
+	if k_errore = 0 then
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.sqlerrtext = "Generazione VIEW 'v_temptable_armo' completata." 
 		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
 		kuo_exception.set_esito(kst_esito )
 		kuo_exception.scrivi_log()

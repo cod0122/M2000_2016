@@ -14,6 +14,7 @@ global type st_tab_meca from structure
 	long		clie_2
 	long		clie_3
 	long		contratto
+	integer		impianto		descriptor "comment" = "Impianto di trattamento 0=non indicato, 2=G2,  3=G3 "
 	string		area_mag
 	string		aperto		descriptor "comment" = "S=aperto; N=chiuso; R=riaperto"
 	date		consegna_data		descriptor "comment" = "consegna: data prevista"

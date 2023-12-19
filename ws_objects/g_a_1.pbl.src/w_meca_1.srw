@@ -663,7 +663,7 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero5.enabled = ki_consenti_modifica or ki_consenti_modalita_inserimento
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = true 
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemText = "Autorizza,"+m_main.m_strumenti.m_fin_gest_libero5.text
-		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = "Error!"
+		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = "verified16.png"
 	end if
 
 //--- Modifica numero/data LOTTO

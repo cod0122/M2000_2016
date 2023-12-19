@@ -635,7 +635,13 @@ k_query_select = &
 		k_tipo_oggetto_padre = "ROOT"
 		k_handle_item_nonno = 0
 	else
+		
 		k_rc = kuf1_treeview.kitv_tv1.getitem(k_handle_item_padre, ktvi_treeviewitem) 
+		if k_rc < 0 then
+			messagebox("Operazione bloccata", "Dati restituiti anomali, chiudere e rilanciare il Navigatore", Stopsign!)
+			return 0
+		end if
+		
 		kst_treeview_data = ktvi_treeviewitem.data  
 		k_tipo_oggetto_padre = kst_treeview_data.oggetto
 		k_handle_item_nonno = kuf1_treeview.kitv_tv1.finditem(ParentTreeItem!, k_handle_item_padre)

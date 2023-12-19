@@ -75,6 +75,7 @@ public function datetime get_data_x_certif (ref st_tab_meca_dosim kst_tab_meca_d
 public function datetime get_dosim_data_max (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private subroutine set_add_avviso_pronto_merce (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public function st_tab_meca_dosim get_st_tab_meca_dosim (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception
 end prototypes
 
 public function boolean get_id_meca_da_barcode_dosimetro (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception;//
@@ -1670,32 +1671,24 @@ return k_return
 end function
 
 public function integer u_genera_rimuove_barcode (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//---
-//--- Genera barcode dosimetri
+//--- Genera barcode dosimetri 
 //---
-//--- input: st_tab_meca_dosim.id_meca / barcode_lav
+//--- input: st_tab_meca_dosim.id_meca + barcode_lav (opzionale)
 //--- 		se passato il barcode allora fa solo quello
 //--- out: numero bcode generati
 //---
-int k_return = 0
-long k_nr_barcode=0, k_riga_barcode, k_ind
-int k_nr_bcode_associati=0, k_nr_dosimpos
-uo_ds_std_1 kds_1, kds_sl_pt_dosimpos
-kuf_barcode kuf1_barcode
-kuf_armo kuf1_armo
-kuf_sl_pt kuf1_sl_pt
-st_tab_meca_dosim kst_tab_meca_dosim, kst_tab_meca_dosim_ultimo, kst_tab_meca_dosim_delete
-st_tab_armo kst_tab_armo
-st_tab_sl_pt kst_tab_sl_pt
-st_esito kst_esito 
+int k_return
+long k_nr_barcode
+uo_ds_std_1 kds_1
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_meca_dosim.st_tab_g_0 
+	kguo_exception.inizializza(this.classname())
 
 //	if_sicurezza(kkg_flag_modalita.inserimento) 
-	if trim(ast_tab_meca_dosim.barcode_lav) > " " then 
+	ast_tab_meca_dosim.barcode_lav = trim(ast_tab_meca_dosim.barcode_lav)
+	if ast_tab_meca_dosim.barcode_lav > " " then 
 	else
 		ast_tab_meca_dosim.barcode_lav = ""
 	end if
@@ -1712,118 +1705,20 @@ try
 			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura conteggio Barcode Dosimetri su Lotto id " + string(ast_tab_meca_dosim.id_meca) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
 			throw kguo_exception 
 		end if
+
+		if k_nr_barcode > 0 then
+			
+			u_genera_rimuove_barcode_1(ast_tab_meca_dosim ,kds_1)   //ELABORA
+			
+		end if
 	
-	end if
-	
-	if k_nr_barcode > 0 then
-
-//--- get del codice PT per leggere i dati di dove mettere i Dosimetri
-		kuf1_armo = create kuf_armo
-		kst_tab_armo.id_armo = kds_1.getitemnumber(1, "id_armo")
-		kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
-//--- get dei dati da PT circa il nr dosimetri		
-		kuf1_sl_pt = create kuf_sl_pt
-		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
-			kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
-			if kst_tab_sl_pt.dosim_x_bcode > 0 then
-			else
-				kst_tab_sl_pt.dosim_x_bcode = 1
-			end if
-		else
-			kst_tab_sl_pt.dosim_x_bcode = 1
-		end if
-
-//--- leggo i barcode del lotto 
-		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then 
-			kds_sl_pt_dosimpos = create uo_ds_std_1
-			kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
-			kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
-			k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt)
-			if k_nr_dosimpos < 0 then
-				kguo_exception.set_esito(kds_1.kist_esito)
-				kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
-				throw kguo_exception 
-			end if
-		end if
-
-//--- calcolo dove mettere i dosimetri: se richiesto + di uno allora il primo barcode deve contenere il dosimetro
-		if kst_tab_sl_pt.dosim_x_bcode > 0 then
-			k_riga_barcode = 1
-			for k_riga_barcode = 1 to k_nr_barcode
-				if kds_1.getitemstring(k_riga_barcode, "flg_dosimetro") = kuf1_barcode.ki_flg_dosimetro_si then
-				
-//--- faccio tutto il LOTTO o solo il BARCODE di lavorazione indicato?					
-					if ast_tab_meca_dosim.barcode_lav = "" or ast_tab_meca_dosim.barcode_lav = kds_1.getitemstring(k_riga_barcode, "barcode") then 
-						
-//--- torna nr barcode che sono già associati 	
-						kst_tab_meca_dosim.barcode_lav = kds_1.getitemstring(k_riga_barcode, "barcode")
-						k_nr_bcode_associati = if_esiste_barcode_lav_con_dosim(kst_tab_meca_dosim)
-						if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
-							tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
-						end if
-						if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
-							
-							k_nr_bcode_associati ++
-							for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
-								
-								//--- Aggiunge posizione del dosimetro								
-								if k_nr_dosimpos >= k_ind then
-									kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
-									kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
-								else
-									kst_tab_meca_dosim.id_dosimpos = 0
-									kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
-								end if
-								
-								//--- genera uno o più barcode per etichetta
-								kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
-								kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
-								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
-								if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
-									try
-										k_return ++
-										kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
-									
-									catch (uo_exception kuo1_exception)
-										throw kuo1_exception
-									
-									end try
-								end if
-								
-							next
-							
-							if kst_tab_meca_dosim_ultimo.barcode > " " then
-								set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
-							end if
-						
-						end if
-					end if
-				else
-					kst_tab_meca_dosim_delete.barcode_lav = kds_1.getitemstring(k_riga_barcode, "barcode")
-					if trim(kst_tab_meca_dosim_delete.barcode_lav) > " " then
-						tb_delete(kst_tab_meca_dosim_delete)  // rimuove i/il barcode dosimetro non richiesto
-					end if
-				end if
-			next
-			if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-			else
-				kguo_sqlca_db_magazzino.db_commit( )
-			end if
-		end if
 	end if
 	
 catch (uo_exception kuo_exception)
-	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-	else
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
 	throw kuo_exception
 	
 finally
 	if isvalid(kds_1) then destroy kds_1
-	if isvalid(kds_sl_pt_dosimpos) then destroy kds_sl_pt_dosimpos
-	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
-	if isvalid(kuf1_armo) then destroy kuf1_armo
 	
 end try
 
@@ -4238,6 +4133,150 @@ end try
 
 return kst_tab_meca_dosim
 
+
+end function
+
+private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception;/*
+  Genera barcode dosimetri 
+		chiamata dalla u_genera_rimuove_barcode
+   inp: st_tab_meca_dosim.id_meca + barcode_lav (opzionale se fare solo quel barcode)
+	     datastore ds_barcode_set_flg_dosimetro con elenco barcode con il dosimetro
+   out: numero bcode generati
+*/
+int k_return
+long k_nr_barcode, k_riga_barcode, k_ind
+int k_nr_bcode_associati=0, k_nr_dosimpos
+uo_ds_std_1 kds_sl_pt_dosimpos
+kuf_barcode kuf1_barcode
+kuf_armo kuf1_armo
+kuf_sl_pt kuf1_sl_pt
+st_tab_meca_dosim kst_tab_meca_dosim, kst_tab_meca_dosim_ultimo, kst_tab_meca_dosim_delete
+st_tab_armo kst_tab_armo
+st_tab_meca kst_tab_meca
+st_tab_sl_pt kst_tab_sl_pt
+st_esito kst_esito 
+
+
+try
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
+	kst_esito.st_tab_g_0 = ast_tab_meca_dosim.st_tab_g_0 
+
+	kuf1_armo = create kuf_armo
+	kuf1_sl_pt = create kuf_sl_pt
+	
+	k_nr_barcode = ads_barcode_set_flg_dosimetro.rowcount()
+
+//--- get dal PT per leggere i dati di dove mettere i Dosimetri
+	kst_tab_armo.id_armo = ads_barcode_set_flg_dosimetro.getitemnumber(1, "id_armo")
+	kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo) // get codice SL PT
+	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
+	kst_tab_sl_pt.impianto = kuf1_armo.get_impianto(kst_tab_meca)  // get Impianto
+	
+//--- get dei dati da PT circa il nr dosimetri		
+	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
+		kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
+		if kst_tab_sl_pt.dosim_x_bcode > 0 then
+		else
+			kst_tab_sl_pt.dosim_x_bcode = 1
+		end if
+	else
+		kst_tab_sl_pt.dosim_x_bcode = 1
+	end if
+
+//--- leggo i barcode del lotto 
+	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then 
+		kds_sl_pt_dosimpos = create uo_ds_std_1
+		kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
+		kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
+		k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt)
+		if k_nr_dosimpos < 0 then
+			kguo_exception.set_esito(ads_barcode_set_flg_dosimetro.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + ads_barcode_set_flg_dosimetro.kist_esito.sqlerrtext
+			throw kguo_exception 
+		end if
+	end if
+
+//--- calcolo dove mettere i dosimetri: se richiesto + di uno allora il primo barcode deve contenere il dosimetro
+	if kst_tab_sl_pt.dosim_x_bcode > 0 then
+		k_riga_barcode = 1
+		for k_riga_barcode = 1 to k_nr_barcode
+			if ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "flg_dosimetro") = kuf1_barcode.ki_flg_dosimetro_si then
+			
+//--- faccio tutto il LOTTO o solo il BARCODE di lavorazione indicato?					
+				if ast_tab_meca_dosim.barcode_lav = "" or ast_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode") then 
+					
+//--- torna nr barcode che sono già associati 	
+					kst_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
+					k_nr_bcode_associati = if_esiste_barcode_lav_con_dosim(kst_tab_meca_dosim)
+					if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
+						tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
+					end if
+					if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
+						
+						k_nr_bcode_associati ++
+						for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
+							
+							//--- Aggiunge posizione del dosimetro								
+							if k_nr_dosimpos >= k_ind then
+								kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
+								kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
+							else
+								kst_tab_meca_dosim.id_dosimpos = 0
+								kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
+							end if
+							
+							//--- genera uno o più barcode per etichetta
+							kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
+							kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
+							kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
+							if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
+								try
+									k_return ++
+									kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
+								
+								catch (uo_exception kuo1_exception)
+									throw kuo1_exception
+								
+								end try
+							end if
+							
+						next
+						
+						if kst_tab_meca_dosim_ultimo.barcode > " " then
+							set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
+						end if
+					
+					end if
+				end if
+			else
+				kst_tab_meca_dosim_delete.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
+				if trim(kst_tab_meca_dosim_delete.barcode_lav) > " " then
+					tb_delete(kst_tab_meca_dosim_delete)  // rimuove i/il barcode dosimetro non richiesto
+				end if
+			end if
+		next
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_sl_pt_dosimpos) then destroy kds_sl_pt_dosimpos
+	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	
+end try
+
+return k_return
 
 end function
 

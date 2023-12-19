@@ -41,6 +41,8 @@ protected function integer modifica ()
 protected function integer visualizza ()
 protected subroutine riempi_id ()
 public subroutine u_copia_massiva (string a_column)
+protected function string cancella ()
+protected subroutine attiva_tasti_0 ()
 end prototypes
 
 protected subroutine attiva_menu ();//
@@ -82,27 +84,30 @@ string k_note, k_stato_x
 			m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled = true
 			m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemText = "Copia," + m_main.m_strumenti.m_fin_gest_libero7.libero2.text
 			m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemName = "Custom079a!"
+			m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritembarindex=2
 			
 			m_main.m_strumenti.m_fin_gest_libero7.libero3.text = "Copia le Note nelle righe selezionate a '" + k_note + "'"
 			m_main.m_strumenti.m_fin_gest_libero7.libero3.microhelp = "Copia le Note nelle righe selezionate"
 			m_main.m_strumenti.m_fin_gest_libero7.libero3.enabled = true
 			m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemText = "Copia," + m_main.m_strumenti.m_fin_gest_libero7.libero3.text
 			m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemName = "Custom079a!"
+			m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritembarindex=2
 
 			m_main.m_strumenti.m_fin_gest_libero7.toolbaritemText = "Copia,"+m_main.m_strumenti.m_fin_gest_libero7.libero1.text
 			
 		else
 			
-			m_main.m_strumenti.m_fin_gest_libero7.libero1.text = "Copia,Selezionare almeno una riga per la copia"
+			m_main.m_strumenti.m_fin_gest_libero7.libero1.text = "Copia,Selezionare almeno una riga per copiare Stato e Note."
+			m_main.m_strumenti.m_fin_gest_libero7.libero1.microhelp = "Selezionare almeno una riga per copiare Stato e Note."
 			m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled = false
 			
 		end if
 	else
-		m_main.m_strumenti.m_fin_gest_libero7.libero1.text = "Copia Stato e Note massiva non abilitata"
+		m_main.m_strumenti.m_fin_gest_libero7.libero1.text = "Copia Stato e Note massiva non abilitata."
+		m_main.m_strumenti.m_fin_gest_libero7.libero1.microhelp = "Copia Stato e Note non abilitata."
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.enabled = false
 	end if	
-	m_main.m_strumenti.m_fin_gest_libero7.libero1.microhelp = m_main.m_strumenti.m_fin_gest_libero7.libero1.text
-	m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemText = "Copia," + m_main.m_strumenti.m_fin_gest_libero2.text
+	m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemText = "Copia," + m_main.m_strumenti.m_fin_gest_libero7.libero1.text
 	m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemName = "Custom079a!"
 	m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritembarindex=2
 	m_main.m_strumenti.m_fin_gest_libero7.libero1.visible = true
@@ -354,6 +359,15 @@ string k_note
 
 end subroutine
 
+protected function string cancella ();
+return " "
+end function
+
+protected subroutine attiva_tasti_0 ();//
+super::attiva_tasti_0( )
+cb_cancella.enabled = false
+end subroutine
+
 on w_meca_parziali.create
 int iCurrent
 call super::create
@@ -436,6 +450,18 @@ if dwo.name = "note" then
 end if
 
 	
+end event
+
+event dw_dett_0::clicked;call super::clicked;//
+if dwo.Name = "b_select_all" then
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+		this.selectrow( 0, true)
+	else
+		messagebox("Seleziona tutte le Righe", "Operazione permessa solo in Modifica", information!)
+	end if
+end if
+	
+
 end event
 
 type st_orizzontal from w_g_tab0`st_orizzontal within w_meca_parziali

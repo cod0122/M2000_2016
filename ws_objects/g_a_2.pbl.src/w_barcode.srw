@@ -528,7 +528,7 @@ st_esito kst_esito
 				
 				kst_tab_barcode_figlio.barcode = tab_1.tabpage_2.dw_2.getitemstring ( k_riga, "barcode") 
 				
-				if not kiuf_barcode.if_essere_barcode_figlio(kst_tab_barcode_figlio, kst_tab_barcode_padre) then
+				if not kiuf_barcode.if_essere_barcode_figlio_g2(kst_tab_barcode_figlio, kst_tab_barcode_padre) then
 						k_errore = "1"
 						k_return = "Il barcode " + trim(kst_tab_barcode_figlio.barcode) + " non può assumere il ruolo di Figlio " + "~n~r" 
 				end if

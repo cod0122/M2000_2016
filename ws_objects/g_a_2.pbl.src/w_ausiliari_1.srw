@@ -1507,8 +1507,6 @@ type cb_inserisci from w_ausiliari`cb_inserisci within w_ausiliari_1
 end type
 
 type tab_1 from w_ausiliari`tab_1 within w_ausiliari_1
-integer x = 0
-integer y = 0
 end type
 
 on tab_1.create
@@ -1680,6 +1678,7 @@ end type
 type tabpage_7 from w_ausiliari`tabpage_7 within tab_1
 integer x = 731
 integer width = 1083
+boolean enabled = true
 string text = "Tempi Impianto"
 end type
 
@@ -1697,15 +1696,18 @@ type dw_17 from w_ausiliari`dw_17 within tabpage_7
 end type
 
 type tabpage_8 from w_ausiliari`tabpage_8 within tab_1
+boolean visible = true
 integer x = 731
 integer width = 1083
-string text = "Posizioni Dosimetro"
+boolean enabled = true
+string text = "Posizioni Dosimetri"
 end type
 
 type st_8_retrieve from w_ausiliari`st_8_retrieve within tabpage_8
 end type
 
 type dw_8 from w_ausiliari`dw_8 within tabpage_8
+boolean enabled = true
 string dataobject = "d_dosimpos_l"
 end type
 
@@ -1717,8 +1719,10 @@ type dw_18 from w_ausiliari`dw_18 within tabpage_8
 end type
 
 type tabpage_9 from w_ausiliari`tabpage_9 within tab_1
+boolean visible = true
 integer x = 731
 integer width = 1083
+boolean enabled = true
 string text = "Attività Progetti"
 string powertiptext = "Elenco associazioni Attività dei Progetti"
 end type
@@ -1728,8 +1732,8 @@ end type
 
 type dw_9 from w_ausiliari`dw_9 within tabpage_9
 event u_set_descr ( )
-boolean visible = true
 integer width = 1083
+boolean enabled = true
 string dataobject = "d_ptasks_types_l"
 boolean hsplitscroll = false
 borderstyle borderstyle = styleraised!

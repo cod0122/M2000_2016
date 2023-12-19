@@ -1692,7 +1692,15 @@ kuf_utility kuf1_utility
 	
 		tab_1.tabpage_2.dw_2.insertrow(0)
 		tab_1.tabpage_2.dw_2.setitem(1, "dbms", trim(kguo_sqlca_db_magazzino.dbms)) 
-		tab_1.tabpage_2.dw_2.setitem(1, "nome_db", trim(kguo_sqlca_db_magazzino.database) + " / " + trim(sqlca.servername )) // trim(k_nome_db))
+
+		if trim(kguo_sqlca_db_magazzino.servername ) > " " then
+			k_nome_db = trim(kguo_sqlca_db_magazzino.servername ) 
+			if trim(kguo_sqlca_db_magazzino.database) > " " then
+				k_nome_db += "/" + trim(kguo_sqlca_db_magazzino.database)  
+			end if
+		end if
+		
+		tab_1.tabpage_2.dw_2.setitem(1, "nome_db", k_nome_db)
 		tab_1.tabpage_2.dw_2.setitem(1, "param_db", trim(kguo_sqlca_db_magazzino.dbparm)) // trim(k_parametro_db))
 		tab_1.tabpage_2.dw_2.setitem(1, "path_db", trim(k_path_db))
 		tab_1.tabpage_2.dw_2.setitem(1, "path_prog", trim(KG_PATH_PROCEDURA))
@@ -4024,38 +4032,14 @@ string text = "Archivi Ausiliari 2"
 boolean flatstyle = true
 end type
 
-event clicked;//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice sl_pt;
-//kuf_menu_window kuf1_menu_window 
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-st_open_w k_st_open_w
+event clicked;//
+kuf_ausiliari1 kuf1_ausiliari1
 
+kuf1_ausiliari1 = create kuf_ausiliari1
 
-kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-//kuf1_menu_window = create kuf_menu_window
+kuf1_ausiliari1.u_open(kkg_flag_modalita.visualizzazione)
 
-
-K_st_open_w.id_programma = kkg_id_programma.ausiliari1 //kuf1_wm_pklist_cfg.get_id_programma(kkg_flag_modalita.modifica)
-K_st_open_w.flag_primo_giro = "S"
-K_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-K_st_open_w.flag_leggi_dw = " "
-K_st_open_w.key1 = " "
-K_st_open_w.key2 = " "
-K_st_open_w.key3 = " "
-K_st_open_w.key4 = " "
-K_st_open_w.flag_where = " "
-
-kGuf_menu_window.open_w_tabelle(k_st_open_w)
-
-destroy kuf1_wm_pklist_cfg
-//destroy kuf1_menu_window
-
-
+destroy kuf1_ausiliari1
 
 
 
@@ -4238,6 +4222,7 @@ cb_ausiliari_1.triggerevent(clicked!)
 end event
 
 type st_1_7 from statictext within tabpage_8
+boolean visible = false
 integer x = 274
 integer y = 984
 integer width = 622
@@ -4251,6 +4236,7 @@ fontfamily fontfamily = swiss!
 string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
+boolean enabled = false
 string text = "Impianto G3 (CICLI)"
 boolean focusrectangle = false
 end type
@@ -4424,7 +4410,7 @@ destroy kuf1_docpath
 end event
 
 type st_20 from statictext within tabpage_8
-integer x = 2857
+integer x = 2811
 integer y = 592
 integer width = 617
 integer height = 180

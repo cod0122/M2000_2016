@@ -843,6 +843,8 @@ if tab_1.tabpage_2.dw_2.rowcount( ) > 0 then
 	kst_tab_ptasks_rows.cs_invoicefirmanome = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoicefirmanome")
 	kst_tab_ptasks_rows.cs_invoicefirmaruolo = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoicefirmaruolo")
 	kst_tab_ptasks_rows.cs_invoiceorigin = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoiceorigin")
+	kst_tab_ptasks_rows.cs_invoiceproducer = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoiceproducer")
+	kst_tab_ptasks_rows.cs_invoiceproduceraddress = tab_1.tabpage_2.dw_2.getitemstring( 1, "cs_invoiceproduceraddress")
 end if
  
 if tab_1.tabpage_3.dw_3.rowcount( ) > 0 then
@@ -2521,6 +2523,7 @@ event u_ddwc_invoicefirmanomeruolo ( )
 event u_ddwc_invoiceid_cliente ( )
 event u_ddwc_invoiceid_cliente_x_id_cliente ( integer k_id_cliente )
 event u_ddwc_invoiceorigin ( )
+event u_ddwc_invoiceproducer ( )
 boolean enabled = true
 string dataobject = "d_ptasks_row_cs"
 boolean hsplitscroll = false
@@ -2648,6 +2651,9 @@ event u_ddwc_e1so( )
 event u_ddwc_invoicefirmanomeruolo()
 event u_ddwc_invoiceid_cliente()
 event u_ddwc_invoiceorigin()
+event u_ddwc_invoiceproducer()
+
+
 
 end event
 
@@ -2705,6 +2711,27 @@ datawindowchild kdwc_1
 		k_rc = kdwc_1.retrieve()
 		kdwc_1.insertrow(1)
 	end if
+	
+end event
+
+event dw_2::u_ddwc_invoiceproducer();//
+int k_rc
+datawindowchild kdwc_1//, kdwc_2
+
+
+	this.getchild("cs_invoiceproducer", kdwc_1)
+	kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+	if kdwc_1.rowcount() < 2 then
+		k_rc = kdwc_1.retrieve()
+		kdwc_1.insertrow(1)
+	end if
+
+//	this.getchild("cs_invoiceproducer", kdwc_1)
+//	kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+//	if kdwc_1.rowcount() < 2 then
+//		k_rc = kdwc_1.retrieve()
+//		kdwc_1.insertrow(1)
+//	end if
 	
 end event
 
@@ -2786,7 +2813,24 @@ datawindowchild kdwc_1
 			else
 				this.post setitem(1, "cs_invoice_id_cliente", 0)
 			end if	
-						
+
+		case "cs_invoiceproducer"
+			if trim(getitemstring(1, "cs_invoiceproduceraddress")) > " " then
+			else
+				// popolo l'indirizzo dal Produttore scelto
+				if data > " " then	
+					this.getchild("cs_invoiceproducer", kdwc_1)
+					k_row = kdwc_1.getrow() 
+					if k_row > 0 then
+						if trim(kdwc_1.getitemstring(k_row, "cs_invoiceproduceraddress")) > " " then
+							if trim(data) = trim(kdwc_1.getitemstring(k_row, "cs_invoiceproducer")) then // se è nello stesso Producer allora OK
+								this.post setitem(1, "cs_invoiceproduceraddress", trim(kdwc_1.getitemstring(k_row, "cs_invoiceproduceraddress")))
+							end if
+						end if
+					end if
+				end if
+			end if
+
 
 	end choose 
 
@@ -2817,8 +2861,11 @@ long k_cs_invoicen
 				this.setitem(row, "cs_invoicen", k_cs_invoicen)
 			end if
 
-		case "invoiceorigin"
+		case "cs_invoiceorigin"
 			event u_ddwc_invoiceorigin()
+
+		case "cs_invoiceproducer"
+			event u_ddwc_invoiceproducer()
 
 	end choose
 end event

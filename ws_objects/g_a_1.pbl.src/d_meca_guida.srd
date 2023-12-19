@@ -13,6 +13,7 @@ button(band=detail text="Cerca" enabled=yes action="0" border="0" color="32896" 
  - 'n. Lotto/Anno'  
  - per Codice Cliente 'Cnnnn'  
  - per W.O. di E1 'WOnnnn' 
+ - per S.O. di E1 'SOnnnn' 
  - per ASN (ID Lotto) 'IDnnnn' 
  - per Nome Cliente (almeno 3 caratteri)
  - nulla per elenco completo dalla data indicata.
@@ -21,6 +22,7 @@ column(band=detail id=1 alignment="0" tabsequence=10 border="5" color="8388608" 
  - 'n. Lotto/Anno'  
  - per Codice Cliente 'Cnnnn'  
  - per W.O. di E1 'WOnnnn' 
+ - per S.O. di E1 'SOnnnn' 
  - per ASN (ID Lotto) 'IDnnnn' 
  - per Nome Cliente (almeno 3 caratteri)
  - nulla per elenco completo dalla data indicata.

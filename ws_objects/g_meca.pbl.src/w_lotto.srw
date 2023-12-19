@@ -185,6 +185,7 @@ private function string u_e1_importa_e1srst () throws uo_exception
 private function integer u_e1_importa_barcode () throws uo_exception
 private function datetime u_e1_importa_data_ent () throws uo_exception
 private function long u_e1_importa_wo_so () throws uo_exception
+public subroutine set_dw4_parzialecolli ()
 end prototypes
 
 protected function string aggiorna ();//
@@ -1004,9 +1005,6 @@ long k_id_meca_1
 st_tab_meca kst_tab_meca
 st_tab_clienti kst_tab_clienti
 st_esito kst_esito
-//string k_ret_code
-//kuf_base kuf1_base
-
 
 
 if tab_1.tabpage_1.dw_1.rowcount() > 0 then
@@ -1035,6 +1033,8 @@ if k_ctr > 0 then
 		end if
 	
 	end for
+
+	set_dw4_parzialecolli( )  // sistema numero colli parziali 
 
 end if
 
@@ -4975,7 +4975,10 @@ if kst_tab_meca.id > 0 then
 
 end if
 
+tab_1.tabpage_5.dw_5.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita)
+
 return (k_rows - k_row_deleted)
+
 end function
 
 protected function string u_e1_importa_all (boolean k_msg_show) throws uo_exception;//---------------------------------------------------------------------
@@ -5477,6 +5480,37 @@ st_tab_meca kst_tab_meca
 return k_return
 
 end function
+
+public subroutine set_dw4_parzialecolli ();//--- Imposta se maggiore il numero barcode parziali nel numero dei Parziali di dettaglio
+int k_row, k_row_bcd, k_n_parziali, k_parz_dett
+   
+
+if tab_1.tabpage_5.dw_5.rowcount( ) > 0 then
+	
+	for k_row = 1 to tab_1.tabpage_4.dw_4.rowcount( )
+		
+		k_n_parziali = 0
+		for k_row_bcd = 1 to tab_1.tabpage_5.dw_5.rowcount( )
+			if tab_1.tabpage_5.dw_5.getitemnumber( k_row_bcd , "id_armo") = tab_1.tabpage_4.dw_4.getitemnumber( k_row, "id_armo") &
+					and tab_1.tabpage_5.dw_5.getitemnumber(k_row_bcd, "flg_parziale") = 1 then
+				k_n_parziali ++
+			end if
+		next
+		k_parz_dett = tab_1.tabpage_4.dw_4.getitemnumber(k_row, "parzialecolli")		
+		if k_n_parziali <> k_parz_dett then
+			tab_1.tabpage_4.dw_4.setitem(k_row, "parzialecolli", k_n_parziali)
+			kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn 
+			kguo_exception.kist_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+						"ATTENZIONE: è stato aggiornato il numero dei colli Parziali da " + string(k_parz_dett) &
+						+ " a " + string(k_n_parziali) + " sulla Riga di Dettaglio.")
+			kguo_exception.messaggio_utente()
+		end if
+
+	next
+	
+end if
+	
+end subroutine
 
 on w_lotto.create
 int iCurrent

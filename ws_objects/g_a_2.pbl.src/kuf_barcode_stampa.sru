@@ -50,6 +50,9 @@ private function boolean stampa_etichetta_dosimetro_1 (st_tab_meca_dosim kst_tab
 private subroutine stampa_barcode (string k_barcode, longlong k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb)
 public function boolean stampa_etichetta_riferimento_open (long a_id_meca, boolean a_ristampa)
 public function integer stampa_etichetta_riferimento_campioni (long a_id_meca) throws uo_exception
+private function integer u_exec_post_stampa_set_pkl (ref st_tab_barcode ast_tab_barcode)
+private subroutine u_exec_post_stampa_set_prezzi (ref st_tab_armo ast_tab_armo)
+public subroutine u_exec_post_stampa (st_tab_barcode ast_tab_barcode) throws uo_exception
 end prototypes
 
 private subroutine stampa_barcode_f (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb, integer k_id_font);//
@@ -3288,6 +3291,90 @@ end try
 return k_return
 
 end function
+
+private function integer u_exec_post_stampa_set_pkl (ref st_tab_barcode ast_tab_barcode);//
+//--- Stampa barcode alla fine set in tab wm_receiptgammarad (pkl)
+//--- ret: n. barcode in pkl upd
+//
+integer k_return = 0
+st_tab_wm_pklist_righe kst_tab_wm_pklist_righe
+kuf_wm_pklist_inout kuf1_wm_pklist_inout
+
+
+try
+		
+	kuf1_wm_pklist_inout = create kuf_wm_pklist_inout
+
+//--- Imposta i Barcode nella PKLIST grezza di WM
+	kst_tab_wm_pklist_righe.id_meca = ast_tab_barcode.id_meca
+	k_return = kuf1_wm_pklist_inout.set_barcode_in_wm_receiptgammarad(kst_tab_wm_pklist_righe)
+		
+
+catch(uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_wm_pklist_inout) then destroy kuf1_wm_pklist_inout
+
+end try
+ 
+return k_return
+
+end function
+
+private subroutine u_exec_post_stampa_set_prezzi (ref st_tab_armo ast_tab_armo);//
+//--- Stampa barcode alla fine set prezzi lotto
+//--- inp: ast_tab_armo.id_meca
+//--- ret: n. barcode in pkl upd
+//
+st_esito kst_esito
+kuf_armo_inout kuf1_armo_inout
+
+
+try
+		
+	kuf1_armo_inout = create kuf_armo_inout
+
+	//--- Carica i PREZZI di Listino per le righe del Lotto (riferimento)
+	kuf1_armo_inout.carica_prezzi_lotto(ast_tab_armo)
+							
+
+catch(uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout
+
+end try
+ 
+
+end subroutine
+
+public subroutine u_exec_post_stampa (st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+	Alcune operazioni da eseguire al termine della stampa dei barcode
+*/
+st_tab_armo kst_tab_armo
+st_tab_meca_parziali kst_tab_meca_parziali
+kuf_meca_parziali kuf1_meca_parziali
+
+
+	try 
+		u_exec_post_stampa_set_pkl(ast_tab_barcode)  // Imposta i Barcode nella PKLIST grezza di WM
+
+		kst_tab_armo.id_meca = ast_tab_barcode.id_meca
+		u_exec_post_stampa_set_prezzi(kst_tab_armo)    // Carica i PREZZI di Listino per le righe del Lotto (riferimento)
+			
+		kuf1_meca_parziali = create kuf_meca_parziali		
+		kst_tab_meca_parziali.id_meca = ast_tab_barcode.id_meca
+		kuf1_meca_parziali.tb_add(kst_tab_meca_parziali)   // Carica tabella Lotti Parziali 
+			
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+		
+	end try					
+
+
+end subroutine
 
 on kuf_barcode_stampa.create
 call super::create

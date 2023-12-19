@@ -87,7 +87,7 @@ try
 						else
 
 //--- Il documento potrebbe essere Protetto quindi prova a stamparlo da solo alla fine
-							if k_rc = -26 then
+							if k_rc = -26 or k_rc = -48 then
 								k_err26_idx++
 								k_err26_doc[k_err26_idx] = k_ind
 							else
@@ -319,6 +319,10 @@ choose case a_error
 	    return trim("Protocol not recognized. ")
 	case -46 
 	    return trim("Watermark incompatible with the attachment.")
+	case -48 
+	    return trim("Wrong or missing master password.")
+	case -49 
+	    return trim("The form object has been imported multiple times.")
 end choose
 
 return ""

@@ -1319,6 +1319,7 @@ kuf_prodotti kuf1_prodotti
 kuf_ausiliari kuf1_ausiliari
 kuf_armo_nt kuf1_armo_nt
 kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
+kuf_sl_pt kuf1_sl_pt
 st_tab_wm_pklist_righe kst_tab_wm_pklist_righe[]
 st_tab_m_r_f kst_tab_m_r_f
 st_tab_contratti kst_tab_contratti
@@ -1329,6 +1330,7 @@ st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]
 st_tab_armo_nt kst_tab_armo_nt
 st_esito kst_esito, kst_esito_armo_nt
 st_tab_meca_causali kst_tab_meca_causali
+st_tab_sl_pt kst_tab_sl_pt
 
 
 if kst_tab_wm_pklist.id_wm_pklist > 0 then
@@ -1344,6 +1346,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 		kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
 		kuf1_armo = create kuf_armo
 		kuf1_ausiliari = create kuf_ausiliari
+		kuf1_sl_pt = create kuf_sl_pt
 		
 		kguo_sqlca_db_magazzino.db_commit( )  // forse sistema TemporalTable
 		
@@ -1451,6 +1454,18 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 				if kuf1_wm_receiptgammarad.get_area_magazzino( kst_tab_wm_receiptgammarad[] ) then
 					kst_tab_wm_pklist_righe[1].areamag = kst_tab_wm_receiptgammarad[1].area_mag_trim
 				end if
+			end if
+					
+//--- Get codice Impianto
+			kst_tab_contratti.sl_pt = ""
+			kst_esito = kuf1_contratti.get_sl_pt(kst_tab_contratti)  // Get del Codice Piano di Trattamento	
+			if kst_esito.esito = kkg_esito.db_ko then
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+			if kst_tab_contratti.sl_pt > " " then
+				kst_tab_sl_pt.cod_sl_pt = kst_tab_contratti.sl_pt
+				kist_tab_meca.impianto = kuf1_sl_pt.get_impianto(kst_tab_sl_pt) // get Impinto da SL_PT
 			end if
 			
 //--- riempio tutti i campi della Testata lotto			
@@ -1718,6 +1733,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 		if isvalid(kuf1_wm_receiptgammarad) then destroy kuf1_wm_receiptgammarad
 		if isvalid(kuf1_armo) then destroy kuf1_armo
 		if isvalid(kuf1_ausiliari) then destroy kuf1_ausiliari
+		if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
 
 	end try
 	

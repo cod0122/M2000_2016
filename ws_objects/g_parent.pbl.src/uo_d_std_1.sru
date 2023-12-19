@@ -192,6 +192,7 @@ public subroutine u_set_column_color ()
 public function long u_selectrow_onclick (long a_row)
 public subroutine u_proteggi ()
 public function long u_get_riga_atpointer (ref string k_nome_campo)
+public function long u_getrow (long a_if_noone_row)
 end prototypes
 
 event ue_dwnkey;//
@@ -393,7 +394,6 @@ event u_personalizza_dw();//
 			if ki_last_dataobject <> this.dataobject or ki_last_modalita <> ki_flag_modalita then //kkg_flag_modalita.modifica then
 				link_standard_imposta() // imposta i link graficamente
 	
-				ki_last_dataobject = this.dataobject 
 				ki_last_modalita = ki_flag_modalita
 				
 			end if
@@ -1851,6 +1851,35 @@ return k_riga
 
 end function
 
+public function long u_getrow (long a_if_noone_row);/*
+  Torna la riga selezionata o la riga con il fuoco o la riga indicata (opzionale)
+  inp: riga = torna questa come ultima istanza piuttosto che zero (se ce ne sono) altrimenti zero
+  rit: la riga 
+*/
+long k_row
+
+
+if this.rowcount( ) > 0 then
+	
+	k_row = this.getselectedrow(0)
+	if k_row > 0 then return k_row
+	
+	k_row = this.getrow()
+	if k_row > 0 then return k_row
+
+	if a_if_noone_row > 0 then 
+		if this.rowcount( ) > a_if_noone_row then
+			return a_if_noone_row
+		else
+			return this.rowcount( )
+		end if
+	end if
+	
+end if
+
+return 0  // non ci sono righe o nessuna con il fuoco
+end function
+
 on uo_d_std_1.create
 call super::create
 end on
@@ -1929,14 +1958,17 @@ else
 //--- Ordina righe se il campo di testata colonna finisce x '_t' ed è formato testo
 //	if left(k_bands, 4) = "head" then
 	if ki_d_std_1_attiva_sort then
-//		k_name = trim(dwo.Name)
-		IF dwo.Type = "text" and MidA(k_name, LenA(trim(k_name)), 1) = "t" THEN
-			
-			u_sort(k_name)   // Esegue il SORT
-
+		if this.rowcount( ) > 1 then
+			IF dwo.Type = "text" and right(k_name, 1) = "t" THEN
+				
+				this.selectrow(0, false)
+				u_sort(k_name)   // Esegue il SORT
+				this.setrow(1)
+				this.scrolltorow(1)
+	
+			end if
 		end if
 	end if
-//	end if
 
 end if
 
@@ -2479,6 +2511,8 @@ event retrievestart;//
 this.transparency = 50
 
 event u_personalizza_dw()
+
+ki_last_dataobject = this.dataobject 
 
 kipointer_orig = setpointer(HourGlass!)
 

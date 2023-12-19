@@ -40,6 +40,8 @@ global type st_tab_ptasks_rows from structure
 	string		cs_invoicefirmanome		descriptor "comment" = "fattura nominativo firma in calce "
 	string		cs_invoicefirmaruolo		descriptor "comment" = "fattura ruolo firma in calce "
 	string		cs_invoiceorigin		descriptor "comment" = "stampa Origin su INVOICE, era sempre ITALIA "
+	string		cs_invoiceproducer		descriptor "comment" = "Produttore INVOICE"
+	string		cs_invoiceproduceraddress		descriptor "comment" = "Indirizzo Produttore INVOICE"
 	date		acc_arrivodata
 	long		acc_e1wo
 	decimal { 3 }		acc_pesolordoxlottokg

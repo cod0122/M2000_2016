@@ -1,0 +1,7 @@
+﻿$PBExportHeader$st_tab_impianti_modi.srs
+global type st_tab_impianti_modi from structure
+	st_tab_g_0		st_tab_g_0
+	string		id_impianto		descriptor "comment" = "G2, G3"
+	string		id_modo		descriptor "comment" = "x G2 solo 12; x G3:  01 modalità 4 PASS standard, 02 mod 2 PASS inner mode, RL research loop;"
+end type
+

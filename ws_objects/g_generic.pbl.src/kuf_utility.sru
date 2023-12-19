@@ -4134,20 +4134,22 @@ NEXT
 end subroutine
 
 public function string u_stringa_cmpnovocali (string a_stringa);//
-//--- restituisce campo stringa compattato senza caratteri particolari e vocali ovvero ad es. "mia Sorella_Matta" diventa "msrllmtt" 
-//--- tipo .'/|\*spazio~'a capo come ~n o ~r o ~t"
+//--- restituisce campo stringa compattato con solo CONSONANTI o NUMERI ad es. "mia Sorella_Matta_3" diventa "msrllmtt3" 
+//--- toglie anche i char spaciali come ~n o ~r o ~t"
 //
 string k_stringa
 string k_return_stringa=""
 int k_ind, k_len
 
+
 		k_stringa = lower(trim(a_stringa))
 		k_len = len(a_stringa)
 		for k_ind = 1 to k_len
-			 if mid(k_stringa, k_ind, 1) = " " & 
-			             or mid(k_stringa, k_ind, 1) = "a" or mid(k_stringa, k_ind, 1) = "e" or mid(k_stringa, k_ind, 1) = "i" or mid(k_stringa, k_ind, 1) = "o" or mid(k_stringa, k_ind, 1) = "u" & 
-                        or mid(k_stringa, k_ind, 1) = "\" or mid(k_stringa, k_ind, 1) =  "/" or mid(k_stringa, k_ind, 1) = "." or mid(k_stringa, k_ind, 1) = "," or mid(k_stringa, k_ind, 1) = "*" or mid(k_stringa, k_ind, 1) = "_" or mid(k_stringa, k_ind, 1) = "|" &	
-								then
+			if match(upper(mid(k_stringa, k_ind, 1)), '[^BCDFGHJLMNPQRSTVWXYZ0-9]') then  // diverso da CONSONANTI e 0-9
+		//	 if mid(k_stringa, k_ind, 1) < " " & 
+		//	             or mid(k_stringa, k_ind, 1) = "a" or mid(k_stringa, k_ind, 1) = "e" or mid(k_stringa, k_ind, 1) = "i" or mid(k_stringa, k_ind, 1) = "o" or mid(k_stringa, k_ind, 1) = "u" & 
+      //                  or mid(k_stringa, k_ind, 1) = "\" or mid(k_stringa, k_ind, 1) =  "/" or mid(k_stringa, k_ind, 1) = "." or mid(k_stringa, k_ind, 1) = "," or mid(k_stringa, k_ind, 1) = "*" or mid(k_stringa, k_ind, 1) = "_" or mid(k_stringa, k_ind, 1) = "|" &	
+		//						then
 			else
 				if k_ind < k_len then
 					if mid(k_stringa, k_ind, 2) =  "~~" or mid(k_stringa, k_ind, 2) = "~t" or mid(k_stringa, k_ind, 2) = "~r" or mid(k_stringa, k_ind, 2) = "~n" or mid(k_stringa, k_ind, 2) = "~"" then

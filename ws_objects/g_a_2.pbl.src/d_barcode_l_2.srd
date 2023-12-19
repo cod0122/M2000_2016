@@ -38,7 +38,7 @@ table(column=(type=char(13) updatewhereclause=yes name=barcode dbname="barcode" 
  column=(type=long updatewhereclause=yes name=k_n_asdrackbarcode dbname="k_n_asdrackbarcode" values="	1/	0" )
  column=(type=long updatewhereclause=yes name=flg_campione_figlio dbname="flg_campione_figlio" values="	1/	0" )
  column=(type=long updatewhereclause=yes name=g3ngiri dbname="barcode.g3ngiri" dbalias=".g3ngiri" )
- column=(type=char(16) updatewhereclause=yes name=g3ciclo dbname="barcode.g3ciclo" dbalias=".g3ciclo" )
+ column=(type=number updatewhereclause=yes name=g3ciclo dbname="barcode.g3ciclo" dbalias=".g3ciclo" )
  column=(type=long updatewhereclause=yes name=g3npass dbname="barcode.g3npass" dbalias=".g3npass" )
  retrieve="  SELECT case 
             when trim(barcode.barcode_lav) > ' ' then trim(barcode.barcode)
@@ -96,9 +96,9 @@ table(column=(type=char(13) updatewhereclause=yes name=barcode dbname="barcode" 
             when trim(barcode.barcode_lav) > ' ' then COALESCE(barcode.flg_campione, 0)
             else 0
          end  flg_campione_figlio
-         ,case when barcode.lav_g3ngiri > 0 then barcode.lav_g3ngiri else barcode.g3ngiri end g3ngiri  
-         ,case when barcode.lav_g3ciclo > 0 then barcode.lav_g3ciclo else barcode.g3ciclo end g3ciclo   
-         ,case when barcode.lav_g3npass > 0 then barcode.lav_g3npass else barcode.g3npass end g3npass
+         ,case when barcode.g3lav_ngiri > 0 then barcode.g3lav_ngiri else barcode.g3ngiri end g3ngiri  
+         ,case when barcode.g3lav_ciclo > 0 then barcode.g3lav_ciclo else barcode.g3ciclo end g3ciclo   
+         ,case when barcode.g3lav_npass > 0 then barcode.g3lav_npass else barcode.g3npass end g3npass
     FROM barcode
                   inner JOIN armo ON 
          barcode.id_armo = armo.id_armo
@@ -239,4 +239,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

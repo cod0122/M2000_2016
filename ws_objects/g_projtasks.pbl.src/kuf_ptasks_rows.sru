@@ -256,6 +256,8 @@ kuf_utility kuf1_utility
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoicefirmanome"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoicefirmanome))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoicefirmaruolo"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoicefirmaruolo))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoiceorigin"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoiceorigin))
+			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoiceproducer"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoiceproducer))
+			k_idx_max ++; k_json_key[k_idx_max] = "$.cs." + "invoiceproduceraddress"; k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.cs_invoiceproduceraddress))
 
 			if isdate(string(kst_tab_ptasks_rows.acc_arrivodata)) and kst_tab_ptasks_rows.acc_arrivodata > kkg.data_no then
 				k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "arrivodata";	k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.acc_arrivodata))				

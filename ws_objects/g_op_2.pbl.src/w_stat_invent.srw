@@ -1641,7 +1641,7 @@ int k_rc
 long k_riga=0
 string k_string, k_sql_orig, k_stringn
 integer k_ctr, k_len 
-string k_inventario
+string k_inventario, k_name
 kuf_utility kuf1_utility
 window k_window
 st_open_w kst_open_w
@@ -1664,7 +1664,8 @@ if dwo.name = "cliente" then
    if row > 0 then
       k_riga = row
    else
-      k_riga = u_get_riga_AtPointer(dwo.name)
+ 		k_name = dwo.name
+      k_riga = u_get_riga_AtPointer(k_name)
    end if
 
    if k_riga > 0 then
@@ -1777,7 +1778,7 @@ int k_rc
 long k_riga=0
 string k_string, k_sql_orig, k_stringn
 integer k_ctr, k_len 
-string k_inventario
+string k_inventario, k_name
 kuf_utility kuf1_utility
 window k_window
 st_open_w kst_open_w
@@ -1800,7 +1801,8 @@ if dwo.name = "cliente" then
 	if row > 0 then
 		k_riga = row
 	else
-		k_riga = u_get_riga_AtPointer(dwo.name)
+		k_name = dwo.name
+		k_riga = u_get_riga_AtPointer(k_name)
 	end if
 
 	if k_riga > 0 then
@@ -1910,7 +1912,7 @@ int k_rc
 long k_riga=0
 string k_string, k_sql_orig, k_stringn
 integer k_ctr, k_len 
-string k_inventario
+string k_inventario, k_name
 kuf_utility kuf1_utility
 window k_window
 st_open_w kst_open_w
@@ -1933,7 +1935,8 @@ if dwo.name = "cliente" then
 	if row > 0 then
 		k_riga = row
 	else
-		k_riga = u_get_riga_AtPointer(dwo.name)
+		k_name = dwo.name
+		k_riga = u_get_riga_AtPointer(k_name)
 	end if
 
 	if k_riga > 0 then

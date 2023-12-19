@@ -94,10 +94,9 @@ public string E1MCU="         270"
 
 private string ki_column_focus_before_name_colbck[2]     // colonna appena lasciata da focus nome e colore background
 
-////--- Array per il Docking
-//public st_w_docking kGst_w_Docking
-////--- Nome di registro per le window modalità Docking (aggiungere il codice utente)
-//public string kG_DockingRegister   
+//--- Theme applicato (DARK sfondo scuro)
+public boolean theme_dark
+public string theme
 
 end variables
 
@@ -543,6 +542,7 @@ public function datetime get_datetime_zero ();//
 //--- torna la data 01/01/1900 + time 00:00:00.000000 (midnight)
 
 return datetime(date(0) )
+
 end function
 
 public function datetime get_datetime_current_old ();//

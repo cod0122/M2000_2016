@@ -9,28 +9,28 @@ end prototypes
 global subroutine fx_close_all_window ();
 //=== Chiudo tutte le window children
 window wSheet, wSheetNEXT
-int k_rc
+int k_rc=1
 
 	if not isnull(w_main) then
 		if isvalid(w_main) then
 			wSheet = w_main.GetFirstSheet()
-			do WHILE IsValid(wSheet) and k_rc = 0
+			do WHILE IsValid(wSheet) and k_rc = 1
 				if wSheet.classname( ) <> "w_menu_tree" then
 					k_rc = close(wSheet)
-					if k_rc = 0 then
+					if k_rc = 1 then
 						wSheet = w_main.GetFirstSheet()
 					end if
 				else
-					k_rc = 1
+					k_rc = 0
 				end if
 			loop
 			
-			if k_rc = 0 then
+			if wSheet.classname( ) = "w_menu_tree" then
 				if isvalid(wsheet) then
 					wSheetNEXT = wsheet
 				end if
 			
-				do while isvalid(wSheet) and k_rc = 0
+				do while isvalid(wSheet) and k_rc = 1
 					wSheet = w_main.GetNextSheet(wSheetNEXT)
 					if IsValid (wSheet) then
 						k_rc = close(wSheet)

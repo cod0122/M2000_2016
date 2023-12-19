@@ -140,8 +140,7 @@ choose case a_button
 		, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
 		, "b_email_rubrica" &
 	   , "b_asdrackbarcode", "b_asdrackbarcode_1" &
-		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print" &
-		, "b_sl_pt_g3"
+		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print" 
 		k_return = a_button
 		
 		
@@ -345,7 +344,6 @@ kuf_parent kuf1_parent
 pointer kp_oldpointer
 
 
-
 kp_oldpointer = SetPointer(hourglass!)
 
 st_open_w kst_open_w 
@@ -399,8 +397,11 @@ choose case k_nome_link
 			,"b_certif_stampa"
 		kuf1_parent = create using "kuf_certif"
 		
-	case "cod_sl_pt", "sl_pt", "sl_pt_dosimpos"
+	case "cod_sl_pt", "sl_pt", "sl_pt_dosimpos", "sl_pt_dosimpos_g3"
 		kuf1_parent = create using "kuf_sl_pt"
+		
+	case "sl_pt_g3"
+		kuf1_parent = create using "kuf_sl_pt_g3"
 
 	case "id_listino", "id_listino_voce" &
 			,"id_listino_voce" &
@@ -510,9 +511,6 @@ choose case k_nome_link
 		
 	case "k_hyperlink", "url_cust_packing_in", "url"
 		kuf1_parent = create using "kuf_webbrowser"
-		
-	case "b_sl_pt_g3"
-		kuf1_parent = create using "kuf_sl_pt_g3"
 
 	case else
 		k_return = false

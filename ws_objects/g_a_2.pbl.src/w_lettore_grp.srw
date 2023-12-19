@@ -1065,7 +1065,7 @@ try
 			kst_tab_barcode_figlio.fila_2p = dw_dett_0.object.barcode_fila_2p[k_row]
 
 //--- controllo se i barcode possono diventare PADRE e FIGLIO 
-			if NOT kiuf_barcode.if_essere_barcode_figlio(kst_tab_barcode_figlio, kst_tab_barcode_padre) then
+			if NOT kiuf_barcode.if_essere_barcode_figlio_g2(kst_tab_barcode_figlio, kst_tab_barcode_padre) then
 				kst_esito.esito = kkg_esito.ko
 				kst_esito.sqlerrtext = "Asscociazione con il barcode Figlio " + trim(kst_tab_barcode_figlio.barcode) &
 									+ " non consentita! " 

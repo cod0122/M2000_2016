@@ -2030,7 +2030,6 @@ integer x = 1061
 integer y = 16
 integer width = 754
 integer height = 1112
-boolean enabled = true
 long backcolor = 32501743
 string text = "Impianto G3"
 st_orizzontal_17 st_orizzontal_17

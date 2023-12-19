@@ -264,18 +264,18 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 	end if		
 	m_main.m_strumenti.m_fin_gest_libero2.visible = m_main.m_strumenti.m_fin_gest_libero2.enabled
 
-//--- Come doppio-click
-	m_main.m_strumenti.m_fin_gest_libero3.enabled = k_attiva
-	if not m_main.m_strumenti.m_fin_gest_libero3.enabled  then 
-		m_main.m_strumenti.m_fin_gest_libero3.text = "Mostra/Nascondi elenco Righe già Selezonate "
-		m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Mostra Elenco Selezionati "
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "Mostra, Mosta/Nascondi elenco Righe già Selezonate  "
-//		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "PlaceColumn_2!"
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = false
-		m_main.m_strumenti.m_fin_gest_libero3.visible = false
-		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
-	end if
+////--- Come doppio-click
+//	m_main.m_strumenti.m_fin_gest_libero3.enabled = k_attiva
+//	if not m_main.m_strumenti.m_fin_gest_libero3.enabled  then 
+//		m_main.m_strumenti.m_fin_gest_libero3.text = "Mostra/Nascondi elenco Righe già Selezonate "
+//		m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Mostra Elenco Selezionati "
+//		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "Mostra, Mosta/Nascondi elenco Righe già Selezonate  "
+////		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
+//		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "PlaceColumn_2!"
+//		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = false
+//		m_main.m_strumenti.m_fin_gest_libero3.visible = false
+//		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
+//	end if
 
 //--- ZOOM
 	if not m_main.m_strumenti.m_fin_gest_libero7.visible  then 

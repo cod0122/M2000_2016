@@ -1576,7 +1576,7 @@ datetime k_data_backup
 
 
 	dw_1.reset()
-	kGuf_data_base.dw_ripri_righe( "*", dw_1, k_data_backup)
+	kGuf_data_base.dw_ripri_righe( "*", "", dw_1, k_data_backup)
 
 
 end event

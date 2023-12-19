@@ -1568,14 +1568,21 @@ public function string get_titolo_procedura () throws uo_exception;//---
 //---  Recupera il Titolo della Procedura da esporre sulla Finestra Principale
 //---
 uo_exception kuo_exception 
-string k_titolo=""
+string k_titolo, k_esito
 kuf_utility kuf1_utility
 
 
 	kuf1_utility = create kuf_utility
+	
 	k_titolo = trim(mid(prendi_dato_base("titolo"), 2)) + " (" + kguo_g.get_app_release( ) + ")" //prendo il titolo della procedura
-	k_titolo = k_titolo + " Utente " + string(kguo_utente.get_id_utente( ) ) + " " + trim(kguo_utente.get_nome()) //UTENTE di accesso
-	k_titolo = k_titolo + " su " + trim(kuf1_utility.u_nome_computer()) //prendo nome del Computer
+	k_titolo += " Utente " + string(kguo_utente.get_id_utente( ) ) + " " + trim(kguo_utente.get_nome()) //UTENTE di accesso
+	k_titolo += " su " + trim(kuf1_utility.u_nome_computer()) //prendo nome del Computer
+	if trim(kguo_sqlca_db_magazzino.servername) > " " then // nome del server a cui si collega
+		k_titolo += " - Connesso a " + trim(kguo_sqlca_db_magazzino.servername ) 
+		if trim(kguo_sqlca_db_magazzino.database) > " " then
+			k_titolo += "/" + trim(kguo_sqlca_db_magazzino.database)  
+		end if
+	end if
 	destroy kuf1_utility
 
 	if isnull(k_titolo) then

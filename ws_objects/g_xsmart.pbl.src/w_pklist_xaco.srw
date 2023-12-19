@@ -1266,6 +1266,9 @@ return k_return
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_pklist_xaco
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_pklist_xaco
 integer x = 2821
 integer y = 980
@@ -1337,7 +1340,6 @@ integer width = 2784
 integer height = 1148
 boolean enabled = true
 string dataobject = "d_convalida_dosimbozza"
-borderstyle borderstyle = stylelowered!
 boolean ki_link_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_sort = false
@@ -1749,7 +1751,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.kdata.x) + long(this.object.kdata.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 180
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

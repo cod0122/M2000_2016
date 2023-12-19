@@ -16,7 +16,7 @@ constant string APP_NAME = "M2000"
 
 //--- Versione Procedura Major-release XX + YY.MMDD  (anno.mese e giorno)
 constant string VERSIONE_MAJOR_REL="13"
-constant dec{4} VERSIONE=23.1003
+constant dec{4} VERSIONE=23.1219
 
 //--- icone risorse grafiche
 constant string PATH_SEP ="\" 
@@ -56,8 +56,6 @@ constant string MAIN_ICON = "main.ico"
 //--- dimensioni delle barre laterali
 constant integer scrollbarY_width = 50
 constant integer scrollbarX_height = 120
-
-
 
 end variables
 

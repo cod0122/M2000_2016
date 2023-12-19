@@ -18,6 +18,7 @@ type variables
 public:
 st_esito kist_esito
 public string ki_flag_modalita = ""  // Operazione a cui e' sottoposta la dw (x default è Visualizzazione)
+private boolean ki_flag_mantieni_colore = false  // true= mantiene il colore della colonna in protezione/sprotezione
 protected string ki_column_background_before_active[2]     // need to background focus column 
 end variables
 
@@ -31,6 +32,8 @@ protected function string u_proteggi_dw_get_modify (character k_operazione, inte
 public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo)
 public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo)
 public subroutine u_proteggi_sproteggi_dw_no_protect ()
+public subroutine u_proteggi_sproteggi_dw (string a_modalità)
+public subroutine u_proteggi_sproteggi_dw (string a_modalità, boolean a_mantieni_colore)
 end prototypes
 
 public function string u_get_evaluate (string a_field, string a_field_describe);/*
@@ -232,14 +235,23 @@ public subroutine u_proteggi_sproteggi_dw ();//
 //--- Inpu: impostare nel datawindow la proprietà ki_flag_modalita
 //---
 int k_ctr, k_colcount
-string k_tabsequence, k_name, k_modify, k_rcx
+string k_tabsequence, k_name, k_modify, k_rcx, k_operazione_proteggi, k_operazione_sproteggi
 
+
+//--- definisce l'operazione in caso di manetenimento del colore
+if ki_flag_mantieni_colore then
+	k_operazione_proteggi = "3"    
+	k_operazione_sproteggi = "2"
+else
+	k_operazione_proteggi = "1"
+	k_operazione_sproteggi = "0"
+end if			
 
 choose case this.ki_flag_modalita
 		
 	case kkg_flag_modalita.visualizzazione &
 			,kkg_flag_modalita.cancellazione 
-		k_modify = u_proteggi_dw_get_modify("1", 0, "") 	//--- protezione di tutto
+		k_modify = u_proteggi_dw_get_modify(k_operazione_proteggi, 0, "") 	//--- protezione di tutto
 
 	case kkg_flag_modalita.inserimento &
 			,kkg_flag_modalita.modifica
@@ -255,9 +267,9 @@ choose case this.ki_flag_modalita
 				k_tabsequence = trim(this.Describe(k_name + ".TabSequence"))
 	
 				if k_tabsequence > "0" then
-					k_modify = u_proteggi_dw_get_modify("0", k_ctr, k_modify) 	//--- Sprotezione del campo
+					k_modify = u_proteggi_dw_get_modify(k_operazione_sproteggi, k_ctr, k_modify) 	//--- Sprotezione del campo
 				else
-					k_modify = u_proteggi_dw_get_modify("1", k_ctr, k_modify) 	//--- Sprotezione del campo
+					k_modify = u_proteggi_dw_get_modify(k_operazione_proteggi, k_ctr, k_modify) 	//--- Protezione del campo
 				end if
 				
 			end if
@@ -522,6 +534,19 @@ if k_modify > " " then
 	k_rcx = ""
 end if
 
+end subroutine
+
+public subroutine u_proteggi_sproteggi_dw (string a_modalità);	//
+	this.ki_flag_modalita = a_modalità
+	
+	u_proteggi_sproteggi_dw( )
+end subroutine
+
+public subroutine u_proteggi_sproteggi_dw (string a_modalità, boolean a_mantieni_colore);	//
+	this.ki_flag_modalita = a_modalità
+	this.ki_flag_mantieni_colore = a_mantieni_colore
+	
+	u_proteggi_sproteggi_dw( )
 end subroutine
 
 on uo_d_std_0.create

@@ -150,10 +150,8 @@ public function integer u_dammi_pic_tree_alert ()
 public function st_tab_barcode u_barcode_rigenera_flg_dosimetro () throws uo_exception
 private function integer u_riempi_treeview_certif_mese (ref string k_tipo_oggetto)
 private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode)
-private function integer u_stampa_barcode_set_pkl (ref st_tab_barcode ast_tab_barcode)
 private function long u_stampa_barcode_get_id_meca (ref st_tab_barcode ast_tab_barcode)
 private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode)
-private subroutine u_stampa_barcode_set_prezzi (ref st_tab_armo ast_tab_armo)
 end prototypes
 
 public function boolean u_sicurezza (st_tab_treeview kst_tab_treeview);//
@@ -579,7 +577,6 @@ st_esito kst_esito
 
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_old
 st_tab_meca kst_tab_meca, kst_tab_meca_save
-st_tab_armo kst_tab_armo
 
 st_treeview_data kst_treeview_data
 st_treeview_data_any kst_treeview_data_any
@@ -713,21 +710,16 @@ try
 	//--- fa altre operazioni  ---------------------------------------------------------------------------------------------------------------------
 						try 
 							if kst_tab_barcode.id_meca > 0 then
-								u_stampa_barcode_set_pkl(kst_tab_barcode)  // Imposta i Barcode nella PKLIST grezza di WM
-							end if
 								
+								kuf1_barcode_stampa.u_exec_post_stampa(kst_tab_barcode)	
+								
+							end if
+							
 						catch (uo_exception kuo1_exception)
 							kuo1_exception.messaggio_utente()
+							
 						end try					
-	
-						try 
-							if kst_tab_barcode.id_meca > 0 then
-								kst_tab_armo.id_meca = kst_tab_barcode.id_meca
-								u_stampa_barcode_set_prezzi(kst_tab_armo)    // Carica i PREZZI di Listino per le righe del Lotto (riferimento)
-							end if
-						catch (uo_exception kuo2_exception)
-							kuo2_exception.messaggio_utente()
-						end try					
+						
 //--- FINE: altre operazioni ----------------------------------------------------------------------------------------------------------------
 	
 //--- Se stampa da LIST potrei avere selezionato piu' barcode/riferimenti				
@@ -12136,36 +12128,6 @@ integer k_rc
 
 end function
 
-private function integer u_stampa_barcode_set_pkl (ref st_tab_barcode ast_tab_barcode);//
-//--- Stampa barcode alla fine set in tab wm_receiptgammarad (pkl)
-//--- ret: n. barcode in pkl upd
-//
-integer k_return = 0
-st_tab_wm_pklist_righe kst_tab_wm_pklist_righe
-kuf_wm_pklist_inout kuf1_wm_pklist_inout
-
-
-try
-		
-	kuf1_wm_pklist_inout = create kuf_wm_pklist_inout
-
-//--- Imposta i Barcode nella PKLIST grezza di WM
-	kst_tab_wm_pklist_righe.id_meca = ast_tab_barcode.id_meca
-	k_return = kuf1_wm_pklist_inout.set_barcode_in_wm_receiptgammarad(kst_tab_wm_pklist_righe)
-		
-
-catch(uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-
-finally
-	if isvalid(kuf1_wm_pklist_inout) then destroy kuf1_wm_pklist_inout
-
-end try
- 
-return k_return
-
-end function
-
 private function long u_stampa_barcode_get_id_meca (ref st_tab_barcode ast_tab_barcode);//
 //--- Stampa barcode get ID MECA se non c'è
 //--- ret: kst_tab_armo.id_meca
@@ -12234,35 +12196,6 @@ integer k_rc
  
 
 end function
-
-private subroutine u_stampa_barcode_set_prezzi (ref st_tab_armo ast_tab_armo);//
-//--- Stampa barcode alla fine set prezzi lotto
-//--- inp: ast_tab_armo.id_meca
-//--- ret: n. barcode in pkl upd
-//
-st_esito kst_esito
-kuf_armo_inout kuf1_armo_inout
-
-
-try
-		
-	kuf1_armo_inout = create kuf_armo_inout
-
-	
-	//--- Carica i PREZZI di Listino per le righe del Lotto (riferimento)
-	kuf1_armo_inout.carica_prezzi_lotto(ast_tab_armo)
-								
-
-catch(uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-
-finally
-	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout
-
-end try
- 
-
-end subroutine
 
 on kuf_treeview.create
 call super::create

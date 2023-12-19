@@ -5900,7 +5900,7 @@ datetime k_data_backup
 
 k_parametri = trim(tab_1.tabpage_1.dw_1.dataobject)
 if k_parametri > " " then
-	k_return = kGuf_data_base.dw_ripri_righe(k_parametri, tab_1.tabpage_1.dw_1, k_data_backup)
+	k_return = kGuf_data_base.dw_ripri_righe(k_parametri, "", tab_1.tabpage_1.dw_1, k_data_backup)
 end if
 
 return k_return

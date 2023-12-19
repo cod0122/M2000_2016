@@ -5,12 +5,12 @@ end type
 end forward
 
 global type ds_lettore_grp from uo_datastore_0
+string dataobject = "ds_lettore_grp"
 end type
 global ds_lettore_grp ds_lettore_grp
 
 event constructor;call super::constructor;//
-this.dataobject = "ds_lettore_grp"
-this.settransobject( sqlca )
+this.post settransobject( kguo_sqlca_db_magazzino )
 end event
 
 on ds_lettore_grp.create

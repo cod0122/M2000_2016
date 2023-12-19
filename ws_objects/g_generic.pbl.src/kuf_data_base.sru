@@ -125,8 +125,8 @@ private function integer dw_salva_arg (string k_nome_file, string k_argomenti, l
 private function integer dw_salva_arg_0 (string k_argomenti, readonly datawindow kdw_save)
 public function string dw_salva_arg_get_nome_file (string k_dw_dataobject, string k_titolo)
 public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datastore kds_import, ref datetime k_datetime_saved)
-public function integer dw_ripri_righe (string k_argomenti, ref datawindow kdw_import, ref datetime k_datetime_saved)
 public function string profilestring_leggi_scrivi (readonly integer k_key, string k_key_1, string k_key_2)
+public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datawindow kdw_import, ref datetime k_datetime_saved)
 end prototypes
 
 public function string db_commit ();//---
@@ -2669,13 +2669,14 @@ return k_return
 
 end function
 
-public function integer dw_salva_righe (string k_argomenti, readonly datastore kds_save, string k_titolo);//
-//=== Salva i dati del DW e gli argomenti passati
-//=== Input: 
-//===   k_argomenti  argomenti della dw
-//===   k_ds_save  data window
-//===   k_titolo  titolo x comporre il nome-file
-//=== Ritorna: 1=Errore, 0=OK
+public function integer dw_salva_righe (string k_argomenti, readonly datastore kds_save, string k_titolo);/*
+ Salva i dati del DATASTORE e gli argomenti passati
+  Input: 
+     k_argomenti  argomenti della dw
+     kds_save  	datastore da salvare
+     k_titolo     titolo x comporre il nome-file
+  Ritorna: 1=Errore, 0=OK
+*/  
 int k_return
 int k_rc
 string k_nome_file
@@ -2708,12 +2709,15 @@ return k_return
 
 end function
 
-public function integer dw_salva_righe (string k_argomenti, readonly datawindow kdw_save, string k_titolo);//
-//=== Salva i dati del DW e gli argomenti passati
-//=== Input: 
-//===   k_argomenti  argomenti della dw
-//===   kdw_save  data window
-//=== Ritorna: 1=Errore, 0=OK
+public function integer dw_salva_righe (string k_argomenti, readonly datawindow kdw_save, string k_titolo);/*
+ Salva i dati del DW e gli argomenti passati
+  Input: 
+     k_argomenti  argomenti della dw
+     kds_save  	dw da salvare
+     k_titolo     titolo x comporre il nome-file
+  Ritorna: 1=Errore, 0=OK
+*/  
+
 int k_return
 int k_rc
 string k_nome_file
@@ -2951,13 +2955,13 @@ return k_nome_file
 end function
 
 public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datastore kds_import, ref datetime k_datetime_saved);/*
- Importa righe nel DW se gli argomenti passati nella dw_saveas sono rimasti uguali
+ Importa righe nel DATASTORE se gli argomenti passati nella dw_saveas sono rimasti uguali
    Input: 
      k_argomenti       argomenti della dw 
-	  k_titolo
+	  k_titolo          uguale a quello passato in dw_salva_righe
 	Out:  
-     kds_import       datastore con i dati
-     k_datetime_saved  data e ora del backup
+     kds_import        ritorna datastore con i dati
+     k_datetime_saved  ritorna data e ora del backup
    Ritorna: 0 o < 0=Errore, >0=OK
 
 */
@@ -3060,47 +3064,6 @@ if k_nome_file > " " then
 
 end if	
 setpointer(kkg.pointer_default)
-	
-
-
-return k_return
-
-end function
-
-public function integer dw_ripri_righe (string k_argomenti, ref datawindow kdw_import, ref datetime k_datetime_saved);/*
- Importa righe nel DW se gli argomenti passati nella dw_saveas sono rimasti uguali
-   Input: 
-     k_argomenti       argomenti della dw 
-	Out:  
-     kdw_import       datastore con i dati
-     k_datetime_saved  data e ora del backup
-   Ritorna: 0 o < 0=Errore, >0=OK
-
-*///
-//=== Importa righe nel DW se gli argomenti passati nella dw_saveas sono rimasti uguali
-//=== Input: 
-//===   k_argomenti  argomenti della dw
-//===   k_dw_import  data window su cui fare l'importa righe 
-//=== Ritorna: 0 o < 0=Errore, >0=OK
-int k_return
-datastore kds_1
-pointer kp
-
-
-	kp=setpointer(hourglass!)
-	
-	kds_1 = create datastore
-	kds_1.dataobject = kdw_import.dataobject
-	
-	k_return=dw_ripri_righe(k_argomenti, kdw_import.title, kds_1, k_datetime_saved)
-
-	if kds_1.rowcount() > 0 then
-		kds_1.rowscopy ( 1, kds_1.rowcount() , primary!, kdw_import, 1, primary! )
-	end if
-	
-	destroy kds_1
-	
-	setpointer(kp)
 	
 
 
@@ -3442,6 +3405,46 @@ int k_leggi=1, k_scrivi=2, k_rc
 return trim(k_return)
 
 
+
+end function
+
+public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datawindow kdw_import, ref datetime k_datetime_saved);/*
+ Importa righe nel DW se gli argomenti passati nella dw_saveas sono rimasti uguali
+   Input: 
+     k_argomenti       argomenti della dw 
+	  k_titolo          uguale a quello passato in dw_salva_righe
+	Out:  
+     kdw_import        ritorna dw con i dati
+     k_datetime_saved  ritorna data e ora del backup
+   Ritorna: 0 o < 0=Errore, >0=OK
+
+*/
+int k_return
+datastore kds_1
+pointer kp
+
+
+	kp=setpointer(hourglass!)
+	
+	kds_1 = create datastore
+	kds_1.dataobject = kdw_import.dataobject
+	
+	if k_titolo > " " then
+	else
+		k_titolo = kdw_import.title 
+	end if
+	
+	k_return=dw_ripri_righe(k_argomenti, k_titolo, kds_1, k_datetime_saved)
+
+	if kds_1.rowcount() > 0 then
+		kds_1.rowscopy ( 1, kds_1.rowcount() , primary!, kdw_import, 1, primary! )
+	end if
+	
+	destroy kds_1
+	
+	setpointer(kp)
+	
+return k_return
 
 end function
 

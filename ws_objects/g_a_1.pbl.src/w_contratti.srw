@@ -1280,6 +1280,7 @@ st_tab_contratti kst_tab_contratti
 	end if
 	
 	dw_lista_0.reset()
+	dw_lista_0.u_filtra_record("") 
 	k_return = dw_lista_0.retrieve(kst_tab_contratti.cod_cli, kst_tab_contratti.mc_co, ki_data_scad, kst_tab_contratti.codice) 
 	if k_return < 1 then
 		dw_guida.setitem(1, "testo", "Nessun Codice Trovato per la richiesta fatta (" &
@@ -1705,7 +1706,7 @@ choose case upper(dwo.name)
 			else
 				k_return = 2
 				dw_dett_0.setitem(row, "sl_pt", kdwc_x.getitemstring(k_riga, "cod_sl_pt"))
-				dw_dett_0.setitem(row, "sl_pt_descr", kdwc_x.getitemstring(k_riga, "descr"))
+				dw_dett_0.setitem(row, "sl_pt_descr", kdwc_x.getitemstring(k_riga, "sl_pt_descr"))
 			end if
 			
 		end if
@@ -1929,72 +1930,72 @@ event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//---
 //---
 st_esito kst_esito
 string k_dacercare
-boolean k_elabora=true
 st_tab_clienti kst_tab_clienti
 
 
 try
-
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito =	kguo_exception.inizializza( this.classname())
 	
 	ki_st_tab_contratti_arg.mc_co = ""
 	ki_st_tab_contratti_arg.cod_cli = 0
 	ki_st_tab_contratti_arg.codice = 0
+	
 	k_dacercare = trim(dw_guida.getitemstring(1, "rag_soc_1"))
 	if k_dacercare > " " then
-		if isnumber(k_dacercare) then
-			ki_st_tab_contratti_arg.cod_cli = long(k_dacercare)
-		else
-//--- se la stringa inizia con "CO" allora cerca come MC_CO puntuale
-			if left(k_dacercare,2) = "CO" then
-				ki_st_tab_contratti_arg.mc_co = mid(k_dacercare,3)
+		if upper(left(k_dacercare,3)) = "ID=" then
+			if isnumber(mid(k_dacercare,4)) then
+				ki_st_tab_contratti_arg.codice = long(trim(mid(k_dacercare,4)))
 			else
-				if left(k_dacercare,2) = "ID" then
-					if isnumber(mid(k_dacercare,3)) then
-						ki_st_tab_contratti_arg.codice = long(mid(k_dacercare,3))
-					else
-						kguo_exception.inizializza( )
-						kst_esito.esito = kkg_esito.no_esecuzione
-						kst_esito.sqlerrtext = "Codice ID contratto da cercare non numerico!"
-						kguo_exception.set_esito(kst_esito)
-						throw kguo_exception
-					end if
-				else
-					if left(k_dacercare,2) = "T=" then
-						kst_tab_clienti.rag_soc_10 = mid(k_dacercare,3)
-					else
-						kst_tab_clienti.rag_soc_10 = trim(k_dacercare)
-					end if
-					ki_st_tab_contratti_arg.cod_cli = kiuf_clienti.get_codice_da_rag_soc(kst_tab_clienti.rag_soc_10)
-					if ki_st_tab_contratti_arg.cod_cli > 0 then
-						dw_guida.setitem(1, "rag_soc_1", string(ki_st_tab_contratti_arg.cod_cli))
-					else
-						dw_guida.setitem(1, "rag_soc_1", "NOME NON TROVATO: " + kst_tab_clienti.rag_soc_10)
-						kguo_exception.inizializza( )
-						kst_esito.esito = kkg_esito.no_esecuzione
-						kst_esito.sqlerrtext = "Nominativo Titolare da cercare non trovato in archivio!"
-						kguo_exception.set_esito(kst_esito)
-						throw kguo_exception
-					end if
-				end if
+				kguo_exception.inizializza( )
+				kst_esito.esito = kkg_esito.no_esecuzione
+				kst_esito.sqlerrtext = "Codice ID contratto da cercare non numerico!"
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		elseif upper(left(k_dacercare,3)) = "CO=" then
+			ki_st_tab_contratti_arg.mc_co = trim(mid(k_dacercare,4))
+	//--- estrazione puntuale sul cliente
+		elseif upper(left(k_dacercare, 2)) = "C=" then
+			if isnumber(mid(k_dacercare,3)) then
+				ki_st_tab_contratti_arg.cod_cli = long(trim(mid(k_dacercare,3)))
+			else
+				kst_esito.esito = kkg_esito.no_esecuzione
+				kst_esito.sqlerrtext = "Codice Cliente da cercare non numerico!"
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		else
+			// cerca l'anagrafica
+			kst_tab_clienti.rag_soc_10 = trim(k_dacercare)
+			ki_st_tab_contratti_arg.cod_cli = kiuf_clienti.get_codice_da_rag_soc(kst_tab_clienti.rag_soc_10)
+			if ki_st_tab_contratti_arg.cod_cli > 0 then
+				dw_guida.setitem(1, "rag_soc_1", string(ki_st_tab_contratti_arg.cod_cli))
+			else
+				dw_guida.setitem(1, "rag_soc_1", "NOME NON TROVATO: " + kst_tab_clienti.rag_soc_10)
+				kguo_exception.inizializza( )
+				kst_esito.esito = kkg_esito.no_esecuzione
 			end if
 		end if
+		
 	else
 		ki_st_tab_contratti_arg.cod_cli = 0  // TUTTI I CONTRATTI
 		k_dacercare = ""
 	end if
 	
-	ki_mostra_nascondi_in_lista = dw_guida.getitemstring(1, "tutto")
-	k_dacercare += ki_mostra_nascondi_in_lista
+	if kst_esito.esito = kkg_esito.ok then
+		
+		ki_mostra_nascondi_in_lista = dw_guida.getitemstring(1, "tutto")
+		k_dacercare += ki_mostra_nascondi_in_lista
+		
+		ki_data_scad =  dw_guida.getitemdate(1, "datascad")
+		k_dacercare += string(ki_data_scad)
 	
-	ki_data_scad =  dw_guida.getitemdate(1, "datascad")
-	k_dacercare += string(ki_data_scad)
-
-//--- solo se ricerco un cliente diverso o altro parametro cambiato
-	if k_elabora and ki_ultimo_codice_cercato <> k_dacercare then
-		ki_ultimo_codice_cercato = k_dacercare
-		//ki_ultimo_codice_cercato = trim(dw_guida.getitemstring(1, "rag_soc_1"))
-		u_retrieve_dw_lista()
+	//--- solo se ricerco un cliente diverso o altro parametro cambiato
+		if ki_ultimo_codice_cercato <> k_dacercare then
+			ki_ultimo_codice_cercato = k_dacercare
+			//ki_ultimo_codice_cercato = trim(dw_guida.getitemstring(1, "rag_soc_1"))
+			u_retrieve_dw_lista()
+		end if
 	end if
 
 catch (uo_exception kuo_exception)

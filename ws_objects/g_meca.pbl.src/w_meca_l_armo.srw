@@ -283,7 +283,7 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true // ki_menu.m_strumenti.m_fin_gest_libero2.enabled
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Autorizza,"+m_main.m_strumenti.m_fin_gest_libero2.text
-		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "Error!"
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "verified16.png"
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	end if	
 	if NOT m_main.m_strumenti.m_fin_gest_libero3.enabled then

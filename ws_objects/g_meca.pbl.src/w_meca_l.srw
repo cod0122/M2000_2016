@@ -216,7 +216,7 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true // ki_menu.m_strumenti.m_fin_gest_libero2.enabled
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Autorizza,"+m_main.m_strumenti.m_fin_gest_libero2.text
-		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "Error!"
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "verified16.png"
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	end if	
 	
@@ -645,7 +645,6 @@ type dw_lista_0 from w_g_tab0`dw_lista_0 within w_meca_l
 integer width = 2807
 integer height = 708
 string dataobject = "d_meca_l"
-borderstyle borderstyle = stylelowered!
 boolean ki_link_standard_sempre_possibile = true
 end type
 
@@ -755,6 +754,24 @@ try
 				k_dato_valido = true
 				kist_tab_meca.e1doco = long(k_numero_x)
 				kiuf_armo.get_id_meca_da_e1doco(kist_tab_meca)
+				
+				if kist_tab_meca.id > 0 then 
+					k_elabora = true
+				end if
+			end if
+		end if
+	end if
+
+	if not (k_elabora or k_dato_valido) then
+		//--- se ricerca per SO (sonnnnn)
+		k_pos = pos(lower(k_codice_x), "so", 1)  
+		if k_pos > 0 then
+			k_numero_x = trim(mid(k_codice_x, k_pos + 2))
+			if isnumber(k_numero_x) then
+				
+				k_dato_valido = true
+				kist_tab_meca.e1rorn = long(k_numero_x)
+				kiuf_armo.get_id_meca_da_e1_rorn(kist_tab_meca)
 				
 				if kist_tab_meca.id > 0 then 
 					k_elabora = true
