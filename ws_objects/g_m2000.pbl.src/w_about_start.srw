@@ -5,6 +5,10 @@ end type
 end forward
 
 global type w_about_start from w_about
+boolean visible = true
+boolean controlmenu = true
+boolean minbox = true
+windowtype windowtype = popup!
 end type
 global w_about_start w_about_start
 

@@ -55,21 +55,20 @@ if tab_1.tabpage_1.dw_1.getnextmodified(0, primary!) > 0 &
 
 	if tab_1.tabpage_1.dw_1.update() = 1 then
 
-//=== Se tutto OK faccio la COMMIT		
-		k_errore1 = kGuf_data_base.db_commit()
-		if LeftA(k_errore1, 1) <> "0" then
-			k_return = "3" + "Archivio " + tab_1.tabpage_1.text + MidA(k_errore1, 2)
-		else // Tutti i Dati Caricati in Archivio
-			k_return ="0 "
-		end if
+//=== Se tutto OK faccio la COMMIT	
+		kguo_sqlca_db_magazzino.db_commit( )
+		k_return ="0 "
 	else
-		k_errore1 = kGuf_data_base.db_rollback()
-		k_return="1Fallito aggiornamento archivio '" + &
-					tab_1.tabpage_1.text + "' ~n~r" 
-				end if
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(tab_1.tabpage_1.dw_1.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento " + tab_1.tabpage_1.text & 
+							+ " id " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "certif_id") ) + ". " &
+							+ kkg.acapo + tab_1.tabpage_1.dw_1.kist_esito.sqlerrtext
+		kguo_exception.scrivi_log()
+		kguo_sqlca_db_magazzino.db_rollback()
+		k_return="1" + kguo_exception.kist_esito.sqlerrtext
+	end if
 end if
-
-
 
 //=== Puntatore Cursore da attesa.....
 SetPointer(kp_oldpointer)
@@ -80,13 +79,7 @@ SetPointer(kp_oldpointer)
 //===			 : 3=Commit fallita
 
 if LeftA(k_return, 1) = "1" then
-	messagebox("Operazione di Aggiornamento Non Eseguita !!", &
-		MidA(k_return, 2))
-else
-	if LeftA(k_return, 1) = "3" then
-		messagebox("Registrazione dati : problemi nella 'Commit' !!", &
-			"Provare a chiudere e ripetere le operazioni eseguite")
-	end if
+	messagebox("Aggiornamento in Errore", Mid(k_return, 2))
 end if
 
 
@@ -268,20 +261,18 @@ protected subroutine attiva_menu ();//
 
 //--- Rigenera alcuni dati del Lotto 		
 	if m_main.m_strumenti.m_fin_gest_libero9.enabled <>  cb_aggiorna.enabled then
-		m_main.m_strumenti.m_fin_gest_libero9.text = "Sistema la data di Fine Trattamento "
-		m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Sistema la data di Fine Trattamento "
+		m_main.m_strumenti.m_fin_gest_libero9.text = "Rilegge e sistema la data di Fine Trattamento "
+		m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Rilegge e sistema la data di Fine Trattamento "
 		m_main.m_strumenti.m_fin_gest_libero9.enabled =  cb_aggiorna.enabled
-		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemtext =  "Rigenera,"+ m_main.m_strumenti.m_fin_gest_libero9.text
+		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemtext =  "Riaggiorna,"+ m_main.m_strumenti.m_fin_gest_libero9.text
 		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemvisible = true
 		m_main.m_strumenti.m_fin_gest_libero9.toolbaritembarindex=2
 	end if
 
 
 	
-	if ki_st_open_w.flag_primo_giro = 'S' then
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Custom074!"
-		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemname =  "Regenerate5!"
-	end if
+	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Custom074!"
+	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemname =  "Regenerate5!"
 
 	super::attiva_menu()
 
@@ -525,11 +516,20 @@ st_tab_certif kst_tab_certif
 	
 		if k_errore = "0" or k_errore = "4" then
 			kst_tab_certif.data = tab_1.tabpage_1.dw_1.getitemdate ( k_riga, "certif_data") 
-			if kst_tab_certif.data <> k_dataoggi and kst_tab_certif.data > kkg.data_no then
-				k_testo = string(k_dataoggi, "dd.mm.yy" )
-				k_return = tab_1.tabpage_1.text + ": Data Attestato differente da oggi '" + k_testo + "'. " + "~n~r"
-				k_errore = "4"
-				k_nr_errori++
+			if kst_tab_certif.data > kkg.data_no then 
+				if kst_tab_certif.data < tab_1.tabpage_1.dw_1.getitemdate( k_riga, "certif_lav_data_fin") then
+					k_return = tab_1.tabpage_1.text + ": Data Attestato " + string(kst_tab_certif.data, "dd mmm yy") &
+									+ " minore di fine lavorazione " +  string(tab_1.tabpage_1.dw_1.getitemdate( k_riga, "certif_lav_data_fin"), "dd mmm yy") + ". " + "~n~r"
+					k_errore = "1"
+					k_nr_errori++
+				else
+					if kst_tab_certif.data <> k_dataoggi then
+						k_testo = string(k_dataoggi, "dd mmm yy" )
+						k_return = tab_1.tabpage_1.text + ": Data Attestato " + string(kst_tab_certif.data, "dd mmm yy") + " diversa da oggi (" + k_testo + "). " + "~n~r"
+						k_errore = "4"
+						k_nr_errori++
+					end if
+				end if
 			end if
 		end if
 	
@@ -856,6 +856,9 @@ if isvalid(kiuo1_d_certif_stampa) then	destroy kiuo1_d_certif_stampa
 //if isvalid(kdsi_elenco) then destroy kdsi_elenco   
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_certif
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_certif
 end type

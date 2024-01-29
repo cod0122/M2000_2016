@@ -583,6 +583,9 @@ st_esito kst_esito //, kst_esito_null
 kuf_impianto kuf1_impianto
 
 
+try
+	SetPointer(kkg.pointer_attesa)
+	
 	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
@@ -602,143 +605,133 @@ kuf_impianto kuf1_impianto
 	kst_tab_pl_barcode.priorita = dw_dett_0.getitemstring(1, "priorita")			
 	kst_tab_pl_barcode.prima_del_barcode = dw_dett_0.getitemstring(1, "prima_del_barcode")			
 
-	kst_esito = kiuf_pl_barcode.tb_update( kst_tab_pl_barcode ) 
+	kiuf_pl_barcode.tb_update( kst_tab_pl_barcode ) 
 	
 	if kst_tab_pl_barcode.codice > 0 then
 		k_rc=dw_dett_0.setitem(1, "codice",kst_tab_pl_barcode.codice)	
 	end if
 
-	if kst_esito.esito <> kkg_esito.ok then
+	kguo_sqlca_db_magazzino.db_commit( )
 
-		if kst_esito.esito = "1" then
-			k_return = trim(kst_esito.esito) + trim(kst_esito.sqlerrtext) + "~r~n(sqlcode=" + string(kst_esito.sqlcode) + ")" + "~r~nP.L. da aggiornare non trovato! "
-		else
-			k_return = trim(kst_esito.esito) + trim(kst_esito.sqlerrtext) + "~r~n(sqlcode=" + string(kst_esito.sqlcode) + ")" + "~r~ndurante aggiornamento P.L.! "
-		end if
-
-		kguo_sqlca_db_magazzino.db_rollback( )
-
-	else
-
-		kguo_sqlca_db_magazzino.db_commit( )
-
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			k_return = "1" + string(kguo_sqlca_db_magazzino.sqlcode, "000") + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		end if					
-		
 //		dw_dett_0.resetupdate()
-				
-	end if
 			
-	if kst_esito.esito = kkg_esito.ok then
 //		if Left(k_return,1) = "0" then
 //		if dw_lista_0.getnextmodified ( 0, primary!) > 0 or &
 //			dw_lista_0.getnextmodified ( 0, filter!) > 0 then		
 
-			k_pl_barcode = dw_dett_0.getitemnumber(1, "codice")	
-			if k_pl_barcode > 0 then
+	k_pl_barcode = dw_dett_0.getitemnumber(1, "codice")	
+	if k_pl_barcode > 0 then
 	
-//				dw_dett_0.setitem(dw_dett_0.getrow(), "codice", k_pl_barcode)			
-	
-				//kuf1_barcode = create kuf_barcode
-	
-				kst_tab_barcode.pl_barcode = k_pl_barcode		
-				k_return = kiuf_barcode.togli_pl_barcode_all( kst_tab_barcode ) 
-	
-				if Left(k_return,1) = "0" then
+		kst_tab_barcode.pl_barcode = k_pl_barcode		
+		k_return = kiuf_barcode.togli_pl_barcode_all( kst_tab_barcode ) 
 
-					kst_esito = kguo_exception.inizializza(this.classname())
-					//kst_esito = kst_esito_null
-					//kst_esito.esito =  kkg_esito.ok
-					k_n_righe = dw_lista_0.rowcount()
-					k_riga = 1 
-					do while k_riga <= k_n_righe and kst_esito.esito = kkg_esito.ok
-		
-						dw_lista_0.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
-		
-						kst_tab_barcode.barcode = trim(dw_lista_0.getitemstring(k_riga, "barcode_barcode"))
+		if Left(k_return,1) = "0" then
+
+			kst_esito = kguo_exception.inizializza(this.classname())
+			//kst_esito = kst_esito_null
+			//kst_esito.esito =  kkg_esito.ok
+			k_n_righe = dw_lista_0.rowcount()
+			k_riga = 1 
+			do while k_riga <= k_n_righe and kst_esito.esito = kkg_esito.ok
+
+				dw_lista_0.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
+
+				kst_tab_barcode.barcode = trim(dw_lista_0.getitemstring(k_riga, "barcode_barcode"))
 //						kst_tab_barcode.data_lav_ini = kst_tab_pl_barcode.data_chiuso
 //						kst_tab_barcode.groupage = "N" 
 //						kst_tab_barcode.fila_1 = dw_lista_0.getitemnumber(k_riga, "barcode_fila_1")			
 //						kst_tab_barcode.fila_2 = dw_lista_0.getitemnumber(k_riga, "barcode_fila_2")			
 //						kst_tab_barcode.fila_1p = dw_lista_0.getitemnumber(k_riga, "barcode_fila_1p")			
 //						kst_tab_barcode.fila_2p = dw_lista_0.getitemnumber(k_riga, "barcode_fila_2p")			
-						kst_tab_barcode.pl_barcode = dw_lista_0.getitemnumber(k_riga, "barcode_pl_barcode")			
-						kst_tab_barcode.pl_barcode_progr = dw_lista_0.getitemnumber(k_riga, "barcode_pl_barcode_progr")			
+				kst_tab_barcode.pl_barcode = dw_lista_0.getitemnumber(k_riga, "barcode_pl_barcode")			
+				kst_tab_barcode.pl_barcode_progr = dw_lista_0.getitemnumber(k_riga, "barcode_pl_barcode_progr")			
+				kst_tab_barcode.impianto = kuf1_impianto.kki_impiantog2		
 //						kst_tab_barcode.x_datins  = dw_lista_0.getitemdatetime(k_riga, "barcode_x_datins")			
 //						kst_tab_barcode.x_utente = trim(dw_lista_0.getitemstring(k_riga, "barcode_x_utente"))
-			
-						kst_esito = kiuf_barcode.set_pl_barcode( kst_tab_barcode, "normale") 
-						
-						k_riga++ 
-						 
-					loop
+	
+				//kst_esito = kiuf_barcode.set_pl_barcode( kst_tab_barcode, "normale") 
+				kiuf_barcode.tb_update_g2(kst_tab_barcode) 
+				
+				k_riga++ 
+				 
+			loop
 
-					k_n_righe = dw_groupage.rowcount()
-					k_riga = 1 
-					do while k_riga <= k_n_righe and trim(kst_esito.esito) =  kkg_esito.ok
-		
-						dw_groupage.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
-		
-						kst_tab_barcode.barcode = trim(dw_groupage.getitemstring(k_riga, "barcode_barcode"))
+			k_n_righe = dw_groupage.rowcount()
+			k_riga = 1 
+			do while k_riga <= k_n_righe and trim(kst_esito.esito) =  kkg_esito.ok
+
+				dw_groupage.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
+
+				kst_tab_barcode.barcode = trim(dw_groupage.getitemstring(k_riga, "barcode_barcode"))
 //						kst_tab_barcode.data_lav_ini = kst_tab_pl_barcode.data_chiuso
 //						kst_tab_barcode.groupage = "S" 
 //						kst_tab_barcode.fila_1 = dw_groupage.getitemnumber(k_riga, "barcode_fila_1")			
 //						kst_tab_barcode.fila_2 = dw_groupage.getitemnumber(k_riga, "barcode_fila_2")			
 //						kst_tab_barcode.fila_1p = dw_groupage.getitemnumber(k_riga, "barcode_fila_1p")			
 //						kst_tab_barcode.fila_2p = dw_groupage.getitemnumber(k_riga, "barcode_fila_2p")			
-						kst_tab_barcode.pl_barcode = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode")			
-						kst_tab_barcode.pl_barcode_progr = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode_progr")			
+				kst_tab_barcode.pl_barcode = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode")			
+				kst_tab_barcode.pl_barcode_progr = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode_progr")			
+				kst_tab_barcode.impianto = kuf1_impianto.kki_impiantog2		
 //						kst_tab_barcode.x_datins  = dw_groupage.getitemdatetime(k_riga, "x_datins")			
 //						kst_tab_barcode.x_utente = trim(dw_groupage.getitemstring(k_riga, "x_utente"))
-			
-						kst_esito = kiuf_barcode.set_pl_barcode( kst_tab_barcode, "normale") 
-						
-						k_riga++ 
-						
-					loop
-
-					k_return = trim(kst_esito.esito) + kst_esito.sqlerrtext + " (" + string(kst_esito.sqlcode) + ") "
-					
-				end if
-
 	
-				if Left(k_return,1) <> "0" then
+				//kst_esito = kiuf_barcode.set_pl_barcode( kst_tab_barcode, "normale") 
+				kiuf_barcode.tb_update_g2(kst_tab_barcode) 
 				
-					if Left(k_return,1) = "1" then
-						k_return = k_return + "~r~n(Barcode da aggiornare non trovato!) "
-					else
-						k_return = k_return + "~r~n(durante aggiornamento Barcode!) "
-					end if
-					kguo_sqlca_db_magazzino.db_rollback( )
-	
-				else
-					kguo_sqlca_db_magazzino.db_commit( )
+				k_riga++ 
+				
+			loop
 
-					if kguo_sqlca_db_magazzino.sqlcode < 0 then
-						k_return = "1" + string(kguo_sqlca_db_magazzino.sqlcode, "000") + trim(kguo_sqlca_db_magazzino.SQLErrText)
-					else	
-						ki_lista_0_modifcato = false
+			k_return = trim(kst_esito.esito) + kst_esito.sqlerrtext + " (" + string(kst_esito.sqlcode) + ") "
+					
+		end if
+
+	
+		if Left(k_return,1) <> "0" then
+		
+			if Left(k_return,1) = "1" then
+				k_return = k_return + kkg.acapo + "(Barcode da aggiornare non trovato!) "
+			else
+				k_return = k_return + kkg.acapo + "(durante aggiornamento Barcode!) "
+			end if
+			kguo_sqlca_db_magazzino.db_rollback( )
+
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				k_return = "1" + string(kguo_sqlca_db_magazzino.sqlcode, "000") + trim(kguo_sqlca_db_magazzino.SQLErrText)
+			else	
+				ki_lista_0_modifcato = false
 //						dw_lista_0.resetupdate()
 //						dw_groupage.resetupdate()
-						dati_modif_1()
-					end if					
-					
-				end if
-			else
+				dati_modif_1()
+			end if					
+			
+		end if
+	else
 	
-				k_return = "1Errore. Aggiornamento Fallito: manca codice P.L."
+		k_return = "1Errore. Aggiornamento Fallito: manca codice del Piano di Lavorazione."
 	
-			end if
-//		end if		
 	end if
 
 	kguo_sqlca_db_magazzino.db_commit( )
 
-//	if isvalid(kuf1_pl_barcode) then	destroy kuf1_pl_barcode
-//	if isvalid(kuf1_barcode) then	destroy kuf1_barcode
-
 	u_crash_reset( )  // pulisce il backup di ripri
+
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+
+	k_return = "1" + trim(kst_esito.sqlerrtext) + kkg.acapo + "Aggiornamento del Piano fallito! "
+
+	kguo_sqlca_db_magazzino.db_rollback( )
+
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
 
 return k_return
 
@@ -1090,7 +1083,7 @@ protected function string inizializza ();//
 //
 string k_return="0 "
 long k_key
-int  k_rc, k_errore = 0
+int  k_rc //, k_errore = 0
 string k_fine_ciclo="", k_rcx
 int k_ctr=0
 int k_importa=0
@@ -1133,12 +1126,12 @@ pointer oldpointer  // Declares a pointer variable
 //--- nessun codice trovato
 			case 0
 				SetPointer(oldpointer)
-				k_errore = 1
 				messagebox("Piano di Lavorazione", &
-					"Non e' stato trovato in archivio il P.L. ~n~r" + &
+					"Non e' stato trovato in archivio il Piano di Lavorazione ~n~r" + &
 					"(Codice cercato :" + string(k_key) + ")~n~r" )
-		
-				cb_ritorna.postevent("clicked!")
+				ki_exit_si = true
+				return "2"   // EXIT!!
+				//cb_ritorna.postevent("clicked!")
 					
 //--- se codice trovato
 			case is > 0		
@@ -1223,20 +1216,16 @@ pointer oldpointer  // Declares a pointer variable
 		dw_groupage.ki_attiva_dragdrop = false
 	end if
 	
-	if k_errore = 0 then
+	if ki_st_open_w.flag_primo_giro = 'S' then
 
-		if ki_st_open_w.flag_primo_giro = 'S' then
-
-			ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
-			retrieve_figli_all( )   // verifica i figli
-			leggi_liste()
-			dw_lista_0.resetupdate()
-			ki_lista_0_modifcato=false					
-		end if
-
-		proteggi_campi()
-		
+		ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
+		retrieve_figli_all( )   // verifica i figli
+		leggi_liste()
+		dw_lista_0.resetupdate()
+		ki_lista_0_modifcato=false					
 	end if
+
+	proteggi_campi()
 	
 	//dw_dett_0.bringtotop = true
 	
@@ -1389,6 +1378,8 @@ private subroutine proteggi_campi ();//
 	dw_dett_0.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
 	dw_lista_0.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
 	dw_groupage.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
+
+	dw_barcode.ki_flag_modalita = ki_st_open_w.flag_modalita
 
 //kuf_utility kuf1_utility
 //
@@ -2612,11 +2603,7 @@ int k_errore=0
 st_tab_pl_barcode kst_tab_pl_barcode
 st_esito kst_esito, kst_esito_err
 
-pointer oldpointer  // Declares a pointer variable
 
-
-k_errore = 0
-	
 	try	
 
 		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
@@ -2659,7 +2646,7 @@ k_errore = 0
 		throw kguo_exception
 		
 	finally
-		SetPointer(oldpointer)  // ripristino Puntatore
+		SetPointer(kkg.pointer_default)  
 
 	end try
 		
@@ -2978,16 +2965,11 @@ string k_area_mag, k_fila_mag
 
 end subroutine
 
-protected function string inizializza_post ();if not ki_exit_si then
-
-	
-	attiva_tasti()
-
+protected function string inizializza_post ();
 	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
 		dw_meca.setfocus( )
 	end if
 	
-end if
 
 return "0"
 
@@ -3819,7 +3801,7 @@ catch(uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 
 finally	
-
+	imposta_codice_progr( dw_lista_0 )
 	
 end try
 
@@ -7364,10 +7346,6 @@ boolean ki_select_multirows = false
 end type
 
 event dw_dett_0::buttonclicked;call super::buttonclicked;//
-string k_file 
-st_esito kst_esito
-kuf_ole kuf1_ole
-
 
 kidw_selezionata.icon = ki_icona_normale  // toglie l'icona alla precedente dw che sta perdendo il fluoco
 kidw_selezionata = this
@@ -7582,8 +7560,7 @@ if dw_dett_0.rowcount( ) > 0 then
 
 	if dw_lista_0.rowcount() <= 0 and dw_groupage.rowcount() <= 0 then
 		messagebox("Operazione fallita", &
-					"Nessun Barcode immesso nella pianificazione.~n~r" + &
-					"~n~r" )
+					"Nessun Barcode immesso nella pianificazione. " + kkg.acapo)
 
 	else
 
@@ -7610,7 +7587,7 @@ if dw_dett_0.rowcount( ) > 0 then
 					kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w) // setta x sicronizzare il ritorno
 					
 					if ki_PL_chiuso then 
-						messagebox("Operazione Conclusa", "Il Piano di Lavorazione è stato Riaperto correttamente.")
+						messagebox("Operazione Conclusa", "Il Piano di Lavorazione è stato Riaperto correttamente. Esco dalla funzione.")
 						
 						smista_funz( KKG_FLAG_RICHIESTA.esci )  // Esce!
 					else
@@ -7626,8 +7603,8 @@ if dw_dett_0.rowcount( ) > 0 then
 				end if
 			else
 				messagebox("Operazione non Autorizzata", &
-					"Utente non autorizzato al Chiudere/Riaprire il Piano di Lavorazione.~n~r" + &
-					"~n~r" )
+					"Utente non autorizzato a Chiudere/Riaprire il Piano di Lavorazione. " + &
+					kkg.acapo )
 				
 			end if
 		end if
@@ -8333,6 +8310,7 @@ boolean maxbox = true
 boolean resizable = true
 borderstyle borderstyle = stylebox!
 boolean ki_link_standard_sempre_possibile = true
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 boolean ki_attiva_dragdrop = true
 end type
 

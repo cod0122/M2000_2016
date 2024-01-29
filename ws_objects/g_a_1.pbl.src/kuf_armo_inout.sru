@@ -1320,6 +1320,7 @@ kuf_ausiliari kuf1_ausiliari
 kuf_armo_nt kuf1_armo_nt
 kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
 kuf_sl_pt kuf1_sl_pt
+kuf_impianto kuf1_impianto
 st_tab_wm_pklist_righe kst_tab_wm_pklist_righe[]
 st_tab_m_r_f kst_tab_m_r_f
 st_tab_contratti kst_tab_contratti
@@ -1457,6 +1458,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 			end if
 					
 //--- Get codice Impianto
+			kist_tab_meca.impianto = kuf1_impianto.kki_impiantodefault
 			kst_tab_contratti.sl_pt = ""
 			kst_esito = kuf1_contratti.get_sl_pt(kst_tab_contratti)  // Get del Codice Piano di Trattamento	
 			if kst_esito.esito = kkg_esito.db_ko then
@@ -1465,7 +1467,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 			end if
 			if kst_tab_contratti.sl_pt > " " then
 				kst_tab_sl_pt.cod_sl_pt = kst_tab_contratti.sl_pt
-				kist_tab_meca.impianto = kuf1_sl_pt.get_impianto(kst_tab_sl_pt) // get Impinto da SL_PT
+				kist_tab_meca.impianto = kuf1_sl_pt.get_impianto(kst_tab_sl_pt) // get Impianto da SL_PT
 			end if
 			
 //--- riempio tutti i campi della Testata lotto			

@@ -76,6 +76,7 @@ public function datetime get_dosim_data_max (readonly st_tab_meca_dosim ast_tab_
 private subroutine set_add_avviso_pronto_merce (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public function st_tab_meca_dosim get_st_tab_meca_dosim (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception
+public subroutine tb_delete_x_id_meca_no_trattati (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 end prototypes
 
 public function boolean get_id_meca_da_barcode_dosimetro (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception;//
@@ -1354,14 +1355,11 @@ public subroutine tb_delete_x_id_meca (st_tab_meca_dosim ast_tab_meca_dosim) thr
 //=== Out:
 //=== Ritorna:         Lancia Exception x errore
 //====================================================================
-boolean k_sicurezza
-st_esito kst_esito
 
-
-kst_esito = kguo_exception.inizializza(this.classname())
 
 try
 
+	kguo_exception.inizializza(this.classname())
 //	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
 	
 //---- Cancellazione RIGA LOTTO										
@@ -1370,25 +1368,26 @@ try
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-			"Errore in cancellazione Dosimetri associati al Lotto Id = " &
-					+ string(ast_tab_meca_dosim.id_meca) + " " &
-					+ "~n~rErrore (meca_dosim): "	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino &
+						, "Errore in cancellazione Dosimetri associati al Lotto Id = " + string(ast_tab_meca_dosim.id_meca))	
 		throw kguo_exception
 		
 	else
 
-		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
 		end if
 	
 	end if
 										
 
 catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
 	throw kuo_exception
 	
 finally
@@ -1417,26 +1416,15 @@ st_esito kst_esito
 int k_ctr
 
 
-kst_esito.esito = kkg_esito.bug
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if trim(ast_tab_meca_dosim.barcode_lav) > " " then
 	
-//	if isnull(ast_tab_meca_dosim.barcode) then ast_tab_meca_dosim.barcode = ""
-//	if isnull(ast_tab_meca_dosim.barcode_lav) then ast_tab_meca_dosim.barcode_lav = ""
-
-	//			and barcode = :ast_tab_meca_dosim.barcode
-
 	select count(*)
 		into :k_ctr
 		from meca_dosim 
 		where barcode_lav = :ast_tab_meca_dosim.barcode_lav
 		using kguo_sqlca_db_magazzino ;
-
-//			and barcode_lav = :ast_tab_meca_dosim.barcode_lav
 		
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.esito = kkg_esito.db_ko
@@ -1460,8 +1448,7 @@ if k_ctr > 0 and kguo_sqlca_db_magazzino.sqlcode = 0 then
 	k_return = k_ctr
 		
 end if
-	
-	
+		
 return k_return
 
 
@@ -1542,12 +1529,8 @@ boolean k_sicurezza
 st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
 try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 //	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
 
@@ -1567,34 +1550,31 @@ try
 			end if
 		end if
 	
-	
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = &
-				"Errore in cancellazione Dosimetro " &
-						+ trim(ast_tab_meca_dosim.barcode) + " " &
-						+ "~n~rErrore-tab.meca_dosim:" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-	
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kst_esito)
+
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino &
+						, "Errore in cancellazione Dosimetro " &
+							+ trim(ast_tab_meca_dosim.barcode)  &
+							+ " associati al Lotto Id = " + string(ast_tab_meca_dosim.id_meca))	
+						
 			throw kguo_exception
-			
-		else
-	
-			if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
-				kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-			end if
 		
+		else
+
+			if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
 		end if
-											
 	end if
-	
+										
 catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
 	throw kuo_exception
 	
-finally
-
 	
 end try
 		
@@ -1618,28 +1598,16 @@ int k_return=0
 st_esito kst_esito
 int k_ctr
 
-
-kst_esito.esito = kkg_esito.bug
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if trim(ast_tab_meca_dosim.barcode_lav) > " " then
 	
-//	if isnull(ast_tab_meca_dosim.barcode) then ast_tab_meca_dosim.barcode = ""
-//	if isnull(ast_tab_meca_dosim.barcode_lav) then ast_tab_meca_dosim.barcode_lav = ""
-
-	//			and barcode = :ast_tab_meca_dosim.barcode
-
 	select count(*)
 		into :k_ctr
 		from meca_dosim 
 		where barcode_lav = :ast_tab_meca_dosim.barcode_lav
 		    and barcode_dosimetro > " "
 		using kguo_sqlca_db_magazzino ;
-
-//			and barcode_lav = :ast_tab_meca_dosim.barcode_lav
 		
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.esito = kkg_esito.db_ko
@@ -1708,7 +1676,11 @@ try
 
 		if k_nr_barcode > 0 then
 			
-			u_genera_rimuove_barcode_1(ast_tab_meca_dosim ,kds_1)   //ELABORA
+			k_return = u_genera_rimuove_barcode_1(ast_tab_meca_dosim ,kds_1) // Rigenera i dosimetri e rimuove quelli che non servono
+			
+		else
+			
+			tb_delete_x_id_meca(ast_tab_meca_dosim)   // Rimuove tutti di dosimetri
 			
 		end if
 	
@@ -4154,6 +4126,7 @@ st_tab_meca_dosim kst_tab_meca_dosim, kst_tab_meca_dosim_ultimo, kst_tab_meca_do
 st_tab_armo kst_tab_armo
 st_tab_meca kst_tab_meca
 st_tab_sl_pt kst_tab_sl_pt
+st_tab_barcode kst_tab_barcode
 st_esito kst_esito 
 
 
@@ -4164,6 +4137,7 @@ try
 
 	kuf1_armo = create kuf_armo
 	kuf1_sl_pt = create kuf_sl_pt
+	kuf1_barcode = create kuf_barcode
 	
 	k_nr_barcode = ads_barcode_set_flg_dosimetro.rowcount()
 
@@ -4189,7 +4163,7 @@ try
 		kds_sl_pt_dosimpos = create uo_ds_std_1
 		kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
 		kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
-		k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt)
+		k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt, kst_tab_sl_pt.impianto)
 		if k_nr_dosimpos < 0 then
 			kguo_exception.set_esito(ads_barcode_set_flg_dosimetro.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + ads_barcode_set_flg_dosimetro.kist_esito.sqlerrtext
@@ -4206,49 +4180,55 @@ try
 //--- faccio tutto il LOTTO o solo il BARCODE di lavorazione indicato?					
 				if ast_tab_meca_dosim.barcode_lav = "" or ast_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode") then 
 					
-//--- torna nr barcode che sono già associati 	
 					kst_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
-					k_nr_bcode_associati = if_esiste_barcode_lav_con_dosim(kst_tab_meca_dosim)
-					if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
-						tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
-					end if
-					if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
-						
-						k_nr_bcode_associati ++
-						for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
-							
-							//--- Aggiunge posizione del dosimetro								
-							if k_nr_dosimpos >= k_ind then
-								kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
-								kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
-							else
-								kst_tab_meca_dosim.id_dosimpos = 0
-								kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
-							end if
-							
-							//--- genera uno o più barcode per etichetta
-							kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
-							kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
-							kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
-							if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
-								try
-									k_return ++
-									kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
-								
-								catch (uo_exception kuo1_exception)
-									throw kuo1_exception
-								
-								end try
-							end if
-							
-						next
-						
-						if kst_tab_meca_dosim_ultimo.barcode > " " then
-							set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
-						end if
 					
+//--- Se Barcode già trattato lo scarta					
+					kst_tab_barcode.barcode = kst_tab_meca_dosim.barcode_lav 
+					if NOT kuf1_barcode.if_barcode_trattato(kst_tab_barcode) then
+					
+	//--- torna nr barcode che sono già associati 	
+						k_nr_bcode_associati = if_esiste_barcode_lav(kst_tab_meca_dosim)
+						if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
+							tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
+						end if
+						if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
+							
+							k_nr_bcode_associati ++
+							for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
+								
+								//--- Aggiunge posizione del dosimetro								
+								if k_nr_dosimpos >= k_ind then
+									kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
+									kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
+								else
+									kst_tab_meca_dosim.id_dosimpos = 0
+									kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
+								end if
+								
+								//--- genera uno o più barcode per etichetta
+								kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
+								kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
+								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
+								if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
+									try
+										k_return ++
+										kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
+									
+									catch (uo_exception kuo1_exception)
+										throw kuo1_exception
+									
+									end try
+								end if
+								
+							next
+							
+							if kst_tab_meca_dosim_ultimo.barcode > " " then
+								set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
+							end if
+						
+						end if
 					end if
-				end if
+				end if  // barcode già trattato
 			else
 				kst_tab_meca_dosim_delete.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
 				if trim(kst_tab_meca_dosim_delete.barcode_lav) > " " then
@@ -4273,12 +4253,75 @@ finally
 	if isvalid(kds_sl_pt_dosimpos) then destroy kds_sl_pt_dosimpos
 	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
 	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
 	
 end try
 
 return k_return
 
 end function
+
+public subroutine tb_delete_x_id_meca_no_trattati (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
+//====================================================================
+//=== Cancella tutti i Dosimetri del LOTTO Non Trattati
+//=== Inp: id_meca
+//=== Out:
+//=== Ritorna:         Lancia Exception x errore
+//====================================================================
+date k_data
+
+
+try
+
+	kguo_exception.inizializza(this.classname())
+//	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
+
+	k_data = kkg.data_no
+
+//---- Cancellazione RIGA LOTTO										
+	delete from meca_dosim
+		where barcode_lav in
+		   (select barcode 
+			    from barcode 
+				 where barcode.id_meca = :ast_tab_meca_dosim.id_meca
+						and data_lav_fin < :k_data
+		    )
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino &
+						, "Errore in cancellazione Dosimetri associati al Lotto Id = " + string(ast_tab_meca_dosim.id_meca))	
+		throw kguo_exception
+		
+	else
+
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	
+	end if
+										
+
+catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+
+	
+end try
+		
+		
+
+
+
+
+end subroutine
 
 on kuf_meca_dosim.create
 call super::create

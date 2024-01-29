@@ -193,6 +193,7 @@ public function boolean if_essere_barcode_figlio_g2 (st_tab_barcode kst_tab_barc
 public function boolean tb_update_g3_reset (st_tab_barcode ast_tab_barcode) throws uo_exception
 private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine tb_update_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
+public subroutine tb_update_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 end prototypes
 
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode);//
@@ -1796,37 +1797,26 @@ public function boolean if_barcode_trattato (st_tab_barcode kst_tab_barcode) thr
 boolean k_return = false
 long k_ctr
 date k_data
-uo_exception kuo_exception
-st_esito kst_esito 
-
 
 	
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
-	if not isnull(kst_tab_barcode.barcode) &
-		and LenA(trim(kst_tab_barcode.barcode)) > 0 then
+	if trim(kst_tab_barcode.barcode) > " " then
+
+		kst_tab_barcode.barcode = trim(kst_tab_barcode.barcode)
 
 		k_data = kkg.data_no
-		select count(*)
+		select 1
 				into :k_ctr
 				from barcode 
 				where barcode.barcode = :kst_tab_barcode.barcode
 						and data_lav_fin > :k_data
-				using sqlca;
-						//convert(date,'01.01.1899')
-		if sqlca.sqlcode < 0 then
-			kst_esito.esito = "1"
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.sqlerrtext = "Errore durante lettura Barcode " + trim(kst_tab_barcode.barcode) &
-							+ " non trovato (Errore=" &
-						  + string (sqlca.sqlcode, "#####") + " " + trim(sqlca.sqlerrtext) + ")"
-			kuo_exception = create uo_exception
-			kuo_exception.set_esito(kst_esito)
-			throw kuo_exception
-			
+				using kguo_sqlca_db_magazzino;
+						
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura Barcode " + trim(kst_tab_barcode.barcode))	
+			throw kguo_exception
 		else													  
-
 			if k_ctr > 0 then
 				k_return = true
 			else
@@ -4097,31 +4087,24 @@ public function boolean if_da_trattare_no_pl_barcode (st_tab_barcode kst_tab_bar
 //===        altrimenti usa if_da_trattare)
 //=== 
 //=== Ritorna: TRUE da trattare 
-//===              FALSE non è possibile trattarlo 
+//===          FALSE non è possibile trattarlo 
 //===                                   
 //====================================================================
 boolean k_return = false
 long k_ctr=0
 st_esito kst_esito 
-st_tab_pl_barcode kst_tab_pl_barcode
 
 	
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_barcode.barcode > " " then
 
 		kst_tab_barcode.data_lav_ini = kkg.DATA_NO 
 		kst_tab_barcode.causale = ki_causale_non_trattare
-		kst_tab_pl_barcode.data_chiuso = kkg.DATA_NO 
 
 //--- se il barcode ha causale a T (non trattare) oppure ha iniziato il trattamento oppure NON è dentro 
 //---        a un piano di lavorazione chiuso
-		select count(*)
+		select 1
 				into :k_ctr
 				from barcode left outer join pl_barcode on
 				      barcode.pl_barcode = pl_barcode.codice
@@ -4132,15 +4115,8 @@ st_tab_pl_barcode kst_tab_pl_barcode
 				using kguo_sqlca_db_magazzino;
 						
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.sqlerrtext = "Errore durante verifica se Barcode Trattato: " + trim(kst_tab_barcode.barcode) &
-							+ " (Errore=" &
-						  + string (kguo_sqlca_db_magazzino.sqlcode, "#####") + " " + trim(kguo_sqlca_db_magazzino.sqlerrtext) + ")"
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore durante verifica se Barcode Trattato: " + trim(kst_tab_barcode.barcode))
 			throw kguo_exception
-			
 		else													  
 
 			if k_ctr > 0 then
@@ -4150,10 +4126,8 @@ st_tab_pl_barcode kst_tab_pl_barcode
 			end if
 		end if
 	else
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Controllo se Barcode e' da trattare ma Manca il codice, parametro non passato al controllo (if_da_trattare_no_pl_barcode) "
-		kguo_exception.inizializza()
+		kst_esito.esito = kkg_esito.no_esecuzione
+		kst_esito.sqlerrtext = "Controllo se Barcode da trattare non eseguito, manca il codice (if_da_trattare_no_pl_barcode) "
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
@@ -5207,7 +5181,7 @@ public function boolean if_da_trattare (st_tab_barcode ast_tab_barcode) throws u
 //=== Controlla se Barcode è da trattare 
 //=== 
 //=== Ritorna: TRUE da trattare 
-//===              FALSE non è possibile trattarlo 
+//===          FALSE non è possibile trattarlo 
 //===                                   
 //====================================================================
 boolean k_return = false
@@ -6095,8 +6069,9 @@ try
 //--- get del codice PT per leggere i dati di dove mettere i Dosimetri
 		kuf1_armo = create kuf_armo
 		kst_tab_armo.id_armo = ads_1.getitemnumber(1, "id_armo")
+		kst_tab_sl_pt.impianto = ads_1.getitemnumber(1, "meca_impianto")
 		kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
-//--- get dei dati da PT circa il nr dosimetri		
+//--- get dei dati da PT circa il nr dosimetri per barcode ecc... x IMPIANTO		
 		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
 			kuf1_sl_pt = create kuf_sl_pt
 			kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
@@ -6516,7 +6491,7 @@ end function
 
 private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
    Update dati Programmazione
-	inp: st_tab_barcode.barcode + diversi dati G3
+	inp: st_tab_barcode.barcode + diversi dati di Pianificazione G3
 	out: st_tab_barcode.x_datins + x_utente
 	rit:
 */
@@ -6526,7 +6501,7 @@ private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) thro
 	if trim(ast_tab_barcode.barcode) > " " then
 	else
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice Barcode per aggiornare i dati di Progrmazione Imianto G3."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice Barcode per aggiornare i dati di Progrmmazione Impianto G3."
 		throw kguo_exception
 	end if
 
@@ -6534,6 +6509,7 @@ private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) thro
 	ast_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
 	  
 	update barcode set  
+			 impianto = :ast_tab_barcode.impianto,
 			 pl_barcode = :ast_tab_barcode.pl_barcode,
 			 pl_barcode_progr = :ast_tab_barcode.pl_barcode_progr,
 			 g3ciclo = :ast_tab_barcode.g3ciclo,
@@ -6545,6 +6521,21 @@ private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) thro
 		where barcode = :ast_tab_barcode.barcode
 		using kguo_sqlca_db_magazzino;
 	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in Aggiornamento dati Impianto G3 del barcode " + ast_tab_barcode.barcode)
+		if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
+		throw kguo_exception
+	end if
+
+	if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+		
 		
 
 end subroutine
@@ -6564,45 +6555,88 @@ public subroutine tb_update_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_ex
 	if trim(ast_tab_barcode.barcode) > " " then
 	else
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice Barcode per aggiornare i dati di Progrmazione Imianto G3."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice Barcode per aggiornare i dati di Programmazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.pl_barcode) or ast_tab_barcode.pl_barcode = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.pl_barcode_progr) or ast_tab_barcode.pl_barcode_progr = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il progressivo del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il progressivo del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.g3npass) or ast_tab_barcode.g3npass = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il numero Pass di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il numero Pass di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.g3ngiri) or ast_tab_barcode.g3ngiri = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il numero Giri di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il numero Giri di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.g3ciclo) or ast_tab_barcode.g3ciclo = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il Ciclo di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il Ciclo di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 	if isnull(ast_tab_barcode.id_sl_pt_g3_lav) or ast_tab_barcode.id_sl_pt_g3_lav = 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca ID del Piano di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + "."
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca ID del Piano di Trattamento per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G3."
 		throw kguo_exception
 	end if
 
 	tb_update_g3_update(ast_tab_barcode)  // UPDATE
 	
+
+end subroutine
+
+public subroutine tb_update_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+   Update dati Programmazione
+	inp: st_tab_barcode.barcode + diversi dati di Pianificazione G2
+	out: st_tab_barcode.x_datins + x_utente
+	rit:
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	ast_tab_barcode.barcode = trim(ast_tab_barcode.barcode)
+	 
+	if trim(ast_tab_barcode.barcode) > " " then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice Barcode per aggiornare i dati di Programmazione Impianto G2."
+		throw kguo_exception
+	end if
+	if isnull(ast_tab_barcode.pl_barcode) or ast_tab_barcode.pl_barcode = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il codice del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G2."
+		throw kguo_exception
+	end if
+	if isnull(ast_tab_barcode.pl_barcode_progr) or ast_tab_barcode.pl_barcode_progr = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Errore interno. Manca il progressivo del Piano per aggiornare il Barcode " + ast_tab_barcode.barcode + " con i dati di lavorazione Impianto G2."
+		throw kguo_exception
+	end if
+	
+	ast_tab_barcode.x_datins = kGuf_data_base.prendi_x_datins()
+	ast_tab_barcode.x_utente = kGuf_data_base.prendi_x_utente()
+	  
+	update barcode set  
+			 impianto = :ast_tab_barcode.impianto,
+			 pl_barcode = :ast_tab_barcode.pl_barcode,
+			 pl_barcode_progr = :ast_tab_barcode.pl_barcode_progr,
+			 x_datins = :ast_tab_barcode.x_datins,
+			 x_utente = :ast_tab_barcode.x_utente
+		where barcode = :ast_tab_barcode.barcode
+		using kguo_sqlca_db_magazzino;
+	
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
-				"Errore in Aggiornamento dati Impianto G3 del barcode " + ast_tab_barcode.barcode)
+				"Errore in Aggiornamento dati Impianto G2 del barcode " + ast_tab_barcode.barcode)
 		if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
 		else
 			kguo_sqlca_db_magazzino.db_rollback( )
@@ -6614,6 +6648,7 @@ public subroutine tb_update_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_ex
 	else
 		kguo_sqlca_db_magazzino.db_commit( )
 	end if
+		
 		
 
 end subroutine

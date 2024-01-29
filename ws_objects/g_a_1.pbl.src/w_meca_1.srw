@@ -10,6 +10,8 @@ type dw_cambia_aperto from uo_d_std_1 within w_meca_1
 end type
 type dw_print_barcode from uo_d_std_1 within w_meca_1
 end type
+type dw_rigenera_dosimetri from uo_d_std_1 within w_meca_1
+end type
 end forward
 
 global type w_meca_1 from w_g_tab_3
@@ -22,6 +24,7 @@ dw_armo dw_armo
 dw_cambia_numero dw_cambia_numero
 dw_cambia_aperto dw_cambia_aperto
 dw_print_barcode dw_print_barcode
+dw_rigenera_dosimetri dw_rigenera_dosimetri
 end type
 global w_meca_1 w_meca_1
 
@@ -828,7 +831,8 @@ choose case trim(left(k_par_in, 3))
 		
 //--- Rigenera Dosimetri
 	case kkg_flag_richiesta.libero4
-		u_rigenera_meca_dosim()
+		//u_rigenera_meca_dosim()
+		dw_rigenera_dosimetri.event u_display(true)
 		
 //--- Autorizzazioni Lotto
 	case kkg_flag_richiesta.libero5
@@ -2248,12 +2252,7 @@ if tab_1.selectedtab = 3 then
 
 	if tab_1.tabpage_3.dw_3.rowcount( ) > 0 then
 	
-		if dw_print_barcode.rowcount( ) = 0 then
-			dw_print_barcode.insertrow(0)
-		end if
-		dw_print_barcode.x = this.width / 2 - dw_print_barcode.width /2
-		dw_print_barcode.y = this.height / 2 - dw_print_barcode.height /2
-		dw_print_barcode.visible = true
+		dw_print_barcode.event u_display(true)
 		
 	else
 		messagebox("Stampa Barcode", "Nessun barcode il elenco")		
@@ -2334,20 +2333,26 @@ try
 	
 	kst_esito = kguo_exception.inizializza(this.classname())
 //	autorizza_funzioni( )   // abilita le funzioni della window
-//	if ki_consenti_modifica then
 	
 	kst_tab_meca_dosim.id_meca = tab_1.tabpage_1.dw_1.object.id_meca[1]
 	if kst_tab_meca_dosim.id_meca > 0 then
-		
-		if messagebox("Rigenerazione Dosimetri", &
-              "ATTENZIONE: al termine dovranno essere ristampate e riaccoppiate le etichette con i dosimetri e sostituite sui pallet. " &
-				  +  "Proseguire con la rigenerazione etichette dosimetriche per questo Lotto? " &
-								,question!, yesno!, 2) = 1 then
 
-			kuf1_meca_dosim = create kuf_meca_dosim
-			kuf1_meca_dosim.if_sicurezza(kkg_flag_modalita.modifica)  // Utente Autorizzato a RIAPRIRE il Lotto?
-			
-			kst_tab_barcode.id_meca = kst_tab_meca_dosim.id_meca
+		kuf1_meca_dosim = create kuf_meca_dosim
+		kuf1_meca_dosim.if_sicurezza(kkg_flag_modalita.modifica)  // Utente Autorizzato a RIAPRIRE il Lotto?
+		
+		kst_tab_barcode.id_meca = kst_tab_meca_dosim.id_meca
+
+//		if messagebox("Rigenerazione Dosimetri", &
+//              "ATTENZIONE: al termine dovranno essere ristampate e riaccoppiate le etichette con i dosimetri e sostituite sui pallet. " &
+//				  +  "Proseguire con la rigenerazione etichette dosimetriche per questo Lotto? " &
+//								,question!, yesno!, 2) = 1 then
+		if dw_rigenera_dosimetri.getitemstring(1, "rigenera") = "R" then    // prima rimuove TUTTO!!
+			kuf1_meca_dosim.tb_delete_x_id_meca_no_trattati(kst_tab_meca_dosim)
+		end if
+
+//--- Rigenera i dosimetri
+		if dw_rigenera_dosimetri.getitemstring(1, "rigenera") = "S"  &
+								or dw_rigenera_dosimetri.getitemstring(1, "rigenera") = "R" then
 	
 	//--- prima rigenera i flag dove vanno posti i dosimetri
 			kuf1_barcode = create kuf_barcode
@@ -2357,10 +2362,11 @@ try
 	//--- rigenera le etichette dosimetri (meca_dosim)
 				kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N"
 
-				kuf1_meca_dosim.tb_delete_x_id_meca(kst_tab_meca_dosim)  // cancella!!
+//				kuf1_meca_dosim.tb_delete_x_id_meca_no_trattati(kst_tab_meca_dosim)  // cancella!!
 				kguo_sqlca_db_magazzino.db_commit( )
 
 				k_nbcode = kuf1_meca_dosim.u_genera_rimuove_barcode(kst_tab_meca_dosim) // rigenera
+				
 			end if
 			kguo_sqlca_db_magazzino.db_commit( )
 			
@@ -2369,7 +2375,7 @@ try
               + "Prego, ristampare e riaccoppiare al dosimetro le etichette e sostituirle sui pallet" &
 							,information!)
 			else
-				messagebox("Attezione", "Non sono state generate etichette dosimetri!" &
+				messagebox("Operazione conclusa", "Non è stato necessario rigenerare le etichette dosimetri!" &
 							,Exclamation!)
 			end if
 			
@@ -2483,6 +2489,7 @@ destroy(this.dw_armo)
 destroy(this.dw_cambia_numero)
 destroy(this.dw_cambia_aperto)
 destroy(this.dw_print_barcode)
+destroy(this.dw_rigenera_dosimetri)
 end on
 
 on w_meca_1.create
@@ -2492,11 +2499,13 @@ this.dw_armo=create dw_armo
 this.dw_cambia_numero=create dw_cambia_numero
 this.dw_cambia_aperto=create dw_cambia_aperto
 this.dw_print_barcode=create dw_print_barcode
+this.dw_rigenera_dosimetri=create dw_rigenera_dosimetri
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.dw_armo
 this.Control[iCurrent+2]=this.dw_cambia_numero
 this.Control[iCurrent+3]=this.dw_cambia_aperto
 this.Control[iCurrent+4]=this.dw_print_barcode
+this.Control[iCurrent+5]=this.dw_rigenera_dosimetri
 end on
 
 event close;call super::close;//
@@ -2977,8 +2986,7 @@ event ue_inizializza ( readonly st_tab_armo kst_tab_armo,  string k_flag_modalit
 event ue_nuovo ( st_tab_armo kst_tab_armo )
 event ue_aggiorna ( ) throws uo_exception
 event type integer ue_dati_modif ( )
-integer x = 87
-integer y = 408
+integer y = 96
 integer width = 2757
 integer taborder = 60
 boolean bringtotop = true
@@ -3532,8 +3540,9 @@ st_tab_meca kst_tab_meca
 end event
 
 type dw_print_barcode from uo_d_std_1 within w_meca_1
-integer x = 69
-integer y = 568
+event u_display ( boolean a_visible )
+integer x = 366
+integer y = 196
 integer width = 1509
 integer height = 652
 integer taborder = 70
@@ -3551,6 +3560,20 @@ boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_cerca = false
 end type
 
+event u_display(boolean a_visible);//
+if a_visible then
+	if this.rowcount( ) = 0 then
+		this.insertrow(0)
+	end if
+	this.x = parent.width / 2 - this.width /2
+	this.y = parent.height / 3 - this.height /2
+	this.visible = true
+else
+	this.visible = false
+end if
+
+end event
+
 event buttonclicked;call super::buttonclicked;//
 
 	this.accepttext( )
@@ -3558,6 +3581,51 @@ event buttonclicked;call super::buttonclicked;//
 
 	this.visible = false
 	u_print_barcode()
+
+end event
+
+type dw_rigenera_dosimetri from uo_d_std_1 within w_meca_1
+event u_display ( boolean a_visible )
+integer x = 1033
+integer y = 400
+integer width = 1751
+integer height = 856
+integer taborder = 80
+boolean bringtotop = true
+boolean enabled = true
+boolean titlebar = true
+string title = "Rigenera Dosimetri"
+string dataobject = "d_meca_dosim_rigenera"
+boolean controlmenu = true
+boolean hscrollbar = false
+boolean vscrollbar = false
+boolean hsplitscroll = false
+boolean livescroll = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_d_std_1_attiva_cerca = false
+end type
+
+event u_display(boolean a_visible);//
+if a_visible then
+	if this.rowcount( ) = 0 then
+		this.insertrow(0)
+	end if
+	this.x = parent.width / 2 - this.width /2
+	this.y = parent.height / 3 - this.height /2
+	this.visible = true
+else
+	this.visible = false
+end if
+
+end event
+
+event buttonclicked;call super::buttonclicked;//
+
+	this.accepttext( )
+
+
+	this.visible = false
+	u_rigenera_meca_dosim()
 
 end event
 

@@ -113,6 +113,7 @@ kidw_this = this
 end event
 
 event losefocus;//
+this.accepttext( )
 //kguo_g.use_col_background_input_field(kidw_this, "") // toglie colore in background  
 this.modify(this.getcolumnname() + ".Background.Color=" + kkg_colore.BIANCOX + " ")  // toglie colore in background  
 

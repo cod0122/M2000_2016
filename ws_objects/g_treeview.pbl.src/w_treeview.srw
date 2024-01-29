@@ -63,21 +63,9 @@ protected function string inizializza ();//
 //
 string k_return="0 ", k_key = " ", k_rcx=""
 int k_importa = 0
-kuf_base kuf1_base
 
 
-
-//=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
-
-//
-//	if LenA(trim(ki_st_open_w.key1)) = 0 then
-//		k_codice = 0
-//	else
-//		k_codice = long(trim(ki_st_open_w.key1))
-//	end if
-
-
 
 //=== Legge le righe del dw salvate l'ultima volta (importfile)
 	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
@@ -101,17 +89,6 @@ kuf_base kuf1_base
 		end if
 
 	end if		
-
-//--- becco il valore del Tipo di modulo usato x la stampa dei barcode
-	kuf1_base = create kuf_base
-	k_rcx = trim(kuf1_base.prendi_dato_base("barcode_modulo"))
-	if left(k_rcx,1)  = "0" then
-		kGuf_data_base.Ki_barcode_modulo = mid(k_rcx,2,1)
-		m_main.set_modulo_barcode()
-	else
-		kGuf_data_base.Ki_barcode_modulo=""
-	end if
-	destroy kuf1_base
 
 	attiva_tasti()
 
@@ -173,6 +150,9 @@ event u_open;call super::u_open;//
 	u_resize()
 
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_treeview
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_treeview
 end type

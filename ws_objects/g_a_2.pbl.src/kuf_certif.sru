@@ -332,16 +332,21 @@ else
 			where id_meca = :kst_tab_certif.id_meca  
 			using sqlca;
 	
-		if sqlca.sqlcode <> 0 then
+		if sqlca.sqlcode < 0 then
 			kst_esito.sqlcode = sqlca.sqlcode
 			kst_esito.SQLErrText = "Cancellazione Attestato (certif) " &
 						 + "~n~rErrore: " + trim(SQLCA.SQLErrText)
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
+			kst_esito.esito = kkg_esito.db_ko
+			if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_rollback( )
 			end if
+			
 		else
+
+//--- Commit
+			if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
+				kst_esito = kguo_sqlca_db_magazzino.db_commit()
+			end if
 			
 			kst_tab_artr.num_certif = kst_tab_certif.num_certif
 			kst_tab_artr.data_st = date(0)
@@ -352,21 +357,18 @@ else
 			
 			if kst_esito_1.sqlcode < 0 then
 				kst_esito = kst_esito_1
+				
+				if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_rollback( )
+				end if
+				
 			else
 				kst_esito.esito = kkg_esito.ok
+				if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
+					kst_esito = kguo_sqlca_db_magazzino.db_commit()
+				end if
 			end if
 				
-		end if
-		
-//--- Commit
-		if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
-	
-			if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn then
-				kst_esito = kguo_sqlca_db_magazzino.db_commit()
-			else
-				kguo_sqlca_db_magazzino.db_rollback( )
-			end if
-			
 		end if
 		
 	else
@@ -2453,6 +2455,11 @@ try
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
+	
+		if kst_tab_certif.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
 
 //--- inizializza su ARTR data stampa 			
 		kst_tab_artr.num_certif = kst_tab_certif.num_certif
@@ -3826,9 +3833,11 @@ try
 			if kst_tab_certif_1.dose_max > 0 then
 				kst_tab_certif.dose_max = kst_tab_certif_1.dose_max	
 			end if
-//22122015						if isnull(kst_tab_certif_1.DATA) and kst_tab_certif_1.DATA > date(0) then
-//							kst_tab_certif.DATA = kst_tab_certif_1.DATA	
-//						end if
+//22122015 x la data esposta in stampa: tolto aggiornamento ma reintrodotto il 26122023 su richiesta di Rezio:
+			if kst_tab_certif_1.DATA > kkg.DATA_NO then
+				kst_tab_certif.DATA = kst_tab_certif_1.DATA	
+			end if
+			
 			kst_tab_certif.st_tab_g_0.esegui_commit = "S"
 			kst_esito = tb_aggiorna(kst_tab_certif)
 			if kst_esito.esito <> kkg_esito.ok then

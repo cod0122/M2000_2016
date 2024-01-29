@@ -30,8 +30,10 @@ kuf_data_base kGuf_data_base
 //--- Definizione Oggetto connessione al DB PRINCIPALE (MS sql Server)
 Kuo_sqlca_db_magazzino KGuo_sqlca_db_magazzino
 
-//--- Definizione Oggetto connessione al DB PILOTA (MySql)
+//--- Definizione Oggetto connessione al DB PILOTA IMPIANTO G2 (MySql)
 kuo_sqlca_db_pilota KGuo_sqlca_db_pilota
+//--- Definizione Oggetto connessione al DB PILOTA IMPIANTO G3 (MySql)
+kuo_sqlca_db_pilota_g3 KGuo_sqlca_db_pilota_g3
 
 //--- Definizione Oggetto connessione al DB MAGAZZINO (MS sql Server)
 kuo_sqlca_db_wm kGuo_sqlca_db_wm
@@ -56,6 +58,9 @@ Kuf_base_docking KGuf_base_docking
 
 //--- Menu della Procedura 
 //m_main ki_menu  //ki_menuMDI
+
+//--- Tratta le stringhe
+n_string kgn_string
 
 //--- Tabella e Oggetto contenente le voci di menu e la Gestione, per velocizzare la chiamata
 kuf_menu_window kGuf_menu_window
@@ -251,7 +256,7 @@ long richtexteditx64type = 5
 long richtexteditversion = 3
 string richtexteditkey = ""
 string appicon = "main.ico"
-string appruntimeversion = "22.1.0.2828"
+string appruntimeversion = "22.2.0.3289"
 boolean manualsession = false
 boolean unsupportedapierror = false
 boolean ultrafast = false
@@ -474,8 +479,10 @@ catch (uo_exception kuo_exception)
 	kguo_exception.set_esito(kuo_exception.get_st_esito())
 end try
 
-//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-PILOTA
+//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-PILOTA impianto G2
 KGuo_sqlca_db_pilota = create kuo_sqlca_db_pilota
+//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-PILOTA impianto G3
+KGuo_sqlca_db_pilota_g3 = create kuo_sqlca_db_pilota_g3
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-WM (WarehoseManagement)
 KGuo_sqlca_db_wm = create kuo_sqlca_db_wm
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-E1 (DB del sistema informativo remoto del gruppo STERIGENICS)
@@ -492,7 +499,10 @@ KGuf_menu_window = create Kuf_menu_window
 KGuf_memo_allarme = create Kuf_memo_allarme
 //--- Creo oggetto  x la Gestione delle Docking Window
 //KGuf_base_docking = create Kuf_base_docking
-
+//--- Creo oggetto  x la Gestione degli ALLERT 
+KGuf_memo_allarme = create Kuf_memo_allarme
+//--- Oggetto per trattare le stringhe
+kgn_string = create n_string
 
 ////--- Controllo se procedura gia' lanciata se si .....
 //if kGuf_data_base.if_is_running( )  then
@@ -527,6 +537,14 @@ if isvalid(kguo_sqlca_db_pilota) then
 		try
 			KGuo_sqlca_db_pilota.db_disconnetti()
 		catch (uo_exception kuo_exception)
+		end try
+	end if
+end if
+if isvalid(kguo_sqlca_db_pilota_g3) then
+	if kguo_sqlca_db_pilota_g3.DBHandle ( ) > 0 then
+		try
+			KGuo_sqlca_db_pilota_g3.db_disconnetti()
+		catch (uo_exception kuoG3_exception)
 		end try
 	end if
 end if
@@ -636,6 +654,8 @@ if isvalid(kGuf_data_base) then destroy kGuf_data_base
 if isvalid(kguo_path) then destroy kguo_path 
 //if isvalid(kguo_g) then destroy kguo_g 
 if isvalid(kguo_utente) then destroy kguo_utente 
+if isvalid(kgn_string) then destroy kgn_string 
+
 
 end event
 

@@ -646,14 +646,12 @@ protected subroutine inizializza_lista ();//
 //=== Ritorna 0=ok 1=errore
 //
 int k_return=0
-string k_inizializza_return="", k_key
+string k_inizializza_return=""
 long k_riga_getrow=0
 int k_importa=0
 boolean k_insersci = false
 
 
-
-//=== Puntatore Cursore da attesa.....
 	setpointer(kkg.pointer_attesa)	
 
 	if dw_lista_0.visible then
@@ -676,22 +674,27 @@ boolean k_insersci = false
 
 		k_inizializza_return = inizializza_1()  //dalla FROM della Select personalizzata
 
-//=== Se avevo specificato qualcosa nella ricerca tento il posizionamento
-		if isvalid(kguo_g.KGuf_trova) then
-			u_trova_in_dw(KKG_FLAG_RICHIESTA.trova_ancora )
+		if not ki_exit_si then  // se EXIT esce dalla funzione!!
+			if Left(k_inizializza_return,1) = "2" then // Se INIZIALIZZA torna con errore = 2 accendo KI_EXIT_SI
+				ki_exit_si = true
+			end if
+		end if
+		
+		if not ki_exit_si then  // se EXIT esce dalla funzione!!
+			if isvalid(kguo_g.KGuf_trova) then  // se ero in RICERCA tenta posizionamento
+				u_trova_in_dw(KKG_FLAG_RICHIESTA.trova_ancora )
+			end if
 		end if
  
 	else  
 		
 //=== Percorso piu' frequente dell'inizializzazione =====================================
 
-//=== se ho fatto una selezione su una richiesta per una determinata chiave (es. un cliente, rag soc ....)
-		k_key = trim(ki_st_open_w.key1)
-		if k_key > " " then
+//=== elimina NULL dal primo parametro
+		if trim(ki_st_open_w.key1) > " " then
 		else
-			k_key = ""
+			ki_st_open_w.key1 = ""
 		end if
-		ki_st_open_w.key1 = trim(k_key)
 
 		try
 			
@@ -702,10 +705,18 @@ boolean k_insersci = false
 			else
 			
 				k_inizializza_return = inizializza() //Reimposta i tasti e fa la retrieve di lista
+				
+				if not ki_exit_si then  // se EXIT esce dalla funzione!!
+					if Left(k_inizializza_return,1) = "2" then // Se INIZIALIZZA torna con errore = 2 accendo KI_EXIT_SI
+						ki_exit_si = true
+					end if
+				end if
 
 //--- Setta la riga come l'ultima volta che sono uscito (importfile)
-				if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
-					kGuf_data_base.dw_importfile_set_row(trim(ki_syntaxquery), dw_lista_0)
+				if not ki_exit_si then  // se EXIT esce dalla funzione!!
+					if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
+						kGuf_data_base.dw_importfile_set_row(trim(ki_syntaxquery), dw_lista_0)
+					end if
 				end if
 			end if
 			
@@ -714,25 +725,27 @@ boolean k_insersci = false
 
 	end if
 	
-//=== Se le INIZIALIZZA tornano con errore = 2 allora chiudo la windows	
-	if k_insersci then
+	if not ki_exit_si then  // se EXIT esce dalla funzione!!
+		if k_insersci then
 	
-		cb_inserisci.event clicked( )
+			cb_inserisci.event clicked( )
 		
-	else
-		if Left(k_inizializza_return,1) <> "2" then
+		else
 			
 			inizializza_lista_ok(k_riga_getrow)
 			
 	//--- fa delle cose personalizzate per i figli
 			inizializza_post()
-			
-		else
-	
-	//--- FORZA USCITA!!!
-			cb_ritorna.post event clicked( )
+
+			if ki_st_open_w.flag_primo_giro = "S" then  //se sono su giro di prima volta 
+				attiva_tasti()
+			end if
 			
 		end if
+	end if
+
+	if ki_exit_si then  // se EXIT esce dalla funzione!!
+		cb_ritorna.post event clicked( )
 	end if
 
 end subroutine

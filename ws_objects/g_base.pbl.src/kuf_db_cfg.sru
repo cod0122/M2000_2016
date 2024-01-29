@@ -10,6 +10,14 @@ global kuf_db_cfg kuf_db_cfg
 
 type variables
 //
+//---
+public string ki_blocca_conn_si ="1"
+public string ki_blocca_conn_no ="0"
+
+//--- valori della colonna cfg_dbms_scelta 
+public constant string ki_cfg_dbms_scelta_princ = "1"
+public constant string ki_cfg_dbms_scelta_muletto = "2"
+
 //--- DB da connettere
 public constant string kki_codice_xWEB = "DATIXWEB"
 public constant string kki_codice_xCRM = "DATIXCRM"
@@ -23,7 +31,7 @@ private string ki_codice_CONNESSIONE
 
 private  kuo_sqlca_db_0 kiuo_sqlca_db_0
 
-private string ki_blocca_connessione_si = '1'
+
 end variables
 
 forward prototypes
@@ -33,6 +41,7 @@ public function boolean test_connessione () throws uo_exception
 public subroutine set_sqlca_db (string a_codice_x)
 public function string get_sqlca_db ()
 public function boolean db_crea_schema () throws uo_exception
+public subroutine if_isnull (ref st_tab_db_cfg ast_tab_db_cfg)
 end prototypes
 
 public subroutine get_profilo_db (ref st_tab_db_cfg kst_tab_db_cfg) throws uo_exception;//---
@@ -55,7 +64,7 @@ st_esito kst_esito
 	kds_tab_db_cfg.settransobject( sqlca )
 	
 	if kds_tab_db_cfg.retrieve (kst_tab_db_cfg.codice ) > 0 then
-		kst_tab_db_cfg.blocca_connessione =  kds_tab_db_cfg.object.blocca_connessione[1]
+		kst_tab_db_cfg.blocca_conn =  kds_tab_db_cfg.object.blocca_connessione[1]
 		kst_tab_db_cfg.cfg_autocommit =  kds_tab_db_cfg.object.cfg_autocommit[1]
 		kst_tab_db_cfg.cfg_autocommit_alt =  kds_tab_db_cfg.object.cfg_autocommit_alt[1]
 		kst_tab_db_cfg.cfg_dbms =  kds_tab_db_cfg.object.cfg_dbms[1]
@@ -94,8 +103,6 @@ uo_exception kuo_exception
 pointer koldpointer
 
 
-
-
 kst_esito.esito =kkg_esito.ok
 kst_esito.sqlcode = 0
 kst_esito.SQLErrText = ""
@@ -108,7 +115,7 @@ koldpointer = SetPointer(HourGlass!)
 
 
 select blocca_connessione
-	into :kst_tab_db_cfg.blocca_connessione
+	into :kst_tab_db_cfg.blocca_conn
 	from db_cfg
 	where codice = :kst_tab_db_cfg.codice
 	using sqlca;
@@ -133,10 +140,10 @@ if sqlca.sqlcode <> 0 then
 
 else
 
-	if isnull(kst_tab_db_cfg.blocca_connessione ) then k_return = FALSE
+	if isnull(kst_tab_db_cfg.blocca_conn ) then k_return = FALSE
 
 //--- Connessione bloccata?
-	if kst_tab_db_cfg.blocca_connessione = ki_blocca_connessione_si then
+	if kst_tab_db_cfg.blocca_conn = ki_blocca_conn_si then
 		k_return = TRUE
 	end if
 		
@@ -235,6 +242,33 @@ boolean k_return = true
 return k_return 
 
 end function
+
+public subroutine if_isnull (ref st_tab_db_cfg ast_tab_db_cfg);//---
+//--- Inizializza i campi della tabella 
+//---
+//if ast_tab_db_cfg.codice > 0 then 
+//else
+//	ast_tab_db_cfg.codice  = 1
+//end if
+if isnull(ast_tab_db_cfg.blocca_conn  ) then ast_tab_db_cfg.blocca_conn = ki_blocca_conn_no
+if isnull(ast_tab_db_cfg.schema_nome  ) then ast_tab_db_cfg.schema_nome = ""
+if isnull(ast_tab_db_cfg.cfg_autocommit ) then ast_tab_db_cfg.cfg_autocommit = ""
+if isnull(ast_tab_db_cfg.cfg_dbms ) then ast_tab_db_cfg.cfg_dbms = ""
+if isnull(ast_tab_db_cfg.cfg_dbms_scelta ) then ast_tab_db_cfg.cfg_dbms_scelta = ""
+if isnull(ast_tab_db_cfg.cfg_dbparm ) then ast_tab_db_cfg.cfg_dbparm = ""
+if isnull(ast_tab_db_cfg.cfg_pwd ) then ast_tab_db_cfg.cfg_pwd = ""
+if isnull(ast_tab_db_cfg.cfg_servername ) then ast_tab_db_cfg.cfg_servername = ""
+if isnull(ast_tab_db_cfg.cfg_autocommit ) then ast_tab_db_cfg.cfg_autocommit = ""
+if isnull(ast_tab_db_cfg.cfg_dbms_alt ) then ast_tab_db_cfg.cfg_dbms_alt = ""
+if isnull(ast_tab_db_cfg.cfg_dbms_scelta ) then ast_tab_db_cfg.cfg_dbms_scelta = "1"
+if isnull(ast_tab_db_cfg.cfg_dbparm_alt ) then ast_tab_db_cfg.cfg_dbparm_alt = ""
+if isnull(ast_tab_db_cfg.cfg_pwd_alt ) then ast_tab_db_cfg.cfg_pwd_alt = ""
+if isnull(ast_tab_db_cfg.cfg_servername_alt ) then ast_tab_db_cfg.cfg_servername_alt = ""
+
+if isnull(ast_tab_db_cfg.x_datins) then ast_tab_db_cfg.x_datins = datetime(date(0))
+if isnull(ast_tab_db_cfg.x_utente) then ast_tab_db_cfg.x_utente = " "
+
+end subroutine
 
 on kuf_db_cfg.create
 call super::create

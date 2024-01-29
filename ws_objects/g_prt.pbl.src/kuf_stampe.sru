@@ -1073,11 +1073,12 @@ private function string dw_copia_x_stampa (integer k_tipo, datawindow k_dw_sourc
 //--- parametro di out: stringa se ""=OK se <> "" allora errore 
 //---
 long k_rc
-string  k_rcx, k_rc1x, k_str, k_string, k_xx, k_nome, k_nome_testata, k_type, k_strx, k_knome, k_str_modify="",k_syntax
+string  k_rcx, k_str, k_string, k_xx, k_nome, k_nome_testata, k_type, k_strx, k_knome, k_str_modify="",k_syntax
 long k_ctr, k_colnum, k_colcount, k_riga
 long k_num, k_righe, k_start_pos=0, k_righe_loop=0
 string k_visible
 boolean k_colonna_valorizzata
+datawindowchild kdwc_1, kdwc_2
 
 
 //--- se l'ho già trattata esco
@@ -1134,13 +1135,21 @@ boolean k_colonna_valorizzata
 		k_nome_testata = trim(ki_tab_nome_oggetto[k_colnum, 1])
 		k_knome = trim(ki_tab_nome_oggetto[k_colnum, 4])
 
-//--- tolgo eventuli DW child visibili 
+//--- Copia i dati del DW sorgente
 		if k_nome > " " then
 			k_rcx=(trim(k_dw_source.describe( k_nome + ".DDDW.Name" ))) 
-			k_rc1x=(trim(k_dw_source.describe( k_nome + ".DDLB.VScrollBar" )))
-			if (len(k_rcx) > 0 and k_rcx <> "!" ) or (len(k_rc1x) > 0 and k_rc1x <> "!") then
-				k_str_modify += k_nome + ".Edit.DisplayOnly='Yes'" + " "
-//				k_rcx=k_dw_target.modify( k_nome + ".Edit.DisplayOnly='Yes'") 
+			if (k_rcx <> "?" and k_rcx <> "!" ) then
+				k_dw_source.getchild(k_nome, kdwc_1)	
+				if kdwc_1.rowcount( ) > 0 then
+					k_dw_target.getchild(k_nome, kdwc_2)	
+					k_rc = kdwc_1.rowscopy(1, kdwc_1.rowcount(), primary!, kdwc_2, 1, primary!)
+				end if
+//				k_str_modify += k_nome + ".Edit.DisplayOnly='Yes'" + " "
+//			else
+//				k_rcx=(trim(k_dw_source.describe( k_nome + ".DDLB.VScrollBar" )))
+//				if (k_rcx <> "?" and k_rcx <> "!") then
+//					k_str_modify += k_nome + ".Edit.DisplayOnly='Yes'" + " "
+//				end if
 			end if
 		end if		
 		
@@ -1178,7 +1187,7 @@ boolean k_colonna_valorizzata
 								k_strx = trim(string(k_dw_source.getitemnumber(k_riga, k_nome)))
 							end if
 						case else
-							k_strx = "Tipo DATO '" + trim(k_type) + "' non riconosciuto col: " +  trim(k_nome) + " "
+							k_strx = "Tipo DATO '" + trim(k_type) + "' non riconosciuto col: " +  trim(k_nome)
 							kguo_exception.inizializza( )
 							kguo_exception.kist_esito.esito = kkg_esito.ko
 							kguo_exception.kist_esito.sqlerrtext = "Tipo dato non riconosciuto: " + k_type + ", nome campo: " + k_nome + ", riga: " + string(k_riga)

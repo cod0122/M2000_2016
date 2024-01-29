@@ -427,12 +427,10 @@ kuf_base kuf1_base
 			kguf_memo_allarme.set_w_main( kiw_this_window )
 		end if
 	
-	
 //--- becco il valore del Tipo di modulo usato x la stampa dei barcode
 		k_rcx = trim(kuf1_base.prendi_dato_base("barcode_modulo"))
-		if left(k_rcx,1)  = "0" then
+		if left(k_rcx,1) = "0" then
 			kGuf_data_base.Ki_barcode_modulo = mid(k_rcx,2,1)
-			m_main.set_modulo_barcode()
 		else
 			kGuf_data_base.Ki_barcode_modulo=""
 		end if
@@ -440,10 +438,6 @@ kuf_base kuf1_base
 //--- Imposta parametri di Connessione ai DB 'ausiliari' alla Procedura
 		try
 			KGuo_sqlca_db_wm.set_profilo_db()
-		catch (uo_exception kuo_exception1)
-			kuo_exception1.messaggio_utente()
-		end try
-		try
 			k_rcx = trim(kuf1_base.prendi_dato_base("e1mcu"))
 			if left(k_rcx,1) = "0" then
 				kguo_g.E1MCU = mid(k_rcx,2)
@@ -451,27 +445,14 @@ kuf_base kuf1_base
 				kguo_g.E1MCU = ""
 			end if
 			KGuo_sqlca_db_e1.set_profilo_db()
-		catch (uo_exception kuo_exception2)
-			kuo_exception2.messaggio_utente()
-		end try
-		try
 			kguo_sqlca_db_pilota.set_profilo_db()
+			kguo_sqlca_db_pilota_g3.set_profilo_db()
+			KGuo_sqlca_db_plav.set_profilo_db()
+			
 		catch (uo_exception kuo_exception)
 			kuo_exception.messaggio_utente()
-		end try
-		try
-			KGuo_sqlca_db_plav.set_profilo_db()
-		catch (uo_exception kuo_exception3)
-			kuo_exception3.messaggio_utente()
-		end try
-
-//--- recupera tutte le window modalità docking
-//		try
-//			k_ctr = KGuf_base_docking.tb_popola_st_tab_base_docking()
-//		catch (uo_exception kuo_exception3)
-//			kuo_exception3.messaggio_utente()
-//		end try
-	
+		end try			
+			
 //--- Se NON utente MASTER
 		if kguo_utente.get_pwd() <> 9999 then
 
@@ -538,6 +519,7 @@ public subroutine u_menu_init ();//
 //		m_main.autorizza_menu( )
 //		m_main.u_imposta_window_menu( )
 		m_main.u_inizializza()
+
 	end if
 
 end subroutine

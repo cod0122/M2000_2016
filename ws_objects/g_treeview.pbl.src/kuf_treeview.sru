@@ -574,7 +574,7 @@ integer k_ctr, k_nr_barcode_stampati=0, k_barcode_da_stampare=0, k_controcampion
 boolean k_stampa_da_listview=true, k_stampa_esegue 
 boolean k_ristampa_gia_risposto=false, k_stampa_gia_risposto=false
 st_esito kst_esito
-
+ 
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_old
 st_tab_meca kst_tab_meca, kst_tab_meca_save
 
@@ -681,8 +681,7 @@ try
 							kst_tab_meca_save.id = kst_tab_meca.id
 							if kuf1_armo.if_stampa_etichetta_avvertenze(kst_tab_meca) then
 								kuf1_barcode_stampa.stampa_etichetta_riferimento_avvertenze (kst_tab_barcode.barcode, &
-																										 kst_tab_barcode.num_int, &
-																										 kst_tab_barcode.data_int)
+																										 kst_tab_barcode.id_meca)
 							end if
 						end if
 							
@@ -777,7 +776,7 @@ try
 	//--- chiudo coda di stampa
 				kuf1_barcode_stampa.stampa_etichetta_riferimento_close()
 			
-			end if
+			end if 
 		else
 			
 	//		messagebox("Stampa Codice a Barre", "Valore non disponibile. ")
@@ -4182,6 +4181,7 @@ st_open_w kst_open_w
 												+ "~n~rA operazione conclusa l'attestato sarà tra quelli da 'RISTAMPARE' ", Question!, yesnocancel!, k_rc)
 												
 								if k_rc = 1 then
+									kst_tab_certif[1].st_tab_g_0.esegui_commit = "S"
 									kst_esito = kiuf_certif.tb_delete(kst_tab_certif[1] ) 
 						
 									klvi_listviewitem.selected = false

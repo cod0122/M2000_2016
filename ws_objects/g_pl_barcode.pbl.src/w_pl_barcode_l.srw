@@ -76,77 +76,51 @@ end subroutine
 private function string cancella ();//
 string k_errore = "0 ", k_errore1 = "0 "
 long k_riga
-long k_codice
-date k_data 
-string k_note
+string k_msg
 st_tab_pl_barcode kst_tab_pl_barcode
-kuf_pl_barcode  kuf1_pl_barcode  
 
 
 k_riga = dw_lista_0.getrow()	
 if k_riga > 0 then
-	k_codice = dw_lista_0.getitemnumber(k_riga, "codice")
-	k_note = dw_lista_0.getitemstring(k_riga, "note_1")
-	k_data = dw_lista_0.getitemdate(k_riga, "data")
+	kst_tab_pl_barcode.codice = dw_lista_0.getitemnumber(k_riga, "codice")
+	kst_tab_pl_barcode.data = dw_lista_0.getitemdate(k_riga, "data")
+	kst_tab_pl_barcode.note_1 = trim(dw_lista_0.getitemstring(k_riga, "note_1"))
 
-	if isnull(k_note) = true or LenA(trim(k_note)) = 0 then
-		k_note = "nessuna nota" 
+	k_msg = "Sei sicuro di voler Cancellare il Piano di Lavoro " &
+	         + kkg.acapo + "codice: " + string(kst_tab_pl_barcode.codice, "#####") + " del " + string(kst_tab_pl_barcode.data, "dd mmm yy") 
+	if kst_tab_pl_barcode.note_1 > " " then
+		k_msg += " note:" + kst_tab_pl_barcode.note_1
 	end if
 	
 //=== Richiesta di conferma della eliminazione del rek
-	if messagebox("Elimina Piano di Lavorazione", "Sei sicuro di voler Cancellare il P.L.~n~r" &
-	         + "codice:" + string(k_codice, "#####") + " del " + string(k_data, "d/m/yy") &
-	         + " note:" + trim(k_note), &
-				question!, yesno!, 2) = 1 then
-//=== Creo l'oggetto che ha la funzione x cancellare la tabella
-		kuf1_pl_barcode = create kuf_pl_barcode
-		
-		kst_tab_pl_barcode.codice = k_codice
-		kst_tab_pl_barcode.data = k_data
-		kst_tab_pl_barcode.note_1 = k_note
+	if messagebox("Elimina Piano di Lavorazione", k_msg, question!, yesno!, 2) = 1 then
 		
 //=== Cancella la riga dal data windows di lista
-		k_errore = kuf1_pl_barcode.tb_delete(kst_tab_pl_barcode) 
-		if LeftA(k_errore, 1) = "0" then
+		k_errore = kiuf_pl_barcode.tb_delete(kst_tab_pl_barcode) 
+		if Left(k_errore, 1) = "0" then
 	
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
+			kguo_sqlca_db_magazzino.db_commit( )
 
-			else
-
-				dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
-				dw_lista_0.deleterow(k_riga)
-
-			end if
-
-			dw_lista_0.setfocus()
+			dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
+			dw_lista_0.deleterow(k_riga)
 
 		else
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
+			kguo_sqlca_db_magazzino.db_rollback( )
 
 			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
+							MidA(k_errore, 2) ) 	
 	
 			attiva_tasti()
 
 		end if
-
-//=== Distruggo l'oggetto che ha avuto la funzione x cancellare la tabella
-		destroy kuf1_pl_barcode
 
 	else
 		messagebox("Elimina Piano di Lavorazione", "Operazione Annullata !!")
 
 	end if
 end if
+
+dw_lista_0.setfocus()
 
 return " "
 end function

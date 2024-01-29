@@ -9860,7 +9860,7 @@ end function
 
 public function integer get_impianto (ref st_tab_meca kst_tab_meca) throws uo_exception;/*
  Legge Impianto
-   inp: st_tab_meca.id_meca 
+   inp: st_tab_meca.id 
    Out: st_tab_meca.impianto
    Rit: st_tab_meca.impianto (se zero torna il default)
 */

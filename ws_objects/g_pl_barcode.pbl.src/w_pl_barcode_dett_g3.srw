@@ -25,7 +25,10 @@ end forward
 global type w_pl_barcode_dett_g3 from w_g_tab0
 integer width = 4037
 integer height = 3180
-long backcolor = 16790323
+long backcolor = 16777215
+windowanimationstyle openanimation = rightroll!
+boolean ki_toolbar_window_presente = true
+boolean ki_reset_dopo_save_ok = false
 dw_meca dw_meca
 dw_barcode dw_barcode
 dw_groupage dw_groupage
@@ -41,7 +44,7 @@ global w_pl_barcode_dett_g3 w_pl_barcode_dett_g3
 type variables
 //
 private constant long ki_dw_groupage_colore = rgb(173,174,222)
-private boolean ki_dragdrop = false
+//private boolean ki_dragdrop = false
 private boolean ki_chiudi_PL_enabled = false
 private boolean ki_PL_chiuso = false
 private boolean ki_operazione_chiusura = false
@@ -66,7 +69,7 @@ private kds_sl_pt_g3_lav_if_datilav_ok kids_sl_pt_g3_lav_if_datilav_ok
 
 private boolean ki_autorizza_marca_stato_in_attenzione=false
 
-private string ki_dw_fuoco_nome = ""  // datawindow da cui ho iniziato a fare il drag&drop
+//private string ki_dw_fuoco_nome = ""  // datawindow da cui ho iniziato a fare il drag&drop
 
 private long ki_riga_pos_dw_meca = 0
 
@@ -175,6 +178,7 @@ protected subroutine stampa ()
 private function long u_check_rif_file_davanti (long a_riga_inp)
 protected function string check_dati ()
 public subroutine u_aggiungi_a_dw_lista (string a_dw_name)
+private subroutine u_set_dragdrop ()
 end prototypes
 
 public subroutine u_set_dw_icon ();
@@ -1725,6 +1729,7 @@ catch(uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 
 finally	
+	imposta_codice_progr( dw_lista_0 )
 
 	
 end try
@@ -2023,14 +2028,10 @@ int k_errore=0
 st_tab_pl_barcode kst_tab_pl_barcode
 st_esito kst_esito, kst_esito_err
 
-pointer oldpointer  // Declares a pointer variable
-
-
-k_errore = 0
 	
 	try	
 
-		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
+		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(1, "codice")
 	
 //--- prima di Chiudere RIPRISTINA gli archivi da eventuali chiusure passate
 		kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
@@ -2070,11 +2071,9 @@ k_errore = 0
 		throw kguo_exception
 		
 	finally
-		SetPointer(oldpointer)  // ripristino Puntatore
+		SetPointer(kkg.pointer_default)  // ripristino Puntatore
 
 	end try
-		
-
 
 
 
@@ -2456,7 +2455,6 @@ try
 		
 			else
 				if kst_esito.esito = kkg_esito.not_fnd then
-					
 					messagebox("Chiusura Piano di Lavorazione", "Operazione terminata correttamente.~n~r"  + "Chiuso Piano di Lavorazione n.: " &
 						  + (string(dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")))  &
 						  + "~n~r~n~r" + "Effettuare l'invio del Piano in modo Manuale dal Menu 'Magazzino'!  ~n~r" &
@@ -2497,6 +2495,12 @@ private subroutine proteggi_campi ();/*
 	dw_lista_0.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
 	dw_groupage.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
 
+	dw_barcode.ki_flag_modalita = ki_st_open_w.flag_modalita
+
+	u_set_dragdrop()   // abilita se necassario il Drag&Drop
+	
+	//dw_meca.u_proteggi_sproteggi_dw(ki_st_open_w.flag_modalita, true)
+
 
 end subroutine
 
@@ -2509,12 +2513,11 @@ protected function string inizializza () throws uo_exception;//
 //======================================================================
 //
 string k_return="0 "
-int  k_rc, k_errore = 0
+int  k_rc
 long k_key
 string k_fine_ciclo="", k_rcx
 int k_ctr=0
 date k_data_chiuso, k_data
-kuf_utility kuf1_utility
 st_tab_pl_barcode kst_tab_pl_barcode
 
 
@@ -2542,12 +2545,11 @@ st_tab_pl_barcode kst_tab_pl_barcode
 
 		case 0
 			SetPointer(kkg.pointer_default)
-			k_errore = 1
+			ki_exit_si = true
 			messagebox("Piano di Lavorazione", &
 				"Non e' stato trovato in archivio il P.L. ~n~r" + &
 				"(Codice cercato :" + string(k_key) + ")~n~r" )
-	
-			cb_ritorna.postevent("clicked!")
+			return "2"		
 					
 //--- se codice trovato
 		case is > 0		
@@ -2599,8 +2601,9 @@ st_tab_pl_barcode kst_tab_pl_barcode
 				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
 					SetPointer(kkg.pointer_default)
 					kguo_exception.inizializza( )
-					kguo_exception.messaggio_utente("Modifica del Piano bloccata", &
-						"Il Piano è già stato chiuso cambio modalità in VISUALIZZAZIONE")
+					kguo_exception.messaggio_utente("Apertura del Piano di Lavorazione", &
+						"Il Piano " + string(kst_tab_pl_barcode.codice) + " è già stato chiuso il " &
+										+ string(kst_tab_pl_barcode.data_chiuso, "dd mmm yy") + ", può essere solo visualizzato e non modificato.")
 				end if
 				ki_PL_chiuso = true
 				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
@@ -2612,48 +2615,30 @@ st_tab_pl_barcode kst_tab_pl_barcode
 		
 	end try
 	
-
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-		
 		u_crash_dw_lista_0_restore() // se uscito con un crash allora tenta il ripristino
-		
 		u_aggiungi_figli_dal_dw_lista(0)
-		dw_lista_0.ki_attiva_dragdrop = true
-		dw_barcode.ki_attiva_dragdrop = true
-		dw_meca.ki_attiva_dragdrop = true
-		dw_groupage.ki_attiva_dragdrop = true
-	else
-		dw_lista_0.ki_attiva_dragdrop = false
-		dw_barcode.ki_attiva_dragdrop = false
-		dw_meca.ki_attiva_dragdrop = false
-		dw_groupage.ki_attiva_dragdrop = false
 	end if
 	
-	if k_errore = 0 then
 
-		if ki_st_open_w.flag_primo_giro = 'S' then
-
-			ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
-			retrieve_figli_all( )   // verifica i figli
-			leggi_liste()
-			dw_lista_0.resetupdate()
-			ki_lista_0_modifcato=false					
-		end if
-
-		proteggi_campi()
-		
+	if ki_st_open_w.flag_primo_giro = 'S' then
+		ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
+		retrieve_figli_all( )   // verifica i figli
+		leggi_liste()
+		dw_lista_0.resetupdate()
+		ki_lista_0_modifcato=false					
 	end if
-	
+
+	proteggi_campi()
+
 	attiva_tasti()
-
+	
 	dw_meca.setfocus()
 
 	SetPointer(kkg.pointer_default)
 
 
 return k_return
-
-
 
 end function
 
@@ -2943,6 +2928,7 @@ if dw_barcode.rowcount() > 0 then
 		dw_meca.scrolltorow(k_riga)
 		dw_meca.selectrow( 0, false)
 		dw_meca.selectrow(k_riga, true)
+		dw_meca.setrow(k_riga)
 	end if
 	
 	k_rc = dw_barcode.reset() 
@@ -3596,16 +3582,12 @@ SetPointer(kkg.pointer_default)
 
 end subroutine
 
-protected function string inizializza_post ();if not ki_exit_si then
-
-	
-	attiva_tasti()
+protected function string inizializza_post ();//
 
 	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
 		dw_meca.setfocus( )
 	end if
 	
-end if
 
 return "0"
 
@@ -3641,8 +3623,9 @@ end function
 protected function string aggiorna_tabelle ();//
 //=== Update delle Tabelle
 string k_return = "0 "
-long k_riga, k_pl_barcode, k_n_righe
+long k_riga, k_n_righe
 int k_rc
+kuf_impianto kuf1_impianto
 st_tab_pl_barcode kst_tab_pl_barcode
 st_tab_barcode kst_tab_barcode
 st_esito kst_esito 
@@ -3669,22 +3652,10 @@ st_esito kst_esito
 	kst_tab_pl_barcode.priorita = dw_dett_0.getitemstring(1, "priorita")			
 	kst_tab_pl_barcode.prima_del_barcode = dw_dett_0.getitemstring(1, "prima_del_barcode")			
 
-	kst_esito = kiuf_pl_barcode.tb_update( kst_tab_pl_barcode ) 
-	
-	if kst_esito.esito <> kkg_esito.ok then
-		if kst_esito.esito = kkg_esito.DB_KO then
-			//k_return = trim(kst_esito.esito) + 
-			kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + kkg.acapo + "(sqlcode=" + string(kst_esito.sqlcode) + ") " + kkg.acapo + "Piano da aggiornare non trovato! "
-		else
-			//k_return = trim(kst_esito.esito) + 
-			kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + kkg.acapo + "(sqlcode=" + string(kst_esito.sqlcode) + ") " + kkg.acapo + "durante aggiornamento del Piano! "
-		end if
-		kguo_sqlca_db_magazzino.db_rollback( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
+	kiuf_pl_barcode.tb_update( kst_tab_pl_barcode ) 
 	
 	if kst_tab_pl_barcode.codice > 0 then
+	else
 		kst_esito.esito = kkg_esito.ko
 		kst_esito.sqlerrtext = "Attenzione aggiornamento bloccato, manca il Codice del Piano! " 
 		kguo_sqlca_db_magazzino.db_rollback( )
@@ -3694,8 +3665,9 @@ st_esito kst_esito
 
 	kguo_sqlca_db_magazzino.db_commit( )
 		
-	k_rc=dw_dett_0.setitem(1, "codice",kst_tab_pl_barcode.codice)	
-		
+	k_rc=dw_dett_0.setitem(1, "codice", kst_tab_pl_barcode.codice)	
+	
+	kst_tab_barcode.pl_barcode = kst_tab_pl_barcode.codice
 	k_return = kiuf_barcode.togli_pl_barcode_all( kst_tab_barcode ) 
 	if Left(k_return,1) <> "0" then
 		kst_esito.esito = kkg_esito.ko
@@ -3712,7 +3684,7 @@ st_esito kst_esito
 	k_riga = 1 
 	do while k_riga <= k_n_righe and kst_esito.esito = kkg_esito.ok
 
-		dw_lista_0.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
+		dw_lista_0.setitem(k_riga, "barcode_pl_barcode", kst_tab_pl_barcode.codice)
 
 		kst_tab_barcode.barcode = trim(dw_lista_0.getitemstring(k_riga, "barcode_barcode"))
 		kst_tab_barcode.pl_barcode = dw_lista_0.getitemnumber(k_riga, "barcode_pl_barcode")			
@@ -3721,46 +3693,35 @@ st_esito kst_esito
 		kst_tab_barcode.g3ngiri = dw_lista_0.getitemnumber(k_riga, "g3ngiri")	
 		kst_tab_barcode.g3npass = dw_lista_0.getitemnumber(k_riga, "g3npass")	
 		kst_tab_barcode.id_sl_pt_g3_lav = dw_lista_0.getitemnumber(k_riga, "id_sl_pt_g3_lav")	
+		kst_tab_barcode.impianto = kuf1_impianto.kki_impiantog3
 
 		kiuf_barcode.tb_update_g3(kst_tab_barcode) //set_pl_barcode( kst_tab_barcode, "normale") 
 		
 		k_riga++ 
 		 
 	loop
-	if kst_esito.esito <>  kkg_esito.ok then
-		kst_esito.sqlerrtext = "Errore durante aggiornamento dei Barcode del Piano! " &
-					+ kkg.acapo + trim(kst_esito.sqlerrtext) + " " &
-					+ kkg.acapo + "(sqlcode=" + string(kst_esito.sqlcode) + ") " 
-		kguo_sqlca_db_magazzino.db_rollback( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if			
 
 //--- aggiorna Barcode FIGLI
 	k_n_righe = dw_groupage.rowcount()
 	k_riga = 1 
 	do while k_riga <= k_n_righe and trim(kst_esito.esito) =  kkg_esito.ok
 
-		dw_groupage.setitem(k_riga, "barcode_pl_barcode", k_pl_barcode)
+		dw_groupage.setitem(k_riga, "barcode_pl_barcode", kst_tab_pl_barcode.codice)
 
 		kst_tab_barcode.barcode = trim(dw_groupage.getitemstring(k_riga, "barcode_barcode"))
 		kst_tab_barcode.pl_barcode = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode")			
 		kst_tab_barcode.pl_barcode_progr = dw_groupage.getitemnumber(k_riga, "barcode_pl_barcode_progr")			
+		kst_tab_barcode.g3ciclo = dw_groupage.getitemnumber(k_riga, "g3ciclo")	
+		kst_tab_barcode.g3ngiri = dw_groupage.getitemnumber(k_riga, "g3ngiri")	
+		kst_tab_barcode.g3npass = dw_groupage.getitemnumber(k_riga, "g3npass")	
+		kst_tab_barcode.id_sl_pt_g3_lav = dw_groupage.getitemnumber(k_riga, "id_sl_pt_g3_lav")	
+		kst_tab_barcode.impianto = kuf1_impianto.kki_impiantog3
 
-		kst_esito = kiuf_barcode.set_pl_barcode( kst_tab_barcode, "normale") 
+		kiuf_barcode.tb_update_g3(kst_tab_barcode) //set_pl_barcode( kst_tab_barcode, "normale") 
 		
 		k_riga++ 
 		
 	loop
-
-	if kst_esito.esito <>  kkg_esito.ok then
-		kst_esito.sqlerrtext = "Errore durante aggiornamento dei Barcode Figli del Piano! " &
-					+ kkg.acapo + trim(kst_esito.sqlerrtext) + " " &
-					+ kkg.acapo + "(sqlcode=" + string(kst_esito.sqlcode) + ") " 
-		kguo_sqlca_db_magazzino.db_rollback( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if			
 
 	kguo_sqlca_db_magazzino.db_commit( )
 
@@ -3771,6 +3732,8 @@ st_esito kst_esito
 catch (uo_exception kuo_exception)
 	kuo_exception.scrivi_log( )
 	k_return = "1Errore. " + kuo_exception.kist_esito.sqlerrtext
+	kst_esito.sqlerrtext = "1" + kuo_exception.kist_esito.sqlerrtext + kkg.acapo + "Aggiornamento del Piano fallito! "
+	kguo_sqlca_db_magazzino.db_rollback( )
 	
 finally
 	u_crash_reset( )  // pulisce il backup di ripri
@@ -3886,6 +3849,7 @@ datastore kds_1
 		dw_meca.scrolltorow(ki_riga_pos_dw_meca) // - 4)  
 		dw_meca.selectrow(0, false)
 		dw_meca.selectrow(ki_riga_pos_dw_meca, true)
+		dw_meca.setrow(ki_riga_pos_dw_meca)
 	end if
 
 	dw_meca.setredraw(true)
@@ -4567,7 +4531,7 @@ kuf_barcode_tree kuf1_barcode_tree
 		
 	finally 
 		destroy kuf1_barcode_tree
-		ki_dragdrop = false
+		//ki_dragdrop = false
 		dw_meca.drag(cancel!)
 		
 	end try
@@ -5287,6 +5251,26 @@ public subroutine u_aggiungi_a_dw_lista (string a_dw_name);//
 	
 end subroutine
 
+private subroutine u_set_dragdrop ();//
+boolean k_enable_dragdrop
+
+
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+		k_enable_dragdrop = true
+	end if
+
+	dw_lista_0.ki_attiva_dragdrop = k_enable_dragdrop
+	dw_barcode.ki_attiva_dragdrop = k_enable_dragdrop
+	dw_meca.ki_attiva_dragdrop = k_enable_dragdrop
+	dw_groupage.ki_attiva_dragdrop = k_enable_dragdrop
+
+	dw_lista_0.ki_attiva_dragdrop_self = k_enable_dragdrop
+	dw_barcode.ki_attiva_dragdrop_self = false
+	dw_meca.ki_attiva_dragdrop_self = false
+	dw_groupage.ki_attiva_dragdrop_self = false
+
+end subroutine
+
 on w_pl_barcode_dett_g3.create
 int iCurrent
 call super::create
@@ -5546,7 +5530,7 @@ integer width = 3099
 integer height = 956
 boolean enabled = true
 boolean titlebar = true
-string title = "Proprietà Piano di Lavorazione"
+string title = "G3: Proprietà Piano di Lavorazione"
 string dataobject = "d_pl_barcode_testa_g3"
 boolean controlmenu = true
 boolean hscrollbar = false
@@ -5558,6 +5542,52 @@ boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_sort = false
 boolean ki_select_multirows = false
 end type
+
+event dw_dett_0::getfocus;//
+//--- evitare lo script standard
+//
+kidw_selezionata = this
+//ki_dw_focus_dataobject = this.dataobject
+attiva_tasti( ) 
+ 
+end event
+
+event dw_dett_0::losefocus;//
+
+end event
+
+event dw_dett_0::clicked;call super::clicked;//
+
+end event
+
+event dw_dett_0::buttonclicked;call super::buttonclicked;//
+
+kidw_selezionata.icon = ki_icona_normale  // toglie l'icona alla precedente dw che sta perdendo il fluoco
+kidw_selezionata = this
+kidw_selezionata.icon = ki_icona_selezionata  // mette l'conda di dw selezionata
+
+try
+		
+	choose case dwo.name
+
+//		case "b_file_pilota"  // qui aprire la richiesta
+//			open_notepad_documento()
+
+//		case "b_queue_pilota"  // ripristinare quando sappiamo le tabelle PILOTA G3
+//			open_elenco_pilota_coda()
+//			
+		case "b_chiudi"
+			cb_chiudi.event clicked( ) 
+			this.visible = false
+
+	end choose
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+end try
+
+	
+end event
 
 type st_orizzontal from w_g_tab0`st_orizzontal within w_pl_barcode_dett_g3
 end type
@@ -5576,13 +5606,6 @@ boolean ki_d_std_1_attiva_sort = false
 boolean ki_attiva_dragdrop = true
 boolean ki_attiva_dragdrop_self = true
 end type
-
-event dw_lista_0::ue_lbuttondown;call super::ue_lbuttondown;//
-if this.ki_attiva_DRAGDROP then
-	ki_dragdrop = true
-end if
-
-end event
 
 event dw_lista_0::ue_dropfromthis;call super::ue_dropfromthis;//
 //--- dopo l'evento PARENT, sistema il codice e i progressivi nella lista
@@ -5686,7 +5709,7 @@ end type
 event dw_guida::u_enabled_if();//
 // --- Visualizza questa DW se necessario
 
-if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+//if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
 
 	this.x = 0
 	this.y = 0	
@@ -5698,12 +5721,12 @@ if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.fl
 		this.insertrow(0)
 	end if
 	
-else
+//else
 	
-	this.visible = false
-	this.height = 0
+//	this.visible = false
+//	this.height = 0
 
-end if
+///end if
 
 
 end event
@@ -5758,6 +5781,7 @@ boolean maxbox = true
 boolean resizable = true
 borderstyle borderstyle = stylebox!
 boolean ki_link_standard_sempre_possibile = true
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 boolean ki_attiva_dragdrop = true
 end type
 
@@ -5848,18 +5872,10 @@ string k_find_txt
 end event
 
 event ue_set_pos_evidenzia_area_mag();//
-long k_width_img, k_width_col //, k_x_col
+long k_width_img, k_width_col 
 long k_x_img
-//string k_rc
 
 	
-//		k_width_col = long(this.describe("meca_area_mag_t.width"))
-//		k_x_col = long(this.describe("meca_area_mag_t.x"))
-//		k_width_img = 37 //long(this.describe("evidenzia_area_mag.width"))
-//      k_x_img = k_x_col + k_width_col - k_width_img
-//		k_rc = "evidenzia_area_mag.width = 37 " &
-//				+ "evidenzia_area_mag.x = " + string(k_x_img)
-//		k_rc = this.modify(k_rc)
 	this.object.evidenzia_area_mag.width = 37
 	k_width_col = long(this.object.meca_area_mag.width)
 	k_x_img = long(this.object.meca_area_mag.x) + (k_width_col - 37)
@@ -5888,7 +5904,7 @@ long k_riga= 0
 string k_rcx
 
 
-   ki_dw_fuoco_nome = this.dataobject
+//   ki_dw_fuoco_nome = this.dataobject
 //	dw_modifica.visible = false
 
 	choose case	dwo.name 
@@ -6007,7 +6023,8 @@ end event
 
 event rowfocuschanged;//
 
-if ki_dragdrop = false then
+//if ki_dragdrop = false then
+if not this.ki_in_drag then
 	
 	super::EVENT rowfocuschanged(currentrow)
 
@@ -6055,11 +6072,11 @@ return 1
 end event
 
 event ue_lbuttondown;call super::ue_lbuttondown;//
-ki_dw_fuoco_nome = this.dataobject
+//ki_dw_fuoco_nome = this.dataobject
 //
-if this.ki_attiva_DRAGDROP then
-	ki_dragdrop = true
-end if
+//if this.ki_attiva_DRAGDROP then
+//	ki_dragdrop = true
+//end if
 
 end event
 
@@ -6087,7 +6104,7 @@ end type
 event clicked;call super::clicked;//
 //--- scompare la dw_modifica se perdo il fuoco
 //
-   ki_dw_fuoco_nome = this.dataobject
+//   ki_dw_fuoco_nome = this.dataobject
  
 
 end event
@@ -6118,10 +6135,9 @@ end event
 
 event rowfocuschanged;//
 
-if ki_dragdrop = false then
-	
+//if ki_dragdrop = false then
+if not this.ki_in_drag then
 	super::EVENT rowfocuschanged(currentrow)
-
 end if
 
 end event
@@ -6161,11 +6177,11 @@ return 1
 end event
 
 event ue_lbuttondown;call super::ue_lbuttondown;//
-ki_dw_fuoco_nome = this.dataobject
+//ki_dw_fuoco_nome = this.dataobject
 //
-if this.ki_attiva_DRAGDROP then
-	ki_dragdrop = true
-end if
+//if this.ki_attiva_DRAGDROP then
+//	ki_dragdrop = true
+//end if
 
 end event
 
@@ -6260,11 +6276,11 @@ return 1
 end event
 
 event ue_lbuttondown;call super::ue_lbuttondown;//
-ki_dw_fuoco_nome = this.dataobject
+//ki_dw_fuoco_nome = this.dataobject
 //
-if this.ki_attiva_DRAGDROP then
-	ki_dragdrop = true
-end if
+//if this.ki_attiva_DRAGDROP then
+//	ki_dragdrop = true
+//end if
 
 end event
 
@@ -6440,7 +6456,7 @@ if dw_dett_0.rowcount( ) > 0 then
 					kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w) // setta x sicronizzare il ritorno
 					
 					if ki_PL_chiuso then 
-						messagebox("Operazione Conclusa", "Il Piano di Lavorazione è stato Riaperto correttamente.")
+						messagebox("Operazione Conclusa", "Il Piano di Lavorazione è stato Riaperto correttamente. Esco dalla funzione.")
 						
 						smista_funz( KKG_FLAG_RICHIESTA.esci )  // Esce!
 					else
@@ -6450,14 +6466,12 @@ if dw_dett_0.rowcount( ) > 0 then
 				
 						proteggi_campi()
 						
-//						inizializza() 
 					end if
 					
 				end if
 			else
 				messagebox("Operazione non Autorizzata", &
-					"Utente non autorizzato al Chiudere/Riaprire il Piano di Lavorazione.~n~r" + &
-					"~n~r" )
+					"Utente non autorizzato a Chiudere/Riaprire il Piano di Lavorazione. " + kkg.acapo)
 				
 			end if
 		end if

@@ -14,5 +14,6 @@ global type st_tab_base_personale from structure
 	string		flag_zoom_ctrl		descriptor "comment" = "S= zoom attivo solo con CLICK+CTRL altrimenti con il solo CLICK"
 	string		thema_attivo		descriptor "comment" = "1=attivo"
 	string		memo_window_open		descriptor "comment" = "1=attiva funzione finestra memo"
+	string		pdfprintdefault		descriptor "comment" = "S=x stampa PDF usa applicazione predef "
 end type
 

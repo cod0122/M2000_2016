@@ -39,8 +39,9 @@ event u_set_powerfilter ( )
 event ue_leftbuttonup pbm_dwnlbuttonup
 event u_modifica_set_color ( )
 event type string ue_get_display_dddw ( string a_col_name )
-event u_dragdrop_mouse_pos ( long xpos,  long ypos )
+event u_dragdrop_mouse_pos ( )
 event u_constructor_post ( )
+event u_dragging ( )
 end type
 global uo_d_std_1 uo_d_std_1
 
@@ -99,24 +100,30 @@ public boolean ki_select_multirows = true
 public long ki_UltRigaSel = 0
 
 //--- Attiva/disattiva il Drag & Drop....
+public boolean ki_attiva_DRAGDROP_solo_INS_MOD = true // Abilitazione DRAG&DROP come indicato solo se in INSERIMENTO e MODIFICA
 public boolean ki_attiva_DRAGDROP = false // Abilitazione al DRAG&DROP
 public boolean ki_attiva_DRAGDROP_self = false // Abilitazione al DRAG&DROP sulla stessa DW
+public boolean ki_in_DRAG = false     // dragging in corso....
+//public string ki_dragdrop_display 
 private int ki_mouse_down_x = 0
 private int ki_mouse_down_y = 0  
-public string ki_dragdrop_display = " "
 private long ki_riga_dragwithin = 0
 private long ki_clicked_row = 0
 private long ki_clicked_row_sel = 0
 private long ki_lbuttondown_row=0
 private string ki_dw_name_lbuttondown
-public boolean ki_in_DRAG = false
 private string ki_drag_colname = ""
 private boolean ki_drag_scroll=false
 private boolean ki_u_drag_scroll_lanciata=false
 private string ki_dragicon1 = " "
 private string ki_dragicon2 = " "
-private uo_d_std_1 kidw_dragdrop_this
-private uo_d_std_1 kidw_source
+
+private boolean ki_dragging_label_created
+private string ki_dragging_label_colname
+private string ki_dragging_label_value
+private string ki_dragging_label_height
+private string ki_dragging_label_width
+private uo_d_std_1 kidw_dragdrop_source
 
 //--- variabile gestione x errori DB
 //public st_esito kist_esito
@@ -169,7 +176,6 @@ end variables
 forward prototypes
 public function boolean u_filtra_record (string k_filtro)
 private subroutine link_standard_imposta ()
-private subroutine u_drag_scroll (long row)
 public subroutine set_flag_modalita (string a_flag_modalita)
 private function long u_set_immagini (string a_nomeimgdacercare)
 public function boolean u_dati_modificati ()
@@ -189,30 +195,37 @@ private function string u_sort_get_type (readonly string k_colname, string k_col
 private subroutine u_set_riga_new ()
 public function boolean if_link_enabled ()
 public subroutine u_set_column_color ()
-public function long u_selectrow_onclick (long a_row)
 public subroutine u_proteggi ()
 public function long u_get_riga_atpointer (ref string k_nome_campo)
 public function long u_getrow (long a_if_noone_row)
+private subroutine u_drag_scroll (long a_row)
+private subroutine u_dragging_label_destroy ()
+private function string u_dragging_label_show ()
+private function boolean u_if_in_dragging ()
+public function long u_selectrow_onclick (readonly long a_row)
 end prototypes
 
 event ue_dwnkey;//
 long k_riga
 //string k_bands=""
 
-//this.SetRedraw(FALSE)
+//kguo_exception.kist_esito.sqlerrtext = "UE_DOWNKEY: " + string(KEY) + " - " + string(keyflags)
+//kguo_exception.scrivi_log( )
 
 //--- se tasto ESC provo l'undo
 if key = KeyESCape! then
-
 	setpointer(kkg.pointer_default)
 	
 //--- chiude eventuali DRAG & GDROP
-	event ue_dragdrop_end( )
+	if u_if_in_dragging() then
+		event ue_dragdrop_end( )
+	else
 
 //--- se tasto ESC provo l'undo
 //--- Undelete
-	IF this.CanUndo() THEN
-		this.Undo()
+		IF this.CanUndo() THEN
+			this.Undo()
+		end if
 	end if
 	
 else
@@ -424,7 +437,7 @@ Long		k_row=0
 
 // ---
 
-if isvalid(kdw_source) then
+if isvalid(kdw_source) and ki_attiva_DRAGDROP_self then
 	
 	// Go Through all selected Rows And Copy Them to the destination Datawindow
 	k_row = kdw_source.GetSelectedRow(k_row)
@@ -454,6 +467,7 @@ event type long ue_dropfromthis(long k_droprow, uo_d_std_1 kdw_source);
 // We Dragged From this... we Drop to this...
 
 Long		l_row=0, l_selectedRows=0, l_rowSave[], l_index, l_rowCount, l_getRow
+long 		l_rowMoved[]
 Long		l_subRows=0
 boolean  k_moved
 
@@ -488,13 +502,20 @@ if isvalid(kdw_source) and k_droprow > 0 and l_rowCount > 1 then
 	NEXT
 	
 	k_dropRow -= l_subRows
-	
-	
+		
 	FOR l_index = 0 TO l_selectedRows - 1
 		k_moved = true
-		kdw_source.RowsMove(l_rowCount, l_rowCount, primary!, this, k_dropRow + l_index, primary!)
+		l_rowMoved[l_index+1] = k_dropRow + l_index
+		kdw_source.RowsMove(l_rowCount, l_rowCount, primary!, this, l_rowMoved[l_index+1], primary!)
 		// Fire Drop Row Event
 //		this.EVENT ue_AfterDropRow(k_droprow + l_index)
+	NEXT
+	
+//--- rimetto il SELECTED sulle righe spostate	
+	kdw_source.selectrow( 0, false)
+	FOR l_index = 1 TO UpperBound(l_rowMoved[])
+		l_rowMoved[l_index] =  k_dropRow + l_index
+		kdw_source.selectrow(l_rowMoved[l_index], true)
 	NEXT
 	
 //--- CurrentRow Should Be Dragged Row now
@@ -531,36 +552,55 @@ RETURN 1
 end event
 
 event ue_dwnmousemove;//
-//---- Muove il mouse con il tasto left premuto
+//---- Muove il mouse con il tasto left premuto allora posso attivare il DRAG&DROP
 //
 long k_riga
 string k_rcx
 
 
-if this.ki_attiva_DRAGDROP and ki_lbuttondown_row > 0 then
+//--- Attiva il Drag&Drop se ho indicato di attivarlo e sono in Modifica o Inserimento a meno che non abbia in gla che lo concede anche in Visualizzazione
+if (this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self) &
+			and (not ki_attiva_DRAGDROP_solo_INS_MOD &
+					or (this.ki_flag_modalita = kkg_flag_modalita.inserimento or this.ki_flag_modalita = kkg_flag_modalita.modifica)) &
+	and ki_lbuttondown_row > 0 then
+	
 
 //-- se sono in DRAG
-	if ki_in_DRAG then
+	if u_if_in_dragging( ) then
+		
+		k_rcx = u_dragging_label_show() 
 		
 	else
 	
 		if keydown(keyleftbutton!) then // and not keydown(keycontrol!) then
-//--- se ho trascinato il mouse x un po'....
+			
+//--- se ho trascinato il mouse x un po' da una colonna....
 //			if (Abs(PointerX() - ki_mouse_down_x) > 50) OR (Abs(PointerY() - ki_mouse_down_y) > 50) OR (PointerX() = 0) OR (PointerY() = 0) THEN  
-			if (Abs(xpos - ki_mouse_down_x) > 10) OR (Abs(ypos - ki_mouse_down_y) > 10) OR (xpos = 0) OR (ypos = 0) THEN  
-				k_riga = this.getselectedrow(0) 
-				if k_riga > 0 then
-					if this.getselectedrow(k_riga) > 0 then
-//						this.dragicon = kGuo_path.get_risorse() + "\drag2.ico"
-						this.dragicon = ki_dragicon2   
-					else
-	//					this.dragicon = kGuo_path.get_risorse() + "\drag1.ico"
-						this.dragicon = ki_dragicon1
+			if dwo.type = "column" or dwo.type = "compute" or dwo.type = "text" then
+
+				if abs(PointerX() - ki_mouse_down_x) > 100 OR Abs(PointerY() - ki_mouse_down_y) > 100 then //OR xpos = 0 OR ypos = 0 THEN  
+					k_riga = ki_lbuttondown_row //this.getselectedrow(0) 
+					if k_riga > 0 then
+
+				//--- Mostra un'etichetta con un valore durante il dragging
+						ki_dragging_label_colname = trim(dwo.name)
+						ki_dragging_label_value = trim(string(dwo.Primary[k_riga]))
+						ki_dragging_label_height = this.describe(dwo.name + ".height")
+						ki_dragging_label_width = this.describe(dwo.name + ".width")
+						k_rcx = u_dragging_label_show() 
+				
+						if this.getselectedrow(k_riga) > 0 then
+	//						this.dragicon = kGuo_path.get_risorse() + "\drag2.ico"
+							this.dragicon = ki_dragicon2   
+						else
+		//					this.dragicon = kGuo_path.get_risorse() + "\drag1.ico"
+							this.dragicon = ki_dragicon1
+						end if
+								
+						ki_in_DRAG = true		 
+						this.drag(begin!)
+						kidw_dragdrop_source = this
 					end if
-							
-					ki_in_DRAG = true		 
-					this.drag(begin!)
-					kidw_dragdrop_this = this
 					
 				end if
 			end if
@@ -572,67 +612,48 @@ end if
 end event
 
 event ue_lbuttondown;//
-//long k_ctr
-//long k_Height
 int k_pos
 string k_col_name, k_col_pointer
 String k_band, k_row_x
 
-k_band = this.GetBandAtPointer()
 
-if left(k_band,6) = "detail" then
-	
-	k_col_pointer = this.GetObjectAtPointer()
-	k_pos = pos(k_col_pointer, "~t")
-	
-//	if this.ki_attiva_DRAGDROP then
-//		if k_col_pointer > " " and k_pos > 0 then
-//			k_col_name = mid(k_col_pointer, 1, k_pos - 1)
-//	
-////			if right(k_col_name, 2) <> "_t" then
-//				if isnumber(this.Describe(k_col_name + ".Height")) then
-//					k_Height = long(this.Describe(k_col_name + ".Height"))
-//				
-//					if ypos > k_Height then
-//					
-//						//ki_UltRigaSel=0	
-//						ki_lbuttondown_row = this.getrow()
-//						//if ki_lbuttondown_row > 0 then
-//							//flags: 5=left mouse + shift, 9=left mouse + cntrl
-//						//	if flags <> 5 and flags <> 9 then
-//						//		this.selectrow(0, false)
-//						//	end if
-//							//this.selectrow( ki_lbuttondown_row, true )
-//							//this.setrow(ki_lbuttondown_row)
-//						//end if
-//					end if
-//				end if
-////			end if
-//		end if
-//	end if
-	
-	k_row_x = trim(mid(k_col_pointer, k_pos + 1))
-	if isnumber(k_row_x) then ki_lbuttondown_row = long(k_row_x)
-	ki_dw_name_lbuttondown = this.classname( )
-	
-	if flags = 1 then //left button
-		if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree &
-				or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
 
-//--- button down se riga non selez. la seleziona e deseleziona tutto il resto
-		//k_row = this.getrow()
-			if ki_lbuttondown_row > 0 then
-				if not this.isselected(ki_lbuttondown_row) then
-					this.selectrow ( 0, false )
-					this.selectrow ( ki_lbuttondown_row, true )
+if this.ki_attiva_DRAGDROP or this.ki_attiva_dragdrop_self then
+	
+	k_band = this.GetBandAtPointer()
+	if left(k_band,6) = "detail" then
+		
+		k_col_pointer = this.GetObjectAtPointer()
+		k_pos = pos(k_col_pointer, "~t")
+		
+		k_row_x = trim(mid(k_col_pointer, k_pos + 1))
+		if isnumber(k_row_x) then 
+			ki_lbuttondown_row = long(k_row_x)
+		end if
+		ki_dw_name_lbuttondown = this.classname( )
+		
+		if flags = 1 then //left button
+			if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree &
+					or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
+	
+			this.event u_dragdrop_mouse_pos()
+			
+	//--- button down se riga non selez. la seleziona e deseleziona tutto il resto
+			//k_row = this.getrow()
+				if ki_lbuttondown_row > 0 then
+					if not this.isselected(ki_lbuttondown_row) then
+						this.selectrow ( 0, false )
+						this.selectrow ( ki_lbuttondown_row, true )
+						this.setrow (ki_lbuttondown_row)
+					end if
 				end if
 			end if
-		end if
-	end if		
-	
-else
-	ki_lbuttondown_row = 0
-	ki_dw_name_lbuttondown = ""
+		end if		
+		
+	else
+		ki_lbuttondown_row = 0
+		ki_dw_name_lbuttondown = ""
+	end if
 end if
 
 end event
@@ -644,23 +665,16 @@ event ue_dragdrop_end();//
 	this.drag(end!)
 	this.ki_drag_scroll=false	
 	this.dragicon = ""
-//	if ki_attiva_DRAGDROP then
-		this.modify("k_dragdrop_row.Expression='0' ")
-		if isvalid(kidw_dragdrop_this) then
-			kidw_dragdrop_this.drag(end!)
-			kidw_dragdrop_this.ki_in_drag = false
-			kidw_dragdrop_this.ki_drag_scroll = false
-			kidw_dragdrop_this.dragicon = ""
-			kidw_dragdrop_this.modify("k_dragdrop_row.Expression='0' ")
-		end if
-		if isvalid(kidw_source) then
-			kidw_source.drag(end!)
-			kidw_source.ki_in_drag = false
-			kidw_source.ki_drag_scroll = false
-			kidw_source.dragicon = ""
-			kidw_source.modify("k_dragdrop_row.Expression='0' ")
-		end if
-//	end if
+	this.modify("k_dragdrop_row.Expression='0' ")
+	this.u_dragging_label_destroy()
+	if isvalid(kidw_dragdrop_source) then
+		kidw_dragdrop_source.drag(end!)
+		kidw_dragdrop_source.ki_in_drag = false
+		kidw_dragdrop_source.ki_drag_scroll = false
+		kidw_dragdrop_source.dragicon = ""
+		kidw_dragdrop_source.modify("k_dragdrop_row.Expression='0' ")
+		kidw_dragdrop_source.u_dragging_label_destroy()
+	end if
 
 
 end event
@@ -740,7 +754,9 @@ if left(k_band,6) = "detail" then
 //		if isnumber(k_row_x) then k_row = long(k_row_x)
 
 		//if row > 0 and ki_lbuttondown_row = row and not this.ki_in_DRAG and ki_dw_name_lbuttondown = this.classname( ) &
-		if row > 0 and not this.ki_in_DRAG and ki_attiva_standard_select_row then
+		//if row > 0 and not this.ki_in_DRAG and ki_attiva_standard_select_row then
+		if row > 0 and not u_if_in_dragging( ) and ki_attiva_standard_select_row then
+
 		
 	//--- ctrl+click	per seleziona/deseleziona riga ma non devo essere il DRAG&DROP
 			if keydown( keycontrol! ) then
@@ -769,7 +785,8 @@ if left(k_band,6) = "detail" then
 
 end if	
 
-if this.ki_attiva_DRAGDROP then
+//if this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self then
+if u_if_in_dragging( ) then
 	this.event ue_dragdrop_end()
 end if
 ki_dw_name_lbuttondown = ""
@@ -809,10 +826,13 @@ end if
 
 end event
 
-event u_dragdrop_mouse_pos(long xpos, long ypos);//
+event u_dragdrop_mouse_pos();//
 
-	ki_mouse_down_x = xpos // original coordinates of pointer x fare il drag&drop 
-	ki_mouse_down_y = ypos // original coordinates of pointer x fare il drag&drop  			
+if ki_attiva_DRAGDROP or ki_attiva_DRAGDROP_self then
+	ki_mouse_down_x = PointerX() //xpos // original coordinates of pointer x fare il drag&drop 
+	ki_mouse_down_y = PointerY() //ypos // original coordinates of pointer x fare il drag&drop  			
+end if
+
 
 
 end event
@@ -870,87 +890,6 @@ private subroutine link_standard_imposta ();//----------------------------------
 	end if
 	kiuf_link_zoom.link_standard_imposta_hyperlink(kidw_this) // mette il puntatore a manina sui LINK
 
-end subroutine
-
-private subroutine u_drag_scroll (long row);//---
-//--- scroll delle righe visibili mentre si fa il DRAG&DROP 
-//---
-
-long k_righe_tot, k_riga_scroll, k_last_row, k_first_row
-int k_col_n
-string k_rc
-string k_col_pointer, k_col_name
-string k_mod_string
-
-	
-if ki_attiva_DRAGDROP and ki_in_DRAG then
-	ki_u_drag_scroll_lanciata=true
-	ki_drag_scroll=true	
-	
-	k_righe_tot = this.rowcount() 
-	k_riga_scroll = 2
-	do while ki_drag_scroll and k_riga_scroll <  k_righe_tot and k_riga_scroll > 1
-		
-		k_rc = this.describe("k_dragdrop_row.x")
-		if k_rc <> "" then
-			k_mod_string = "Create compute(band=header alignment='0' expression='0'enabled='0' border='0' color='0' x='0' y='0' height='60' width='183' format='[GENERAL]' html.valueishtml='0' " &
-							+ "name=k_dragdrop_row visible='0'  font.face='Arial' font.height='-9' font.weight='400'  font.family='2' font.pitch='2' font.charset='0' background.mode='2' background.color='1073741824' background.transparency='0' background.gradient.color='8421504' background.gradient.transparency='0' background.gradient.angle='0' background.brushmode='0' background.gradient.repetition.mode='0' background.gradient.repetition.count='0' background.gradient.repetition.length='100' background.gradient.focus='0' background.gradient.scale='100' background.gradient.spread='100' tooltip.backcolor='134217752' tooltip.delay.initial='0' tooltip.delay.visible='32000' tooltip.enabled='0' tooltip.hasclosebutton='0' tooltip.icon='0' tooltip.isbubble='0' tooltip.maxwidth='0' tooltip.textcolor='134217751' tooltip.transparency='0' transparency='0' )"
-			k_rc = this.modify(k_mod_string)
-		end if
-		k_rc = this.modify("k_dragdrop_row.Expression='"+ string(row)+"' ")
-		if ki_drag_colname = "" then
-			k_col_pointer = this.GetObjectAtPointer()
-			if k_col_pointer > " " and pos(k_col_pointer, "~t") > 0 then
-				k_col_name = mid(k_col_pointer, 1, pos(k_col_pointer, "~t") - 1)
-			else
-				k_col_n = 0
-				k_rc = ""
-				k_col_name = ""
-				// il n.colonna deve esistere
-				do while k_col_name = "" and (k_rc = "" or k_rc = "1" or k_rc = "0")
-					k_col_n ++
-					k_rc = this.describe("#" + string(k_col_n, "#")+".visible") 
-					if k_rc = "1" then
-						if this.describe("#" + string(k_col_n, "#")+".type") = "column" &
-									or this.describe("#" + string(k_col_n, "#")+".type") = "compute" then 
-							k_col_name = this.describe("#" + string(k_col_n, "#")+".name")
-						end if
-					end if
-				loop
-			end if
-			if k_col_name > " " then
-				//--- mette una colonna in ITALIC + UDERLINE durante il movimento
-				k_rc = k_col_name + ".Font.italic='0~tif( getrow() = k_dragdrop_row, 1,0)' " &
-				          + k_col_name + ".Font.Underline='0~tif( getrow() = k_dragdrop_row, 1,0)'"
-				k_rc = this.modify(k_rc)	
-				ki_drag_colname = k_col_name
-			end if
-		end if
-		
-		k_last_row = long(this.describe("DataWindow.LastRowOnPage")) - 1
-		if row > k_last_row  then
-			k_riga_scroll = k_last_row + 2
-			this.scrolltorow(k_riga_scroll) 
-		else
-			k_first_row = long(this.describe("DataWindow.FirstRowOnPage")) + 1
-			if k_first_row > 2 and row < k_first_row then
-				k_riga_scroll = k_first_row - 2
-				this.scrolltorow(k_riga_scroll) 
-			else
-				k_riga_scroll = 0
-			end if
-		end if	
-		
-		this.setredraw( true)
-		
-//		yield()
-
-
-	loop 
-
-
-	ki_u_drag_scroll_lanciata=false
-end if
 end subroutine
 
 public subroutine set_flag_modalita (string a_flag_modalita);//
@@ -1671,117 +1610,6 @@ long k_backgroundColor, k_n
 
 end subroutine
 
-public function long u_selectrow_onclick (long a_row);//
-//long k_return=0
-long k_row_ctr //, k_riga_ini, k_riga_fin, k_riga_select
-//int k_ctr
-
-
-
-//--- seleziona le righe del DW solo x i tipi GRID
-if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
-	
-//
-	if not ki_select_multirows then
-		This.SetRow(a_row)
-		This.SelectRow(0, FALSE)
-		if a_row > 0 then
-			This.SelectRow(a_row, TRUE)
-		end if
-	
-		return a_row   // EXIT
-	end if
-	
-//	if ki_UltRigaSel = 0 then	
-//		if a_row  > 0 then 
-//			ki_UltRigaSel = a_row
-//		else
-//			if this.getselectedrow ( 0 ) > 0 then
-//				ki_UltRigaSel = this.getselectedrow ( 0 )
-//			else
-//				if this.getrow() > 0 then
-//					a_row = this.getrow ( )
-//					ki_UltRigaSel = a_row
-//				else
-//					ki_UltRigaSel = 0
-//				end if
-//			end if
-//		end if
-//	end if
-	
-////--- ctrl+click	per seleziona/deseleziona riga
-	if keydown( keycontrol! ) then
-//		
-//		if a_row > 0 then 
-//			if this.isselected( a_row) then
-//				this.selectrow ( a_row, false )
-//			else
-//				this.selectrow ( a_row, true )
-//			end if
-//		end if
-//		
-	else
-		 
-//--- shift+click	per selezionare tutte le righe comprese tra
-		if keydown( keyshift! ) then 
-//			this.setredraw ( false )
-//			if this.getselectedrow ( 0 ) = 0 then
-//				k_riga_ini = a_row
-//			else
-//				k_riga_ini = this.getrow()
-//			end if
-//			k_riga_fin = a_row
-//			ki_UltRigaSel = a_row
-//			if k_riga_ini > k_riga_fin then
-//				for k_row_ctr = k_riga_ini to k_riga_fin step -1 
-//					this.selectrow ( k_row_ctr, true )
-//				next
-//			else
-//				for k_row_ctr = k_riga_ini to k_riga_fin 
-//					this.selectrow ( k_row_ctr, true )
-//				next
-//			end if
-//			this.setredraw ( true )
-			if ki_UltRigaSel = 0 then ki_UltRigaSel = this.getselectedrow(0)
-			if ki_UltRigaSel < a_row then
-				for k_row_ctr = ki_UltRigaSel to a_row step 1
-					this.selectrow ( k_row_ctr, true )
-				next
-			else
-				for k_row_ctr = ki_UltRigaSel to a_row step -1
-					this.selectrow ( k_row_ctr, true )
-				next
-			end if
-			
-		else
-	
-	//--- solo click		
-			//if a_row > 0 then
-			//	if not this.isselected(a_row) then
-				//	this.selectrow ( 0, false )
-				//	this.selectrow ( a_row, true )
-			//	end if
-			//end if 
-		end if 
-		
-	end if
-
-	if a_row > 0 then
-		ki_UltRigaSel = a_row
-		this.setrow(a_row)
-	end if
-	
-end if
-
-
-////this.setrow( a_row )
-//if a_row > 0 then
-//	k_return = a_row
-//end if
-
-return ki_UltRigaSel 
-end function
-
 public subroutine u_proteggi ();/*
 Protegge o sproteggi campi del form per i campi con Tab-order > 0
      Input: il datawindow e la proprietà ki_flag_modalita
@@ -1880,6 +1708,280 @@ end if
 return 0  // non ci sono righe o nessuna con il fuoco
 end function
 
+private subroutine u_drag_scroll (long a_row);//---
+//--- scroll delle righe visibili mentre si fa il DRAG&DROP 
+//---
+
+long k_rows_tot, k_last_row, k_first_row
+int k_col_n, k_row_scroll = 2, i
+string k_rc
+string k_col_pointer, k_col_name
+string k_mod_string
+
+	
+//if ki_attiva_DRAGDROP and ki_in_DRAG and NOT ki_u_drag_scroll_lanciata then
+//if ki_in_DRAG and NOT ki_u_drag_scroll_lanciata then
+if NOT ki_u_drag_scroll_lanciata then
+	ki_u_drag_scroll_lanciata=true
+	
+	k_rows_tot = this.rowcount() 
+	//k_row_scroll = 2
+//	do while ki_drag_scroll //and k_row_scroll <  k_rows_tot and k_row_scroll > 1
+		
+		k_rc = this.describe("k_dragdrop_row.x")
+		if k_rc <> "0" then
+			k_mod_string = "Create compute(band=header alignment='0' expression='0'enabled='0' border='0' color='0' x='0' y='0' height='60' width='183' format='[GENERAL]' html.valueishtml='0' " &
+							+ "name=k_dragdrop_row visible='0'  font.face='Arial' font.height='-9' font.weight='400'  font.family='2' font.pitch='2' font.charset='0' background.mode='2' background.color='1073741824' background.transparency='0' background.gradient.color='8421504' background.gradient.transparency='0' background.gradient.angle='0' background.brushmode='0' background.gradient.repetition.mode='0' background.gradient.repetition.count='0' background.gradient.repetition.length='100' background.gradient.focus='0' background.gradient.scale='100' background.gradient.spread='100' tooltip.backcolor='134217752' tooltip.delay.initial='0' tooltip.delay.visible='32000' tooltip.enabled='0' tooltip.hasclosebutton='0' tooltip.icon='0' tooltip.isbubble='0' tooltip.maxwidth='0' tooltip.textcolor='134217751' tooltip.transparency='0' transparency='0' )"
+			k_rc = this.modify(k_mod_string)
+		end if
+		k_rc = this.modify("k_dragdrop_row.Expression='"+ string(a_row)+"' ")
+		if ki_drag_colname = "" then
+			k_col_pointer = this.GetObjectAtPointer()
+			if k_col_pointer > " " and pos(k_col_pointer, "~t") > 0 then
+				k_col_name = mid(k_col_pointer, 1, pos(k_col_pointer, "~t") - 1)
+			else
+				k_col_n = 0
+				k_rc = ""
+				k_col_name = ""
+				// il n.colonna deve esistere
+				do while k_col_name = "" and (k_rc = "" or k_rc = "1" or k_rc = "0")
+					k_col_n ++
+					k_rc = this.describe("#" + string(k_col_n, "#")+".visible") 
+					if k_rc = "1" then
+						if this.describe("#" + string(k_col_n, "#")+".type") = "column" &
+									or this.describe("#" + string(k_col_n, "#")+".type") = "compute" then 
+							k_col_name = this.describe("#" + string(k_col_n, "#")+".name")
+						end if
+					end if
+				loop
+			end if
+			if k_col_name > " " then
+				//--- mette una colonna in ITALIC + UDERLINE durante il movimento
+				k_rc = k_col_name + ".Font.italic='0~tif( getrow() = k_dragdrop_row, 1,0)' " &
+				          + k_col_name + ".Font.Underline='0~tif( getrow() = k_dragdrop_row, 1,0)'"
+				k_rc = this.modify(k_rc)	
+				ki_drag_colname = k_col_name
+			end if
+		end if
+		
+//--- Scorre l'elenco in automatico
+		k_last_row = long(this.describe("DataWindow.LastRowOnPage")) 
+		k_first_row = long(this.describe("DataWindow.FirstRowOnPage")) 
+//		if (k_last_row - k_first_row) > 20 then
+//			k_row_scroll = 5
+//		elseif (k_last_row - k_first_row) > 12 then
+//			k_row_scroll = 3
+//		elseif (k_last_row - k_first_row) > 7 then
+//			k_row_scroll = 2
+//		else
+//			k_row_scroll = 1
+//		end if
+		if k_last_row < k_rows_tot or k_first_row > 1 then
+			if a_row > (k_last_row - k_row_scroll) then
+				for i = 1 to k_row_scroll
+					this.ScrollNextRow( )
+				next
+//				if (k_last_row + k_row_scroll) > k_rows_tot then 
+					//this.scrolltorow(k_rows_tot) 
+//				else
+//					this.scrolltorow(k_last_row + k_row_scroll)
+//				end if
+			else
+				if a_row < (k_first_row + k_row_scroll) then
+					for i = 1 to k_row_scroll
+						this.ScrollPriorRow( )
+					next
+//					if (k_first_row - k_row_scroll) > 1 then 
+//						this.scrolltorow(k_first_row - k_row_scroll)
+//					else
+//						this.scrolltorow(1) 
+//					end if
+				end if
+			end if	
+		end if	
+		
+		this.setredraw( true)
+		
+//		yield()
+
+//	loop 
+
+	ki_u_drag_scroll_lanciata=false
+end if
+end subroutine
+
+private subroutine u_dragging_label_destroy ();//
+if isvalid(kidw_dragdrop_source) then
+	if kidw_dragdrop_source.ki_dragging_label_colname > " " then
+		this.modify("destroy x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname + " ")
+	end if
+end if
+if this.ki_dragging_label_colname > " " then
+	this.modify("destroy x_marker_" + this.ki_dragging_label_colname + " ")
+end if
+ki_dragging_label_created = false
+
+end subroutine
+
+private function string u_dragging_label_show ();//
+string k_modify
+string k_rcx
+
+if not ki_dragging_label_created then
+	
+	if ki_dragging_label_colname > " " then
+		ki_dragging_label_created = true
+	
+		ki_dragging_label_value = kgn_string.u_replace(ki_dragging_label_value, "'", "")  // rimuove il carattere APICE che può creare confusione
+		
+		k_modify = "create text(band=Foreground " &
+			+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+			+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
+			+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
+			+ "height='" + ki_dragging_label_height + "' width='" + ki_dragging_label_width + "' " &
+			+ "name=x_marker_" + ki_dragging_label_colname+ " " &
+			+ "text='" + ki_dragging_label_value +  "' "  +  &
+			+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+			+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
+	
+	//	k_modify = "create compute(band=Foreground "  +  &
+	//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+	//		+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
+	//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
+	//		+ "height='" + a_height + "' width='" + ki_dragging_label_width + "' " &
+	//		+ "name=x_marker_" + ki_dragging_label_colname+ " " &
+	//		+ "Expression=~t'PIPPO' " & 
+	//		+ "format='[general]' " &
+	//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+	//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
+	//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+	//		+ "height.autosize=Yes pointer='Arrow!' moveable=1 resizeable=0 " &
+	//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' height='" + a_height + "' width='" + ki_dragging_label_width &
+	//		+ "' name=x_marker_" + ki_dragging_label_colname+ " " &
+	//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+	//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "' " &
+	//		+ "format='[general]' " &
+	//		+ "expression='" + ki_dragging_label_value +  "') "  
+	//		+ "Width.Autosize=yes " &
+			//+ "Width.AutoSize=1 Visible='1' " + &    aurosize='1' da errore!
+	end if	
+else
+
+	k_modify = "x_marker_" + ki_dragging_label_colname + ".x='" + string(this.PointerX()+40) + "' " + "x_marker_" + ki_dragging_label_colname + ".y='" + string(this.PointerY()-10) + "' "
+
+end if
+
+k_rcx = this.modify(k_modify)
+
+
+return k_rcx
+
+end function
+
+private function boolean u_if_in_dragging ();//
+if isvalid(kidw_dragdrop_source) then
+	if kidw_dragdrop_source.ki_in_drag then
+		return true
+	end if
+end if
+
+return false
+end function
+
+public function long u_selectrow_onclick (readonly long a_row);//
+//long k_return=0
+long k_row_ctr //, k_riga_ini, k_riga_fin, k_riga_select
+//int k_ctr
+
+
+
+//--- seleziona le righe del DW solo x i tipi GRID
+if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
+	
+	if not ki_select_multirows then
+		This.SetRow(a_row)
+		This.SelectRow(0, FALSE)
+		if a_row > 0 then
+			This.SelectRow(a_row, TRUE)
+		end if
+	
+		return a_row   // EXIT
+	end if
+	
+	
+//--- ctrl+click	per seleziona/deseleziona riga
+	if keydown( keycontrol! ) then
+		
+//		if a_row > 0 then 
+//			if this.isselected( a_row) then
+//				this.selectrow ( a_row, false )
+//			else
+//				this.selectrow ( a_row, true )
+//			end if
+//		end if
+		
+	else
+		 
+//--- shift+click	per selezionare tutte le righe comprese tra
+		if keydown( keyshift! ) then 
+//			this.setredraw ( false )
+//			if this.getselectedrow ( 0 ) = 0 then
+//				k_riga_ini = a_row
+//			else
+//				k_riga_ini = this.getrow()
+//			end if
+//			k_riga_fin = a_row
+//			ki_UltRigaSel = a_row
+//			if k_riga_ini > k_riga_fin then
+//				for k_row_ctr = k_riga_ini to k_riga_fin step -1 
+//					this.selectrow ( k_row_ctr, true )
+//				next
+//			else
+//				for k_row_ctr = k_riga_ini to k_riga_fin 
+//					this.selectrow ( k_row_ctr, true )
+//				next
+//			end if
+//			this.setredraw ( true )
+			if ki_UltRigaSel = 0 then ki_UltRigaSel = this.getselectedrow(0)
+			if ki_UltRigaSel < a_row then
+				for k_row_ctr = ki_UltRigaSel to a_row step 1
+					this.selectrow ( k_row_ctr, true )
+				next
+			else
+				for k_row_ctr = ki_UltRigaSel to a_row step -1
+					this.selectrow ( k_row_ctr, true )
+				next
+			end if
+			
+		else
+	
+	//--- solo click		
+			if a_row > 0 then
+				if not this.isselected(a_row) then
+					this.selectrow ( 0, false )
+					this.selectrow ( a_row, true )
+				end if
+			end if 
+		end if 
+		
+	end if
+
+	if a_row > 0 then
+		ki_UltRigaSel = a_row
+		this.setrow(a_row)
+	end if
+	
+end if
+
+
+////this.setrow( a_row )
+//if a_row > 0 then
+//	k_return = a_row
+//end if
+
+return ki_UltRigaSel 
+end function
+
 on uo_d_std_1.create
 call super::create
 end on
@@ -1889,72 +1991,28 @@ call super::destroy
 end on
 
 event clicked;//
-string k_name, k_tipo_sort, k_bands
-long k_colore, k_riga 
-long k_x,k_x_1, k_rc
+string k_name
+long k_row 
+boolean k_sort
 datawindow kdw_link
-datawindowchild kdwc_link
 
 
 k_name = trim(dwo.Name)
 
-//--- se sono su una TREE allora row se pigio su un campo di testa è zero
-if row = 0 then
-
-	k_bands=this.Describe("DataWindow.Bands") 
-	//--- verifica se sono sulla Banda di dettaglio e se sono in TREEVIEW
-	if pos(k_bands, "detail") > 1 then
-		if (this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro)  and row = 0 then
-			row=u_get_riga_atpointer(k_name)
-		end if
-		//--- risolve il problema di avere cliccato su una colonna posta in una zona non detail
-		if row = 0 then
-			k_name = dwo.name
-			if pos(k_name, "_t") > 0 or pos(k_name, "t_") > 0 then  // salta le intestazioni (non solo colonne del DB!)
-			else
-				if this.rowcount() > 0 then
-					row = 1   
-				end if
-			end if
-		end if
-	end if
-	
-end if
-
 if row > 0 then
-
-	event u_dragdrop_mouse_pos(xpos, ypos) // original coordinates of pointer x fare il drag&drop 
 
 	if ki_attiva_standard_select_row and not ki_d_std_1_primo_giro then
 		
-		k_riga=u_selectrow_onclick (row)
+		k_row = u_selectrow_onclick (row)
 
 	end if
 
-//--- funzione di ZOOM
-	if (ki_link_standard_attivi or ki_button_standard_attivi)  then
-		if (ki_link_standard_attivi or ki_button_standard_attivi)  then
-			try
-				
-				//--- se ho cliccato dentro a un DW child allora cerca il campo
-//				if left(k_name, 2) = "dw" then
-//				else
-					kdw_link = this
-					link_standard_call(kdw_link, k_name, row)   // lancia link standard
-//				end if
-			catch (uo_exception kuo_exception)
-				kuo_exception.messaggio_utente()
-			end try
-		end if
-	end if
-	
 else
-	
+
 	if (this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
-		k_riga=u_selectrow_onclick (0)
+		k_row = u_selectrow_onclick (0)
 	end if
 	
-		
 //--- Ordina righe se il campo di testata colonna finisce x '_t' ed è formato testo
 //	if left(k_bands, 4) = "head" then
 	if ki_d_std_1_attiva_sort then
@@ -1969,26 +2027,36 @@ else
 			end if
 		end if
 	end if
+//	end if
 
 end if
 
-//this.setredraw(true)
+//--- funzione di ZOOM
+if not k_sort then
+	if (ki_link_standard_attivi or ki_button_standard_attivi)  then
+		if (ki_link_standard_attivi or ki_button_standard_attivi)  then
+			try
+				if row = 0 then 
+					if this.rowcount() > 0 then
+						row = 1
+					end if
+				end if
+				kdw_link = this
+				link_standard_call(kdw_link, k_name, row)   // lancia link standard
+			catch (uo_exception kuo_exception)
+				kuo_exception.messaggio_utente()
+			end try
+		end if
+	end if
+end if
 
+
+return 0
 end event
 
 event doubleclicked;//
-string k_name, k_tipo_sort
-long k_colore 
-long k_x,k_x_1
-
-
 
 this.accepttext()
-
-
-//if row = 0 and this.Object.DataWindow.Processing = kki_tipo_processing_tree or this.Object.DataWindow.Processing = kki_tipo_processing_altro  then
-//	row=u_get_riga_atpointer(dwo.Name)
-//end if
 
 if row > 0 then
 
@@ -2127,42 +2195,47 @@ int k_rc
 	k_data_x = dwo.coltype
 
 	if dwo.coltype = "date" then 
-		k_data_x = trim(data)
-		if k_data_x = "" or left(k_data_x,2) = "00" then
-			return 2  // OK
-		elseif len(k_data_x) < 3 and isnumber(k_data_x) then
-			k_data_x = trim(k_data_x) + "/" + string(today(), "mmm/yyyy")
-		elseif len(k_data_x) = 4 and isnumber(k_data_x) then
-			k_data_x = left(k_data_x,2) + "/" + mid(k_data_x,3,2) + "/" + string(today(), "yyyy") 
-		elseif len(k_data_x) = 5 and not isnumber(mid(k_data_x,3,1)) then 
-			k_data_x = left(k_data_x,2) + "/" + mid(k_data_x,4,2) + "/" + string(today(), "yyyy") 
-		end if
-		if isdate(k_data_x) then 
-			return 2 // OK
-		else
+//		k_data_x = trim(data)
+//		if k_data_x = "" or left(k_data_x,2) = "00" then
+//			return 2  // OK
+//		elseif len(k_data_x) < 3 and isnumber(k_data_x) then
+//			k_data_x = trim(k_data_x) + "/" + string(today(), "mmm/yyyy")
+//		elseif len(k_data_x) = 4 and isnumber(k_data_x) then
+//			k_data_x = left(k_data_x,2) + "/" + mid(k_data_x,3,2) + "/" + string(today(), "yyyy") 
+//		elseif len(k_data_x) = 5 and not isnumber(mid(k_data_x,3,1)) then 
+//			k_data_x = left(k_data_x,2) + "/" + mid(k_data_x,4,2) + "/" + string(today(), "yyyy") 
+//		end if
+//		if isdate(k_data_x) then 
+//			return 2 // OK
+//		else
 			k_rc = 3
-		end if			
+//		end if			
 
 	else
 		
-		if dwo.coltype = "Number" or dwo.coltype = "Long" or dwo.coltype = "Int" then
-			k_data_x = trim(data)
-			if k_data_x = "" then
+//		if dwo.coltype = "Number" or dwo.coltype = "Long" or dwo.coltype = "Int" then
+		if dwo.coltype = "Int" or dwo.coltype = "Long" or dwo.coltype = "Number" or left(dwo.coltype,3) = "Dec" or dwo.coltype = "Ulong" then
+			if not isnumber(trim(data)) then
+				this.post setitem(row, integer(dwo.id), 0)
 				return 2 // OK
-			else
-				k_rc = 3
 			end if
+//			k_data_x = trim(data)
+//			if k_data_x = "" then
+//				return 2 // OK
+//			else
+//				k_rc = 3
+//			end if
 		else
-			if left(dwo.coltype, 3) = "dec" then
-				k_data_x = trim(data)
-				if k_data_x = "" then
-					return 2 // OK
-				else
-					k_rc = 3
-				end if
-			else
+//			if left(dwo.coltype, 3) = "dec" then
+//				k_data_x = trim(data)
+//				if k_data_x = "" then
+//					return 2 // OK
+//				else
+//					k_rc = 3
+//				end if
+//			else
 				return 1 // KO senza errore
-			end if
+//			end if
 			
 		end if
 	end if
@@ -2365,61 +2438,58 @@ long k_row, k_ret
 //DragObject		do_control
 
 
-if ki_attiva_DRAGDROP then
-
-	//st_barcode.visible = false
-	this.SetRedraw(FALSE)
-	
-	if TypeOf(source) = datawindow! then
-			
-		kidw_source = source
-
-		if isvalid(kidw_source) then //and kidw_source.typeof = "uo_d_std_1" then
-
-			if kidw_source.ki_UltRigaSel > 0 then
-				k_row = kidw_source.ki_UltRigaSel
-		 	else
-				k_row = 1
-			end if
-			//this.scrolltorow( k_row)
-							
-//--- Drop qlc il quale non e' dal ns Datawindow
-			IF kidw_source <> this THEN
-				
-		//--- DataObjects  sono uguali (drop x DW UGUALI)
-				IF Lower(kidw_source.dataobject) = Lower(this.dataobject) THEN
-					k_ret = this.EVENT ue_DropFromSame(ki_riga_dragwithin, kidw_source)
-				ELSE
-		//--- Noi Copiamo da un altro DW.. l'utente deve fare Copy stuff (drop ESTERNO)
-					k_ret = this.event ue_drop_out(k_row, kidw_source) 
-					if k_ret = 1 then
-						kidw_source.event ue_drag_out(k_row, this)	
-					end if
-							
-				END IF
-
-			ELSE
-//--- Drop stesso Datawindow (drop INTERNO )
-				if ki_attiva_DRAGDROP_self and ki_riga_dragwithin > 0 then 
-					k_ret = this.EVENT ue_DropFromThis(ki_riga_dragwithin, kidw_source)	
-				end if
-							
-			END IF
-		
-			if ki_riga_dragwithin > 0 then 
-				this.setrow(ki_riga_dragwithin)
-			end if
-		end if
-	END IF
-			
-	//--- AfterDrop e' sempre Fired
-	//	this.EVENT ue_AfterDrop(k_row)
-	//--- pulisco area del drag&drop
+//--- chiude eventuali DRAG & GDROP
+if keydown(KeyEscape!) then
 	event ue_dragdrop_end( )
-	
-	this.SetRedraw(true)
-	
 end if
+
+if TypeOf(source) <> datawindow! then return 0
+kidw_dragdrop_source = source
+
+if u_if_in_dragging( ) then
+	
+	if kidw_dragdrop_source.ki_UltRigaSel > 0 then
+		k_row = kidw_dragdrop_source.ki_UltRigaSel
+	else
+		k_row = 1
+	end if
+	//this.scrolltorow( k_row)
+					
+//--- Drop qlc il quale non e' dal ns Datawindow
+	IF kidw_dragdrop_source <> this THEN
+		
+//--- DataObjects  sono uguali (drop x DW UGUALI)
+		IF Lower(kidw_dragdrop_source.dataobject) = Lower(this.dataobject) THEN
+			k_ret = this.EVENT ue_DropFromSame(ki_riga_dragwithin, kidw_dragdrop_source)
+		ELSE
+//--- Noi Copiamo da un altro DW.. l'utente deve fare Copy stuff (drop ESTERNO)
+			k_ret = this.event ue_drop_out(k_row, kidw_dragdrop_source) 
+			if k_ret = 1 then
+				kidw_dragdrop_source.event ue_drag_out(k_row, this)	
+			end if
+					
+		END IF
+
+	ELSE
+//--- Drop stesso Datawindow (drop INTERNO )
+		if ki_attiva_DRAGDROP_self and ki_riga_dragwithin > 0 then 
+			k_ret = this.EVENT ue_DropFromThis(ki_riga_dragwithin, kidw_dragdrop_source)	
+		end if
+					
+	END IF
+end if
+
+if ki_riga_dragwithin > 0 then 
+	this.setrow(ki_riga_dragwithin)
+end if
+		
+//--- AfterDrop e' sempre Fired
+//	this.EVENT ue_AfterDrop(k_row)
+//--- pulisco area del drag&drop
+event ue_dragdrop_end( )
+
+this.SetRedraw(true)
+
 
 
 end event
@@ -2427,6 +2497,8 @@ end event
 event dragleave;//
 //	if this.ki_attiva_DRAGDROP then 
 
+		u_dragging_label_destroy()
+		
 		this.event ue_dragleave_post()
 
 //	end if
@@ -2434,72 +2506,33 @@ event dragleave;//
 
 end event
 
-event dragwithin;boolean k_piu_righe = false
-//string k_alla_riga = ""
-long k_last_row = 0, k_first_row=0, k_riga=0
+event dragwithin;//
+string k_rcx
 
+	
+if TypeOf(source) <> datawindow! then return 0
+kidw_dragdrop_source = source
 
-if this.ki_attiva_DRAGDROP then
-
-	ki_drag_scroll=false	
+if u_if_in_dragging( ) then
+	
+	k_rcx = u_dragging_label_show() 
 	
 	if row = 0 then
 	
-	
 	else
-//--- se sono ll'interno dello stesso oggetto da DRAGGARE		
-		if TypeOf(source) = datawindow! then
-			
-			kidw_source = source
-			if isvalid(kidw_dragdrop_this) and isvalid(kidw_source) then 
-				if kidw_dragdrop_this = kidw_source then
+		
+		if this = kidw_dragdrop_source then  // se dragging all'interno della stessa dw
+			ki_riga_dragwithin = row
 	
-////---- Imposta ki_UltRigaSel se non lo è ancora 
-//					if ki_UltRigaSel <= 0 then  
-//						if this.getselectedrow(0) = 0 then
-//							this.selectrow(row, true)	
-//						end if
-//						ki_UltRigaSel = this.getselectedrow(0)
-//						ki_dragdrop_display = "Riga: " + string(row) //string(this.getitemnumber(ki_UltRigaSel, "ordine")) +"-"+ trim(this.getitemstring(ki_UltRigaSel, "barcode")) 
-//					end if
-//------------------------------------------------------------------------------------------		
-
-//---- se sono piu' di 1 riga da drag allora multi-drag	
-//					if this.dragicon > " " then  // faccio solo la prima volta
-//					else
-//						k_riga = this.getselectedrow(0) 
-//						if k_riga > 0 then
-//							if this.getselectedrow(k_riga) > 0 then
-//								k_piu_righe = true
-//								this.dragicon = ki_dragicon2 
-//							else
-//		//						this.dragicon = kGuo_path.get_risorse() + "\drag1.ico"
-//								this.dragicon = ki_dragicon1
-//							end if
-//						end if
-//					end if
-//------------------------------------------------------------------------------------------		
-//					if ki_UltRigaSel <> row then
-					
-						ki_riga_dragwithin = row
-//						if this.IsSelected( row ) then
-//							k_alla_riga = " ??? "
-//						else
-//							k_alla_riga =   "   > "+ string(row)
-//						end if
-//					end if					
-				end if
+			if ki_attiva_DRAGDROP_self then
+				u_drag_scroll(row) // scroll rows to show the dragging
 			end if
-
-//--- scrolla le righe x mostrare il dragging
-			if not ki_u_drag_scroll_lanciata then
-				u_drag_scroll(row)
-			end if
-
+		else
+			u_drag_scroll(row) // scroll rows to show the dragging
 		end if
 	end if
 end if
-	
+		
 	
 
 end event

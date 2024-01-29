@@ -200,14 +200,17 @@ type m_-0 from menu within m_magazzino
 end type
 type m_etichbarcode from menu within m_magazzino
 end type
-type m_etichettatrice from menu within m_etichbarcode
+type m_etichetta_rev3 from menu within m_etichbarcode
+end type
+type m_etichetta_rev4 from menu within m_etichbarcode
 end type
 type m_4etichette from menu within m_etichbarcode
 end type
 type m_2etichette from menu within m_etichbarcode
 end type
 type m_etichbarcode from menu within m_magazzino
-m_etichettatrice m_etichettatrice
+m_etichetta_rev3 m_etichetta_rev3
+m_etichetta_rev4 m_etichetta_rev4
 m_4etichette m_4etichette
 m_2etichette m_2etichette
 end type
@@ -220,6 +223,8 @@ end type
 type m_inviapianoalpilota from menu within m_magazzino
 end type
 type m_inviapianoalpilotag2g3 from menu within m_magazzino
+end type
+type m_inviopianog3 from menu within m_magazzino
 end type
 type m_elaborazioniesterne from menu within m_magazzino
 end type
@@ -291,6 +296,7 @@ m_barcodedosimetro m_barcodedosimetro
 m_-5 m_-5
 m_inviapianoalpilota m_inviapianoalpilota
 m_inviapianoalpilotag2g3 m_inviapianoalpilotag2g3
+m_inviopianog3 m_inviopianog3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
@@ -644,7 +650,6 @@ type variables
 end variables
 
 forward prototypes
-public subroutine set_modulo_barcode ()
 public subroutine reset_menu_strumenti ()
 private function boolean autorizza_menu_1 (string k_menu_tag)
 public function integer u_item ()
@@ -656,28 +661,9 @@ public subroutine u_close_window ()
 public subroutine u_close_main ()
 public subroutine u_run_shortcutkey (keycode a_keycode, unsignedlong a_keyflags)
 protected subroutine autorizza_menu ()
+private subroutine set_modulo_barcode ()
+public subroutine u_set_modulo_barcode ()
 end prototypes
-
-public subroutine set_modulo_barcode ();//
-//---
-//
-m_magazzino.m_etichbarcode.m_etichettatrice.checked = false
-m_magazzino.m_etichbarcode.m_4etichette.checked = false
-m_magazzino.m_etichbarcode.m_2etichette.checked = false
-
-if kGuf_data_base.KI_barcode_modulo = "A" then
-	m_magazzino.m_etichbarcode.m_etichettatrice.checked = true
-else
-	if kGuf_data_base.KI_barcode_modulo = "4" then
-		m_magazzino.m_etichbarcode.m_4etichette.checked = true
-	else
-		if kGuf_data_base.KI_barcode_modulo = "2" then
-			m_magazzino.m_etichbarcode.m_2etichette.checked = true
-		end if
-	end if
-end if
-	
-end subroutine
 
 public subroutine reset_menu_strumenti ();//
 //--- Resetta barra strumenti
@@ -1447,6 +1433,44 @@ next
 	
 		
 //
+
+end subroutine
+
+private subroutine set_modulo_barcode ();//
+//---
+//
+m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev3.menuimage = "" 
+m_magazzino.m_etichbarcode.m_etichetta_rev3.menuimage = ""
+//m_magazzino.m_etichbarcode.m_4etichette.checked = false
+//m_magazzino.m_etichbarcode.m_2etichette.checked = false
+
+if kGuf_data_base.KI_barcode_modulo = "A" then
+	m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = true
+	//m_magazzino.m_etichbarcode.m_etichetta_rev3.menuimage = "check16.png"
+else
+	if kGuf_data_base.KI_barcode_modulo = "4" then
+		m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = true
+		//m_magazzino.m_etichbarcode.m_etichetta_rev4.menuimage = "check16.png"
+//		m_magazzino.m_etichbarcode.m_4etichette.checked = true
+//	else
+//		if kGuf_data_base.KI_barcode_modulo = "2" then
+//			m_magazzino.m_etichbarcode.m_2etichette.checked = true
+//		end if
+	end if
+end if
+	
+end subroutine
+
+public subroutine u_set_modulo_barcode ();
+if kGuf_data_base.KI_barcode_modulo = "A" then
+	m_magazzino.m_etichbarcode.m_etichetta_rev3.event clicked( )
+else
+	if kGuf_data_base.KI_barcode_modulo = "4" then
+		m_magazzino.m_etichbarcode.m_etichetta_rev4.event clicked( )
+	end if
+end if
 
 end subroutine
 
@@ -3329,7 +3353,7 @@ end type
 event clicked;//
 long k_righe=0
 string k_json
-datastore kds_1
+ds_barcode_print_label kds_1, kds_2
 st_esito kst_esito
 
 string ls_path, ls_file
@@ -3338,82 +3362,35 @@ long li_FileNum
 
 
 try
-	kds_1 = create datastore
+	kds_1 = create ds_barcode_print_label
+	kds_2 = create ds_barcode_print_label
 
-	if messagebox ("Utility Generiche", &
-						"Test Bookmark Word~n~r" &
+	if messagebox ("Utility Generica", &
+						"Test stampa barcode~n~r" &
 						+ "Avviare l'operazione?" &
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
 
+		long job
+		job = PrintOpen( )
+		// Each DataWindow starts printing on a new page.
+		kds_1.dataobject = "d_barcode_et_dsm_rev_3_gen24"
+		kds_1.insertrow(0)
+		kds_2.dataobject = "d_barcode_et_rev_4_gen24"
+		kds_2.insertrow(0)
 		
-OLEObject contact_ltr
-integer result, n
-string ls_name, ls_addr
-/***************************************************
-Allocate memory for the OLEObject variable
-***************************************************/
-contact_ltr = CREATE oleObject
-/***************************************************
-Connect to the server and check for errors
-***************************************************/
-result = &
-   contact_ltr.ConnectToNewObject("word.application")
-IF result <> 0 THEN
-   DESTROY contact_ltr
-   MessageBox("OLE Error", &
-      "Unable to connect to Microsoft Word. " &
-      + "Code: " &
-      + String(result))
-      RETURN
-END IF
-/***************************************************
-For each row in the DataWindow, send customer
-data to Word and print a letter
-***************************************************/
-//FOR n = 1 to dw_mail.RowCount()
-/************************************************
-   Open the document that has been prepared with
-   bookmarks
-************************************************/
-   contact_ltr.documents.open("C:\ufo\invoice1.docx")
-/************************************************
-   Build a string of the first and last name and
-   insert it into Word at the name1 and name2
-   bookmarks
-************************************************/
-   ls_name = "TESTETSTEST"
-// Insert text at the bookmark named End
-	contact_ltr.ActiveDocument.Bookmarks.item("nome").Select
-	//dw_mail.GetItemString(n, "first_name")&
-   //+ " " + dw_mail.GetItemString(n, "last_name")
-   //contact_ltr.Selection.goto("nome")
-   contact_ltr.Selection.typetext(ls_name)
-/************************************************
-   Print the letter
-************************************************/
-//   contact_ltr.Application.printout()
-/************************************************
-   Close the document without saving
-************************************************/
-   contact_ltr.Documents.save
-   contact_ltr.Documents.close
-   contact_ltr.quit()
-//NEXT
-/***************************************************
-Disconnect from the server and release the memory for the OLEObject variable
-***************************************************/
-contact_ltr.DisconnectObject()
-	
-	end if
-	
+		PrintDataWindow(job, kds_1)
+		PrintDataWindow(job, kds_2)
+		PrintClose(job)
+	end if	
 catch (uo_exception kuo_exception)
 
 	kuo_exception.messaggio_utente() 
 
 finally
-	DESTROY contact_ltr
+	DESTROY kds_1 
+	DESTROY kds_2
 	SetPointer(kkg.pointer_default)
 
 end try
@@ -3659,6 +3636,7 @@ m_barcodedosimetro m_barcodedosimetro
 m_-5 m_-5
 m_inviapianoalpilota m_inviapianoalpilota
 m_inviapianoalpilotag2g3 m_inviapianoalpilotag2g3
+m_inviopianog3 m_inviopianog3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
@@ -3710,6 +3688,7 @@ this.m_barcodedosimetro=create m_barcodedosimetro
 this.m_-5=create m_-5
 this.m_inviapianoalpilota=create m_inviapianoalpilota
 this.m_inviapianoalpilotag2g3=create m_inviapianoalpilotag2g3
+this.m_inviopianog3=create m_inviopianog3
 this.m_elaborazioniesterne=create m_elaborazioniesterne
 this.m_5=create m_5
 this.m_modificaprogrammazione=create m_modificaprogrammazione
@@ -3742,6 +3721,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_barcodedosimetro
 this.Item[UpperBound(this.Item)+1]=this.m_-5
 this.Item[UpperBound(this.Item)+1]=this.m_inviapianoalpilota
 this.Item[UpperBound(this.Item)+1]=this.m_inviapianoalpilotag2g3
+this.Item[UpperBound(this.Item)+1]=this.m_inviopianog3
 this.Item[UpperBound(this.Item)+1]=this.m_elaborazioniesterne
 this.Item[UpperBound(this.Item)+1]=this.m_5
 this.Item[UpperBound(this.Item)+1]=this.m_modificaprogrammazione
@@ -3778,6 +3758,7 @@ destroy(this.m_barcodedosimetro)
 destroy(this.m_-5)
 destroy(this.m_inviapianoalpilota)
 destroy(this.m_inviapianoalpilotag2g3)
+destroy(this.m_inviopianog3)
 destroy(this.m_elaborazioniesterne)
 destroy(this.m_5)
 destroy(this.m_modificaprogrammazione)
@@ -4938,7 +4919,7 @@ this.visible = false
 this.text = "Fatture"
 this.microhelp = "Elenco Fatture"
 this.toolbaritemvisible = false
-this.menuimage = "c:\gammarad\pb_gmmrd11\icone\fattura8x8.gif"
+this.menuimage = "fattura8x8.gif"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -4999,7 +4980,7 @@ this.tag = "fatt_new_st"
 this.visible = false
 this.text = "Stampa Fatture e N.C."
 this.microhelp = "Stampa nuove fatture / note di credito"
-this.menuimage = "c:\gammarad\pb_gmmrd11\icone\fattura8x8.gif"
+this.menuimage = "fattura8x8.gif"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -5495,14 +5476,15 @@ call super::destroy
 end on
 
 type m_etichbarcode from menu within m_magazzino
-m_etichettatrice m_etichettatrice
+m_etichetta_rev3 m_etichetta_rev3
+m_etichetta_rev4 m_etichetta_rev4
 m_4etichette m_4etichette
 m_2etichette m_2etichette
 end type
 
 on m_etichbarcode.create
 call super::create
-this.text = "Barcode form del modulo ..."
+this.text = "Barcode stampa etichetta ..."
 this.microhelp = "indicare il modulo di stampa per le etichette dei Lotti"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -5517,32 +5499,32 @@ this.toolbarstyle = contemporarytoolbar!
 this.toolbartextcolor = 134217746
 this.toolbarbackcolor = 10789024
 this.toolbarhighlightcolor = 10789024
-this.m_etichettatrice=create m_etichettatrice
+this.m_etichetta_rev3=create m_etichetta_rev3
+this.m_etichetta_rev4=create m_etichetta_rev4
 this.m_4etichette=create m_4etichette
 this.m_2etichette=create m_2etichette
-this.Item[UpperBound(this.Item)+1]=this.m_etichettatrice
+this.Item[UpperBound(this.Item)+1]=this.m_etichetta_rev3
+this.Item[UpperBound(this.Item)+1]=this.m_etichetta_rev4
 this.Item[UpperBound(this.Item)+1]=this.m_4etichette
 this.Item[UpperBound(this.Item)+1]=this.m_2etichette
 end on
 
 on m_etichbarcode.destroy
 call super::destroy
-destroy(this.m_etichettatrice)
+destroy(this.m_etichetta_rev3)
+destroy(this.m_etichetta_rev4)
 destroy(this.m_4etichette)
 destroy(this.m_2etichette)
 end on
 
-event clicked;//
-	set_modulo_barcode()
-
-end event
-
-type m_etichettatrice from menu within m_etichbarcode
+type m_etichetta_rev3 from menu within m_etichbarcode
 end type
 
-on m_etichettatrice.create
+on m_etichetta_rev3.create
 call super::create
-this.text = "etichettatrice"
+this.text = "Rev.3 (maggio 2019)"
+this.microhelp = "Attiva temporaneamente la stampa barcode a questa Revisione"
+this.menuimage = " "
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -5558,16 +5540,52 @@ this.toolbarbackcolor = 10789024
 this.toolbarhighlightcolor = 10789024
 end on
 
-on m_etichettatrice.destroy
+on m_etichetta_rev3.destroy
 call super::destroy
 end on
 
 event clicked;//
-m_magazzino.m_etichbarcode.m_4etichette.checked = false
-m_magazzino.m_etichbarcode.m_2etichette.checked = false
-m_magazzino.m_etichbarcode.m_etichettatrice.checked = true
+//m_magazzino.m_etichbarcode.m_4etichette.checked = false
+//m_magazzino.m_etichbarcode.m_2etichette.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = true
+m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = false
 kGuf_data_base.KI_barcode_modulo = "A"
+set_modulo_barcode( )
+end event
 
+type m_etichetta_rev4 from menu within m_etichbarcode
+event create ( )
+event destroy ( )
+end type
+
+on m_etichetta_rev4.create
+call super::create
+this.text = "Rev.4 (gennaio 2024)"
+this.microhelp = "Attiva temporaneamente la stampa barcode a questa Revisione"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_etichetta_rev4.destroy
+call super::destroy
+end on
+
+event clicked;//
+m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = true
+kGuf_data_base.KI_barcode_modulo = "4"
+set_modulo_barcode( )
 end event
 
 type m_4etichette from menu within m_etichbarcode
@@ -5575,6 +5593,7 @@ end type
 
 on m_4etichette.create
 call super::create
+this.visible = false
 this.text = "4 etichette su A4"
 this.enabled = false
 this.menustyle = contemporarymenu!
@@ -5597,8 +5616,9 @@ call super::destroy
 end on
 
 event clicked;//
+m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = false
 m_magazzino.m_etichbarcode.m_2etichette.checked = false
-m_magazzino.m_etichbarcode.m_etichettatrice.checked = false
 m_magazzino.m_etichbarcode.m_4etichette.checked = true
 kGuf_data_base.KI_barcode_modulo = "4"
 
@@ -5609,7 +5629,9 @@ end type
 
 on m_2etichette.create
 call super::create
+this.visible = false
 this.text = "2 etichette su A4"
+this.enabled = false
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -5630,8 +5652,9 @@ call super::destroy
 end on
 
 event clicked;//
+m_magazzino.m_etichbarcode.m_etichetta_rev3.checked = false
+m_magazzino.m_etichbarcode.m_etichetta_rev4.checked = false
 m_magazzino.m_etichbarcode.m_4etichette.checked = false
-m_magazzino.m_etichbarcode.m_etichettatrice.checked = false
 m_magazzino.m_etichbarcode.m_2etichette.checked = true
 kGuf_data_base.KI_barcode_modulo = "2"
 
@@ -5812,15 +5835,15 @@ try
 						+kkg.acapo+"     2-Invia Piano al nuovo G2 (premi [CANCEL] per evitare questa operazione) " &
 						+kkg.acapo &
 						+ "Avviare l'operazione?" &
-						 ,question!, YesNoCancel!, 2) 
-	if k_rc <> 2 then // Se SI o CANCEL....
+						 ,question!, YesNo!, 2) 
+	if k_rc = 1 then // Se SI....
 
 		if kuf1_pilota_cmd.job_pianificazione_lavorazioni() then
 			
 			SetPointer(kkg.pointer_attesa)
 			kuf1_pilota_cmd.get_pilota_cfg()
 
-			if k_rc = 1 then // Se SI fa anche G2....
+			if k_rc = 3 then // X ORA NULLA!!! fa anche G2....
 		
 //--- apre la connessione al DB PILOTA G2
 				try
@@ -5983,6 +6006,92 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_inviapianoalpilotag2g3.destroy
+call super::destroy
+end on
+
+type m_inviopianog3 from menu within m_magazzino
+end type
+
+event clicked;//
+int k_richieste_evase
+kuf_plav kuf1_plav
+kuo_sqlca_db_plav kuo1_sqlca_db_plav
+		
+//--- apre la connessione al DB PILOTA
+try
+
+	kuf1_plav = create kuf_plav
+	kuo1_sqlca_db_plav = create kuo_sqlca_db_plav
+
+	SetPointer(kkg.pointer_attesa)
+	if kuo1_sqlca_db_plav.if_connessione_bloccata( ) then
+		SetPointer(kkg.pointer_default)
+		messagebox ("Invio Piani di Lavorazione G3 al PILOTA" &
+							,"ATTENZIONE la Connessione alle tabelle Pilota è stata BLOCCATA!" &
+							+  kkg.acapo &
+							+ "Per sbloccarla occorre farlo da Connessioni in Proprietè Azienda." &
+						 ,stopsign!)
+		return
+	end if
+
+	SetPointer(kkg.pointer_default)
+	if messagebox ("Invio Piani di Lavorazione G3 al PILOTA", &
+						"La Pianificazione sarà inviata alle tabelle 'PILOTA' solo se: " + kkg.acapo &
+							+ "     1-Piano di Lavoro Chiuso; " + kkg.acapo &
+							+ "     2-Connessione alle tabelle Pilota Aperta e server 'raggiungibile'. " &
+							+  kkg.acapo &
+							+ "Avviare l'operazione?" &
+						 ,question!, YesNo!, 2) = 1 then
+
+		SetPointer(kkg.pointer_attesa)
+		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro( )
+		if k_richieste_evase > 0 then
+			
+			SetPointer(kkg.pointer_default)
+			messagebox ("Invio Piani di Lavorazione G3 al PILOTA", &
+					"Operazione conclusa correttamente. " + kkg.acapo &
+					 + string(k_richieste_evase) + " Piani di Lavoro caricati nelle tabelle di scambio con il 'PILOTA'. " &
+					 ,Information!) 
+		else
+			messagebox ("Invio Piani di Lavorazione G3 al PILOTA", &
+					"Operazione conclusa. Ma nessun Piano di Lavoro chiuso ancora da caricare in Impianto è stato trovato. " &
+					 ,Information!) 
+		end if
+	
+	end if
+	
+catch (uo_exception kuo_exception)
+	SetPointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente()
+
+finally
+	if isvalid(kuf1_plav) then destroy kuf1_plav
+	if isvalid(kuo1_sqlca_db_plav) then destroy kuo1_sqlca_db_plav
+
+end try
+
+end event
+
+on m_inviopianog3.create
+call super::create
+this.text = "Invio Piano G3"
+this.menuimage = "Destination3!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_inviopianog3.destroy
 call super::destroy
 end on
 
@@ -11688,6 +11797,7 @@ end event
 
 on m_aiuto.create
 call super::create
+this.visible = false
 this.text = "Aiuto~tF1"
 this.shortcut = 112
 this.microhelp = "Manuale della Procedura"

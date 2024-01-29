@@ -5,19 +5,19 @@ header(height=72 color="536870912" transparency="0" gradient.color="8421504" gra
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=decimal(0) updatewhereclause=yes name=giorno_tot dbname="compute_0001" )
- column=(type=long updatewhereclause=yes name=giorno dbname="compute_0002" )
- column=(type=long updatewhereclause=yes name=mese dbname="compute_0003" )
- column=(type=long updatewhereclause=yes name=anno dbname="compute_0004" )
+table(column=(type=decimal(0) updatewhereclause=yes name=giorno_tot dbname="giorno_tot" )
+ column=(type=long updatewhereclause=yes name=giorno dbname="giorno" )
+ column=(type=long updatewhereclause=yes name=mese dbname="mese" )
+ column=(type=long updatewhereclause=yes name=anno dbname="anno" )
  retrieve="	SELECT
          count (*) as giorno_tot, 
-         day(certif.data_stampa) as giorno,   
-         month(certif.data_stampa) as mese,   
-         year(certif.data_stampa) as anno   
+         day(certif.data) as giorno,   
+         month(certif.data) as mese,   
+         year(certif.data) as anno   
      FROM certif
     WHERE 
-			   certif.data_stampa > :k_data_da
-		 group by  certif.data_stampa
+			   certif.data > :k_data_da
+		 group by  certif.data
 		 order by  4 desc, 3 desc, 2 desc;
 " arguments=(("k_data_da", date)) )
 group(level=1 header.height=0 trailer.height=80 by=("anno" , "mese" ) header.color="536870912" header.transparency="0" header.gradient.color="8421504" header.gradient.transparency="0" header.gradient.angle="0" header.brushmode="0" header.gradient.repetition.mode="0" header.gradient.repetition.count="0" header.gradient.repetition.length="100" header.gradient.focus="0" header.gradient.scale="100" header.gradient.spread="100" trailer.color="536870912" trailer.transparency="0" trailer.gradient.color="8421504" trailer.gradient.transparency="0" trailer.gradient.angle="0" trailer.brushmode="0" trailer.gradient.repetition.mode="0" trailer.gradient.repetition.count="0" trailer.gradient.repetition.length="100" trailer.gradient.focus="0" trailer.gradient.scale="100" trailer.gradient.spread="100" )

@@ -3474,7 +3474,7 @@ end if
 if row = 0 then
 else
 
-	event u_dragdrop_mouse_pos(xpos, ypos) // original coordinates of pointer x fare il drag&drop 
+	event u_dragdrop_mouse_pos() // original coordinates of pointer x fare il drag&drop 
 
 	k_descr = this.getitemstring(row, "descr")
 //	k_id_ptasks_type = this.getitemnumber(row, "id_ptasks_type")

@@ -616,14 +616,16 @@ if kguo_g.kg_anno_procedura > 0 then
 		
 		if k_anno < kguo_g.kg_anno_procedura then
 			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ko)
-			kguo_exception.setmessage("Data Errata" , "Attenzione la data rilevata dal tuo PC " + string(k_return) + " non è coincidente con l'anno " + string(kguo_g.kg_anno_procedura) &
-			 				+ " indicato in Proprietà. Si consiglia di non fare alcuna modifica ai dati e di uscire al più presto dall'Applicazione! ")
+			kguo_exception.setmessage("Data Errata" , "Attenzione la data rilevata dal tuo PC " + string(k_return) &
+							 + " non è coincidente con l'anno " + string(kguo_g.kg_anno_procedura) + " indicato in Proprietà dell'Applicazione. " &
+							 + kkg.acapo + "Entrare per la sola CONSULTAZIONE, si sconsiglano operazioni di inserimento e modifica dei dati")
 			kguo_exception.messaggio_utente( )
 		else
 			if (k_anno + 1) = kguo_g.kg_anno_procedura then
 			else
 				kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ko)
-				kguo_exception.setmessage("Data Errata" , "Attenzione la data rilevata dal tuo PC " + string(k_return) + " maggiore dell'anno di esercizio (" + string(kguo_g.kg_anno_procedura) + ") indicato in Proprietà Azienda. NON ESEGUIRE OPERAZIONI DI AGGIORNAMENTO! ")
+				kguo_exception.setmessage("Data Errata" , "Attenzione la data rilevata dal tuo PC " + string(k_return) + " maggiore dell'anno di esercizio (" + string(kguo_g.kg_anno_procedura) + ") indicato in Proprietà Azienda. " &
+											 + kkg.acapo + "Entrare per la sola CONSULTAZIONE, si sconsiglano operazioni di inserimento e modifica dei dati")
 				kguo_exception.messaggio_utente( )
 			end if
 		end if

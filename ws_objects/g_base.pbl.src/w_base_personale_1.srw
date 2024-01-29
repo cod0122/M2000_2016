@@ -179,9 +179,6 @@ end type
 type st_1 from w_base_personale`st_1 within tabpage_6
 end type
 
-type cb_pilota_proprieta from w_base_personale`cb_pilota_proprieta within tabpage_6
-end type
-
 type cb_db_wmf from w_base_personale`cb_db_wmf within tabpage_6
 end type
 
@@ -280,6 +277,9 @@ type st_3_2 from w_base_personale`st_3_2 within tabpage_8
 end type
 
 type st_1_6 from w_base_personale`st_1_6 within tabpage_8
+end type
+
+type st_1_7 from w_base_personale`st_1_7 within w_base_personale_1
 end type
 
 type st_13 from w_base_personale`st_13 within tabpage_8
@@ -434,8 +434,5 @@ type dw_13 from w_base_personale`dw_13 within tabpage_13
 end type
 
 type st_duplica from w_base_personale`st_duplica within w_base_personale_1
-end type
-
-type st_1_7 from w_base_personale`st_1_7 within w_base_personale_1
 end type
 

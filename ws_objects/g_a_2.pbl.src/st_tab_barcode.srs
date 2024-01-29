@@ -12,6 +12,7 @@ global type st_tab_barcode from structure
 	integer		flg_campione		descriptor "comment" = "1=pallet accompagnato a un collo Campione"
 	long		pl_barcode
 	long		pl_barcode_progr
+	integer		impianto		descriptor "comment" = "2=G2; 3=G3"
 	string		causale
 	string		tipo_cicli
 	integer		fila_1
@@ -50,7 +51,7 @@ global type st_tab_barcode from structure
 	long		id_sl_pt_g3_lav		descriptor "comment" = "id tabella Piani trattementi G3"
 	integer		g3ngiri		descriptor "comment" = "Numero giri in Programmazione da fare"
 	integer		g3ciclo		descriptor "comment" = "CICLO in Programmazione da fare"
-	integer		g3npass		descriptor "comment" = "2PASS, 4PASS in Programmazione da fare"
+	integer		g3npass		descriptor "comment" = "2=2PASS, 4=4PASS in Programmazione da fare"
 	integer		g3lav_ngiri		descriptor "comment" = "Numero giri effetuati in G3"
 	integer		g3lav_ciclo		descriptor "comment" = "CICLO di Trattatamento in G3"
 	integer		g3lav_npass		descriptor "comment" = "2PASS, 4PASS  Trattato in G3"

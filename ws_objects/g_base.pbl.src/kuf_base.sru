@@ -36,6 +36,8 @@ constant string kki_base_utenti_nome = "nome"   // nome o pseudonimo utente
 constant string kki_base_utenti_titolo_main = "titolo_main"   // titolo 
 constant string kki_base_utenti_flagZOOMctrl = "flagzoomctrl"  // S=attiva ZOOM con il CLICK+CTRL
 constant string kki_base_utenti_MEMOopenWindow = "memo_window_open"  // 1=attiva window di avvisi MEMO
+constant string kki_base_utenti_pdfprintdefault = "pdfprintdefault"  // S=stampa i PDF con l'app di Windows altrimenti usa PDFtoPrinter.exe
+
 
 
 end variables
@@ -218,161 +220,68 @@ st_profilestring_ini kst_profilestring_ini
 st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	kst_esito.st_tab_g_0 = kst_tab_base.st_tab_g_0 
 
 	kst_tab_base.key = kki_base_utenti_startfunz
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.finestra_inizio
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 	
 	kst_tab_base.key = kki_base_utenti_nome
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.nome
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 	
 	kst_tab_base.key = kki_base_utenti_flagsuoni
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.flag_suoni
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 	
 	kst_tab_base.key = kki_base_utenti_tel
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.tel
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 	
 	kst_tab_base.key = kki_base_utenti_email
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.e_mail
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 	
 	kst_tab_base.key = kki_base_utenti_titolo_main
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.titolo_main
-	metti_dato_base(kst_tab_base)
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 
 	kst_tab_base.key = kki_base_utenti_MEMOopenWindow
 	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.memo_window_open
-	metti_dato_base(kst_tab_base)
-			
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.utente = ""
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "finestra_inizio"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.finestra_inizio)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'Finestra di Inizio' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "nome"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.nome)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'Nome Utente' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-////	if kst_esito.esito = "0" then
-////		kst_profilestring_ini.file = "base_personale"
-////		kst_profilestring_ini.titolo = "conf_personale"
-////		kst_profilestring_ini.nome = "font_alt"
-////		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.font_alt)
-////		kst_profilestring_ini.operazione = "2"
-////		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-////		if kst_profilestring_ini.esito <> "0" then
-////			kst_esito.esito = "1" 
-////			kst_esito.sqlcode = 0
-////			kst_esito.SQLErrText = "Dato 'Dimensioni Font' non registrato. Errore: " &
-////										  + trim(kst_profilestring_ini.esito)
-////		end if
-////	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "flag_salva_liste"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.flag_salva_liste)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'Speed Elenco' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "flag_suoni"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.flag_suoni)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'flag_suoni' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "tel"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.tel)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'Telefono Interno' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "e_mail"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.e_mail)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'E-mail' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-//
-//	if kst_esito.esito = "0" then
-//		kst_profilestring_ini.file = "base_personale"
-//		kst_profilestring_ini.titolo = "conf_personale"
-//		kst_profilestring_ini.nome = "titolo_main"
-//		kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.titolo_main)
-//		kst_profilestring_ini.operazione = "2"
-//		k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-//		if kst_profilestring_ini.esito <> "0" then
-//			kst_esito.esito = "1" 
-//			kst_esito.sqlcode = 0
-//			kst_esito.SQLErrText = "Dato 'Titolo Procedura' non registrato. Errore: " &
-//										  + trim(kst_profilestring_ini.esito)
-//		end if
-//	end if
-			
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
+
+	kst_tab_base.key = kki_base_utenti_codice_stcert1
+	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.stcert1
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
+
+	kst_tab_base.key = kki_base_utenti_codice_stcert2
+	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.stcert2
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
+
+	kst_tab_base.key = kki_base_utenti_codice_stbarcode
+	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.stbarcode
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
+
+	kst_tab_base.key = kki_base_utenti_flagzoomctrl
+	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.flag_zoom_ctrl
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
+
+	kst_tab_base.key = kki_base_utenti_pdfprintdefault
+	kst_tab_base.key1 = kst_tab_base.st_tab_base_personale.pdfprintdefault
+	kst_esito = metti_dato_base(kst_tab_base)
+	if kst_esito.esito = kkg_esito.db_ko then return kst_esito
 		
 return kst_esito
 
@@ -407,6 +316,7 @@ try
 		kst_tab_base.st_tab_base_personale.stcert1 = get_dato_personale(kki_base_utenti_codice_stcert1)
 		kst_tab_base.st_tab_base_personale.stcert2 = get_dato_personale(kki_base_utenti_codice_stcert2)
 		kst_tab_base.st_tab_base_personale.stbarcode = get_dato_personale(kki_base_utenti_codice_stbarcode)
+		kst_tab_base.st_tab_base_personale.pdfprintdefault = get_dato_personale(kki_base_utenti_pdfprintdefault)
 		
 		kst_tab_base.st_tab_base_personale.flag_ZOOM_ctrl = get_dato_personale(kki_base_utenti_flagZOOMctrl)
 
@@ -458,7 +368,7 @@ date k_data
 long k_long
 string k_path
 double k_double
-boolean k_riga_su_db = true
+boolean k_row_db_saved = true
 st_profilestring_ini kst_profilestring_ini
 st_esito kst_esito
 
@@ -482,7 +392,7 @@ st_esito kst_esito
 	choose case k_key 
 			
 //		case "base_personale", "personale_finestra_inizio" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.utente = ""
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
@@ -498,7 +408,7 @@ st_esito kst_esito
 //			end if
 //
 //		case "base_personale", "personale_nome" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
 //			kst_profilestring_ini.nome = "nome"
@@ -513,7 +423,7 @@ st_esito kst_esito
 //			end if
 
 		case "ultimo_utente_login_nome" 
-			k_riga_su_db = false
+			k_row_db_saved = false
 			kst_profilestring_ini.file = "base_personale"
 			kst_profilestring_ini.titolo = "conf_personale"
 			kst_profilestring_ini.nome = "ultimo_utente_login_nome"
@@ -530,7 +440,7 @@ st_esito kst_esito
 			end if
 
 		case "ultimo_utente_login_data" 
-			k_riga_su_db = false
+			k_row_db_saved = false
 			kst_profilestring_ini.file = "base_personale"
 			kst_profilestring_ini.titolo = "conf_personale"
 			kst_profilestring_ini.nome = "ultimo_utente_login_data"
@@ -545,7 +455,7 @@ st_esito kst_esito
 			end if
 
 		case "personale_font_alt" 
-			k_riga_su_db = false
+			k_row_db_saved = false
 			kst_profilestring_ini.file = "base_personale"
 			kst_profilestring_ini.titolo = "conf_personale"
 			kst_profilestring_ini.nome = "font_alt"
@@ -559,23 +469,23 @@ st_esito kst_esito
 				                       + trim(kst_profilestring_ini.esito)
 			end if
 
-		case "memo_window_open" 
-			k_riga_su_db = false
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
-			kst_profilestring_ini.nome = "memo_window_open_on"
-			kst_profilestring_ini.valore = trim(k_key_1)
-			kst_profilestring_ini.operazione = "2"
-			kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-			if kst_profilestring_ini.esito <> "0" then
-				kst_esito.esito = kkg_esito.db_ko 
-				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Dato 'Attiva funzione finestra avvisi MEMO' non registrato. Errore: " &
-				                       + trim(kst_profilestring_ini.esito)
-			end if
+//		case "memo_window_open" 
+//			k_row_db_saved = false
+//			kst_profilestring_ini.file = "base_personale"
+//			kst_profilestring_ini.titolo = "conf_personale"
+//			kst_profilestring_ini.nome = "memo_window_open_on"
+//			kst_profilestring_ini.valore = trim(k_key_1)
+//			kst_profilestring_ini.operazione = "2"
+//			kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
+//			if kst_profilestring_ini.esito <> "0" then
+//				kst_esito.esito = kkg_esito.db_ko 
+//				kst_esito.sqlcode = 0
+//				kst_esito.SQLErrText = "Dato 'Attiva funzione finestra avvisi MEMO' non registrato. Errore: " &
+//				                       + trim(kst_profilestring_ini.esito)
+//			end if
 
 //		case "base_personale", "personale_flag_salva_liste" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
 //			kst_profilestring_ini.nome = "flag_salva_liste"
@@ -590,7 +500,7 @@ st_esito kst_esito
 //			end if
 //
 //		case "base_personale", "personale_tel" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
 //			kst_profilestring_ini.nome = "tel"
@@ -605,7 +515,7 @@ st_esito kst_esito
 //			end if
 //
 //		case "base_personale", "personale_e_mail" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
 //			kst_profilestring_ini.nome = "e_mail"
@@ -620,7 +530,7 @@ st_esito kst_esito
 //			end if
 //
 //		case "base_personale", "personale_titolo_main" 
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
 //			kst_profilestring_ini.nome = "titolo_main"
@@ -635,7 +545,7 @@ st_esito kst_esito
 //			end if
 //			
 //		case "finestra_inizio" // programma da lanciare in fase di open della procedura
-//			k_riga_su_db = false
+//			k_row_db_saved = false
 //			kst_profilestring_ini.utente = ""
 //			kst_profilestring_ini.file = "base_personale"
 //			kst_profilestring_ini.titolo = "conf_personale"
@@ -1113,7 +1023,10 @@ st_esito kst_esito
 				,kki_base_utenti_tel &
 				,kki_base_utenti_email &
 				,kki_base_utenti_nome &
-				,kki_base_utenti_flagZOOMctrl
+				,kki_base_utenti_titolo_main &
+				,kki_base_utenti_memoopenwindow &
+				,kki_base_utenti_flagZOOMctrl &
+				,kki_base_utenti_pdfprintdefault
 				
 			k_long = kguo_utente.get_id_utente( )
 			//--- update o insert?
@@ -1159,7 +1072,7 @@ st_esito kst_esito
 			
 		case else
 //--- altrimenti lo salvo come parametro INI			
-			k_riga_su_db = false
+			k_row_db_saved = false
 			kst_profilestring_ini.file = "base_personale"
 			kst_profilestring_ini.titolo = "conf_personale"
 			kst_profilestring_ini.nome = kst_tab_base.key
@@ -1176,10 +1089,10 @@ st_esito kst_esito
 	end choose
 
 //--- se aggiornato il DB devo fare la COMMIT
-	if k_riga_su_db then
-		
+	if k_row_db_saved then
+
 		if kst_tab_base.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_base.st_tab_g_0.esegui_commit) then
-			if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+			if kst_esito.esito = kkg_esito.ok then
 				kguo_sqlca_db_magazzino.db_commit( )
 			else
 				kguo_sqlca_db_magazzino.db_rollback( )
@@ -1188,7 +1101,11 @@ st_esito kst_esito
 	
 	end if
 	
-		
+	if kst_esito.esito <> kkg_esito.ok then
+		kguo_exception.set_esito(kst_esito) 
+		kguo_exception.scrivi_log( )  // scrivo errore
+	end if
+			
 return kst_esito
 
 end function
@@ -4075,7 +3992,9 @@ st_profilestring_ini kst_profilestring_ini
 			or a_key = kki_base_utenti_tel &
 			or a_key = kki_base_utenti_email &
 			or a_key = kki_base_utenti_nome &
-			or a_key = kki_base_utenti_flagZOOMctrl then
+			or a_key = kki_base_utenti_flagZOOMctrl &
+			or a_key = kki_base_utenti_pdfprintdefault &
+			then
 			
 		k_id_utente = kguo_utente.get_id_utente( )
 
@@ -4085,8 +4004,8 @@ st_profilestring_ini kst_profilestring_ini
 			where id_base = :kguo_g.id_base
 				 and id_utente = :k_id_utente
 				 and codice = :k_key
-		  using kguo_sqlca_db_magazzino
-			;
+		  using kguo_sqlca_db_magazzino ;
+			
 		if kguo_sqlca_db_magazzino.sqlcode = 0 then
 			if k_record > " " then
 				k_return = trim(k_record)
@@ -4099,7 +4018,7 @@ st_profilestring_ini kst_profilestring_ini
 				kguo_exception.inizializza( )
 				kguo_exception.kist_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kguo_exception.kist_esito.esito = kkg_esito.db_ko
-				kguo_exception.kist_esito.sqlerrtext = "Errore in lettura dati Utente: " + string(k_id_utente) + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
+				kguo_exception.kist_esito.sqlerrtext = "Errore in lettura dati Utente: " + string(k_id_utente) + " ~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
 				kguo_exception.kist_esito.nome_oggetto = this.classname()
 				throw kguo_exception
 			end if

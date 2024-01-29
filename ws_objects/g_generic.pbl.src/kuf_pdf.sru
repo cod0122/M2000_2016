@@ -18,6 +18,7 @@ type variables
 private string ki_stampa_pdf[]
 private int ki_stampa_pdf_idx
 private PDFDocument kiPDFDocument
+private constant string ki_utility_print = "PDFtoPrinter.exe"
 
 end variables
 
@@ -27,6 +28,9 @@ public function integer u_print_pdf () throws uo_exception
 private function boolean u_print_esegui (string a_file) throws uo_exception
 public function integer u_add_file (string a_path_file)
 private function string get_pdf_err_descr (integer a_error)
+private function boolean u_print_esegui_utility (string a_file) throws uo_exception
+private function boolean u_print_esegui_default (string a_file) throws uo_exception
+private function boolean u_print_esegui_utility_of_run (string a_file, kuf_file_run auf1_file_run) throws uo_exception
 end prototypes
 
 public subroutine u_inizializza ();//
@@ -88,6 +92,11 @@ try
 
 //--- Il documento potrebbe essere Protetto quindi prova a stamparlo da solo alla fine
 							if k_rc = -26 or k_rc = -48 then
+								kguo_exception.kist_esito.esito = kkg_esito.ko
+								kguo_exception.kist_esito.sqlerrtext = "Errore in generazione di un unico documento PDF da stampare. " &
+																	+ kkg.acapo + "File '" + ki_stampa_pdf[k_ind] + "', " &
+																	+ kkg.acapo + "Errore: " + get_pdf_err_descr(k_rc) & 
+																	+ kkg.acapo + "Probabile file Protetto. Eseguo la stampa separatamente." 
 								k_err26_idx++
 								k_err26_doc[k_err26_idx] = k_ind
 							else
@@ -124,12 +133,16 @@ try
 		k_rc = kiPDFDocument.save(k_pdf_name) // salva in un file temporaneo e poi lancia la stampa
 		if this.u_print_esegui(k_pdf_name) then
 			
-//--- Se ce ne sono prova ad eseguire la stampa dei documenti con errore -26 (forse protetti)			
+//--- Se ce ne sono prova ad eseguire la stampa dei documenti con errore -26 o -48 (forse protetti)			
 			if k_err26_idx > 0 then
 				for k_ind = 1 to k_err26_idx
 					k_ind1 = k_err26_doc[k_ind]
-					if this.u_print_esegui(ki_stampa_pdf[k_ind1]) then // in stampa x conto suo del doc che aveva dato err -26
+					if this.u_print_esegui(ki_stampa_pdf[k_ind1]) then // in stampa x conto suo del doc che aveva dato err -26 o -48
 						k_nr_doc_printed ++
+						kguo_exception.kist_esito.esito = kkg_esito.dati_wrn
+						kguo_exception.kist_esito.sqlerrtext = "Stampato del PDF " &
+													+ kkg.acapo + ki_stampa_pdf[k_ind] + " " &
+													+ kkg.acapo + "fatta separatamente dal resto del documento. " 
 					else
 						kguo_exception.kist_esito.esito = kkg_esito.ko
 						kguo_exception.kist_esito.sqlerrtext = "Tentativo di stampare separatamente il documento " &
@@ -144,7 +157,7 @@ try
 //--- non blocca l'esecuzione ma segnala nel log		
 			kguo_exception.kist_esito.esito = kkg_esito.ko
 			kguo_exception.kist_esito.sqlerrtext = "Stampa del documento " &
-													+ kkg.acapo + ki_stampa_pdf[k_ind] + " " &
+													+ kkg.acapo + k_pdf_name + " " &
 													+ kkg.acapo + "non effettuata, errore " + string(k_rc) & 
 													+ kkg.acapo + "Verificare se il file è corretto o presente." 
 		end if
@@ -177,40 +190,37 @@ private function boolean u_print_esegui (string a_file) throws uo_exception;//
 //
 boolean k_return = false
 long k_rcn
-kuf_file_run kuf1_file_run
+string k_dato = "0S"
+kuf_base kuf1_base
+
 
 try
+
 	kguo_exception.inizializza(this.classname())
 
-	kuf1_file_run = create kuf_file_run
-	try
-		
-		k_return = kuf1_file_run.u_shellprint(a_file)
-		
-	catch (uo_exception kuo1_exception)
-		if fileExists("PDFtoPrinter.exe") then
-			k_rcn = kuf1_file_run.of_run("PDFtoPrinter.exe " + '"' + a_file + '" /s', Minimized!)  // tenta con il progammino
-			if k_rcn = -1 or k_rcn = 258 then
-				kguo_exception.kist_esito.esito = kkg_esito.ko
-				kguo_exception.kist_esito.sqlerrtext = "Processo di stampa del file " + kkg.acapo + a_file + " " + kkg.acapo + "in errore!" &
-				               + kkg.acapo + "Applicazione di stampa PDF non trovata dal tuo Sistema Operativo."
-				throw kguo_exception
-			else
-				k_return = true
-			end if
+	if fileExists(ki_utility_print) then
+		kuf1_base = create kuf_base
+		k_dato = kuf1_base.prendi_dato_base(kuf1_base.kki_base_utenti_pdfprintdefault)
+		if left(k_dato,1) = "0" and mid(k_dato,2,1) = "N" then 
+			
+			k_return = u_print_esegui_utility(a_file)			
+			
 		else
-			throw kuo1_exception
+			
+			k_return = u_print_esegui_default(a_file)
+			
 		end if
+	else
 		
-	end try
+		k_return = u_print_esegui_default(a_file)
+		
+	end if
 	
 catch (uo_exception kuo_exception)
 		kuo_exception.scrivi_log( )
 		throw kuo_exception
 	
 finally
-//	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuf1_file_run) then destroy kuf1_file_run
 	
 end try
 
@@ -326,6 +336,98 @@ choose case a_error
 end choose
 
 return ""
+end function
+
+private function boolean u_print_esegui_utility (string a_file) throws uo_exception;//
+//---  Stampa file PDF con l'utility anzichè quella di sistema
+//
+boolean k_return = false
+long k_rcn
+kuf_file_run kuf1_file_run
+
+
+try
+
+	kguo_exception.inizializza(this.classname())
+
+	kuf1_file_run = create kuf_file_run
+
+	k_return = u_print_esegui_utility_of_run(a_file, kuf1_file_run)
+		
+catch (uo_exception kuo_exception)
+		throw kuo_exception
+	
+finally
+	if isvalid(kuf1_file_run) then destroy kuf1_file_run
+	
+end try
+
+return k_return	
+
+end function
+
+private function boolean u_print_esegui_default (string a_file) throws uo_exception;//
+//---  Stampa un file con l'appilicazione del sistema
+//
+boolean k_return = false
+long k_rcn
+kuf_file_run kuf1_file_run
+
+
+try
+
+	kguo_exception.inizializza(this.classname())
+	
+	try
+		kuf1_file_run = create kuf_file_run
+	
+		k_return = kuf1_file_run.u_shellprint(a_file)
+	
+	catch (uo_exception kuo1_exception)
+		k_return = u_print_esegui_utility_of_run(a_file, kuf1_file_run)
+	
+	end try
+	
+catch (uo_exception kuo_exception)
+		throw kuo_exception
+	
+finally
+	if isvalid(kuf1_file_run) then destroy kuf1_file_run
+	
+end try
+
+return k_return	
+
+end function
+
+private function boolean u_print_esegui_utility_of_run (string a_file, kuf_file_run auf1_file_run) throws uo_exception;//
+//---  Stampa effettiva del file PDF con l'utility anzichè quella di sistema
+//
+boolean k_return = false
+long k_rcn
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if fileExists(ki_utility_print) then
+		k_rcn = auf1_file_run.of_run(ki_utility_print + ' "' + a_file + '" /s', Minimized!)  // tenta con il progammino
+		if k_rcn = -1 or k_rcn = 258 then
+			kguo_exception.kist_esito.esito = kkg_esito.ko
+			kguo_exception.kist_esito.sqlerrtext = "Processo di stampa del file " + kkg.acapo + a_file + " " + kkg.acapo + "in errore!" &
+								+ kkg.acapo + "Applicazione '" + ki_utility_print + "' di stampa PDF in errore: " + string(k_rcn)
+			throw kguo_exception
+		else
+			k_return = true
+		end if
+	else
+		kguo_exception.kist_esito.sqlerrtext = "Processo di stampa del file " + kkg.acapo + a_file + " " + kkg.acapo + "in errore! " &
+						+ kkg.acapo + "Applicazione '" + ki_utility_print + "' di stampa dei documenti PDF non trovata nella cartella " &
+						+ kkg.acapo + trim(GetCurrentDirectory())
+		throw kguo_exception
+	end if
+		
+return k_return	
+
 end function
 
 on kuf_pdf.create

@@ -688,6 +688,8 @@ if isvalid(m_main) then
 	
 //	k_rc = this.changemenu(m_main)
 
+	m_main.u_set_modulo_barcode()
+
 end if
 
 ki_toolbar_programmi_primo_giro=false

@@ -14,7 +14,7 @@ type st_non_auth_5 from statictext within tabpage_5
 end type
 type st_1 from statictext within tabpage_6
 end type
-type cb_pilota_proprieta from commandbutton within tabpage_6
+type cb_impianto_g2_proprieta from commandbutton within tabpage_6
 end type
 type cb_db_wmf from commandbutton within tabpage_6
 end type
@@ -35,6 +35,18 @@ end type
 type st_26 from statictext within tabpage_6
 end type
 type st_22 from statictext within tabpage_6
+end type
+type st_5 from statictext within tabpage_6
+end type
+type st_6 from statictext within tabpage_6
+end type
+type st_7 from statictext within tabpage_6
+end type
+type cb_impianto_g3_proprieta from commandbutton within tabpage_6
+end type
+type st_9 from statictext within tabpage_6
+end type
+type st_8 from statictext within tabpage_6
 end type
 type rr_3 from roundrectangle within tabpage_8
 end type
@@ -177,11 +189,12 @@ end type
 end forward
 
 global type w_base_personale from w_g_tab_3
-integer width = 4914
-integer height = 2308
+integer width = 5257
+integer height = 2324
 string title = "Proprietà Personali"
 long backcolor = 67108864
 string icon = "Form!"
+boolean clientedge = true
 boolean ki_toolbar_window_presente = true
 boolean ki_sincronizza_window_consenti = false
 boolean ki_fai_nuovo_dopo_update = false
@@ -700,7 +713,6 @@ st_esito kst_esito
 kuf_base  kuf1_base
  
 
-//=== Puntatore Cursore da attesa.....
 kp_oldpointer = SetPointer(HourGlass!)
 
 kst_esito.esito = kkg_esito.ok
@@ -777,44 +789,43 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 			k_text="0"
 		end if
 		kst_tab_base.st_tab_base_personale.memo_window_open = trim(k_text)
-	
-		kst_esito = kuf1_base.scrivi_base(kst_tab_base)    // scrive i parametri di cui sopra in tab BASE_UTENTI
 
 		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stcert1")
 		if isnull(k_text) then
 			k_text=""
 		end if
-		kst_tab_base.key = kuf1_base.kki_base_utenti_codice_stcert1
-		kst_tab_base.key1 = k_text
-		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
+		kst_tab_base.st_tab_base_personale.stcert1 = trim(k_text)
+
 		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stcert2")
 		if isnull(k_text) then
 			k_text=""
 		end if
-		kst_tab_base.key = kuf1_base.kki_base_utenti_codice_stcert2
-		kst_tab_base.key1 = k_text
-		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
+		kst_tab_base.st_tab_base_personale.stcert2 = trim(k_text)
 
 		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stbarcode")
 		if isnull(k_text) then
 			k_text=""
 		end if
-		kst_tab_base.key = kuf1_base.kki_base_utenti_codice_stbarcode
-		kst_tab_base.key1 = k_text
-		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
+		kst_tab_base.st_tab_base_personale.stbarcode = trim(k_text)
 	
 		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "flag_zoom_ctrl")
 		if isnull(k_text) then
 			k_text=""
 		end if
-		kst_tab_base.key = kuf1_base.kki_base_utenti_flagZOOMctrl
-		kst_tab_base.key1 = k_text
-		kuf1_base.metti_dato_base(kst_tab_base) // scrive i parametri di cui sopra in tab BASE_UTENTI
+		kst_tab_base.st_tab_base_personale.flag_ZOOM_ctrl = trim(k_text)
 		if  k_text = "S" then
 			kguo_g.set_flagZOOMctrl(true)
 		else
 			kguo_g.set_flagZOOMctrl(false)
 		end if		
+
+		k_text = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "pdfprintdefault")
+		if isnull(k_text) then
+			k_text=""
+		end if
+		kst_tab_base.st_tab_base_personale.pdfprintdefault = trim(k_text)
+	
+		kst_esito = kuf1_base.scrivi_base(kst_tab_base)    // scrive i parametri di cui sopra in tab BASE_UTENTI
 	
 	end if
 end if
@@ -873,7 +884,6 @@ destroy kuf1_base
 //=== Puntatore Cursore da attesa.....
 SetPointer(kp_oldpointer)
 
-
 //=== errore : 0=tutto OK o NON RICHIESTA; 1=errore grave I-O;
 //=== 		 : 2=LIBERO
 //===			 : 3=Commit fallita
@@ -890,13 +900,9 @@ else
 	
 end if	
 
-
 if LeftA(k_return, 1) = "1" then
-	messagebox("Operazione di Aggiornamento Non Eseguita !!", MidA(k_return, 2))
+	messagebox("Operazione di Aggiornamento Fallita", MidA(k_return, 2))
 end if
-
-
-
 
 return k_return
 
@@ -1066,6 +1072,7 @@ kst_esito = kuf1_base.leggi_base(kst_tab_base)
 	tab_1.tabpage_1.dw_1.setitem(1, "path", trim(kGuo_path.get_procedura()))
 	tab_1.tabpage_1.dw_1.setitem(1, "flag_zoom_ctrl", trim(kst_tab_base.st_tab_base_personale.flag_zoom_ctrl))
 	tab_1.tabpage_1.dw_1.setitem(1, "memo_window_open", trim(kst_tab_base.st_tab_base_personale.memo_window_open))
+	tab_1.tabpage_1.dw_1.setitem(1, "pdfprintdefault", trim(kst_tab_base.st_tab_base_personale.pdfprintdefault))	
 
 	tab_1.tabpage_1.dw_1.getchild("finestra_inizio", kdwc_menu)
  	k_text = trim(kst_tab_base.st_tab_base_personale.finestra_inizio)
@@ -1110,6 +1117,10 @@ kst_esito = kuf1_base.leggi_base(kst_tab_base)
 	if trim(kst_tab_base.st_tab_base_personale.stbarcode) > " " then
 	else
 		tab_1.tabpage_1.dw_1.setitem(1, "stbarcode", " ")
+	end if
+	if trim(kst_tab_base.st_tab_base_personale.pdfprintdefault) > " " then
+	else
+		tab_1.tabpage_1.dw_1.setitem(1, "pdfprintdefault", "S")
 	end if
 
 	
@@ -2534,62 +2545,62 @@ end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_base_personale
 integer x = 2939
-integer y = 1572
+integer y = 1712
 end type
 
 type st_ordina_lista from w_g_tab_3`st_ordina_lista within w_base_personale
 integer x = 914
-integer y = 1576
+integer y = 1716
 end type
 
 type st_aggiorna_lista from w_g_tab_3`st_aggiorna_lista within w_base_personale
 integer x = 1733
-integer y = 1552
+integer y = 1692
 integer height = 68
 end type
 
 type cb_ritorna from w_g_tab_3`cb_ritorna within w_base_personale
 integer x = 1536
-integer y = 1504
+integer y = 1644
 boolean flatstyle = true
 end type
 
 type st_stampa from w_g_tab_3`st_stampa within w_base_personale
 integer x = 2194
-integer y = 1504
+integer y = 1644
 end type
 
 type cb_visualizza from w_g_tab_3`cb_visualizza within w_base_personale
 integer x = 2487
-integer y = 1536
+integer y = 1676
 integer taborder = 60
 boolean flatstyle = true
 end type
 
 type cb_modifica from w_g_tab_3`cb_modifica within w_base_personale
 integer x = 439
-integer y = 1504
+integer y = 1644
 integer taborder = 50
 boolean flatstyle = true
 end type
 
 type cb_aggiorna from w_g_tab_3`cb_aggiorna within w_base_personale
 integer x = 805
-integer y = 1504
+integer y = 1644
 integer taborder = 80
 boolean flatstyle = true
 end type
 
 type cb_cancella from w_g_tab_3`cb_cancella within w_base_personale
 integer x = 1170
-integer y = 1504
+integer y = 1644
 integer taborder = 90
 boolean flatstyle = true
 end type
 
 type cb_inserisci from w_g_tab_3`cb_inserisci within w_base_personale
 integer x = 73
-integer y = 1504
+integer y = 1644
 integer taborder = 70
 boolean flatstyle = true
 end type
@@ -2598,7 +2609,7 @@ type tab_1 from w_g_tab_3`tab_1 within w_base_personale
 integer x = 0
 integer y = 0
 integer width = 4622
-integer height = 1384
+integer height = 1624
 integer taborder = 40
 long backcolor = 32567536
 boolean fixedwidth = true
@@ -2673,7 +2684,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 string text = "Personalizza"
 long tabbackcolor = 67108864
 string picturename = "Preferences_2!"
@@ -2703,7 +2714,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 long backcolor = 67108864
 string text = " la mia Connessione"
 long tabbackcolor = 67108864
@@ -2726,7 +2737,7 @@ type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 long backcolor = 67108864
 string text = " Messaggi~r~n della Procedura"
@@ -2771,7 +2782,7 @@ type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 long backcolor = 67108864
 string text = " Proprietà Procedura"
@@ -2992,7 +3003,7 @@ type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 string text = " Contatori Procedura"
 long tabbackcolor = 67108864
@@ -3036,15 +3047,15 @@ type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 long backcolor = 67108864
 string text = " DB Esterni~r~n (Pilota, E-ONE, Pk-List...) "
 long tabbackcolor = 67108864
-string picturename = "DB Profile_2!"
+string picturename = "database16.png"
 long picturemaskcolor = 553648127
 st_1 st_1
-cb_pilota_proprieta cb_pilota_proprieta
+cb_impianto_g2_proprieta cb_impianto_g2_proprieta
 cb_db_wmf cb_db_wmf
 st_18 st_18
 cb_db_web cb_db_web
@@ -3055,11 +3066,17 @@ cb_db_plav cb_db_plav
 cb_db_e1 cb_db_e1
 st_26 st_26
 st_22 st_22
+st_5 st_5
+st_6 st_6
+st_7 st_7
+cb_impianto_g3_proprieta cb_impianto_g3_proprieta
+st_9 st_9
+st_8 st_8
 end type
 
 on tabpage_6.create
 this.st_1=create st_1
-this.cb_pilota_proprieta=create cb_pilota_proprieta
+this.cb_impianto_g2_proprieta=create cb_impianto_g2_proprieta
 this.cb_db_wmf=create cb_db_wmf
 this.st_18=create st_18
 this.cb_db_web=create cb_db_web
@@ -3070,11 +3087,17 @@ this.cb_db_plav=create cb_db_plav
 this.cb_db_e1=create cb_db_e1
 this.st_26=create st_26
 this.st_22=create st_22
+this.st_5=create st_5
+this.st_6=create st_6
+this.st_7=create st_7
+this.cb_impianto_g3_proprieta=create cb_impianto_g3_proprieta
+this.st_9=create st_9
+this.st_8=create st_8
 int iCurrent
 call super::create
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.st_1
-this.Control[iCurrent+2]=this.cb_pilota_proprieta
+this.Control[iCurrent+2]=this.cb_impianto_g2_proprieta
 this.Control[iCurrent+3]=this.cb_db_wmf
 this.Control[iCurrent+4]=this.st_18
 this.Control[iCurrent+5]=this.cb_db_web
@@ -3085,12 +3108,18 @@ this.Control[iCurrent+9]=this.cb_db_plav
 this.Control[iCurrent+10]=this.cb_db_e1
 this.Control[iCurrent+11]=this.st_26
 this.Control[iCurrent+12]=this.st_22
+this.Control[iCurrent+13]=this.st_5
+this.Control[iCurrent+14]=this.st_6
+this.Control[iCurrent+15]=this.st_7
+this.Control[iCurrent+16]=this.cb_impianto_g3_proprieta
+this.Control[iCurrent+17]=this.st_9
+this.Control[iCurrent+18]=this.st_8
 end on
 
 on tabpage_6.destroy
 call super::destroy
 destroy(this.st_1)
-destroy(this.cb_pilota_proprieta)
+destroy(this.cb_impianto_g2_proprieta)
 destroy(this.cb_db_wmf)
 destroy(this.st_18)
 destroy(this.cb_db_web)
@@ -3101,6 +3130,12 @@ destroy(this.cb_db_plav)
 destroy(this.cb_db_e1)
 destroy(this.st_26)
 destroy(this.st_22)
+destroy(this.st_5)
+destroy(this.st_6)
+destroy(this.st_7)
+destroy(this.cb_impianto_g3_proprieta)
+destroy(this.st_9)
+destroy(this.st_8)
 end on
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -3122,7 +3157,7 @@ type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 long backcolor = 67108864
 long tabbackcolor = 67108864
 end type
@@ -3143,7 +3178,7 @@ type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 long backcolor = 16777215
 string text = " Ausiliari"
@@ -3295,7 +3330,7 @@ type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = true
 long backcolor = 16777215
 string text = " E-Mail"
@@ -3501,9 +3536,9 @@ end type
 
 type st_1 from statictext within tabpage_6
 integer x = 1157
-integer y = 84
-integer width = 1979
-integer height = 168
+integer y = 76
+integer width = 1705
+integer height = 100
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3513,11 +3548,11 @@ fontfamily fontfamily = swiss!
 string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
-string text = "Proprietà per scambio con il PILOTA dei dati Programmazione Impianto G2 (modalità deprecata)"
+string text = "Impianto G2: dati dei Trattamenti forniti dal PILOTA"
 boolean focusrectangle = false
 end type
 
-type cb_pilota_proprieta from commandbutton within tabpage_6
+type cb_impianto_g2_proprieta from commandbutton within tabpage_6
 integer x = 192
 integer y = 80
 integer width = 901
@@ -3530,7 +3565,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-string text = "Proprietà DB Pilota Impianto G2"
+string text = "Impianto G2"
 boolean flatstyle = true
 end type
 
@@ -3568,7 +3603,7 @@ end event
 
 type cb_db_wmf from commandbutton within tabpage_6
 integer x = 192
-integer y = 752
+integer y = 968
 integer width = 901
 integer height = 112
 integer taborder = 62
@@ -3622,9 +3657,9 @@ end event
 
 type st_18 from statictext within tabpage_6
 integer x = 1157
-integer y = 736
-integer width = 1792
-integer height = 184
+integer y = 980
+integer width = 2565
+integer height = 88
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3640,7 +3675,7 @@ end type
 
 type cb_db_web from commandbutton within tabpage_6
 integer x = 192
-integer y = 1228
+integer y = 1444
 integer width = 850
 integer height = 112
 integer taborder = 72
@@ -3651,7 +3686,6 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-boolean enabled = false
 string text = "Proprietà DB x il WEB"
 boolean flatstyle = true
 end type
@@ -3694,7 +3728,7 @@ end event
 
 type st_19 from statictext within tabpage_6
 integer x = 1157
-integer y = 1244
+integer y = 1460
 integer width = 1792
 integer height = 112
 boolean bringtotop = true
@@ -3712,7 +3746,7 @@ end type
 
 type cb_db_crm from commandbutton within tabpage_6
 integer x = 192
-integer y = 1040
+integer y = 1256
 integer width = 850
 integer height = 112
 integer taborder = 82
@@ -3766,7 +3800,7 @@ end event
 
 type st_21 from statictext within tabpage_6
 integer x = 1157
-integer y = 1064
+integer y = 1280
 integer width = 1792
 integer height = 144
 boolean bringtotop = true
@@ -3784,7 +3818,7 @@ end type
 
 type cb_db_plav from commandbutton within tabpage_6
 integer x = 192
-integer y = 240
+integer y = 456
 integer width = 901
 integer height = 112
 integer taborder = 102
@@ -3795,7 +3829,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-string text = "Proprietà DB ~'Programmazione~'"
+string text = "Programmazione"
 boolean flatstyle = true
 end type
 
@@ -3827,7 +3861,7 @@ end event
 
 type cb_db_e1 from commandbutton within tabpage_6
 integer x = 192
-integer y = 500
+integer y = 716
 integer width = 901
 integer height = 112
 integer taborder = 72
@@ -3880,9 +3914,9 @@ end event
 
 type st_26 from statictext within tabpage_6
 integer x = 1157
-integer y = 484
-integer width = 1792
-integer height = 184
+integer y = 700
+integer width = 2080
+integer height = 80
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3898,9 +3932,9 @@ end type
 
 type st_22 from statictext within tabpage_6
 integer x = 1157
-integer y = 228
-integer width = 2213
-integer height = 168
+integer y = 444
+integer width = 2359
+integer height = 88
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3910,7 +3944,130 @@ fontfamily fontfamily = swiss!
 string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
-string text = "Proprietà per scambio con il PILOTA dei dati Programmazione Impianto G2 e G3 (nuova modalità)"
+string text = "Dati Programmazione Impianti G2 e G3 da passare al Pilota."
+boolean focusrectangle = false
+end type
+
+type st_5 from statictext within tabpage_6
+integer x = 1157
+integer y = 504
+integer width = 1861
+integer height = 84
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+boolean italic = true
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Definizione della connessione al database."
+boolean focusrectangle = false
+end type
+
+type st_6 from statictext within tabpage_6
+integer x = 1157
+integer y = 132
+integer width = 1861
+integer height = 84
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+boolean italic = true
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Definizione della connessione al database."
+boolean focusrectangle = false
+end type
+
+type st_7 from statictext within tabpage_6
+integer x = 1157
+integer y = 768
+integer width = 1861
+integer height = 84
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+boolean italic = true
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Definizione della connessione al database."
+boolean focusrectangle = false
+end type
+
+type cb_impianto_g3_proprieta from commandbutton within tabpage_6
+integer x = 192
+integer y = 236
+integer width = 901
+integer height = 112
+integer taborder = 30
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string text = "Impianto G3"
+boolean flatstyle = true
+end type
+
+event clicked;//
+kuf_pilota_g3_cfg kuf1_pilota_g3_cfg 
+
+kuf1_pilota_g3_cfg = create kuf_pilota_g3_cfg
+
+kuf1_pilota_g3_cfg.u_open(kkg_flag_modalita.modifica)
+
+destroy kuf1_pilota_g3_cfg
+
+
+end event
+
+type st_9 from statictext within tabpage_6
+integer x = 1157
+integer y = 224
+integer width = 1705
+integer height = 100
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Impianto G3: dati dei Trattamenti forniti dal PILOTA"
+boolean focusrectangle = false
+end type
+
+type st_8 from statictext within tabpage_6
+integer x = 1157
+integer y = 280
+integer width = 1861
+integer height = 84
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+boolean italic = true
+long textcolor = 8388608
+long backcolor = 67108864
+string text = "Definizione della connessione al database."
 boolean focusrectangle = false
 end type
 
@@ -4771,7 +4928,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 long backcolor = 16777215
 string text = " Kit"
 long tabtextcolor = 33554432
@@ -5034,7 +5191,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 boolean enabled = false
 long backcolor = 16777215
 string text = "none"
@@ -5063,7 +5220,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 long backcolor = 16777215
 string text = "Log Segnalazioni"
 long tabtextcolor = 33554432
@@ -5115,7 +5272,7 @@ boolean visible = false
 integer x = 1033
 integer y = 16
 integer width = 3570
-integer height = 1352
+integer height = 1592
 long backcolor = 67108864
 string text = "Monitor"
 long tabtextcolor = 33554432

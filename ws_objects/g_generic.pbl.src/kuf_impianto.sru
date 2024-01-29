@@ -15,6 +15,11 @@ constant integer kki_impiantoG2 = 2  // Gamma 2
 constant integer kki_impiantoG3 = 3  // Gamma 3
 constant integer kki_impiantoDefault = 2
 
+//--- Modalità Trattamento
+constant integer kki_npass_2 = 2  // 2-Pass
+constant integer kki_npass_4 = 4  // 4-Pass
+constant integer kki_npass_default = 4
+
 
 end variables
 

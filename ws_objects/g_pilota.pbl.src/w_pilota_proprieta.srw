@@ -1,26 +1,14 @@
 ﻿$PBExportHeader$w_pilota_proprieta.srw
 forward
-global type w_pilota_proprieta from w_g_tab_3
-end type
-type ln_1 from line within tabpage_4
+global type w_pilota_proprieta from w_db_cfg_proprieta
 end type
 end forward
 
-global type w_pilota_proprieta from w_g_tab_3
-integer x = 169
-integer y = 148
+global type w_pilota_proprieta from w_db_cfg_proprieta
 integer width = 2958
 integer height = 1836
 string title = "Propriea Pilota"
-long backcolor = 31909606
-boolean ki_toolbar_window_presente = true
-boolean ki_esponi_msg_dati_modificati = false
-boolean ki_toolbar_programmi_attiva_voce = false
 boolean ki_sincronizza_window_consenti = false
-boolean ki_fai_nuovo_dopo_update = false
-boolean ki_fai_nuovo_dopo_insert = false
-string ki_syntaxquery = ""
-string ki_dw_titolo_modif_1 = ""
 end type
 global w_pilota_proprieta w_pilota_proprieta
 
@@ -268,93 +256,17 @@ return k_errore + k_return
 end function
 
 private subroutine riempi_id ();//
-//=== Imposta gli Effettivi ID degli archivi
-long k_righe, k_ctr
-integer k_codice_1, k_codice
-string k_ret_code
-kuf_base kuf1_base
+integer k_codice
 
 
-//=== Salvo ID  originale x piu' avanti
-//	k_codice_1 = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-
-//=== Se non sono in caricamento allora prelevo l'ID dalla dw
 	if tab_1.tabpage_1.dw_1.getitemstatus(1, 0, primary!) <> newmodified! then
 		k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
 	else
-
-	if k_codice = 0 or isnull(k_codice) then
-		tab_1.tabpage_1.dw_1.setitem(1, "codice", "1")		
-	end if
-//		kuf1_base = create kuf_base
-//	//=== Imposto il ID  su arch. Azienda
-//		k_ret_code = kuf1_base.prendi_dato_base("codice")
-//		if left(k_ret_code, 1) = "0" then
-//			k_codice = long(mid(k_ret_code, 2)) + 1
-//			k_ret_code = kuf1_base.metti_dato_base(0, "codice", string(k_codice,"#####"))
-//		end if
-//		if left(k_ret_code, 1) = "1" then
-//	
-//			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-//			
-//			messagebox("Aggiornamento Automatico Fallito !!", &
-//				"Attenzione: non sono riuscito ad aggiornare il contatore COMMESSE,~n~r" + &
-//				"in archivio Azienda. ~n~r" + &
-//				"Aggiornare immediatamente in modo manuale il 'ID Commessa' in Azienda. ~n~r" + &
-//				"Per eseguire l'aggiornamento fare ALT+Z ed impostare  ~n~r" + &
-//				"il numero " + string(k_codice,"#####") + " nel campo 'ID Commess'. ~n~r" + &
-//				"Eseguire poi gli opportuni controlli su questi dati Commessa. ~n~r" + &
-//				"Se il problema persiste, si prega di contattare il programmatore. Grazie", &
-//				stopsign!, ok!)
-//				
-//		end if		
-	
-//		destroy kuf1_base
-//		k_nro_commessa_1 = tab_1.tabpage_1.dw_1.getitemnumber(1, "nro_commessa")
-//		if k_nro_commessa <> k_nro_commessa_1 then
-//
-////=== ho trovato il nr commessa diverso da quello in BASE controllo se commessa gia' caricata
-//			select codice into :k_ctr
-//				from commesse
-//				where nro_commessa = :k_nro_commessa_1;
-//
-//			if sqlca.sqlcode = 0 then
-//				k_nro_old = tab_1.tabpage_1.dw_1.getitemnumber(1, "nro_commessa") 
-//				messagebox("Aggiornamento Commessa", &
-//					"Mi spiace ma il numero abbinato a questa commessa e' stato cambiato ~n~r" + &
-//					"da " + string(k_nro_old,"#####") + " a " + &
-//						string(k_nro_commessa,"#####") + "~n~r" + &
-//					"Motivo : potrebbero esserci altri utenti che stanno caricando Commesse, ~n~r" + &
-//					"nessun pericolo di perdita dati. ", &
-//					information!, ok!)
-//			end if
-//		end if		
-//	
-	
-//		tab_1.tabpage_1.dw_1.setitem(1, "nro_commessa", k_nro_commessa)
-	
-//		tab_1.tabpage_1.dw_1.setitem(1, "codice", k_codice)
-
+		if k_codice = 0 or isnull(k_codice) then
+			tab_1.tabpage_1.dw_1.setitem(1, "codice", 1)		
+		end if
 	end if
 	
-//	k_righe = tab_1.tabpage_2.dw_2.rowcount()
-//	if k_righe > 0 then
-//
-//	
-//		tab_1.tabpage_2.dw_2.setitem(k_ctr, "codice", k_codice)
-//
-//		tab_1.tabpage_1.dw_1.setitem(1, "indi_2", &
-//				tab_1.tabpage_2.dw_2.getitemstring(1, "indi_2"))
-//		tab_1.tabpage_1.dw_1.setitem(1, "cap_2", &
-//				tab_1.tabpage_2.dw_2.getitemstring(1, "cap_2"))
-//		tab_1.tabpage_1.dw_1.setitem(1, "loc_2", &
-//				tab_1.tabpage_2.dw_2.getitemstring(1, "loc_2"))
-//		tab_1.tabpage_1.dw_1.setitem(1, "prov_2", &
-//				tab_1.tabpage_2.dw_2.getitemstring(1, "prov_2"))
-//				
-//	end if
-//
-
 
 end subroutine
 
@@ -505,9 +417,6 @@ string k_stato = "0"
 int  k_key, k_codice
 int k_err_ins, k_rc
 kuf_utility kuf1_utility
-
-
-//=== 
 
 
 if tab_1.tabpage_1.dw_1.rowcount() = 0 then
@@ -879,7 +788,6 @@ end choose
 end subroutine
 
 on w_pilota_proprieta.create
-int iCurrent
 call super::create
 end on
 
@@ -888,152 +796,37 @@ call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
 end on
 
-type dw_print_0 from w_g_tab_3`dw_print_0 within w_pilota_proprieta
+type dw_print_0 from w_db_cfg_proprieta`dw_print_0 within w_pilota_proprieta
 end type
 
-type st_ritorna from w_g_tab_3`st_ritorna within w_pilota_proprieta
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_ritorna from w_db_cfg_proprieta`st_ritorna within w_pilota_proprieta
 end type
 
-type st_ordina_lista from w_g_tab_3`st_ordina_lista within w_pilota_proprieta
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_ordina_lista from w_db_cfg_proprieta`st_ordina_lista within w_pilota_proprieta
 end type
 
-type st_aggiorna_lista from w_g_tab_3`st_aggiorna_lista within w_pilota_proprieta
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_aggiorna_lista from w_db_cfg_proprieta`st_aggiorna_lista within w_pilota_proprieta
 end type
 
-type cb_ritorna from w_g_tab_3`cb_ritorna within w_pilota_proprieta
-integer x = 2711
-integer y = 1444
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-string text = ""
+type cb_ritorna from w_db_cfg_proprieta`cb_ritorna within w_pilota_proprieta
 end type
 
-type st_stampa from w_g_tab_3`st_stampa within w_pilota_proprieta
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_stampa from w_db_cfg_proprieta`st_stampa within w_pilota_proprieta
 end type
 
-type cb_visualizza from w_g_tab_3`cb_visualizza within w_pilota_proprieta
-integer x = 1175
-integer y = 1440
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-string text = ""
+type cb_visualizza from w_db_cfg_proprieta`cb_visualizza within w_pilota_proprieta
 end type
 
-type cb_modifica from w_g_tab_3`cb_modifica within w_pilota_proprieta
-integer x = 503
-integer y = 1436
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-string text = ""
+type cb_modifica from w_db_cfg_proprieta`cb_modifica within w_pilota_proprieta
 end type
 
-type cb_aggiorna from w_g_tab_3`cb_aggiorna within w_pilota_proprieta
-integer x = 1970
-integer y = 1444
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-string text = ""
+type cb_aggiorna from w_db_cfg_proprieta`cb_aggiorna within w_pilota_proprieta
 end type
 
-type cb_cancella from w_g_tab_3`cb_cancella within w_pilota_proprieta
-integer x = 2341
-integer y = 1444
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-string text = ""
+type cb_cancella from w_db_cfg_proprieta`cb_cancella within w_pilota_proprieta
 end type
 
-type cb_inserisci from w_g_tab_3`cb_inserisci within w_pilota_proprieta
-integer x = 1600
-integer y = 1444
-integer width = 0
-integer height = 0
-integer taborder = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-boolean enabled = false
-string text = ""
+type cb_inserisci from w_db_cfg_proprieta`cb_inserisci within w_pilota_proprieta
 end type
 
 event cb_inserisci::clicked;//
@@ -1070,16 +863,7 @@ string k_errore="0"
 
 end event
 
-type tab_1 from w_g_tab_3`tab_1 within w_pilota_proprieta
-integer x = 0
-integer y = 0
-integer width = 3040
-integer height = 1396
-integer taborder = 0
-integer weight = 0
-string facename = ""
-long backcolor = 32172778
-boolean raggedright = false
+type tab_1 from w_db_cfg_proprieta`tab_1 within w_pilota_proprieta
 end type
 
 on tab_1.create
@@ -1106,39 +890,18 @@ super::event u_constructor( )
 
 end event
 
-type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+type tabpage_1 from w_db_cfg_proprieta`tabpage_1 within tab_1
 integer y = 176
-integer width = 3003
 integer height = 1204
 string text = "Connessione DB al Pilota Impianto~r~nFile di scambio"
-long tabtextcolor = 0
-long tabbackcolor = 33554431
-string picturename = "DosEdit5!"
-long picturemaskcolor = 553648127
 end type
 
-type dw_1 from w_g_tab_3`dw_1 within tabpage_1
-integer x = 18
-integer y = 60
-integer width = 2967
-integer height = 1144
-integer taborder = 0
-string title = ""
+type dw_1 from w_db_cfg_proprieta`dw_1 within tabpage_1
 string dataobject = "d_pilota_cfg"
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_attivi = false
-boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_sort = false
-boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
 end type
 
-event dw_1::buttonclicked;call super::buttonclicked;//
+event dw_1::buttonclicked;//
 kuf_utility kuf1_utility
 
 
@@ -1161,10 +924,11 @@ else
 	if dwo.name = "b_path_pilota_inp" then
 		get_path_pilota_inp()
 	end if
+
 	if dwo.name = "b_dbparm" then
 		kguo_exception.inizializza( )
 		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
-		kguo_exception.messaggio_utente("Test Connessione", "Hai Salvato i Dati della Connessione qui indicati?  ~n~rAttenzione: il test di Connessione è fatto con i parametri già SALVATI su DB!")
+		kguo_exception.messaggio_utente("Test Connessione", "Hai Salvato i Dati della Connessione qui indicati?  ~n~rAttenzione: il test di Connessione è fatto con i parametri già SALVATI sul DB!")
 		try
 			kguo_sqlca_db_pilota.db_disconnetti( ) 
 		catch (uo_exception kuo_exceptionOK)
@@ -1173,7 +937,7 @@ else
 			kguo_sqlca_db_pilota.db_disconnetti( ) 
 			if kguo_sqlca_db_pilota.db_connetti( ) then
 				kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
-				kguo_exception.messaggio_utente("Test Connessione",  "OK, connessione eseguita.")
+				kguo_exception.messaggio_utente("Test Connessione",  "Connessione eseguita correttamente.")
 			end if
 			
 		catch (uo_exception kuo_exception)
@@ -1190,48 +954,22 @@ end if
 
 end event
 
-type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
-integer x = 507
-integer y = 832
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_1_retrieve from w_db_cfg_proprieta`st_1_retrieve within tabpage_1
 end type
 
-type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
-integer y = 176
-integer width = 3003
-integer height = 1204
-long backcolor = 31909606
-string text = "Elenco Piani di Lavorazione~r~nInviati al Pilota (Richieste)"
-long tabtextcolor = 0
-long tabbackcolor = 33544171
-long picturemaskcolor = 553648127
-end type
-
-type dw_2 from w_g_tab_3`dw_2 within tabpage_2
+type tabpage_2 from w_db_cfg_proprieta`tabpage_2 within tab_1
 boolean visible = true
-integer y = 24
-integer width = 2981
-integer height = 1180
-integer taborder = 0
+integer y = 176
+integer height = 1204
 boolean enabled = true
-string title = ""
+string text = "Elenco Piani di Lavorazione~r~nInviati al Pilota (Richieste)"
+end type
+
+type dw_2 from w_db_cfg_proprieta`dw_2 within tabpage_2
+boolean visible = true
+boolean enabled = true
 string dataobject = "d_pilota_cmd_l"
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
-string ki_dragdrop_display = ""
 end type
 
 event dw_2::clicked;call super::clicked;//
@@ -1266,51 +1004,23 @@ SetPointer(kpointer)
 //
 end event
 
-type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_2_retrieve from w_db_cfg_proprieta`st_2_retrieve within tabpage_2
 end type
 
-type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
+type tabpage_3 from w_db_cfg_proprieta`tabpage_3 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 3003
 integer height = 1204
 boolean enabled = true
-long backcolor = 31909606
-string text = "PILOTA ~r~nCoda pallet in Lavorazione"
+string text = "IMPIANTO G2 ~r~nCoda pallet in Lavorazione"
 long tabtextcolor = 128
-long tabbackcolor = 33544171
-long picturemaskcolor = 553648127
 end type
 
-type dw_3 from w_g_tab_3`dw_3 within tabpage_3
+type dw_3 from w_db_cfg_proprieta`dw_3 within tabpage_3
 boolean visible = true
-integer y = 48
-integer width = 2967
-integer height = 1156
-integer taborder = 0
 boolean enabled = true
-string title = ""
 string dataobject = "d_pilota_queue_table"
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
-boolean ki_colora_riga_aggiornata = false
-string ki_dragdrop_display = ""
 boolean ki_db_conn_standard = false
 end type
 
@@ -1320,67 +1030,23 @@ event dw_3::itemchanged;call super::itemchanged;//
 
 end event
 
-type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_3_retrieve from w_db_cfg_proprieta`st_3_retrieve within tabpage_3
 end type
 
-type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
+type tabpage_4 from w_db_cfg_proprieta`tabpage_4 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 3003
 integer height = 1204
 boolean enabled = true
-long backcolor = 33544171
-string text = "PILOTA~r~npallet Trattati~r~n"
+string text = "IMPIANTO G2 ~r~npallet Trattati~r~n"
 long tabtextcolor = 128
-long tabbackcolor = 33544171
-long picturemaskcolor = 553648127
-ln_1 ln_1
 end type
 
-on tabpage_4.create
-this.ln_1=create ln_1
-int iCurrent
-call super::create
-iCurrent=UpperBound(this.Control)
-this.Control[iCurrent+1]=this.ln_1
-end on
-
-on tabpage_4.destroy
-call super::destroy
-destroy(this.ln_1)
-end on
-
-type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+type dw_4 from w_db_cfg_proprieta`dw_4 within tabpage_4
 boolean visible = true
-integer y = 24
-integer width = 2939
-integer height = 1116
-integer taborder = 10
 boolean enabled = true
-string title = ""
 string dataobject = "d_pilota_pallet"
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
-boolean ki_colora_riga_aggiornata = false
-string ki_dragdrop_display = ""
 boolean ki_db_conn_standard = false
 end type
 
@@ -1397,266 +1063,76 @@ end if
 
 end event
 
-type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_4_retrieve from w_db_cfg_proprieta`st_4_retrieve within tabpage_4
 end type
 
-type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+type ln_1 from w_db_cfg_proprieta`ln_1 within tabpage_4
+end type
+
+type tabpage_5 from w_db_cfg_proprieta`tabpage_5 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 3003
 integer height = 1204
 boolean enabled = true
-long backcolor = 31909606
-string text = "PILOTA~r~nImpostazioni Base"
+string text = "IMPIANTO G2 ~r~nImpostazioni Base"
 long tabtextcolor = 128
-long tabbackcolor = 33544171
-long picturemaskcolor = 553648127
 end type
 
-type dw_5 from w_g_tab_3`dw_5 within tabpage_5
+type dw_5 from w_db_cfg_proprieta`dw_5 within tabpage_5
 boolean visible = true
-integer y = 20
-integer width = 2935
-integer height = 1152
-integer taborder = 0
 boolean enabled = true
-string title = ""
 string dataobject = "d_pilota_impostazioni"
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
-string ki_dragdrop_display = ""
 boolean ki_db_conn_standard = false
 end type
 
-type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_5_retrieve from w_db_cfg_proprieta`st_5_retrieve within tabpage_5
 end type
 
-type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
+type tabpage_6 from w_db_cfg_proprieta`tabpage_6 within tab_1
 integer y = 176
-integer width = 3003
 integer height = 1204
-long backcolor = 0
-string text = ""
-long tabtextcolor = 0
-long tabbackcolor = 0
-long picturemaskcolor = 0
 end type
 
-type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_6_retrieve from w_db_cfg_proprieta`st_6_retrieve within tabpage_6
 end type
 
-type dw_6 from w_g_tab_3`dw_6 within tabpage_6
-integer width = 0
-integer height = 0
-integer taborder = 0
-string title = ""
-string dataobject = ""
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
-boolean ki_link_standard_attivi = false
-boolean ki_button_standard_attivi = false
-boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
+type dw_6 from w_db_cfg_proprieta`dw_6 within tabpage_6
 end type
 
-type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+type tabpage_7 from w_db_cfg_proprieta`tabpage_7 within tab_1
 integer y = 176
-integer width = 3003
 integer height = 1204
-long backcolor = 0
-string text = ""
-long tabtextcolor = 0
-long tabbackcolor = 0
-long picturemaskcolor = 0
 end type
 
-type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_7_retrieve from w_db_cfg_proprieta`st_7_retrieve within tabpage_7
 end type
 
-type dw_7 from w_g_tab_3`dw_7 within tabpage_7
-integer width = 0
-integer height = 0
-integer taborder = 0
-string title = ""
-string dataobject = ""
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
-boolean ki_link_standard_attivi = false
-boolean ki_button_standard_attivi = false
-boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
+type dw_7 from w_db_cfg_proprieta`dw_7 within tabpage_7
 end type
 
-type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
+type tabpage_8 from w_db_cfg_proprieta`tabpage_8 within tab_1
 integer y = 176
-integer width = 3003
 integer height = 1204
-long backcolor = 0
-string text = ""
-long tabtextcolor = 0
-long tabbackcolor = 0
-long picturemaskcolor = 0
 end type
 
-type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_8_retrieve from w_db_cfg_proprieta`st_8_retrieve within tabpage_8
 end type
 
-type dw_8 from w_g_tab_3`dw_8 within tabpage_8
-integer width = 0
-integer height = 0
-integer taborder = 0
-string title = ""
-string dataobject = ""
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
-boolean ki_link_standard_attivi = false
-boolean ki_button_standard_attivi = false
-boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
+type dw_8 from w_db_cfg_proprieta`dw_8 within tabpage_8
 end type
 
-type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+type tabpage_9 from w_db_cfg_proprieta`tabpage_9 within tab_1
 integer y = 176
-integer width = 3003
 integer height = 1204
-long backcolor = 0
-string text = ""
-long tabtextcolor = 0
-long tabbackcolor = 0
-long picturemaskcolor = 0
 end type
 
-type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
-integer x = 0
-integer y = 0
-integer width = 0
-integer height = 0
-integer textsize = 0
-integer weight = 0
-fontpitch fontpitch = default!
-fontfamily fontfamily = anyfont!
-string facename = ""
-long textcolor = 0
-long backcolor = 0
-string text = ""
+type st_9_retrieve from w_db_cfg_proprieta`st_9_retrieve within tabpage_9
 end type
 
-type dw_9 from w_g_tab_3`dw_9 within tabpage_9
-integer width = 0
-integer height = 0
-integer taborder = 0
-string title = ""
-string dataobject = ""
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean hsplitscroll = false
-boolean livescroll = false
-string ki_icona_normale = ""
-string ki_icona_selezionata = ""
-boolean ki_disattiva_moment_cb_aggiorna = false
-boolean ki_link_standard_attivi = false
-boolean ki_button_standard_attivi = false
-boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
+type dw_9 from w_db_cfg_proprieta`dw_9 within tabpage_9
 end type
 
-type st_duplica from w_g_tab_3`st_duplica within w_pilota_proprieta
-end type
-
-type ln_1 from line within tabpage_4
-integer linethickness = 4
-integer beginx = 361
-integer beginy = 2376
-integer endx = 2674
-integer endy = 2376
+type st_duplica from w_db_cfg_proprieta`st_duplica within w_pilota_proprieta
 end type
 
