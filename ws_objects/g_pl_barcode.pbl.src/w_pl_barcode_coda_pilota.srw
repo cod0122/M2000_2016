@@ -774,10 +774,9 @@ protected function string check_dati ();//=== Controllo congruenza dei dati cari
 //
 //=== Controllo dati inseriti
 string k_return = " ", k_errore="0", k_barcode=""
-int k_nr_errori, k_pl_barcode_progr 
-long k_riga, k_nr_righe, k_riga_find, k_riga_ds
+int k_pl_barcode_progr 
+long k_riga, k_nr_righe, k_riga_ds
 st_esito kst_esito
-kuf_base kuf1_base
 kuf_pl_barcode kuf1_pl_barcode
 ds_pl_barcode_dett kds_pl_barcode_dett
 
@@ -786,59 +785,59 @@ ds_pl_barcode_dett kds_pl_barcode_dett
 
 	dw_dett_0.accepttext()
 	
-		k_nr_righe = dw_dett_0.rowcount()
-		k_nr_errori = 0
-		k_riga_find = 0 
-		k_riga = 1 //dw_dett_0.getnextmodified(0, primary!)
+	k_nr_righe = dw_dett_0.rowcount()
+	k_riga = 1 //dw_dett_0.getnextmodified(0, primary!)
 	
-		do while k_nr_righe >= k_riga and k_nr_errori < 10
+	do while k_nr_righe >= k_riga
 	
-			k_pl_barcode_progr = dw_dett_0.getitemnumber ( k_riga, "ordine")
-			
+		k_pl_barcode_progr = dw_dett_0.getitemnumber ( k_riga, "ordine")
+		
 //--- Tolgo valori a null dai giri
-			if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila1")) then
-				dw_dett_0.setitem ( k_riga, "ciclifila1", 0)
-			end if
-			if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila1p")) then
-				dw_dett_0.setitem ( k_riga, "ciclifila1p", 0)
-			end if
-			if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila2")) then
-				dw_dett_0.setitem ( k_riga, "ciclifila2", 0)
-			end if
-			if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila2p")) then
-				dw_dett_0.setitem ( k_riga, "ciclifila2p", 0)
-			end if
+		if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila1")) then
+			dw_dett_0.setitem ( k_riga, "ciclifila1", 0)
+		end if
+		if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila1p")) then
+			dw_dett_0.setitem ( k_riga, "ciclifila1p", 0)
+		end if
+		if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila2")) then
+			dw_dett_0.setitem ( k_riga, "ciclifila2", 0)
+		end if
+		if isnull(dw_dett_0.getitemnumber ( k_riga, "ciclifila2p")) then
+			dw_dett_0.setitem ( k_riga, "ciclifila2p", 0)
+		end if
 
 //--- Popolo il Datastore x il controllo della Programmazione
-			k_riga_ds = kds_pl_barcode_dett.insertrow(0)
-			kds_pl_barcode_dett.object.pl_barcode_progr[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ordine")
-			kds_pl_barcode_dett.object.fila_1[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila1")
-			kds_pl_barcode_dett.object.fila_2[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila2")
-			kds_pl_barcode_dett.object.fila_1p[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila1p")
-			kds_pl_barcode_dett.object.fila_2p[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila2p")
-			kds_pl_barcode_dett.object.tipo_cicli[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "k_tipo_cicli")
-			kds_pl_barcode_dett.object.barcode[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "barcode")  // 21.01.2015
-			
-			k_riga++ // = dw_dett_0.getnextmodified(k_riga, primary!) 
+		k_riga_ds = kds_pl_barcode_dett.insertrow(0)
+		kds_pl_barcode_dett.object.pl_barcode_progr[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ordine")
+		kds_pl_barcode_dett.object.fila_1[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila1")
+		kds_pl_barcode_dett.object.fila_2[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila2")
+		kds_pl_barcode_dett.object.fila_1p[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila1p")
+		kds_pl_barcode_dett.object.fila_2p[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ciclifila2p")
+		kds_pl_barcode_dett.object.tipo_cicli[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "k_tipo_cicli")
+		kds_pl_barcode_dett.object.barcode[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "barcode")  // 21.01.2015
+		
+		k_riga++ // = dw_dett_0.getnextmodified(k_riga, primary!) 
 	
-		loop
-
+	loop
 
 //--- Controllo programmazione (ripristinato il 05/03/2013)
-		try
-			kuf1_pl_barcode = create kuf_pl_barcode 
+	try
+		kuf1_pl_barcode = create kuf_pl_barcode 
 //			kst_esito = kuf1_pl_barcode.pl_barcode_check_pianificazione(kds_pl_barcode_dett)
-			kuf1_pl_barcode.if_pianificazione_ok(kds_pl_barcode_dett, "modifica") 
+		kuf1_pl_barcode.if_pianificazione_ok(kds_pl_barcode_dett, "modifica") 
 //			destroy kuf1_pl_barcode
 
-		catch (uo_exception kuo_exception)
-			kst_esito = kuo_exception.get_st_esito()
-			if kst_esito.esito <> kkg_esito.ok then
-				k_return = k_return + trim(kst_esito.sqlerrtext) + "~n~r"
-				k_errore = "3"
-			end if
-			
-		end try
+	catch (uo_exception kuo_exception)
+		kst_esito = kuo_exception.get_st_esito()
+		if kst_esito.esito <> kkg_esito.ok then
+			k_return = k_return + trim(kst_esito.sqlerrtext) + "~n~r"
+			k_errore = "3"
+		end if
+
+	finally
+		if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
+		
+	end try
 
 destroy kds_pl_barcode_dett
 
@@ -940,7 +939,10 @@ st_tab_barcode kst_tab_barcode
 kuf_barcode kuf1_barcode
 
  
-
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
 	if ki_st_open_w.flag_modalita <> kkg_flag_modalita.modifica &
 		and ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento then
 	
@@ -978,20 +980,15 @@ kuf_barcode kuf1_barcode
 	if k_riga > 0 then		
 		kst_tab_barcode.pl_barcode = 0
 		kst_tab_barcode.barcode = dw_dett_0.object.barcode.primary[k_riga]
-		kst_esito = kuf1_barcode.select_barcode(kst_tab_barcode)
-		if kst_esito.esito <> kkg_esito.ok then
-			messagebox("Modifica Cicli di Trattamento", &
-						"Errore durante Ricerca del Barcode~n~r"+kst_esito.sqlerrtext)
-		else
-			kst_tab_barcode.num_int = kst_tab_barcode.num_int
-			kst_tab_barcode.data_int = kst_tab_barcode.data_int
-			kst_tab_barcode.fila_1 = dw_dett_0.object.ciclifila1.primary[k_riga]
-			kst_tab_barcode.fila_1p = dw_dett_0.object.ciclifila1p.primary[k_riga]
-			kst_tab_barcode.fila_2 = dw_dett_0.object.ciclifila2.primary[k_riga]
-			kst_tab_barcode.fila_2p = dw_dett_0.object.ciclifila2p.primary[k_riga]
-		end if	
+		kuf1_barcode.select_barcode(kst_tab_barcode)
+		
+		kst_tab_barcode.num_int = kst_tab_barcode.num_int
+		kst_tab_barcode.data_int = kst_tab_barcode.data_int
+		kst_tab_barcode.fila_1 = dw_dett_0.object.ciclifila1.primary[k_riga]
+		kst_tab_barcode.fila_1p = dw_dett_0.object.ciclifila1p.primary[k_riga]
+		kst_tab_barcode.fila_2 = dw_dett_0.object.ciclifila2.primary[k_riga]
+		kst_tab_barcode.fila_2p = dw_dett_0.object.ciclifila2p.primary[k_riga]
 	end if	
-
 
 	if k_riga > 0 then
 
@@ -1029,14 +1026,16 @@ kuf_barcode kuf1_barcode
 						"Selezionare una riga nella lista")
 	end if	
 
-	destroy kuf1_barcode
+	
+catch (uo_exception kuo_exception)
+	messagebox("Modifica Cicli di Trattamento", &
+			"Errore durante Ricerca del Barcode " + trim(kst_tab_barcode.barcode) + " " + kkg.acapo + kuo_exception.kist_esito.sqlerrtext)
+	
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	SetPointer(kkg.pointer_default)
 
-//else
-//	messagebox("Modifica non permessa", &
-//						"In questa modalita' non e' consentita la modifica dei dati")
-//end if
-	 
-
+end try
 
 end subroutine
 
@@ -1394,19 +1393,20 @@ try
 //--- 25.05.2015				kuf1_barcode.tb_togli_da_groupage(kst_tab_barcode_figli)
 
 	//--- legge barcode 
-				kuf1_barcode.select_barcode(kst_tab_barcode_figli)
+				if kuf1_barcode.select_barcode(kst_tab_barcode_figli) then
 			
 	//--- Toglie barcode dal P.L.
-				kuf1_barcode.togli_pl_barcode_non_chiuso (kst_tab_barcode_figli)
+					kuf1_barcode.togli_pl_barcode_non_chiuso (kst_tab_barcode_figli)
 			
 //--- Aggiornamento tabella ARTR 
-				setnull(kst_tab_artr.data_fin) 
-				kst_tab_artr.pl_barcode = kst_tab_barcode_figli.pl_barcode
-				kst_tab_artr.id_armo = kst_tab_barcode_figli.id_armo
-				kst_tab_artr.colli = 1 
-				kst_tab_artr.colli_groupage = 1 
-				kst_esito = kuf1_artr.togli_colli_in_lavorazione(kst_tab_artr)
-
+					setnull(kst_tab_artr.data_fin) 
+					kst_tab_artr.pl_barcode = kst_tab_barcode_figli.pl_barcode
+					kst_tab_artr.id_armo = kst_tab_barcode_figli.id_armo
+					kst_tab_artr.colli = 1 
+					kst_tab_artr.colli_groupage = 1 
+					kst_esito = kuf1_artr.togli_colli_in_lavorazione(kst_tab_artr)
+				end if
+				
 			end for
 			
 		end if
@@ -1877,10 +1877,9 @@ if not(ki_invio_programma_eseguito) then
 	if dw_dett_0.u_dati_modificati() then
 
 		if messagebox ("Richiesta di Uscita", &
-						"Programma modificato ma non INVIATO al Pilota i!!~n~r" &
-						+" ~n~r" &
-						+ "Vuoi davvero uscire dalla funzione?" &
-						+" ~n~r" &
+						"Programma del Gamma 2 modificato ma non Inviato al Pilota !! " &
+						+ kkg.acapo &
+						+ "Chiudere la funzione? " &
 						 ,question!, YesNo!, 2) = 2 then
 
 			k_return = 2

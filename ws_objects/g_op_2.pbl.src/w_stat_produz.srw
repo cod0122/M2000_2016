@@ -1451,9 +1451,11 @@ kpointer = SetPointer(HourGlass!)
 //		k_sql +=  " and dose > 0 " + " "
 //	end if
 	
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-
-
+	try
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try
 	
 //=== Riprist. il vecchio puntatore : 
 SetPointer(kpointer)
@@ -1478,8 +1480,6 @@ try
 //=== Puntatore Cursore da attesa.....
 //=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
 	kpointer = SetPointer(HourGlass!)
-
-
 
 //--- costruisco la view con ID_MECA delle fatture emesse da data a data
 	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_mfat "
@@ -1519,7 +1519,7 @@ try
 		k_sql += " and s_arfa.dose > 0 " + " "
 	end if
 	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
 	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1546,7 +1546,6 @@ pointer kpointer  // Declares a pointer variable
 //=== Puntatore Cursore da attesa.....
 //=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
 kpointer = SetPointer(HourGlass!)
-
 
 
 //--- costruisco la view con ID_MECA delle fatture emesse da data a data
@@ -1587,9 +1586,11 @@ kpointer = SetPointer(HourGlass!)
 		k_sql += " and dose > 0 " + " "
 	end if
 	
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-
-
+	try
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try
 	
 //=== Riprist. il vecchio puntatore : 
 SetPointer(kpointer)

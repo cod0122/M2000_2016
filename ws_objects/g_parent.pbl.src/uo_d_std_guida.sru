@@ -83,12 +83,6 @@ this.SelectText( 1, Len(this.gettext( ))) // String( GetItemString( 1, 1 ) ) )) 
 
 end event
 
-event editchanged;//
-	event ue_retrieve_dinamico(dwo.name, data) 
-
-
-end event
-
 event itemchanged;//
 //	ki_enter_pressed = true  // come che avessi premuto enter
 	event ue_retrieve_dinamico(dwo.name, data) 
@@ -112,10 +106,22 @@ kidw_this = this
 
 end event
 
-event losefocus;//
-this.accepttext( )
+event losefocus;/*
+   21/5/24
+   ATTENZIONE!!!  QUESTE RIGHE IMPEFISCONO AL DROPBOX DELLA DATA DI APRIRSI
+   NEL CASO INIBIRE QUESTO EVENTO!!!!
+*/	
+this.accepttext( )  
 //kguo_g.use_col_background_input_field(kidw_this, "") // toglie colore in background  
-this.modify(this.getcolumnname() + ".Background.Color=" + kkg_colore.BIANCOX + " ")  // toglie colore in background  
+//string k_colname
+//k_colname = this.getcolumnname()
+this.modify(this.getcolumnname() + ".Background.Color='" + kkg_colore.BIANCOX + "' ")  // toglie colore in background  
+
+end event
+
+event editchanged;//
+// se interessa fare una riga così:
+//	event ue_retrieve_dinamico(dwo.name, data) 
 
 end event
 

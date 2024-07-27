@@ -152,7 +152,7 @@ constant string kkg_id_programma_pl_barcode = "pl_barcode"
 constant string kkg_id_programma_dosimetria = "convalida"    
 constant string kkg_id_programma_dosimetria_da_autorizzare = "convalidaut"
 constant string kkg_id_programma_dosimetria_da_sbloccare = "convalidablk"
-constant string kkg_id_programma_sblocca_non_conforme = "nonconfsblk"
+//constant string kkg_id_programma_sblocca_non_conforme = "nonconfsblk"
 constant string kkg_id_programma_anag = "cl"
 constant string kkg_id_programma_anag_rid = "cl_rid"
 constant string kkg_id_programma_anag_memo = "cl_memo"
@@ -187,7 +187,7 @@ constant string kkg_id_programma_listini_l = "listino_l"
 constant string kkg_id_programma_pilota_proprieta = "pilota_p"
 constant string kkg_id_programma_pilota_esporta_pl = "pilota_exp_p"
 constant string kkg_id_programma_pilota_importa_esiti = "pilota_imp_p"
-constant string kkg_id_programma_pilota_programmazione = "pilota_prg"
+//constant string kkg_id_programma_pilota_programmazione = "pilota_prg"
 constant string kkg_id_programma_profis_l = "profis_l"
 constant string kkg_id_programma_sr_change_pwd = "srpassword_c"
 constant string kkg_id_programma_sr_change_pwd_u = "srpassword"
@@ -256,7 +256,7 @@ long richtexteditx64type = 5
 long richtexteditversion = 3
 string richtexteditkey = ""
 string appicon = "main.ico"
-string appruntimeversion = "22.2.0.3289"
+string appruntimeversion = "22.2.0.3356"
 boolean manualsession = false
 boolean unsupportedapierror = false
 boolean ultrafast = false
@@ -372,7 +372,7 @@ if isvalid(kuf1_utility) then destroy kuf1_utility
 
 //--- se utente inattivo x + di 2h (7200 sec) allora lancia idle()
 idle(7200)
-//idle(60) // TETS
+//idle(60) // TEST
 
 
 SetPointer(kkg.pointer_default) 
@@ -465,15 +465,9 @@ KG_application = this
 //--- Creo oggetto userobject GLOBALE x gestione ECCEZIONI
 kGuo_exception = create uo_exception 
 
-//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-MAGAZZINO
-//
+//--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-MAGAZZINO (KGuo_sqlca_db_magazzino)
 try
-	kguo_path.set_server_name()   // set nome SERVER dal confdb
-	kguo_path.set_file_access_name()  // set nome file di configurazione connessione ecc... DB dal confdb
-	KGuo_sqlca_db_magazzino = create Kuo_sqlca_db_magazzino
-	SQLCA = KGuo_sqlca_db_magazzino
-	//KGuo_sqlca_db_magazzino = SQLCA
-	KGuo_sqlca_db_magazzino.inizializza( )   // recupera i dati di connessione al DB
+	kGuf_data_base.u_set_uo_sqlca_db_magazzino()  // Imposta Connessione al DB Principale
 catch (uo_exception kuo_exception)
 	kuo_exception.scrivi_log( )
 	kguo_exception.set_esito(kuo_exception.get_st_esito())
@@ -842,12 +836,18 @@ event idle;
 if kguo_utente.if_virtual_user( ) then
 else
 //	try
-		
-		kguo_exception.inizializza( )
-		kguo_exception.kist_esito.esito = kkg_esito_no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Uscita FORZATA dall'Applicazione per prolungata inattività (timeout da IDLE)!"
-		kguo_exception.scrivi_log( )
-		
+	
+	kguo_exception.inizializza( )
+	kguo_exception.kist_esito.esito = kkg_esito_no_esecuzione
+	kguo_exception.kist_esito.sqlerrtext = "Uscita FORZATA dall'Applicazione per prolungata inattività (timeout da IDLE)!"
+	kguo_exception.scrivi_log( )
+
+	if isvalid(kguo_sqlca_db_magazzino) then
+		if not isnull(kguo_sqlca_db_magazzino) then
+			kguo_sqlca_db_magazzino.db_disconnetti( )
+		end if
+	end if
+
 //	catch (uo_exception kuo_exception)
 //	end try
 	

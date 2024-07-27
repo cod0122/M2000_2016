@@ -543,63 +543,67 @@ event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//---
 //---
 string k_code
 long k_riga
+boolean k_elab = true
 st_ptasks_guida kst_ptasks_guida
 datawindowchild kdwc_cliente
 
 
 try
 
-	if trim(dw_guida.getitemstring(1, "code")) > " " then
-		k_code = trim(dw_guida.getitemstring(1, "code"))
+	k_code = trim(dw_guida.getitemstring(1, "code"))
+	if k_code > " " then
 		if isnumber(k_code) then
 			kst_ptasks_guida.n_ptask = long(k_code)
 		elseif upper(left(k_code, 1)) = "C" and isnumber(mid(k_code, 2)) then
-	//--- estrazione puntuale sul cliente?	
+	//--- estrazione puntuale sul cliente?
 			kst_ptasks_guida.id_cliente = long(trim(mid(k_code, 2)))
 			kst_ptasks_guida.id_ptask = 0
 			kst_ptasks_guida.id_ptask = 0
 		end if
 		if kst_ptasks_guida.id_cliente = 0 then
-			if k_code > " " and left(k_code, 1) <> "%" then
+			if k_code > " " and (left(k_code, 1) <> "%" and left(k_code, 1) <> "*") then
 				this.getchild("code", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.settransobject(kguo_sqlca_db_magazzino)
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
 				end if
-				k_riga=kdwc_cliente.find("rag_soc_10 like '%" + trim(k_code) + "%'",&
-															1, kdwc_cliente.rowcount())
+				k_riga=kdwc_cliente.find("rag_soc_10 like '%" + trim(k_code) + "%'", 1, kdwc_cliente.rowcount())
 				if k_riga > 0 then
 					kst_ptasks_guida.id_cliente = kdwc_cliente.getitemnumber(k_riga, "id_cliente")
 				end if
 			else
 				
 				//--- cerca dato nella stringona JSON
-				if left(k_code, 1) = "%" and mid(k_code, 2, 1) > " " then
-					kst_ptasks_guida.data_json = k_code + "%"
+				if (left(k_code, 1) = "%" or left(k_code, 1) = "*") and trim(mid(k_code, 2, 1)) > " " then
+					kst_ptasks_guida.data_json = "%" + trim(mid(k_code, 2, 1)) + "%"
+				else
+					k_elab = false
 				end if
 			
 			end if
 		end if
 	end if
 	
-	kst_ptasks_guida.status = trim(dw_guida.getitemstring(1, "status"))
-	
-	if (kst_ptasks_guida.id_ptask = 0 and kst_ptasks_guida.id_cliente = 0 and k_code = "") &
-				or kst_ptasks_guida.n_ptask <> kist_ptasks_guida_last_retrieve.n_ptask &
-				or kst_ptasks_guida.id_cliente <> kist_ptasks_guida_last_retrieve.id_cliente &
-				or (kst_ptasks_guida.n_ptask > 0 and kist_ptasks_guida_last_retrieve.n_ptask = 0) &
-				or (kst_ptasks_guida.id_cliente > 0 and kist_ptasks_guida_last_retrieve.id_cliente = 0) &
-				or kst_ptasks_guida.status <> kist_ptasks_guida_last_retrieve.status &
-				or kst_ptasks_guida.data_json <> kist_ptasks_guida_last_retrieve.data_json &
-			then
+	if k_elab then
+		kst_ptasks_guida.status = trim(dw_guida.getitemstring(1, "status"))
+		
+		if (kst_ptasks_guida.id_ptask = 0 and kst_ptasks_guida.id_cliente = 0 and k_code = "") &
+					or kst_ptasks_guida.n_ptask <> kist_ptasks_guida_last_retrieve.n_ptask &
+					or kst_ptasks_guida.id_cliente <> kist_ptasks_guida_last_retrieve.id_cliente &
+					or (kst_ptasks_guida.n_ptask > 0 and kist_ptasks_guida_last_retrieve.n_ptask = 0) &
+					or (kst_ptasks_guida.id_cliente > 0 and kist_ptasks_guida_last_retrieve.id_cliente = 0) &
+					or kst_ptasks_guida.status <> kist_ptasks_guida_last_retrieve.status &
+					or kst_ptasks_guida.data_json <> kist_ptasks_guida_last_retrieve.data_json &
+				then
+					
+			kist_ptasks_guida_last_retrieve.n_ptask = kst_ptasks_guida.n_ptask
+			kist_ptasks_guida_last_retrieve.id_cliente = kst_ptasks_guida.id_cliente
+			kist_ptasks_guida_last_retrieve.status = kst_ptasks_guida.status
+			kist_ptasks_guida_last_retrieve.data_json = kst_ptasks_guida.data_json
+			u_retrieve_dw_lista()
 				
-		kist_ptasks_guida_last_retrieve.n_ptask = kst_ptasks_guida.n_ptask
-		kist_ptasks_guida_last_retrieve.id_cliente = kst_ptasks_guida.id_cliente
-		kist_ptasks_guida_last_retrieve.status = kst_ptasks_guida.status
-		kist_ptasks_guida_last_retrieve.data_json = kst_ptasks_guida.data_json
-		u_retrieve_dw_lista()
-			
+		end if
 	end if
 
 catch (uo_exception kuo_exception)

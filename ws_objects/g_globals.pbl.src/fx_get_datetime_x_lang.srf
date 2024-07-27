@@ -1,0 +1,32 @@
+﻿$PBExportHeader$fx_get_datetime_x_lang.srf
+global type fx_get_datetime_x_lang from function_object
+end type
+
+forward prototypes
+global function string fx_get_datetime_x_lang (date adate, time atime, string a_lang)
+end prototypes
+
+global function string fx_get_datetime_x_lang (date adate, time atime, string a_lang);//
+string k_return
+
+if adate > date(01,01,1990) then
+else
+	return ""
+end if
+
+if a_lang > " " then
+else
+	a_lang = ""
+end if
+
+k_return = string(adate, "dd") + " " + kguo_g.get_month(month(adate), trim(a_lang)) + " " + string(adate, "yyyy")
+
+if atime > time(0) then
+	k_return += " " + string(atime, "hh:mm") 
+end if
+
+return k_return 
+		
+
+end function
+

@@ -130,40 +130,51 @@ try
 		
 //--- se tutto OK  procedo con l'emissione		
 		if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn then	
+
+			if not rb_prova.checked then   // se DEFINITIVA emetto AVVISO
+				messagebox("AVVISO", "Aggiornare TERMINAL SMART", Exclamation!)
+			end if
 			
 	//--- STAMPA se richiesto esplicitamente 
 			if rb_modo_stampa_s.checked  then
 			
 				k_nr_ddt = kuf1_sped_ddt.stampa_ddt (kst_ddt_stampa[])  // STAMPA
 			
-				kuo1_exception.kist_esito = kst_esito
+				//kuo1_exception.kist_esito = kst_esito
 				if k_nr_ddt = 0 then
-					kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_dati_insufficienti )
-					kuo1_exception.setmessage("Nessun documento Stampato")
+					//kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_dati_insufficienti )
+					//kuo1_exception.setmessage("Nessun documento Stampato")
+					dw_note.event u_add_note("Nessun documento stampato.")
 				else
-					kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_ok )
+					//kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_ok )
 					if k_nr_ddt = 1 then
-						kuo1_exception.setmessage("Fine elaborazione, 1 documento stampato")
+						dw_note.event u_add_note("Stampato il DDT n. " + string(kst_ddt_stampa[1].num_bolla_out) + ".")
+						//kuo1_exception.setmessage("Fine elaborazione, 1 documento stampato")
 					else
-						kuo1_exception.setmessage("Fine elaborazione, " + string(k_nr_ddt) + " documenti stampati")
+						dw_note.event u_add_note("Sono stati stampati " + string(k_nr_ddt) + " DDT.")
+						//kuo1_exception.setmessage("Fine elaborazione, " + string(k_nr_ddt) + " documenti stampati")
 					end if
 				end if
 			end if
-		
+
 	//--- PDF!!!
 			if not rb_modo_stampa_s.checked then
 			
 //				k_nr_ddt = kuf1_sped_ddt.stampa_ddt_digitale (kist_sped_ddt[])
 			
 				if k_nr_ddt = 0 then
-					kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_dati_insufficienti )
-					kuo1_exception.setmessage(" Nessun documento digitalizzato ")
+					//kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_dati_insufficienti )
+					//kuo1_exception.setmessage(" Nessun documento digitalizzato ")
+					dw_note.event u_add_note("Nessun documento emesso.")
+
 				else
-					kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_ok )
+					//kuo1_exception.set_tipo(kuo1_exception.kk_st_uo_exception_tipo_ok )
 					if k_nr_ddt = 1 then
-						kuo1_exception.setmessage("Fine elaborazione, 1 documento digitale emesso")
+						//kuo1_exception.setmessage("Fine elaborazione, 1 documento digitale emesso")
+						dw_note.event u_add_note("Emesso il DDT n. " + string(kst_ddt_stampa[1].num_bolla_out) + ".")
 					else
-						kuo1_exception.setmessage("Fine elaborazione, " + string(k_nr_ddt) + " documenti digitali emessi")
+						//kuo1_exception.setmessage("Fine elaborazione, " + string(k_nr_ddt) + " documenti digitali emessi")
+						dw_note.event u_add_note("Sono stati emessi " + string(k_nr_ddt) + " DDT.")
 					end if
 				end if
 			
@@ -187,7 +198,7 @@ try
 			end if
 		end if
 			
-		kuo1_exception.messaggio_utente( )
+		//kuo1_exception.messaggio_utente( )
 
 //--- se tutto OK e stampato il cartaceo e ho stampato qls allora cancello i ddt stampati dall'elenco
 		if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn then	
@@ -207,7 +218,7 @@ catch (uo_exception kuo_exception)
 finally
 	if isvalid(kuf1_sped_ddt) then destroy kuf1_sped_ddt
 	if isvalid(kuf1_sped) then destroy kuf1_sped
-	if isvalid(kuo1_exception) then destroy kuo1_exception
+//	if isvalid(kuo1_exception) then destroy kuo1_exception
 
 	setpointer(kpointer)
 	
@@ -930,7 +941,8 @@ integer y = 1712
 end type
 
 type dw_documenti from w_g_tab_st`dw_documenti within w_ddt_new_st
-integer height = 1936
+integer width = 2363
+integer height = 1428
 string dataobject = "d_sped_l5"
 end type
 
@@ -974,6 +986,11 @@ integer y = 1588
 integer width = 1024
 integer height = 92
 string text = "Esce a fine stampa se elenco vuoto"
+end type
+
+type dw_note from w_g_tab_st`dw_note within w_ddt_new_st
+boolean visible = true
+boolean enabled = true
 end type
 
 type gb_aggiorna from w_g_tab_st`gb_aggiorna within w_ddt_new_st

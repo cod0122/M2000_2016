@@ -671,8 +671,6 @@ try
 				
 			tab_1.tabpage_3.dw_3.ki_flag_modalita = ki_st_open_w.flag_modalita
 	
-			tab_1.tabpage_3.dw_3.event u_ddwc_e1wo()
-	
 			k_return = tab_1.tabpage_3.dw_3.retrieve(0 &
 															,tab_1.tabpage_1.dw_1.getitemnumber(1, "id_ptask") &
 															,k_id_ptasks_type) 
@@ -695,8 +693,13 @@ try
 			
 			if k_return > 0 then
 				
+				tab_1.tabpage_3.dw_3.setitem(1, "k_flag_modalita", tab_1.tabpage_3.dw_3.ki_flag_modalita)
+				tab_1.tabpage_3.dw_3.SetItemStatus( 1, "k_flag_modalita", Primary!, NotModified!)
+				
+				tab_1.tabpage_3.dw_3.event u_ddwc_e1wo()
 				tab_1.tabpage_3.dw_3.event u_ddwc_accettazione_pesolordoxlottokg( )
 				tab_1.tabpage_3.dw_3.event u_ddwc_accettazione_dhlbox( )
+				tab_1.tabpage_3.dw_3.event u_ddwc_accettazione_clie_1_2()
 				
 			end if
 			
@@ -704,8 +707,6 @@ try
 	end if
 
 	if k_return > 0 then
-		tab_1.tabpage_3.dw_3.setitem(1, "k_flag_modalita", tab_1.tabpage_3.dw_3.ki_flag_modalita)
-		tab_1.tabpage_3.dw_3.SetItemStatus( 1, "k_flag_modalita", Primary!, NotModified!)
 	else
 		tab_1.tabpage_3.dw_3.reset()
 	end if
@@ -857,6 +858,8 @@ if tab_1.tabpage_3.dw_3.rowcount( ) > 0 then
 	kst_tab_ptasks_rows.acc_pesolordoxlottokg = tab_1.tabpage_3.dw_3.getitemnumber( 1, "accettazione_pesolordoxlottokg")
 	kst_tab_ptasks_rows.acc_dhlbox = tab_1.tabpage_3.dw_3.getitemstring( 1, "accettazione_dhlbox")
 	kst_tab_ptasks_rows.acc_boxdimcm = tab_1.tabpage_3.dw_3.getitemstring( 1, "accettazione_boxdimcm")
+	kst_tab_ptasks_rows.acc_clie_1 = tab_1.tabpage_3.dw_3.getitemnumber( 1, "accettazione_clie_1")
+	kst_tab_ptasks_rows.acc_clie_2 = tab_1.tabpage_3.dw_3.getitemnumber( 1, "accettazione_clie_2")
 end if
 
 if tab_1.tabpage_4.dw_4.rowcount( ) > 0 then
@@ -2159,6 +2162,36 @@ event close;call super::close;//
 
 end event
 
+event u_ricevi_da_elenco;call super::u_ricevi_da_elenco;//
+int k_return
+int k_rc
+long k_row
+datastore kds_elenco_input
+
+
+if isvalid(kst_open_w) then
+
+	if isnumber(kst_open_w.key3) then
+		if not isvalid(kds_elenco_input) then kds_elenco_input = create datastore
+		kds_elenco_input = kst_open_w.key12_any 
+		if kds_elenco_input.dataobject = "d_m_r_f_l_x_clie_3" then
+			k_row = long(kst_open_w.key3)
+			
+			tab_1.tabpage_3.dw_3.setitem(1, "accettazione_clie_1", kds_elenco_input.getitemnumber(k_row, "clie_1"))
+			tab_1.tabpage_3.dw_3.setitem(1, "c1_rag_soc_10", kds_elenco_input.getitemstring(k_row, "clienti_rag_soc_1"))
+			tab_1.tabpage_3.dw_3.setitem(1, "accettazione_clie_2", kds_elenco_input.getitemnumber(k_row, "clie_2"))
+			tab_1.tabpage_3.dw_3.setitem(1, "c2_rag_soc_10", kds_elenco_input.getitemstring(k_row, "clienti_rag_soc_2"))
+			
+			k_return = 1 // exit from  zoom
+		end if			
+	end if
+		
+end if
+
+return k_return
+
+end event
+
 type dw_print_0 from w_g_tab_3`dw_print_0 within w_ptasks
 integer x = 1472
 integer y = 320
@@ -2882,6 +2915,10 @@ type dw_3 from w_g_tab_3`dw_3 within tabpage_3
 event u_ddwc_e1wo ( )
 event u_ddwc_accettazione_pesolordoxlottokg ( )
 event u_ddwc_accettazione_dhlbox ( )
+event u_ddwc_accettazione_clie_1_2 ( )
+event u_ddwc_accettazione_clie ( string a_accettazione_clie_1_2,  long a_clie_1_2 )
+event u_call_mrf_x_clie_3 ( )
+event u_ddwc_set_accettazione_clie ( string a_cx_rag_soc_10 )
 boolean enabled = true
 string dataobject = "d_ptasks_row_acc"
 end type
@@ -2891,6 +2928,8 @@ long k_rc, k_id_cliente
 datawindowchild kdwc_1
 
 
+if NOT this.u_get_protect("accettazione_e1wo") then
+
 	k_id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")
 	this.getchild("accettazione_e1wo", kdwc_1)
 	kdwc_1.settransobject( kguo_sqlca_db_magazzino )
@@ -2898,7 +2937,8 @@ datawindowchild kdwc_1
 		k_rc = kdwc_1.retrieve(k_id_cliente)
 		kdwc_1.insertrow(1)
 	end if
-	
+
+end if
 end event
 
 event dw_3::u_ddwc_accettazione_pesolordoxlottokg();//
@@ -2934,7 +2974,72 @@ datawindowchild kdwc_1
 			end if
 		end if
 	end if	
+
+
+end event
+
+event dw_3::u_ddwc_accettazione_clie_1_2();//
+
+if NOT this.u_get_protect("c1_rag_soc_10") then
+	this.event u_ddwc_accettazione_clie("c1_rag_soc_10", 0)
+	this.event u_ddwc_accettazione_clie("c2_rag_soc_10", 0)
+end if
+
+end event
+
+event dw_3::u_ddwc_accettazione_clie(string a_accettazione_clie_1_2, long a_clie_1_2);//
+long k_id_cliente
+datawindowchild kdwc_1, kdwc_shared
+
+		k_id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")
+		this.getchild(a_accettazione_clie_1_2, kdwc_1)
+		kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+		kdwc_1.retrieve(a_clie_1_2, k_id_cliente)
+		kdwc_1.insertrow(1)
+//		this.getchild(a_accettazione_clie_1_2_shared, kdwc_shared)
+//		kdwc_1.sharedata(kdwc_shared)
+		
+
+end event
+
+event dw_3::u_call_mrf_x_clie_3();//
+//--- elenco dei Legami x cliente
+long k_id_cliente
+kuf_elenco kuf1_elenco
+uo_ds_std_1 kuo_ds_std_1
+
+
+k_id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")
+
+if k_id_cliente > 0 then
+	kuo_ds_std_1 = create uo_ds_std_1
+	kuo_ds_std_1.dataobject = "d_m_r_f_l_x_clie_3"
+	kuo_ds_std_1.settransobject(kguo_sqlca_db_magazzino)
+	kuo_ds_std_1.retrieve(k_id_cliente)
 	
+	kuf1_elenco = create kuf_elenco
+	
+	kuf1_elenco.u_open_zoom("Elenco Legami di " + trim(tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10")), "", kuo_ds_std_1) //TITOLO+CAMPO DI LINK + DATASTORE CON I DATI
+end if
+
+end event
+
+event dw_3::u_ddwc_set_accettazione_clie(string a_cx_rag_soc_10);//
+long k_row
+datawindowchild kdwc_1
+
+
+		this.getchild(a_cx_rag_soc_10, kdwc_1)
+		k_row = kdwc_1.getrow()
+		if k_row > 0 then
+			if a_cx_rag_soc_10 = "c1_rag_soc_10" then 
+				this.setitem(1, "accettazione_clie_1", kdwc_1.getitemnumber(k_row, "clie_1"))
+			else
+				this.setitem(1, "accettazione_clie_2", kdwc_1.getitemnumber(k_row, "clie_2"))
+			end if
+		end if
+		
+
 end event
 
 event dw_3::clicked;call super::clicked;//
@@ -2944,35 +3049,62 @@ event dw_3::clicked;call super::clicked;//
 			if date(this.getitemdatetime(row, "k_accettazione_arrivodata")) > kkg.data_no then
 				this.setitem(row, "accettazione_arrivodata", date(this.getitemdatetime(row, "k_accettazione_arrivodata")))
 			end if
+			
 		case "b_accettazione_e1wo"
 			if this.getitemnumber(row, "k_accettazione_e1wo") > 0 then
 				this.setitem(1, "accettazione_e1wo", this.getitemnumber(row, "k_accettazione_e1wo"))
 			end if
+			
+		case "p_mrf_x_clie_3"
+			this.event u_call_mrf_x_clie_3()
+			
 			
 	end choose
 end event
 
 event dw_3::itemchanged;call super::itemchanged;//
 long k_rc, k_row
+long k_id, k_id_cliente
 datawindowchild kdwc_1
 
 
-if dwo.name = "accettazione_dhlbox" then
-	
-	if data > " " then	
+choose case dwo.name
 
-		this.getchild("accettazione_dhlbox", kdwc_1)
-		kdwc_1.settransobject( kguo_sqlca_db_magazzino )
-		if kdwc_1.rowcount() > 0 then
-			k_row = kdwc_1.find("accettazione_dhlbox = '" + trim(data) + "'", 1, kdwc_1.rowcount())
-			if k_row > 0 then
-				if trim(kdwc_1.getitemstring(k_row, "accettazione_boxdimcm")) > " " then
-					this.post setitem(1, "accettazione_boxdimcm", trim(kdwc_1.getitemstring(k_row, "accettazione_boxdimcm")))
+	case "accettazione_dhlbox"
+		if data > " " then	
+			this.getchild("accettazione_dhlbox", kdwc_1)
+			kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+			if kdwc_1.rowcount() > 0 then
+				k_row = kdwc_1.find("accettazione_dhlbox = '" + trim(data) + "'", 1, kdwc_1.rowcount())
+				if k_row > 0 then
+					if trim(kdwc_1.getitemstring(k_row, "accettazione_boxdimcm")) > " " then
+						this.post setitem(1, "accettazione_boxdimcm", trim(kdwc_1.getitemstring(k_row, "accettazione_boxdimcm")))
+					end if
 				end if
 			end if
+		end if	
+		
+	case "c1_rag_soc_10"
+		this.event u_ddwc_set_accettazione_clie(dwo.name)
+		if data > " " then	
+			if isnumber(data) then	
+				k_id = long(data)
+			end if
 		end if
-	end if	
-end if
+		this.event u_ddwc_accettazione_clie("c2_rag_soc_10", k_id)
+		
+	case "c2_rag_soc_10"
+		this.event u_ddwc_set_accettazione_clie(dwo.name)
+		if data > " " then	
+			if isnumber(data) then	
+				k_id = long(data)
+			end if
+		end if
+		this.event u_ddwc_accettazione_clie("c1_rag_soc_10", k_id)
+
+	
+end choose
+
 end event
 
 type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3

@@ -21,6 +21,7 @@ private function string u_get_url_to_pickup_lot (long a_id_meca)
 public function integer u_check_placeholder (st_msg_replace_placeholder kst_msg_replace_placeholder) throws uo_exception
 public function string u_set_placeholder_to_lower (string a_message) throws uo_exception
 private function string u_get_url_barcode_by_code (string a_code)
+private function string oldu_get_url_to_customercollectionbook (long a_id_meca)
 end prototypes
 
 public subroutine _readme ();//---
@@ -58,7 +59,7 @@ try
 	kds_placeholder_meca = create datastore
 	kds_placeholder_meca.dataobject = "ds_placeholder_meca"
 	kds_placeholder_meca.settransobject(kguo_sqlca_db_magazzino)
-	k_rc = kds_placeholder_meca.retrieve(kst_msg_replace_placeholder.id_meca)
+	k_rc = kds_placeholder_meca.retrieve(kst_msg_replace_placeholder.id_meca, kst_msg_replace_placeholder.language)
 	
 	if k_rc > 0 then
 		
@@ -99,11 +100,17 @@ try
 					end if
 					
 				case "barcodeidlottolink" 
-	//--- recupera il url al fabbricatore di barcode: id lotto
+	//--- Compone il link a un sito che produce barcode da una stringa
 					if kst_msg_replace_placeholder.id_meca > 0 then
 						k_value = u_get_url_barcode_by_code(string(kst_msg_replace_placeholder.id_meca, "#"))
 					end if
 					
+//				case "clienteritprenlink" 
+//	//--- recupera il url di Prenotazione Ritiro Cliente
+//					if kst_msg_replace_placeholder.id_meca > 0 then
+//						k_value = u_get_url_to_customercollectionbook(kst_msg_replace_placeholder.id_meca)
+//					end if
+										
 				case else
 	//--- recupera il vaore dei segnaposto 'normali'
 					k_value = kds_placeholder_meca.getitemstring(1, k_placeholder)
@@ -138,9 +145,10 @@ end function
 
 private function string u_get_url_to_pickup_lot (long a_id_meca);//--- recupera il prefisso del link al url per il Ritiro Lotto	
 string k_return
-string k_esito_base, k_url, k_key
+string k_esito_base, k_url, k_key, k_key_sha1
 st_esito kst_esito
 kuf_base kuf1_base
+uo_crypter kuo_crypter
 
 
 try
@@ -162,7 +170,11 @@ try
 		else
 			k_key = trim(mid(k_esito_base,2))
 		end if
-		k_return = k_url + string(a_id_meca, "#") + "&check=" + k_key
+
+		kuo_crypter = create uo_crypter
+		k_key_sha1 = kuo_crypter.u_encrypt_sha1(string(a_id_meca, "00000") + k_key)
+		
+		k_return = k_url + string(a_id_meca, "#") + "&check=" + k_key_sha1
 	end if	
 	
 catch (uo_exception kuo_exception)
@@ -203,10 +215,9 @@ try
 				k_pos_fin = k_pos_start + 1
 				k_pos_fin = pos(kst_msg_replace_placeholder.msg, "]", k_pos_fin) 
 				if k_pos_fin > 0 then
-					k_placeholder = (&
-						mid(kst_msg_replace_placeholder.msg, k_pos_start, k_pos_fin - k_pos_start + 1))
-					k_placeholder_name = lower(&
-						mid(kst_msg_replace_placeholder.msg, k_pos_start + 1, k_pos_fin - k_pos_start - 1)) // toglie parentesi
+					k_placeholder = (mid(kst_msg_replace_placeholder.msg, k_pos_start, k_pos_fin - k_pos_start + 1))
+					k_placeholder_name = &
+						lower(mid(kst_msg_replace_placeholder.msg, k_pos_start + 1, k_pos_fin - k_pos_start - 1)) // toglie parentesi
 					//--- verifica se esiste il segnaposto tra quelli previsti
 					k_find_row = kids_placeholder_l.find("code = '" + k_placeholder_name + "'", 1, k_placeholder_nrows)
 					if k_find_row > 0 then
@@ -299,7 +310,7 @@ return k_return
 end function
 
 private function string u_get_url_barcode_by_code (string a_code);//
-//--- Compone il link a un sito che fabbrica barcode da una stringa
+//--- Compone il link a un sito che produce barcode da una stringa
 string k_return
 
 
@@ -320,6 +331,72 @@ finally
 //	if isvalid(kuf1_base) then destroy kuf1_base
 	
 end try
+
+return k_return 
+end function
+
+private function string oldu_get_url_to_customercollectionbook (long a_id_meca);/*
+   recupera il URL del link per la Prenotazione Ritiro del Cliente
+	Esempio:
+		secret = "6qxgMB&g4pWF$Y"
+		customer code = "00380"
+		t = "20240625160915"
+		sh = sha256("003806qxgMB&g4pWF$Y20240625160915") = 4991a0194a9f80d99e75fba2d0020a1d17802e77d7cfb8773eedd633fa9b0f47
+		
+		quindi (anche se ora non funzionante)
+		https://www.sterigenicsitaly.com/it/ritiro-start.php?t=20240625160915&sk=4991a0194a9f80d99e75fba2d0020a1d17802e77d7cfb8773eedd633fa9b0f47
+*/	
+string k_return
+//string k_esito_base, k_url, k_key, k_key_sha256, k_datetime_x
+//st_tab_meca kst_tab_meca
+//st_esito kst_esito
+//kuf_base kuf1_base
+//kuf_armo kuf1_armo
+//uo_crypter kuo_crypter
+//
+//try
+//	kuf1_base = create kuf_base
+//	k_esito_base = kuf1_base.prendi_dato_base( "smart_pickup_lots_url_xbook")
+//	if left(k_esito_base,1) <> "0" then
+//		kst_esito.esito = kkg_esito.db_ko  
+//		kst_esito.SQLErrText = "Errore in lettura url per Ritiro Lotti. Errore: " + mid(k_esito_base,2)
+//		kguo_exception.set_esito(kst_esito)
+//	else
+//		k_url = trim(mid(k_esito_base,2))
+//	end if
+//	if k_url > " " then
+//		k_esito_base = kuf1_base.prendi_dato_base( "smart_pickup_lots_sha_key")
+//		if left(k_esito_base,1) <> "0" then
+//			kst_esito.esito = kkg_esito.db_ko  
+//			kst_esito.SQLErrText = "Errore in lettura chiave SHA per Ritiro Lotti. Errore: " + mid(k_esito_base,2)
+//			kguo_exception.set_esito(kst_esito)
+//		else
+//			k_key = trim(mid(k_esito_base,2))
+//		end if
+//		
+//		k_datetime_x = string(now(), "yyyymmddhhmmss")
+//
+//		kuf1_armo = create kuf_armo
+//		kst_tab_meca.id = a_id_meca
+//		kuf1_armo.get_clie(kst_tab_meca) 
+//		
+//		kuo_crypter = create uo_crypter
+//		k_key_sha256 = kuo_crypter.u_encrypt_sha256(string(kst_tab_meca.clie_3, "00000") + k_key + k_datetime_x)
+//		
+//		k_url += "it/ritiro-start.php?t=" + k_datetime_x + "&sk=" + k_key_sha256
+//		
+//		k_return = k_url 
+//	end if	
+//	
+//catch (uo_exception kuo_exception)
+//	throw kuo_exception
+//	
+//finally
+//	if isvalid(kuo_crypter) then destroy kuo_crypter
+//	if isvalid(kuf1_base) then destroy kuf1_base
+//	if isvalid(kuf1_armo) then destroy kuf1_armo
+//	
+//end try
 
 return k_return 
 end function

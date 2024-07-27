@@ -51,11 +51,14 @@ public function boolean tb_delete (st_tab_sl_pt_dosimpos ast_tab_sl_pt_dosimpos)
 public function st_esito anteprima_dosimpos (datastore kdw_anteprima, st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function st_esito anteprima (datastore kdw_anteprima, st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function long get_id_sl_pt_memo_max () throws uo_exception
-public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
-public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
 public function boolean tb_delete (string k_codice) throws uo_exception
 public function integer get_impianto (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception
+public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
+public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
+public function boolean get_dosetgmaxfattcorr_max_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
+public function boolean get_dosetgminfattcorr_max_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
+public subroutine get_dose_min_max (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception
 end prototypes
 
 public function st_esito select_riga (ref st_tab_sl_pt k_st_tab_sl_pt);//
@@ -531,6 +534,7 @@ kuf_impianto kuf1_impianto
 		where cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt
 		using kguo_sqlca_db_magazzino;
 	else
+		ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG2
 		select
 			 dosim_x_bcode
 			 ,dosim_delta_bcode
@@ -546,7 +550,9 @@ kuf_impianto kuf1_impianto
 	end if
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati Etichette Dosimetri sul PT '" + trim(ast_tab_sl_pt.cod_sl_pt) + "', Impianto " + string(ast_tab_sl_pt.impianto))
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura dati Etichette Dosimetri sul PT '" + trim(ast_tab_sl_pt.cod_sl_pt) &
+						+ "', Impianto " + string(ast_tab_sl_pt.impianto))
 		throw kguo_exception
 	end if
 	
@@ -624,45 +630,50 @@ st_esito kst_esito
 
 end subroutine
 
-public subroutine get_dati_xconvalida (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;//
-//====================================================================
-//=== 
-//=== Leggo dati PT x fare la Convalida della Dosimetria
-//=== Inp: cod_sl_pt
-//=== Out: sl_pt.*
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//===                                     1=errore grave
-//===                                     2=errore > 0
-//=== 
-//====================================================================
-//
-st_esito kst_esito
+public subroutine get_dati_xconvalida (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;/*
+ Leggo dati PT x fare la Convalida della Dosimetria
+   Inp: cod_sl_pt + impianto
+   Out: st_tab_sl_pt. dose*
+*/
+kuf_impianto kuf1_impianto
 
+	kguo_exception.inizializza(this.classname())
 
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if kst_tab_sl_pt.cod_sl_pt > " " then 
-	select 
-	       dosetgminmin
-      	,dosetgminmax
-			,dose_min
-			,dose_max
-	 into   
-		 :kst_tab_sl_pt.dosetgminmin
-		 ,:kst_tab_sl_pt.dosetgminmax
-		 ,:kst_tab_sl_pt.dose_min
-		 ,:kst_tab_sl_pt.dose_max
-		from sl_pt
-		where cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt
-		using kguo_sqlca_db_magazzino;
+	if kst_tab_sl_pt.cod_sl_pt > " " then 
 	
+		if kst_tab_sl_pt.impianto = kuf1_impianto.kki_impiantog3 then
+			select 
+					 sl_pt_g3.dosetgminmin
+					,sl_pt_g3.dosetgminmax
+					,sl_pt.dose_min
+					,sl_pt.dose_max
+			 into   
+				 :kst_tab_sl_pt.dosetgminmin
+				 ,:kst_tab_sl_pt.dosetgminmax
+				 ,:kst_tab_sl_pt.dose_min
+				 ,:kst_tab_sl_pt.dose_max
+				from sl_pt_g3 inner join sl_pt on sl_pt_g3.cod_sl_pt = sl_pt.cod_sl_pt
+				where sl_pt_g3.cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt
+				using kguo_sqlca_db_magazzino;
+		else
+			select 
+					 dosetgminmin
+					,dosetgminmax
+					,dose_min
+					,dose_max
+			 into   
+				 :kst_tab_sl_pt.dosetgminmin
+				 ,:kst_tab_sl_pt.dosetgminmax
+				 ,:kst_tab_sl_pt.dose_min
+				 ,:kst_tab_sl_pt.dose_max
+				from sl_pt
+				where cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt
+				using kguo_sqlca_db_magazzino;
+		end if
+			
 		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore in lettura dati dosimetria dal Piano di Trattamento (tab.sl_pt) codice: " + trim(kst_tab_sl_pt.cod_sl_pt) + ". ~n~rErrore: "+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati per Convalida Dosimetria del Piano di Trattamento: " + trim(kst_tab_sl_pt.cod_sl_pt))				
 				throw kguo_exception
 			end if
 			kst_tab_sl_pt.dosetgminmin = 0
@@ -671,11 +682,8 @@ if kst_tab_sl_pt.cod_sl_pt > " " then
 			kst_tab_sl_pt.dose_max = 0
 		end if
 	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Errore per lettura dati dosimetria Piano di Trattamento (tab. sl_pt), manca il codice! "
-		kst_esito.esito = kkg_esito.err_logico
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati per Convalida Dosimetria, manca il codice del Piano di Trattamento")				
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 		throw kguo_exception
 	end if
 
@@ -1136,115 +1144,14 @@ return k_return
 
 end function
 
-public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;//
-//--------------------------------------------------------------------------------------------------
-//--- Torna se il fattore di correzione dose MASSIMA è attivo e il suo valore
-//--- 
-//--- Input: st_tab_sl_pt.cod_sl_pt
-//--- Output: st_tab_sl_pt.dosetgmaxfattcorr  (1.000 se non attivo)
-//--- Rit: TRUE = attivo
-//---             
-//--- Lancia un ECCEZIONE se Errore grave
-//--------------------------------------------------------------------------------------------------
-//
-boolean k_return=false
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	SELECT 
-		dosetgmaxfattcorr,
-		dosetgmaxtcalc
-	 into 
-	 	:kst_tab_sl_pt.dosetgmaxfattcorr
-	 	,:kst_tab_sl_pt.dosetgmaxtcalc
-		FROM sl_pt
-		WHERE (cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt) 
-	using kguo_sqlca_db_magazzino;
-
-	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
-	else
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura fattore di correzione dose minima (1) del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt) &
-							+ "~n" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito (kst_esito)
-		throw kguo_exception
-	end if
-
-	if kst_tab_sl_pt.dosetgmaxtcalc = kki_dosetgXXXtcalc_Attivo then
-		k_return = true
-	else
-		kst_tab_sl_pt.dosetgmaxfattcorr = 1.000
-	end if
-	
-return k_return
-end function
-
-public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;//
-//====================================================================
-//=== Torna il fattore di correzione dose MINIMA se attivo
-//=== 
-//=== Input: st_tab_sl_pt.cod_sl_pt
-//=== Output: st_tab_sl_pt.dosetgminfattcorr    (1.000 se non attivo)
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-boolean k_return=false
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	SELECT 
-		dosetgminfattcorr,
-		dosetgmintcalc
-	 into 
-	 	:kst_tab_sl_pt.dosetgminfattcorr
-	 	,:kst_tab_sl_pt.dosetgmintcalc
-		FROM sl_pt
-		WHERE (cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt) 
-	using kguo_sqlca_db_magazzino;
-
-	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
-	else
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura fattore di correzione dose minima (1) del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt) &
-							+ "~n" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito (kst_esito)
-		throw kguo_exception
-	end if
-
-	if kst_tab_sl_pt.dosetgmintcalc = kki_dosetgXXXtcalc_Attivo then
-		k_return = true
-	else
-		kst_tab_sl_pt.dosetgminfattcorr = 1.000
-	end if
-
-return k_return 
-end function
-
-public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;//
-//====================================================================
-//=== Torna dati DENSITA 
-//=== 
-//=== Input: st_tab_sl_pt.cod_sl_pt
-//=== Output: st_tab_sl_pt.densita/densitamax
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-boolean k_return=false
-st_esito kst_esito
-
+public subroutine get_densita (ref st_tab_sl_pt kst_tab_sl_pt) throws uo_exception;/*
+ Torna dati DENSITA 
+	 Input: st_tab_sl_pt.cod_sl_pt
+	 Output: st_tab_sl_pt.densita/densitamax
+*/
 
 	if kst_tab_sl_pt.cod_sl_pt > " " then
-		kst_esito = kguo_exception.inizializza(this.classname())
+		kguo_exception.inizializza(this.classname())
 	
 		SELECT 
 			isnull(densita, 0.0)
@@ -1259,17 +1166,11 @@ st_esito kst_esito
 	
 		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
 		else
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura dati Densità del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt) &
-								+ kkg.acapo + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito (kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati Densità del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt))
 			throw kguo_exception
 		end if
 	end if
-
-
+	
 
 end subroutine
 
@@ -1446,13 +1347,12 @@ kuf_impianto kuf1_impianto
 		SELECT 
 			isnull(impianto, 0)
 		 into 
-			:kst_tab_sl_pt.impianto  
+			:kst_tab_sl_pt.impianto
 		FROM sl_pt
 		WHERE (cod_sl_pt = :kst_tab_sl_pt.cod_sl_pt) 
 		using kguo_sqlca_db_magazzino;
 	
-		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
-		else
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
 			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura codice Impianto del Piano di Lavorazione: " + trim(kst_tab_sl_pt.cod_sl_pt))
 			throw kguo_exception
 		end if
@@ -1468,6 +1368,238 @@ kuf_impianto kuf1_impianto
 return k_return
 
 end function
+
+public function boolean get_dosetgminfattcorr_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception;/*
+	Torna il fattore di correzione dose MINIMA del Minimo se attivo
+		Inp: st_tab_sl_pt.cod_sl_pt + impianto
+		Out: st_tab_sl_pt.dosetgminfattcorr    (1.000 se non attivo)
+*/
+boolean k_return=false
+kuf_impianto kuf1_impianto
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG3 then
+		SELECT 
+			dosetgminfattcorr,
+			dosetgmintcalc
+		 into 
+			:ast_tab_sl_pt.dosetgminfattcorr
+			,:ast_tab_sl_pt.dosetgmintcalc
+			FROM sl_pt_g3
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG2
+		SELECT 
+			dosetgminfattcorr,
+			dosetgmintcalc
+		 into 
+			:ast_tab_sl_pt.dosetgminfattcorr
+			,:ast_tab_sl_pt.dosetgmintcalc
+			FROM sl_pt
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura fattore di correzione Dose Minima del Minimo del Piano di Lavorazione: " + trim(ast_tab_sl_pt.cod_sl_pt) & 
+						+ ", Impianto " + string(ast_tab_sl_pt.impianto))
+		throw kguo_exception
+	end if
+
+	if ast_tab_sl_pt.dosetgmintcalc = kki_dosetgXXXtcalc_Attivo then
+		k_return = true
+	else
+		ast_tab_sl_pt.dosetgminfattcorr = 1.000
+	end if
+
+return k_return 
+
+end function
+
+public function boolean get_dosetgmaxfattcorr_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception;/*
+	Torna il fattore di correzione dose MASSIMA del Minimo se attivo
+		Inp: st_tab_sl_pt.cod_sl_pt + impianto
+		Out: st_tab_sl_pt.dosetgmaxfattcorr    (1.000 se non attivo)
+*/
+boolean k_return=false
+kuf_impianto kuf1_impianto
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG3 then
+		SELECT 
+			dosetgmaxfattcorr,
+			dosetgmaxtcalc
+		 into 
+			:ast_tab_sl_pt.dosetgmaxfattcorr
+			,:ast_tab_sl_pt.dosetgmaxtcalc
+			FROM sl_pt_g3
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG2
+		SELECT 
+			dosetgmaxfattcorr,
+			dosetgmaxtcalc
+		 into 
+			:ast_tab_sl_pt.dosetgmaxfattcorr
+			,:ast_tab_sl_pt.dosetgmaxtcalc
+			FROM sl_pt
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura fattore di correzione Dose Massima del Minimo del Piano di Lavorazione: " + trim(ast_tab_sl_pt.cod_sl_pt) &
+						+ ", Impianto " + string(ast_tab_sl_pt.impianto))
+		throw kguo_exception
+	end if
+
+	if ast_tab_sl_pt.dosetgmaxtcalc = kki_dosetgXXXtcalc_Attivo then
+		k_return = true
+	else
+		ast_tab_sl_pt.dosetgmaxfattcorr = 1.000
+	end if
+	
+return k_return
+end function
+
+public function boolean get_dosetgmaxfattcorr_max_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception;/*
+	Torna il fattore di correzione dose MASSIMA del Massimo se attivo
+		Inp: st_tab_sl_pt.cod_sl_pt + impianto
+		Out: st_tab_sl_pt.dosetgmaxfattcorr_MAX    (1.000 se non attivo)
+*/
+boolean k_return
+kuf_impianto kuf1_impianto
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG3 then
+		SELECT 
+			dosetgmaxfattcorr_MAX,
+			dosetgmaxtcalc_MAX
+		 into 
+			:ast_tab_sl_pt.dosetgmaxfattcorr_MAX
+			,:ast_tab_sl_pt.dosetgmaxtcalc_MAX
+			FROM sl_pt_g3
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG2
+
+		SELECT 
+			dosetgmaxfattcorr_MAX,
+			dosetgmaxtcalc_MAX
+		 into 
+			:ast_tab_sl_pt.dosetgmaxfattcorr_MAX
+			,:ast_tab_sl_pt.dosetgmaxtcalc_MAX
+			FROM sl_pt
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+		
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura fattore di correzione Dose Massima del Massimo del Piano di Lavorazione: " + trim(ast_tab_sl_pt.cod_sl_pt) &
+						+ ", Impianto " + string(ast_tab_sl_pt.impianto))
+		throw kguo_exception
+	end if
+
+	if ast_tab_sl_pt.dosetgmaxtcalc_MAX = kki_dosetgXXXtcalc_Attivo then
+		k_return = true
+	else
+		ast_tab_sl_pt.dosetgmaxfattcorr_MAX = 1.000
+	end if
+	
+return k_return
+end function
+
+public function boolean get_dosetgminfattcorr_max_ifattivo (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception;/*
+	Torna il fattore di correzione dose MINIMA del Massimo se attivo
+		Inp: st_tab_sl_pt.cod_sl_pt
+		Out: st_tab_sl_pt.dosetgminfattcorr_MAX    (1.000 se non attivo)
+*/
+boolean k_return
+kuf_impianto kuf1_impianto
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG3 then
+		SELECT 
+			dosetgminfattcorr_MAX,
+			dosetgmintcalc_MAX
+		 into 
+			:ast_tab_sl_pt.dosetgminfattcorr_MAX
+			,:ast_tab_sl_pt.dosetgmintcalc_MAX
+			FROM sl_pt_g3
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoG2
+	
+		SELECT 
+			dosetgminfattcorr_MAX,
+			dosetgmintcalc_MAX
+		 into 
+			:ast_tab_sl_pt.dosetgminfattcorr_MAX
+			,:ast_tab_sl_pt.dosetgmintcalc_MAX
+			FROM sl_pt
+			WHERE (cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt) 
+		using kguo_sqlca_db_magazzino;
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura fattore di correzione Dose Minima del Massimo del Piano di Lavorazione: " + trim(ast_tab_sl_pt.cod_sl_pt) &
+						+ ", Impianto " + string(ast_tab_sl_pt.impianto))
+		throw kguo_exception
+	end if
+
+	if ast_tab_sl_pt.dosetgmintcalc_MAX = kki_dosetgXXXtcalc_Attivo then
+		k_return = true
+	else
+		ast_tab_sl_pt.dosetgminfattcorr_MAX = 1.000
+	end if
+
+return k_return 
+end function
+
+public subroutine get_dose_min_max (ref st_tab_sl_pt ast_tab_sl_pt) throws uo_exception;/*
+ Torna dati DOSE MIN e MAX 
+	 Input: st_tab_sl_pt.cod_sl_pt
+	 Output: st_tab_sl_pt.dose_min/dose_max
+*/
+
+	if ast_tab_sl_pt.cod_sl_pt > " " then
+		
+		kguo_exception.inizializza(this.classname())
+	
+		select isnull(SL_PT.DOSE_MIN,0.0), isnull(SL_PT.DOSE_MAX,0.0)
+				into :ast_tab_sl_pt.dose_min, :ast_tab_sl_pt.dose_max
+				 from sl_pt
+				 where sl_pt.cod_sl_pt = :ast_tab_sl_pt.cod_sl_pt
+				using kguo_sqlca_db_magazzino;	
+	
+	
+		if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+		else
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati Dose Minima e Massima del Piano di Lavorazione: " + trim(ast_tab_sl_pt.cod_sl_pt))
+			throw kguo_exception
+		end if
+		
+	end if
+	
+
+end subroutine
 
 on kuf_sl_pt.create
 call super::create

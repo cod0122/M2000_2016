@@ -41,11 +41,11 @@ public function string u_stringa_alfanum (string k_stringa)
 public function string u_string_replace (string k_string, readonly string k_str_old, readonly string k_str_new)
 public function integer u_findwindow (unsignedlong k_classe, string k_window)
 public function integer u_stringa_split (ref string a_string[], string a_sep)
-public function string u_num_itatousa (string k_stringa)
 public function string u_num_itatousa2 (string a_stringa, boolean a_forceconversionifenglish)
 public function string u_url_encode (string a_url, boolean a_replace_puls_sign)
 public function string u_url_sep_path_by_name (ref string a_url)
 public function string u_stringa_alfanum_spazio (string k_stringa)
+public function string u_num_itatousa (string a_stringa)
 end prototypes
 
 public function long of_arraytostring (string as_source[], string as_delimiter, boolean ab_processempty, ref string as_ref_string);//////////////////////////////////////////////////////////////////////////////
@@ -1373,20 +1373,25 @@ return k_return_stringa
 end function
 
 public function string u_string_replace (string k_string, readonly string k_str_old, readonly string k_str_new);//
-//--- restituisce campo stringa con un carattere ricoperto
+//--- restituisce campo stringa con uno o più caratteri ricoperti
 //--- inp: stringa da ricoprire
 //---      vecchio carattere
 //---      nuovo carattere
 //
 int k_pos=1
+int k_len, k_len_in
 
 
 if k_str_old <> k_str_new then
+
+	k_len = len(k_str_new)
+	k_len_in = len(k_str_old)
 	
 	k_pos = pos(k_string, k_str_old, k_pos)
 	do while k_pos > 0 
 		
-		k_string = replace(k_string, k_pos, 1, k_str_new)
+		k_string = replace(k_string, k_pos, k_len_in, k_str_new)
+		k_pos += k_len
 		k_pos = pos(k_string, k_str_old, k_pos)
 		
 	loop
@@ -1425,8 +1430,10 @@ public function integer u_stringa_split (ref string a_string[], string a_sep);/*
 	  Ret: numero di spezzoni
 */
 string k_string
-string k_str_split
-int k_pos_start, k_pos_end, k_len, k_str_split_idx
+//string k_str_split
+//int k_pos_start, k_pos_end, k_len, 
+int k_str_split_idx
+int k_pos, k_i, k_len_sep
 
 
 if upperbound(a_string[]) > 0 then
@@ -1435,61 +1442,60 @@ if upperbound(a_string[]) > 0 then
 
 	a_string[1] = ""
 
-//--- trova il primo spezzone	
-	k_pos_start = 1
-	k_pos_end = pos(k_string, a_sep, k_pos_start)
-	
-	do while k_pos_end > 1
-		
-		k_len = k_pos_end - k_pos_start  
-		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-		if k_str_split > " " then
-			k_str_split_idx ++
-			a_string[k_str_split_idx] = k_str_split
-		end if
-		
-//--- legge il successivo spezzone		
-		k_pos_start = k_pos_end + 1
-		k_pos_end = pos(k_string, a_sep, k_pos_start)
+	k_len_sep = len(a_sep)
+
+	k_i = 1
+	k_pos = pos(k_string, a_sep, k_i)
+	do while k_pos > 0
+		k_str_split_idx ++
+		a_string[k_str_split_idx] = mid(k_string, k_i, k_pos - k_i) 
+			
+		k_i = k_pos + k_len_sep
+		k_pos = pos(k_string, a_sep, k_i)
 		
 	loop
-
-//--- accoda ultimo spezzone se non ha il separatore
-	k_pos_end = len(k_string)
-	if k_pos_end > k_pos_start then
-		k_len = k_pos_end - k_pos_start  + 1
-		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-		if k_str_split > " " then
+	
+	if k_str_split_idx > 0 then
+		if k_i < len(k_string) then 
 			k_str_split_idx ++
-			a_string[k_str_split_idx] = k_str_split
+			a_string[k_str_split_idx] = mid(k_string, k_i, len(k_string) - k_i + 1) 
 		end if
 	end if
+
+
+////--- trova il primo spezzone	
+//	k_pos_start = 1
+//	k_pos_end = pos(k_string, a_sep, k_pos_start)
+//	
+//	do while k_pos_end > 1
+//		
+//		k_len = k_pos_end - k_pos_start  
+//		k_str_split = trim(mid(k_string, k_pos_start, k_len))
+//		if k_str_split > " " then
+//			k_str_split_idx ++
+//			a_string[k_str_split_idx] = k_str_split
+//		end if
+//		
+////--- legge il successivo spezzone		
+//		k_pos_start = k_pos_end + 1
+//		k_pos_end = pos(k_string, a_sep, k_pos_start)
+//		
+//	loop
+//
+////--- accoda ultimo spezzone se non ha il separatore
+//	k_pos_end = len(k_string)
+//	if k_pos_end > k_pos_start then
+//		k_len = k_pos_end - k_pos_start  + 1
+//		k_str_split = trim(mid(k_string, k_pos_start, k_len))
+//		if k_str_split > " " then
+//			k_str_split_idx ++
+//			a_string[k_str_split_idx] = k_str_split
+//		end if
+//	end if
 
 end if
 
 return k_str_split_idx
-
-end function
-
-public function string u_num_itatousa (string k_stringa);/*
- restituisce campo stringa con numero decimale da formato ITALIA a USA 
- esempio: '12,50' diventa '12.50'
-*/
-string k_return_stringa
-string k_old_str, k_new_str
-int k_start_pos
-
-		k_return_stringa = k_stringa
-		k_start_pos = 1
-		k_old_str = ","
-		k_new_str = "."
-		k_start_pos = pos(k_return_stringa, k_old_str, k_start_pos)
-		DO WHILE k_start_pos > 0
-			 k_return_stringa = ReplaceA(k_return_stringa, k_start_pos, len(k_old_str), k_new_str)
-			 k_start_pos = pos(k_return_stringa, k_old_str, k_start_pos+len(k_new_str))
-		LOOP
-
-return k_return_stringa
 
 end function
 
@@ -1627,6 +1633,58 @@ int k_start_pos
 	
 return k_return_stringa		
 			
+
+end function
+
+public function string u_num_itatousa (string a_stringa);/*
+ restituisce campo stringa con numero DECIMALE da formato ITALIA a USA 
+ 	inp: stringa numero italiano es. '12,50' 
+	out: stringa numero formato USA es. '12.50' 
+ 
+ ATTENZIONE:
+ 		esempio: '12,50' 		--> '12.50'		OK!
+					'1.237' 		--> '1.237'   	ERRORE...		 
+					'1.237,00' 	--> '1237.00'  OK!
+					'A41C,A7'   --> '41.7'     ERRORE??
+ 
+*/
+string k_return_stringa
+//string k_old_str, k_new_str
+//int k_start_pos
+string k_str, k_char
+int k_len, k_i
+boolean k_p
+
+	k_str = trim(a_stringa)
+	k_len = len(a_stringa)
+	
+	for k_i = k_len to 1 step -1
+		k_char = mid(k_str, k_i, 1)
+		choose case true
+			case k_char = '.' &
+				 ,k_char = ',' 
+				if not k_p then
+					k_p = true
+					k_return_stringa = "." + k_return_stringa
+				end if
+
+			case isnumber(k_char)
+				k_return_stringa = k_char + k_return_stringa
+				
+		end choose
+	next
+		
+//		k_return_stringa = k_stringa
+//		k_start_pos = 1
+//		k_old_str = ","
+//		k_new_str = "."
+//		k_start_pos = pos(k_return_stringa, k_old_str, k_start_pos)
+//		DO WHILE k_start_pos > 0
+//			 k_return_stringa = ReplaceA(k_return_stringa, k_start_pos, len(k_old_str), k_new_str)
+//			 k_start_pos = pos(k_return_stringa, k_old_str, k_start_pos+len(k_new_str))
+//		LOOP
+
+return k_return_stringa
 
 end function
 

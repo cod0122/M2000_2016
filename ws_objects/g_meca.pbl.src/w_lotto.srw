@@ -59,8 +59,8 @@ private boolean ki_certif_stampato=false
 //private kuf_armo_inout kiuf_armo_inout
 
 //private datastore kids_elenco_da_sped
-private datastore kids_elenco_mrf
-private datastore kids_elenco_mand
+private uo_ds_std_1 kids_elenco_mrf
+private uo_ds_std_1 kids_elenco_mand
 
 //kuf_report_merce_da_sped kiuf_report_merce_da_sped
 
@@ -1961,6 +1961,7 @@ end subroutine
 private subroutine call_elenco_mandanti ();//
 //--- Fa l'elenco Mandanti
 //
+string k_dataobject
 st_tab_meca kst_tab_meca
 st_open_w kst_open_w 
 kuf_elenco kuf1_elenco
@@ -1969,24 +1970,33 @@ kuf_elenco kuf1_elenco
 	try
 	
 		SetPointer(kkg.pointer_attesa)
+		kst_tab_meca.clie_3 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_3")
+		if kst_tab_meca.clie_3 > 0 then
+			k_dataobject = "d_clienti_l_mandanti_x_clie_3"
+		else
+			k_dataobject = "d_clienti_l_mandanti_contratti"
+		end if
 		
 		if not isvalid(kids_elenco_mand) then 
-			kids_elenco_mand = create datastore
-			kids_elenco_mand.dataobject = "d_clienti_l_mandanti_contratti"
+			kids_elenco_mand = create uo_ds_std_1
+			kids_elenco_mand.dataobject = k_dataobject
 			kids_elenco_mand.settransobject(kguo_sqlca_db_magazzino)
 		end if
 		
-		kst_tab_meca.data_int = tab_1.tabpage_1.dw_1.getitemdate(1, "data_int")
-		
-		kids_elenco_mand.reset()
-		kids_elenco_mand.retrieve("%", kst_tab_meca.data_int)
+		if kst_tab_meca.clie_3 > 0 then
+			kids_elenco_mand.retrieve(kst_tab_meca.clie_3)
+			kst_open_w.key1 = "Elenco Mandanti Collegati al Cliente " + string(kst_tab_meca.clie_3) 
+		else
+			kst_tab_meca.data_int = tab_1.tabpage_1.dw_1.getitemdate(1, "data_int")
+			kids_elenco_mand.retrieve("%", kst_tab_meca.data_int)
+			kst_open_w.key1 = "Elenco Mandanti con Listini Validi e Contratto in Scadenza Oltre il " + string(kst_tab_meca.data_int)
+		end if
 		
 		if kids_elenco_mand.rowcount() > 0 then
 
 //--- chiamare la window di elenco
 			kuf1_elenco = create kuf_elenco 
 			kst_open_w.id_programma = kkg_id_programma.elenco
-			kst_open_w.key1 = "Elenco Mandanti con Contratto e Listini Validi" 
 			kst_open_w.key2 = trim(kids_elenco_mand.dataobject)
 			kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
 			kst_open_w.key4 = trim(kiw_this_window.title)   //--- Titolo della Window di chiamata per riconoscerla
@@ -2313,19 +2323,11 @@ try
 //	 	ast_tab_armo.peso_kg = kst_tab_listino.peso_kg
 //	 	ast_tab_armo.m_cubi = kst_tab_armo.larg_2 * kst_tab_armo.alt_2 * kst_tab_armo.lung_2 / 1000000000 
 
-//---- se ho il cod contratto lo leggo
+//---- get PT dal Contratto
 		if kst_tab_listino.contratto > 0 then 
 			kst_tab_contratti.codice = kst_tab_listino.contratto
-			kst_esito = kiuf_contratti.get_sl_pt(kst_tab_contratti)
-			if kst_esito.esito = kkg_esito.ok then
-		 		ast_tab_armo.cod_sl_pt = kst_tab_contratti.sl_pt
-			else
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito( kst_esito )
-					throw kguo_exception
-				end if
-			end if
+			kiuf_contratti.get_sl_pt(kst_tab_contratti)
+	 		ast_tab_armo.cod_sl_pt = kst_tab_contratti.sl_pt
 		end if
 		
 		ast_tab_armo.id_meca = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
@@ -2795,6 +2797,7 @@ try
 	kst_tab_meca.e1doco  =  tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1doco")
 	kst_tab_meca.e1rorn  =  tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1rorn")
 	kst_tab_meca.e1srst  =  tab_1.tabpage_1.dw_1.getitemstring(k_riga, "e1srst")
+	kst_tab_meca.impianto = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "impianto")
 
 	kst_tab_meca.consegna_data = tab_1.tabpage_1.dw_1.getitemdate(k_riga, "consegna_data")
 	kst_tab_meca.consegna_ora = tab_1.tabpage_1.dw_1.getitemtime(k_riga, "consegna_ora")
@@ -3953,10 +3956,11 @@ kuf_menu_window kuf1_menu_window
 		end if
 		
 		if not isvalid(kids_elenco_mrf) then 
-			kids_elenco_mrf = create datastore
+			kids_elenco_mrf = create uo_ds_std_1
 			kids_elenco_mrf.dataobject = k_dataobject
 			kids_elenco_mrf.settransobject(kguo_sqlca_db_magazzino)
 		end if
+		
 		if kids_elenco_mrf.dataobject <> k_dataobject then
 			kids_elenco_mrf.dataobject = k_dataobject
 			kids_elenco_mrf.settransobject(kguo_sqlca_db_magazzino )
@@ -5747,6 +5751,7 @@ end type
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 event u_enter ( )
+event u_set_mandante_if_ok ( long k_clie_1 )
 integer y = 28
 integer width = 2953
 integer height = 1308
@@ -5758,6 +5763,41 @@ boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
 boolean ki_abilita_ddw_proposta = true
 end type
+
+event dw_1::u_set_mandante_if_ok(long k_clie_1);//
+st_tab_clienti kst_tab_clienti
+datawindowchild kdwc_1
+
+			
+	if k_clie_1 > 0 then 
+				
+		kst_tab_clienti.codice = k_clie_1
+		if if_anag_attiva(kst_tab_clienti) then
+			get_dati_cliente(kst_tab_clienti)
+			put_video_clie_1(kst_tab_clienti)
+//--- attenzione normalmente il Mandante ha un codice E1, verifica
+			this.getchild("clie_1", kdwc_1)
+			if isvalid(kdwc_1) then
+				if kdwc_1.find( "id_cliente = " + string(kst_tab_clienti.codice) + " " , 1, kdwc_1.rowcount()) = 0 then
+					if messagebox("Mandante fuori standard", "Attenzione, il mandante '" &
+																+ this.getitemstring(1, "rag_soc_10") &
+																+ "' non ha il codice E1! " &
+																+ kkg.acapo + "Proseguire ugualmente?", question!, yesno!, 2) = 2 then
+						this.modify("clie_1" + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
+						set_iniz_dati_cliente(kst_tab_clienti)
+						put_video_clie_1(kst_tab_clienti)
+					end if
+				end if
+			end if
+		else
+			this.modify("clie_1" + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
+		end if
+	else
+		set_iniz_dati_cliente(kst_tab_clienti)
+		put_video_clie_1(kst_tab_clienti)
+	end if
+
+end event
 
 event dw_1::itemchanged;call super::itemchanged;//
 string k_nome
@@ -5834,24 +5874,7 @@ try
 	
 		case "clie_1" 
 			if len(trim(data)) > 0 then 
-				this.getchild(dwo.name, kdwc_1)
-				if isvalid(kdwc_1) then
-					k_riga = kdwc_1.find( "id_cliente = " + trim(data) + " " , 1, kdwc_1.rowcount())
-					if k_riga > 0 then
-						kst_tab_clienti.codice = long(trim(data))
-						if if_anag_attiva(kst_tab_clienti) then
-							get_dati_cliente(kst_tab_clienti)
-							post put_video_clie_1(kst_tab_clienti)
-						else
-							this.modify( dwo.name + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
-						end if
-					else
-						this.modify( dwo.name + ".Background.Color = '" + string(kkg_colore.ERR_DATO) + "' ") 
-					end if
-				end if
-			else
-				set_iniz_dati_cliente(kst_tab_clienti)
-				post put_video_clie_1(kst_tab_clienti)
+				event post u_set_mandante_if_ok(long(trim(data)))
 			end if
 	
 		case "p_iva", "cf" 

@@ -10,12 +10,12 @@ global kuf_sr_activedirectory kuf_sr_activedirectory
 
 type prototypes
 //--- funzioni x l'accesso al AD di Windows per verificare pwd e utente di Windows
-Function Long WNetGetUser (Ref String lpName, Ref String lpUserName, Ref Long lpnLength) Library "mpr" Alias For "WNetGetUserA;Ansi"
+Function LongPtr WNetGetUser (Ref String lpName, Ref String lpUserName, Ref LongPtr lpnLength) Library "mpr" Alias For "WNetGetUserA;Ansi"
+//Function Long WNetGetUser (Ref String lpName, Ref String lpUserName, Ref Long lpnLength) Library "mpr" Alias For "WNetGetUserA;Ansi"
 Function boolean LogonUser (string lpszUsername, string lpszDomain, string lpszPassword, ulong dwLogonType, ulong dwLogonProvider, ref ulong phToken) Library "advapi32.dll" Alias For "LogonUserA;Ansi"
 Function boolean CloseHandle (ulong hObject) Library "kernel32.dll"
 
 end prototypes
-
 type variables
 private:
 //--- Tipo Modalita operativa su cui opera la windows carattere funzione
@@ -37,6 +37,8 @@ end variables
 forward prototypes
 public function string get_utente ()
 public function boolean check_pwd (string a_username, string a_password)
+public function string get_utente ()
+public function boolean check_pwd (string a_username, string a_password)
 end prototypes
 
 public function string get_utente ();//
@@ -44,7 +46,7 @@ public function string get_utente ();//
 //--- Torna l'utente di AD di connessione
 //
 string k_return = '', ls_nullString
-long ll_l
+LongPtr ll_l
 
 setnull(ls_nullString)
 
@@ -72,7 +74,7 @@ k_return = LogonUser(a_username, ls_domain,a_password,LOGON32_LOGON_NETWORK,LOGO
 If not k_return Then
 	CloseHandle(lul_token)
 end if
-
+ 
 return k_return
 
 end function

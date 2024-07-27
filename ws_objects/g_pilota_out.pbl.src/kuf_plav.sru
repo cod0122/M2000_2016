@@ -27,7 +27,8 @@ public constant string kki_id_accessorio_SCHERMATURA = "S"
 
 //--- valori della colonna richieste.stato 
 public constant int kki_richieste_stato_IN_PREPARAZIONE = 1
-public constant int kki_richieste_stato_PRONTA = 2
+public constant int kki_richieste_stato_PRONTA = 2  // nuova Richiesta Pronta per il PILOTA
+public constant int kki_richieste_stato_DEPRECATO = 3
 public constant int kki_richieste_stato_IN_RICEZIONE_IMPIANTO = 5
 public constant int kki_richieste_stato_RICEZIONE_IMPIANTO_OK = 6
 public constant int kki_richieste_stato_RICEZIONE_IMPIANTO_KO = 9
@@ -47,14 +48,16 @@ forward prototypes
 public function integer job_genera_piano_lavoro () throws uo_exception
 private function boolean job_genera_piano_lavoro_esegui (ref st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
-private function long u_pilota_programmi_richieste (ref st_tab_programmi ast_tab_programmi) throws uo_exception
-private function long u_pilota_programmi_work_orders (st_tab_programmi ast_tab_programmi, st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
-private function integer u_pilota_programmi_dettaglio_g2 (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
-private function integer u_pilota_programmi_groupage (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
-private function long u_pilota_programmi_accessori_dosimetri (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
+private function long u_pilota_programmi_richieste (ref st_plav_programmi ast_plav_programmi) throws uo_exception
+private function long u_pilota_programmi_work_orders (st_plav_programmi ast_plav_programmi, st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
+private function integer u_pilota_programmi_dettaglio_g2 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
+private function integer u_pilota_programmi_groupage (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
+private function long u_pilota_programmi_accessori_dosimetri (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
 public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barcode) throws uo_exception
-private function integer u_pilota_programmi_dettaglio_g3 (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
+private function integer u_pilota_programmi_dettaglio_g3 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
 public function string u_prima_del_barcode (integer a_impianto, string a_barcode_proposto) throws uo_exception
+public function long set_id_stato_to_deprecato (long a_id_programma)
+public function boolean if_riapro_si (long a_id_programma)
 end prototypes
 
 public function integer job_genera_piano_lavoro () throws uo_exception;/*
@@ -65,7 +68,7 @@ public function integer job_genera_piano_lavoro () throws uo_exception;/*
 int k_return
 long k_row, k_rows
 uo_ds_std_1 kds_pl_da_inviare
-
+kuf_impianto kuf1_impianto
 //qui da sostituire con il nuovo PILOTA G2/G3 per prendere 'prima del  BARCODE'...
 st_tab_pilota_queue kst_tab_pilota_queue   // da aggiornare quando ho il DB PILOTA NUOVO
 //kuf_pilota_cmd kuf1_pilota_cmd             // da aggiornare quando ho il DB PILOTA NUOVO
@@ -92,7 +95,7 @@ try
 	end if		
 		
 //--- Verifica se c'e' un nuovo Piano da Inviare al Pilota (STATO_PL=CHIUSO)
-	kds_pl_da_inviare = kiuf_pl_barcode.get_pl_barcode_da_inviare_g2g3(7) 
+	kds_pl_da_inviare = kiuf_pl_barcode.get_pl_barcode_da_inviare_g2g3(kuf1_impianto.kki_impiantog3 ,7) 
 	if isvalid(kds_pl_da_inviare) and kds_pl_da_inviare.rowcount( ) > 0 then
 		k_rows = kds_pl_da_inviare.rowcount()
 
@@ -108,7 +111,7 @@ try
 					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inelab
 					kst_tab_pl_barcode.id_programma = 0
 					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-					kiuf_pl_barcode.set_pl_barcode_stato_pl_id_programma(kst_tab_pl_barcode) 
+					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
 	
 					kst_tab_pl_barcode.prima_del_barcode = kds_pl_da_inviare.getitemstring(k_row, "prima_del_barcode")
 		
@@ -123,7 +126,7 @@ try
 					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inviato
 					kst_tab_pl_barcode.id_programma = kst_tab_pl_barcode.id_programma
 					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-					kiuf_pl_barcode.set_pl_barcode_stato_pl_id_programma(kst_tab_pl_barcode) 
+					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
 				
 				end if
 				
@@ -139,7 +142,7 @@ try
 				kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inerrore
 				kst_tab_pl_barcode.id_programma = 0
 				kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-				kiuf_pl_barcode.set_pl_barcode_stato_pl_id_programma(kst_tab_pl_barcode) 
+				kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
 			catch (uo_exception kuo_exception2)
 				kuo_exception2.scrivi_log()
 			end try
@@ -177,7 +180,7 @@ private function boolean job_genera_piano_lavoro_esegui (ref st_tab_pl_barcode a
 boolean k_return
 long k_rows
 int k_rc
-st_tab_programmi kst_tab_programmi
+st_plav_programmi kst_plav_programmi
 ds_pl_barcode kds_pl_barcode
 ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
 kuf_impianto kuf1_impianto
@@ -204,58 +207,58 @@ try
 //--- INIZIO PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
 		
 //--- Crea la RICHIESTA		
-		kst_tab_programmi.id_pl_barcode = ast_tab_pl_barcode.codice
+		kst_plav_programmi.id_pl_barcode = ast_tab_pl_barcode.codice
 		//--- Imposta IMPIANTO
 		if kds_pl_barcode.getitemnumber(1, "impianto") = kuf1_impianto.kki_impiantog3 then
-			kst_tab_programmi.id_impianto = kki_id_impianto_G3
+			kst_plav_programmi.id_impianto = kki_id_impianto_G3
 		else
-			kst_tab_programmi.id_impianto = kki_id_impianto_G2
+			kst_plav_programmi.id_impianto = kki_id_impianto_G2
 		end if
 		//--- Recupera dai BARCODE di lav la Modalità che è univoca per TUTTO il Piano
 		if kds_pl_barcode.getitemnumber(1, "g3npass") = kuf1_impianto.kki_npass_4 then
-			kst_tab_programmi.id_modo = kki_id_modo_g3_4pass
+			kst_plav_programmi.id_modo = kki_id_modo_g3_4pass
 		else
 			if kds_pl_barcode.getitemnumber(1, "g3npass") = kuf1_impianto.kki_npass_2 then
-				kst_tab_programmi.id_modo = kki_id_modo_g3_2pass
+				kst_plav_programmi.id_modo = kki_id_modo_g3_2pass
 			else
-				kst_tab_programmi.id_modo = "" // il G2 
+				kst_plav_programmi.id_modo = "" // il G2 
 			end if
 		end if
 	
-//* DA FARE APPENA SAPPIAMO I DB DA INTERROGARE		ast_tab_pl_barcode.prima_del_barcode = u_prima_del_barcode(kst_tab_programmi.id_impianto, ast_tab_pl_barcode.prima_del_barcode)
+//* DA FARE APPENA SAPPIAMO I DB DA INTERROGARE		ast_tab_pl_barcode.prima_del_barcode = u_prima_del_barcode(kst_plav_programmi.id_impianto, ast_tab_pl_barcode.prima_del_barcode)
 	
-		kst_tab_programmi.barcode = ast_tab_pl_barcode.prima_del_barcode
-		if kst_tab_programmi.barcode > " " then  
-			kst_tab_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_nuovo_primadelbarcode
+		kst_plav_programmi.barcode = trim(ast_tab_pl_barcode.prima_del_barcode)
+		if kst_plav_programmi.barcode > " " then  
+			kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_nuovo_primadelbarcode
 		else
-			kst_tab_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_nuovo
+			kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_nuovo
 		end if
-		u_pilota_programmi_richieste(kst_tab_programmi)  
+		u_pilota_programmi_richieste(kst_plav_programmi)  
 
 //--- Popola tabella barcode PADRI
-		kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-		if kst_tab_programmi.id_impianto = kki_id_impianto_G2 then
-			u_pilota_programmi_dettaglio_g2(kst_tab_programmi, kds_pl_barcode)
+		kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+		if kst_plav_programmi.id_impianto = kki_id_impianto_G2 then
+			u_pilota_programmi_dettaglio_g2(kst_plav_programmi, kds_pl_barcode)
 		else
-			u_pilota_programmi_dettaglio_g3(kst_tab_programmi, kds_pl_barcode)
+			u_pilota_programmi_dettaglio_g3(kst_plav_programmi, kds_pl_barcode)
 		end if
 		
 //--- Popola tabella WO
-		kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-		u_pilota_programmi_work_orders(kst_tab_programmi, ast_tab_pl_barcode)
+		kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+		u_pilota_programmi_work_orders(kst_plav_programmi, ast_tab_pl_barcode)
 
 //--- popola il file x il Pilota con i groupage (barcode figli)
-		kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-		u_pilota_programmi_groupage(kst_tab_programmi, kds_pl_barcode)
+		kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+		u_pilota_programmi_groupage(kst_plav_programmi, kds_pl_barcode)
 
 //--- popola il file x il Pilota con i DOSIMETRI presenti sui barcode padri 
-		kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-		u_pilota_programmi_accessori_dosimetri(kst_tab_programmi, kds_pl_barcode)
+		kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+		u_pilota_programmi_accessori_dosimetri(kst_plav_programmi, kds_pl_barcode)
 	
 		kguo_sqlca_db_plav.db_commit( )
 			
 //--- Set nuovo STATO su RICHIESTA a pronto per il PILOTA
-		if kds_programmi_richieste_id_stato_update.retrieve(kst_tab_programmi.id_programma) > 0 then
+		if kds_programmi_richieste_id_stato_update.retrieve(kst_plav_programmi.id_programma) > 0 then
 			kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local( ) )
 			kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_pronta )
 			
@@ -265,7 +268,7 @@ try
 				kguo_exception.inizializza(this.classname())
 				kguo_exception.set_esito(kds_programmi_richieste_id_stato_update.kist_esito)
 				kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento STATO della Richiesta Piano di Lavoro per il Pilota (update)! " &
-															+ kkg.acapo + "Id Programma " + string(kst_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(kst_plav_programmi.id_programma) + " " &
 															+ "stato a '" + string(kki_richieste_stato_pronta) + "' " &
 															+ kkg.acapo + kds_programmi_richieste_id_stato_update.kist_esito.sqlerrtext
 				kguo_sqlca_db_plav.db_rollback( )
@@ -279,7 +282,7 @@ try
 				
 //--- FINE PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
 
-		ast_tab_pl_barcode.id_programma = kst_tab_programmi.id_programma
+		ast_tab_pl_barcode.id_programma = kst_plav_programmi.id_programma
 	
 		k_return = true
 		
@@ -338,22 +341,22 @@ end try
 return kst_esito
 end function
 
-private function long u_pilota_programmi_richieste (ref st_tab_programmi ast_tab_programmi) throws uo_exception;/*
+private function long u_pilota_programmi_richieste (ref st_plav_programmi ast_plav_programmi) throws uo_exception;/*
    Popola la tabella programmi_RICHIESTE 
-	inp: st_tab_programmi.id_impianto
-	     st_tab_programmi.id_modo
-		  st_tab_programmi.tipo	richiesta vedi kki_richieste_tipo_richiesta_...
-		  st_tab_programmi.id_pl_barcode
-		  st_tab_programmi.barcode  // prima del barcode..
+	inp: st_plav_programmi.id_impianto
+	     st_plav_programmi.id_modo
+		  st_plav_programmi.tipo	richiesta vedi kki_richieste_tipo_richiesta_...
+		  st_plav_programmi.id_pl_barcode
+		  st_plav_programmi.barcode  // prima del barcode..
    rit: ID_PROGRAMMA
-	out: ast_tab_programmi.ID_PROGRAMMA
+	out: ast_plav_programmi.ID_PROGRAMMA
 	
 */
 long k_return
 int k_rc
 long k_row
 ds_programmi_richieste_update kds_programmi_richieste_update
-kuf_programmi kuf1_programmi
+kuf_plav_programmi kuf1_plav_programmi
 
 
 try
@@ -361,15 +364,15 @@ try
 	kguo_exception.inizializza(this.classname())
 	
 	kds_programmi_richieste_update = create ds_programmi_richieste_update
-	kuf1_programmi = create kuf_programmi
+	kuf1_plav_programmi = create kuf_plav_programmi
 	
 	k_row = kds_programmi_richieste_update.insertrow(0)
 	if k_row > 0 then
-		kds_programmi_richieste_update.setitem(k_row, "id_pl_barcode", ast_tab_programmi.id_pl_barcode)
-		kds_programmi_richieste_update.setitem(k_row, "id_impianto", ast_tab_programmi.id_impianto)
-		kds_programmi_richieste_update.setitem(k_row, "id_modo", ast_tab_programmi.id_modo)
-		kds_programmi_richieste_update.setitem(k_row, "id_tipo_richiesta", ast_tab_programmi.id_tipo_richiesta)
-		kds_programmi_richieste_update.setitem(k_row, "barcode_prima", ast_tab_programmi.barcode)  // prima del barcode...
+		kds_programmi_richieste_update.setitem(k_row, "id_pl_barcode", ast_plav_programmi.id_pl_barcode)
+		kds_programmi_richieste_update.setitem(k_row, "id_impianto", ast_plav_programmi.id_impianto)
+		kds_programmi_richieste_update.setitem(k_row, "id_modo", ast_plav_programmi.id_modo)
+		kds_programmi_richieste_update.setitem(k_row, "id_tipo_richiesta", ast_plav_programmi.id_tipo_richiesta)
+		kds_programmi_richieste_update.setitem(k_row, "barcode_prima", ast_plav_programmi.barcode)  // prima del barcode...
 		kds_programmi_richieste_update.setitem(k_row, "id_stato", kki_richieste_stato_IN_PREPARAZIONE) 
 		kds_programmi_richieste_update.setitem(k_row, "esito", "") 
 		kds_programmi_richieste_update.setitem(k_row, "richiesta_data_ora", kguo_g.get_datetime_current_local()) 
@@ -377,10 +380,10 @@ try
 		kguo_exception.inizializza(this.classname())
 		kguo_exception.set_esito(kds_programmi_richieste_update.kist_esito)
 		kguo_exception.kist_esito.sqlerrtext = "Errore in Generazione Richiesta Piano di Lavoro per il Pilota (insert)! " &
-														+ kkg.acapo + "Impianto " + string(ast_tab_programmi.id_impianto) + " " &
-														+ "Modalità " + string(ast_tab_programmi.id_modo) + " " &
-														+ "Tipo Richiesta " + string(ast_tab_programmi.id_tipo_richiesta) + " " &
-														+ "Codice Piano di Lavorazione " + string(ast_tab_programmi.id_pl_barcode) + " " &
+														+ kkg.acapo + "Impianto " + string(ast_plav_programmi.id_impianto) + " " &
+														+ "Modalità " + string(ast_plav_programmi.id_modo) + " " &
+														+ "Tipo Richiesta " + string(ast_plav_programmi.id_tipo_richiesta) + " " &
+														+ "Codice Piano di Lavorazione " + string(ast_plav_programmi.id_pl_barcode) + " " &
 														+ kkg.acapo + kds_programmi_richieste_update.kist_esito.sqlerrtext
 		throw kguo_exception
 	end if
@@ -407,11 +410,11 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_richieste_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Generazione Richiesta Piano di Lavoro per il Pilota (update)! " &
-														+ kkg.acapo + "Id Impianto " + string(ast_tab_programmi.id_impianto) + " " &
-														+ "Modalità " + string(ast_tab_programmi.id_modo) + " " &
-														+ "Tipo Richiesta " + string(ast_tab_programmi.id_tipo_richiesta) + " " &
+														+ kkg.acapo + "Id Impianto " + string(ast_plav_programmi.id_impianto) + " " &
+														+ "Modalità " + string(ast_plav_programmi.id_modo) + " " &
+														+ "Tipo Richiesta " + string(ast_plav_programmi.id_tipo_richiesta) + " " &
 														+ kkg.acapo + kds_programmi_richieste_update.kist_esito.sqlerrtext
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_rollback( )
 			end if
@@ -419,14 +422,14 @@ try
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
 			
-			ast_tab_programmi.id_programma = kuf1_programmi.get_id_programma_last( ) // Recupera ID del programma
+			ast_plav_programmi.id_programma = kuf1_plav_programmi.get_id_programma_last( ) // Recupera ID del programma
 			
-			k_return = ast_tab_programmi.id_programma
+			k_return = ast_plav_programmi.id_programma
 		end if
 	end if
 	
@@ -438,7 +441,7 @@ finally
 	SetPointer(kkg.pointer_default)
 
 	if isvalid(kds_programmi_richieste_update) then destroy kds_programmi_richieste_update
-	if isvalid(kuf1_programmi) then destroy kuf1_programmi
+	if isvalid(kuf1_plav_programmi) then destroy kuf1_plav_programmi
 
 end try
 
@@ -446,9 +449,9 @@ return k_return
 
 end function
 
-private function long u_pilota_programmi_work_orders (st_tab_programmi ast_tab_programmi, st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;/*
+private function long u_pilota_programmi_work_orders (st_plav_programmi ast_plav_programmi, st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_work_orders (ex PP_PILOTA_WO.TXT)
-	inp: ast_tab_programmi.id_programma
+	inp: ast_plav_programmi.id_programma
 	     st_tab_pl_barcode.codice numero del Piano da inviare
    rit: numero ri WO caricati
 	out: 
@@ -479,7 +482,7 @@ try
 		kguo_exception.inizializza(this.classname())
 		kguo_exception.set_esito(kds_programmi_work_orders_update.kist_esito)
 		kguo_exception.kist_esito.sqlerrtext = "Errore in lettura elenco Work Order durante preparazione del Carico in Generazione Piano per il Pilota! " &
-														+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+														+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 														+ "Piano di Lavoro codice " + string(kst_tab_pl_barcode.codice) + " " &
 														+ kkg.acapo + kds_programmi_work_orders_update.kist_esito.sqlerrtext
 		throw kguo_exception
@@ -492,13 +495,13 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_work_orders_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione Carico Work Order in Generazione Piano per il Pilota! " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ "Piano di Lavoro codice " + string(kst_tab_pl_barcode.codice) + " " &
 															+ kkg.acapo + kds_programmi_work_orders_update.kist_esito.sqlerrtext
 			throw kguo_exception
 		end if
 		
-		kds_programmi_work_orders_update.setitem(k_row_ins, "id_programma", ast_tab_programmi.id_programma)
+		kds_programmi_work_orders_update.setitem(k_row_ins, "id_programma", ast_plav_programmi.id_programma)
 		kds_programmi_work_orders_update.setitem(k_row_ins, "work_order", kds_pl_barcode_wo_id_meca.object.meca_e1doco[k_row])
 		kds_programmi_work_orders_update.setitem(k_row_ins, "barcode", trim(kds_pl_barcode_wo_id_meca.object.barcode_barcode[k_row]))
 
@@ -518,10 +521,10 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_work_orders_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Carico Work Order in Generazione Piano per il Pilota! " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ "Piano di Lavoro codice " + string(kst_tab_pl_barcode.codice) + " " &
 															+ kkg.acapo + kds_programmi_work_orders_update.kist_esito.sqlerrtext
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_rollback( )
 			end if
@@ -529,7 +532,7 @@ try
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
@@ -552,10 +555,10 @@ return k_return
 
 end function
 
-private function integer u_pilota_programmi_dettaglio_g2 (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+private function integer u_pilota_programmi_dettaglio_g2 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_dettaglio dei barcode padri
-	inp: ast_tab_programmi.id_programma 
-	     ast_tab_programmi.id_impianto
+	inp: ast_plav_programmi.id_programma 
+	     ast_plav_programmi.id_impianto
 	     ads_pl_barcode = elenco barcode del PL
 	rit: numero barcode inseriti
 	
@@ -647,7 +650,7 @@ try
 				kguo_exception.inizializza(this.classname())
 				kguo_exception.set_esito(kds_programmi_dettaglio_g2_update.kist_esito)
 				kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione Carico Barcode di Lavoro in Generazione Piano per il Pilota " &
-																+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+																+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 																+ "Barcode " + kst_tab_barcode.barcode + " " &
 																+ "al n. di sequenza " + string(k_row_ins) + " " &
 																+ kkg.acapo + kds_programmi_dettaglio_g2_update.kist_esito.sqlerrtext
@@ -661,9 +664,9 @@ try
 				k_alto_basso = k_cost_alto
 			end if
 			
-			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "id_programma", ast_tab_programmi.id_programma) 
+			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "id_programma", ast_plav_programmi.id_programma) 
 			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "sequenza", k_row_ins) 
-			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "id_impianto", ast_tab_programmi.id_impianto) 
+			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "id_impianto", ast_plav_programmi.id_impianto) 
 			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "barcode", kst_tab_barcode.barcode) 
 			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "posizione_bilancella", k_alto_basso) 
 			kds_programmi_dettaglio_g2_update.setitem(k_row_ins, "giri_f1", kst_tab_barcode.fila_1) 
@@ -696,13 +699,13 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_dettaglio_g2_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Carico Barcode di Lavoro in Generazione Piano per il Pilota " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ kkg.acapo + kds_programmi_dettaglio_g2_update.kist_esito.sqlerrtext
 			throw kguo_exception
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
@@ -754,9 +757,9 @@ return k_return
 
 end function
 
-private function integer u_pilota_programmi_groupage (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+private function integer u_pilota_programmi_groupage (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_groupage dei barcode padri e figli associati
-	inp: ast_tab_programmi.id_programma 
+	inp: ast_plav_programmi.id_programma 
 	     ads_pl_barcode = elenco barcode del PL
 	rit: numero barcode inseriti
 	
@@ -823,14 +826,14 @@ try
 				kguo_exception.inizializza(this.classname())
 				kguo_exception.set_esito(kds_programmi_groupage_update.kist_esito)
 				kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione Carico Barcode FIGLI in Generazione Piano per il Pilota " &
-																+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+																+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 																+ "Barcode " + kst_tab_barcode.barcode + " " &
 																+ "Barcode Padre " + kst_tab_barcode.barcode_lav + " " &
 																+ "al n. di sequenza " + string(k_row_ins) + " " &
 																+ kkg.acapo + kds_programmi_groupage_update.kist_esito.sqlerrtext
 				throw kguo_exception
 			end if
-			kds_programmi_groupage_update.setitem(k_row_ins, "id_programma", ast_tab_programmi.id_programma) 
+			kds_programmi_groupage_update.setitem(k_row_ins, "id_programma", ast_plav_programmi.id_programma) 
 			kds_programmi_groupage_update.setitem(k_row_ins, "sequenza", k_row_ins) 
 			kds_programmi_groupage_update.setitem(k_row_ins, "barcode_padre", kst_tab_barcode.barcode_lav) 
 			kds_programmi_groupage_update.setitem(k_row_ins, "barcode_figlio", kst_tab_barcode.barcode) 
@@ -851,13 +854,13 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_groupage_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Carico Barcode FIGLI in Generazione Piano per il Pilota " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ kkg.acapo + kds_programmi_groupage_update.kist_esito.sqlerrtext
 			throw kguo_exception
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
@@ -882,9 +885,9 @@ return k_return
 
 end function
 
-private function long u_pilota_programmi_accessori_dosimetri (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+private function long u_pilota_programmi_accessori_dosimetri (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_groupage dei barcode
-	inp: ast_tab_programmi.id_programma 
+	inp: ast_plav_programmi.id_programma 
 	     ads_pl_barcode = elenco barcode ma per elab solo quelli con il flag dosimetro
 	rit: numero barcode inseriti
 	
@@ -955,13 +958,13 @@ try
 					kguo_exception.inizializza(this.classname())
 					kguo_exception.set_esito(kds_programmi_accessori_update.kist_esito)
 					kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione Carico Accessori Dosimetri in Generazione Piano per il Pilota " &
-																	+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+																	+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 																	+ "Barcode " + k_barcode_pallet + " " &
 																	+ "Barcode Accessorio " + trim(kds_meca_dosim_x_barcode_lav.getitemstring(k_ind, "barcode")) + " " &
 																	+ kkg.acapo + kds_programmi_accessori_update.kist_esito.sqlerrtext
 					throw kguo_exception
 				end if
-				kds_programmi_accessori_update.setitem(k_row_ins, "id_programma", ast_tab_programmi.id_programma) 
+				kds_programmi_accessori_update.setitem(k_row_ins, "id_programma", ast_plav_programmi.id_programma) 
 				kds_programmi_accessori_update.setitem(k_row_ins, "barcode_pallet", k_barcode_pallet) 
 				kds_programmi_accessori_update.setitem(k_row_ins, "barcode_f", k_barcode_figlio) 				
 				kds_programmi_accessori_update.setitem(k_row_ins, "barcode_accessorio", trim(kds_meca_dosim_x_barcode_lav.getitemstring(k_ind, "barcode"))) 
@@ -981,13 +984,13 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_accessori_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Carico Accessori Dosimetri in Generazione Piano per il Pilota " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ kkg.acapo + kds_programmi_accessori_update.kist_esito.sqlerrtext
 			throw kguo_exception
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
@@ -1021,7 +1024,7 @@ public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barc
 boolean k_return
 long k_row, k_rows, k_rows_inavase
 int k_rc
-st_tab_programmi kst_tab_programmi
+st_plav_programmi kst_plav_programmi
 ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
 uo_ds_std_1 kds_programmi_richieste_inevase, kds_pl_da_inviare
 
@@ -1073,29 +1076,29 @@ try
 //--- INIZIO PRODUZIONE DATI PER IL PILOTA ------------------------------------------------------------------
 		
 //--- Crea la RICHIESTA		
-	kst_tab_programmi.id_pl_barcode = 0
-	kst_tab_programmi.id_impianto = kki_id_impianto_G2  // Qui sempre G2
-	kst_tab_programmi.id_modo = ""  // il G2 lavora sempre con la stessa modalità
-	kst_tab_programmi.barcode = ""  // nulla in questo caso
-	kst_tab_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_sostituzione
-	u_pilota_programmi_richieste(kst_tab_programmi)  
+	kst_plav_programmi.id_pl_barcode = 0
+	kst_plav_programmi.id_impianto = kki_id_impianto_G2  // Qui sempre G2
+	kst_plav_programmi.id_modo = ""  // il G2 lavora sempre con la stessa modalità
+	kst_plav_programmi.barcode = ""  // nulla in questo caso
+	kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_sostituzione
+	u_pilota_programmi_richieste(kst_plav_programmi)  
 
 //--- Popola tabella barcode PADRI
-	kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_dettaglio_g2(kst_tab_programmi, ads_pl_barcode)
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_dettaglio_g2(kst_plav_programmi, ads_pl_barcode)
 	 
 //--- popola il file x il Pilota con i groupage (barcode figli)
-	kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_groupage(kst_tab_programmi, ads_pl_barcode)
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_groupage(kst_plav_programmi, ads_pl_barcode)
 
 //--- popola il file x il Pilota con i DOSIMETRI presenti sui barcode padri 
-	kst_tab_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_accessori_dosimetri(kst_tab_programmi, ads_pl_barcode)
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_accessori_dosimetri(kst_plav_programmi, ads_pl_barcode)
 
 	kguo_sqlca_db_plav.db_commit( )
 		
 //--- Set nuovo STATO su RICHIESTA a pronto per il PILOTA
-	if kds_programmi_richieste_id_stato_update.retrieve(kst_tab_programmi.id_programma) > 0 then
+	if kds_programmi_richieste_id_stato_update.retrieve(kst_plav_programmi.id_programma) > 0 then
 		kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local( ) )
 		kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_pronta )
 		
@@ -1105,7 +1108,7 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_richieste_id_stato_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento STATO della Richiesta Piano di Lavoro per il Pilota (update)! " &
-														+ kkg.acapo + "Id Programma " + string(kst_tab_programmi.id_programma) + " " &
+														+ kkg.acapo + "Id Programma " + string(kst_plav_programmi.id_programma) + " " &
 														+ "stato a '" + string(kki_richieste_stato_pronta) + "' " &
 														+ kkg.acapo + kds_programmi_richieste_id_stato_update.kist_esito.sqlerrtext
 			kguo_sqlca_db_plav.db_rollback( )
@@ -1140,10 +1143,10 @@ return k_return
 
 end function
 
-private function integer u_pilota_programmi_dettaglio_g3 (st_tab_programmi ast_tab_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+private function integer u_pilota_programmi_dettaglio_g3 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_dettaglio_G3 dei barcode padri
-	inp: ast_tab_programmi.id_programma 
-	     ast_tab_programmi.id_impianto
+	inp: ast_plav_programmi.id_programma 
+	     ast_plav_programmi.id_impianto
 	     ads_pl_barcode = elenco barcode del PL
 	rit: numero barcode inseriti
 	
@@ -1231,16 +1234,16 @@ try
 				kguo_exception.inizializza(this.classname())
 				kguo_exception.set_esito(kds_programmi_dettaglio_g3_update.kist_esito)
 				kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione del Piano G3 di Lavoro dei Barcode da inviare al Pilota " &
-																+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+																+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 																+ "Barcode " + kst_tab_barcode.barcode + " " &
 																+ "al n. di sequenza " + string(k_row_ins) + " " &
 																+ kkg.acapo + kds_programmi_dettaglio_g3_update.kist_esito.sqlerrtext
 				throw kguo_exception
 			end if
 			
-			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "id_programma", ast_tab_programmi.id_programma) 
+			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "id_programma", ast_plav_programmi.id_programma) 
 			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "sequenza", k_row_ins) 
-			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "id_impianto", ast_tab_programmi.id_impianto) 
+			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "id_impianto", ast_plav_programmi.id_impianto) 
 			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "barcode", kst_tab_barcode.barcode) 
 			kds_programmi_dettaglio_g3_update.setitem(k_row_ins, "giri", kst_tab_barcode.g3ngiri) 
 			if kst_tab_barcode.g3npass = kuf1_impianto.kki_npass_2 then
@@ -1266,13 +1269,13 @@ try
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_esito(kds_programmi_dettaglio_g3_update.kist_esito)
 			kguo_exception.kist_esito.sqlerrtext = "Errore in Generazione Piano G3 dei Barcode da inviare al Pilota " &
-															+ kkg.acapo + "Id Programma " + string(ast_tab_programmi.id_programma) + " " &
+															+ kkg.acapo + "Id Programma " + string(ast_plav_programmi.id_programma) + " " &
 															+ kkg.acapo + kds_programmi_dettaglio_g3_update.kist_esito.sqlerrtext
 			throw kguo_exception
 		end if
 		if k_rc > 0 then
 			
-			if ast_tab_programmi.st_tab_g_0.esegui_commit = "N" then
+			if ast_plav_programmi.st_tab_g_0.esegui_commit = "N" then
 			else
 				kguo_sqlca_db_plav.db_commit( )
 			end if
@@ -1348,6 +1351,128 @@ st_tab_pilota_queue kst_tab_pilota_queue
 	end if
 						
 return kst_tab_pl_barcode.prima_del_barcode						
+
+end function
+
+public function long set_id_stato_to_deprecato (long a_id_programma);/*
+   Imposta la Richiesta NUOVA o KO (quindi non elab. o Respinta dal PILOTA) a DEPRECATA
+	inp: id_programma
+	out: id_stato della Richiesta prima di essere deprecata
+*/
+long k_return 
+int k_rc
+long k_id_stato
+ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	if a_id_programma > 0 then
+		kds_programmi_richieste_id_stato_update = create ds_programmi_richieste_id_stato_update
+		k_rc = kds_programmi_richieste_id_stato_update.retrieve(a_id_programma)
+		if k_rc < 0 then
+			kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+			kguo_exception.kist_esito.sqlcode = kds_programmi_richieste_id_stato_update.kist_esito.sqlcode
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura Nuova Richiesta inviata al PILOTA, id Programma " &
+															+ string(a_id_programma) &
+															+ kkg.acapo + "Esito: " + trim(kds_programmi_richieste_id_stato_update.kist_esito.SQLErrText) &
+															+ " (" + string(kds_programmi_richieste_id_stato_update.kist_esito.sqlcode) + ")"
+			throw kguo_exception 
+		end if
+		
+		k_id_stato = kds_programmi_richieste_id_stato_update.getitemnumber( 1, "id_stato")    
+		// se NUOVA o KO dal PILOTA allora set a DEPRECATA
+		if k_id_stato = kki_richieste_stato_PRONTA &
+						or k_id_stato = kki_richieste_stato_RICEZIONE_IMPIANTO_KO then
+			kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local()) 
+			kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_DEPRECATO) 
+			k_rc = kds_programmi_richieste_id_stato_update.update( )
+			if k_rc < 0 then
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+				kguo_exception.kist_esito.sqlcode = kds_programmi_richieste_id_stato_update.kist_esito.sqlcode
+				kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento Richiesta inviata al PILOTA a DEPRACATA, stato Richiesta " &
+																+ string(k_id_stato) + " Id Programma " + string(a_id_programma) &
+																+ kkg.acapo + "Esito: " + trim(kds_programmi_richieste_id_stato_update.kist_esito.SQLErrText) &
+																+ " (" + string(kds_programmi_richieste_id_stato_update.kist_esito.sqlcode) + ")"
+				kguo_sqlca_db_magazzino.db_rollback( )
+				throw kguo_exception 
+			end if
+			
+			kguo_sqlca_db_magazzino.db_commit( )
+			
+			k_return = k_id_stato
+		end if
+		
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Lettura Nuova Richiesta inviata al PILOTA non eseguita, manca Id del Programma"
+		throw kguo_exception 
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_programmi_richieste_id_stato_update) then destroy kds_programmi_richieste_id_stato_update
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+
+
+end function
+
+public function boolean if_riapro_si (long a_id_programma);/*
+   Verifica che la Richiesta sia nello stato di CARICATA o RESPINTA dal PILOTA ovvero APRIBILE
+	inp: id_programma
+	out: TRUE = ok si può RIAPRIRE
+*/
+boolean k_return 
+int k_rc
+ds_programmi_richieste_get_id_stato kds_programmi_richieste_get_id_stato
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	if a_id_programma > 0 then
+		kds_programmi_richieste_get_id_stato = create ds_programmi_richieste_get_id_stato
+		k_rc = kds_programmi_richieste_get_id_stato.retrieve(a_id_programma)
+		if k_rc < 0 then
+			kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+			kguo_exception.kist_esito.sqlcode = kds_programmi_richieste_get_id_stato.kist_esito.sqlcode
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura Richiesta inviata al PILOTA, id Programma " &
+															+ string(a_id_programma) &
+															+ kkg.acapo + "Esito: " + trim(kds_programmi_richieste_get_id_stato.kist_esito.SQLErrText) &
+															+ " (" + string(kds_programmi_richieste_get_id_stato.kist_esito.sqlcode) + ")"
+			throw kguo_exception 
+		end if
+		
+		if kds_programmi_richieste_get_id_stato.getitemnumber( 1, "id_stato") = kki_richieste_stato_PRONTA &
+					or kds_programmi_richieste_get_id_stato.getitemnumber( 1, "id_stato") = kki_richieste_stato_RICEZIONE_IMPIANTO_KO then
+			k_return = true    // OK si può RIAPRIRE
+		end if
+		
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Lettura Richiesta inviata al PILOTA non eseguita, manca Id del Programma"
+		throw kguo_exception 
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_programmi_richieste_get_id_stato) then destroy kds_programmi_richieste_get_id_stato
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+
 
 end function
 

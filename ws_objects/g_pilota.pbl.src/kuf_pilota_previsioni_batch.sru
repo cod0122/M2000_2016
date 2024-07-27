@@ -24,14 +24,10 @@ st_esito kst_esito
 
 
 try	
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-		
-	kst_esito.sqlerrtext =  batch_run_stat_u_m2000_avgtimeplant( )
-		
+	kst_esito.sqlerrtext =  batch_run_stat_u_m2000_avgtimeplant( )		
 
 catch(uo_exception kuo_exception)
 	kst_esito = kuo_exception.get_st_esito()

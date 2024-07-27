@@ -2,6 +2,12 @@
 forward
 global type w_contratti_xsmart from w_g_tab_3
 end type
+type dw_1_shared from uo_d_std_0 within tabpage_1
+end type
+type dw_2_shared from uo_d_std_0 within tabpage_2
+end type
+type dw_3_shared from uo_d_std_0 within tabpage_3
+end type
 type ln_1 from line within tabpage_4
 end type
 type dw_data from uo_d_std_1 within w_contratti_xsmart
@@ -11,16 +17,17 @@ end forward
 global type w_contratti_xsmart from w_g_tab_3
 integer x = 169
 integer y = 148
-integer width = 3214
-integer height = 1680
+integer width = 3186
+integer height = 1656
 string title = "Esporta dati x il WEB"
+boolean resizable = false
 long backcolor = 32501743
 integer animationtime = 0
 boolean ki_toolbar_window_presente = true
 boolean ki_esponi_msg_dati_modificati = false
 boolean ki_toolbar_programmi_attiva_voce = false
-boolean ki_nessun_tasto_funzionale = true
 boolean ki_sincronizza_window_consenti = false
+boolean ki_aggiorna_richiesta_conferma = false
 boolean ki_fai_nuovo_dopo_update = false
 boolean ki_fai_nuovo_dopo_insert = false
 boolean ki_msg_dopo_update = false
@@ -42,7 +49,6 @@ protected subroutine attiva_menu ()
 public subroutine u_esporta ()
 public subroutine smista_funz (string k_par_in)
 protected subroutine inizializza_1 () throws uo_exception
-protected subroutine attiva_tasti_0 ()
 public function string u_get_filename_exp (string a_titolo) throws uo_exception
 private subroutine u_cambia_data ()
 protected subroutine inizializza_2 () throws uo_exception
@@ -95,8 +101,9 @@ kuf_utility kuf1_utility
 
 		end choose
 
+		tab_1.tabpage_1.dw_1.ShareData(tab_1.tabpage_1.dw_1_shared)
 		tab_1.tabpage_1.dw_1.event getfocus( )
-		
+
 	end if
 
 	if isvalid(kuf1_utility) then destroy kuf1_utility
@@ -165,15 +172,17 @@ try
 	choose case tab_1.selectedtab 
 		case 1 
 			k_titolo = trim(tab_1.tabpage_1.text)
-			kdw_1 = tab_1.tabpage_1.dw_1
+			//kdw_1 = tab_1.tabpage_1.dw_1
+			kdw_1 = tab_1.tabpage_1.dw_1_shared
 		case 2 
 			k_titolo = trim(tab_1.tabpage_2.text)
-			kdw_1 = tab_1.tabpage_2.dw_2
+			//kdw_1 = tab_1.tabpage_2.dw_2
+			kdw_1 = tab_1.tabpage_2.dw_2_shared
 		case 3
 			k_titolo = trim(tab_1.tabpage_3.text)
 			kds_1 = create datastore
 			kds_1.dataobject = tab_1.tabpage_3.dw_3.dataobject
-			tab_1.tabpage_3.dw_3.RowsCopy(1, tab_1.tabpage_3.dw_3.RowCount(), primary!, kds_1, 1, primary!)
+			tab_1.tabpage_3.dw_3_shared.RowsCopy(1, tab_1.tabpage_3.dw_3_shared.RowCount(), primary!, kds_1, 1, primary!)
 	end choose
 	
 	if tab_1.selectedtab = 1 or tab_1.selectedtab = 2 then
@@ -199,6 +208,7 @@ try
 						k_rcx = kds_1.Modify("attivo.visible='0'")
 						k_rcx = kds_1.Modify("e1litm.visible='0'")
 						k_rcx = kds_1.Modify("id_listino.visible='0'")
+						//k_rcx = kds_1.Modify("fattura_per.visible='0'")  // TEMPORANEO
 					end if
 					
 				case 2
@@ -302,19 +312,14 @@ int k_rc
 
 		end choose
 
+		tab_1.tabpage_2.dw_2.ShareData(tab_1.tabpage_2.dw_2_shared)
+		
 		tab_1.tabpage_2.dw_2.event getfocus( )
 		
 	end if
 
 
 
-
-end subroutine
-
-protected subroutine attiva_tasti_0 ();//
-	st_aggiorna_lista.enabled = true
-	super::attiva_tasti_0()
-	
 
 end subroutine
 
@@ -427,6 +432,7 @@ int k_rc
 
 		end choose
 
+		tab_1.tabpage_3.dw_3.ShareData(tab_1.tabpage_3.dw_3_shared)
 		tab_1.tabpage_3.dw_3.event getfocus( )
 		
 	end if
@@ -675,12 +681,26 @@ long tabtextcolor = 0
 long tabbackcolor = 33554431
 string picturename = "Export5!"
 long picturemaskcolor = 553648127
+dw_1_shared dw_1_shared
 end type
+
+on tabpage_1.create
+this.dw_1_shared=create dw_1_shared
+int iCurrent
+call super::create
+iCurrent=UpperBound(this.Control)
+this.Control[iCurrent+1]=this.dw_1_shared
+end on
+
+on tabpage_1.destroy
+call super::destroy
+destroy(this.dw_1_shared)
+end on
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 integer x = 14
 integer y = 44
-integer width = 2967
+integer width = 2533
 integer height = 1144
 integer taborder = 0
 string title = ""
@@ -692,7 +712,6 @@ boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_primo_giro = true
-string ki_dragdrop_display = ""
 end type
 
 type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
@@ -719,12 +738,26 @@ long tabtextcolor = 0
 long tabbackcolor = 32501743
 string picturename = "Export5!"
 long picturemaskcolor = 553648127
+dw_2_shared dw_2_shared
 end type
+
+on tabpage_2.create
+this.dw_2_shared=create dw_2_shared
+int iCurrent
+call super::create
+iCurrent=UpperBound(this.Control)
+this.Control[iCurrent+1]=this.dw_2_shared
+end on
+
+on tabpage_2.destroy
+call super::destroy
+destroy(this.dw_2_shared)
+end on
 
 type dw_2 from w_g_tab_3`dw_2 within tabpage_2
 boolean visible = true
 integer y = 24
-integer width = 2981
+integer width = 2661
 integer height = 1180
 integer taborder = 0
 boolean enabled = true
@@ -737,7 +770,6 @@ boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_primo_giro = true
-string ki_dragdrop_display = ""
 end type
 
 type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
@@ -766,12 +798,26 @@ long tabtextcolor = 0
 long tabbackcolor = 33544171
 string picturename = "Export5!"
 long picturemaskcolor = 553648127
+dw_3_shared dw_3_shared
 end type
+
+on tabpage_3.create
+this.dw_3_shared=create dw_3_shared
+int iCurrent
+call super::create
+iCurrent=UpperBound(this.Control)
+this.Control[iCurrent+1]=this.dw_3_shared
+end on
+
+on tabpage_3.destroy
+call super::destroy
+destroy(this.dw_3_shared)
+end on
 
 type dw_3 from w_g_tab_3`dw_3 within tabpage_3
 boolean visible = true
 integer y = 48
-integer width = 2967
+integer width = 2583
 integer height = 1156
 integer taborder = 0
 boolean enabled = true
@@ -786,7 +832,6 @@ boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
-string ki_dragdrop_display = ""
 end type
 
 type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
@@ -890,6 +935,39 @@ type dw_9 from w_g_tab_3`dw_9 within tabpage_9
 end type
 
 type st_duplica from w_g_tab_3`st_duplica within w_contratti_xsmart
+end type
+
+type dw_1_shared from uo_d_std_0 within tabpage_1
+boolean visible = false
+integer x = 2501
+integer y = 500
+integer taborder = 90
+boolean bringtotop = true
+string dataobject = "d_listino_x_smart_shared"
+boolean border = false
+boolean livescroll = false
+end type
+
+type dw_2_shared from uo_d_std_0 within tabpage_2
+boolean visible = false
+integer x = 2190
+integer y = 608
+integer taborder = 90
+boolean bringtotop = true
+string dataobject = "ds_mrf_x_smart_shared"
+boolean border = false
+boolean livescroll = false
+end type
+
+type dw_3_shared from uo_d_std_0 within tabpage_3
+boolean visible = false
+integer x = 2647
+integer y = 352
+integer taborder = 30
+boolean bringtotop = true
+string dataobject = "d_xsmart_instock_shared"
+boolean border = false
+boolean livescroll = false
 end type
 
 type ln_1 from line within tabpage_4

@@ -23,8 +23,6 @@ protected string ki_column_background_before_active[2]     // need to background
 end variables
 
 forward prototypes
-public function string u_get_evaluate (string a_field, string a_field_describe)
-public function string u_get_evaluate_protect (integer a_field_n)
 protected subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake)
 private function st_proteggi u_proteggi_set_st_proteggi (character k_operazione)
 public subroutine u_proteggi_sproteggi_dw ()
@@ -34,75 +32,10 @@ public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo)
 public subroutine u_proteggi_sproteggi_dw_no_protect ()
 public subroutine u_proteggi_sproteggi_dw (string a_modalità)
 public subroutine u_proteggi_sproteggi_dw (string a_modalità, boolean a_mantieni_colore)
+public function string u_get_evaluate (string a_field, string a_field_describe, long a_row)
+public function string u_get_background_color (string a_field)
+public function boolean u_get_protect (string a_field)
 end prototypes
-
-public function string u_get_evaluate (string a_field, string a_field_describe);/*
-   torna il valore dopo si un EXPRESSION
-*/
-
-string ls_value, ls_eval
-long ll_row
-
-ll_row = this.GetRow()
-ls_value = this.describe(a_field + "." + a_field_describe)
-
-IF NOT IsNumber(ls_value) THEN   
-
-	if ll_row > 0 then
-	// Get the expression following the tab (~t)   
-		ls_value = Right(ls_value, Len(ls_value) - Pos(ls_value, "~t"))   
-	
-	// Build string for Describe. Include a leading   
-	// quote to match the trailing quote that remains
-		ls_eval = "Evaluate(~"" + ls_value + ", " + String(ll_row) + ")"   
-
-		ls_value = this.Describe(ls_eval)
-		
-		IF NOT IsNumber(ls_value) THEN   
-			ls_value = "0" //"!"
-		end if
-		
-	else
-		
-		ls_value = "0" //"!"
-		
-	end if
-
-END IF
-
-return ls_value
-
-end function
-
-public function string u_get_evaluate_protect (integer a_field_n);string ls_protect, ls_eval
-long ll_row
-
-ll_row = this.GetRow()
-ls_protect = this.describe("#" + trim(string(a_field_n)) + ".Protect")
-
-IF NOT IsNumber(ls_protect) THEN   
-
-	if ll_row > 0 then
-	// Get the expression following the tab (~t)   
-		ls_protect = Right(ls_protect, Len(ls_protect) - Pos(ls_protect, "~t"))   
-	
-	// Build string for Describe. Include a leading   
-	// quote to match the trailing quote that remains
-		ls_eval = "Evaluate(~"" + ls_protect + ", " + String(ll_row) + ")"   
-
-		ls_protect = this.Describe(ls_eval)
-		
-	else
-		
-		ls_protect = "!" //"!"
-		
-	end if
-
-END IF
-
-return ls_protect
-
-end function
 
 protected subroutine u_set_color_column_on_cursor (string a_col_name, boolean a_remake);/*
  usa il backgrond color di default per segnalare il cursore sul campo
@@ -153,12 +86,13 @@ string k_style, k_modify
 	else
 	
 		if a_col_name > " " then
-			if this.Describe(a_col_name + ".TabSequence") > "0" and this.Describe("Evaluate("+a_col_name + ".Protect"+")") <> "1" then
+//			if this.Describe(a_col_name + ".TabSequence") > "0" and this.Describe("Evaluate("+a_col_name + ".Protect"+")") <> "1" then
+			if this.Describe(a_col_name + ".TabSequence") > "0" and NOT this.u_get_protect(a_col_name) then
 					
 	//--- Salva colore di sfondo originale
 				if ki_column_background_before_active[1] <> a_col_name then
 					ki_column_background_before_active[1] = a_col_name
-					ki_column_background_before_active[2] = u_get_evaluate( a_col_name, "Background.Color")
+					ki_column_background_before_active[2] = u_get_Background_Color(a_col_name)
 				end if
 			
 				k_modify += a_col_name + ".Background.Mode='0' " + a_col_name + ".Background.Color='" + ki_column_background_before_active[2] &
@@ -487,7 +421,7 @@ public subroutine u_proteggi_sproteggi_dw_no_protect ();//
 //--- Inpu: nel datawindow la proprietà ki_flag_modalita
 //---
 int k_ctr, k_colcount
-string k_tabsequence, k_name, k_modify, k_rcx, k_protect
+string k_tabsequence, k_name, k_modify, k_rcx //, k_protect
 
 
 choose case this.ki_flag_modalita
@@ -496,7 +430,7 @@ choose case this.ki_flag_modalita
 			,kkg_flag_modalita.cancellazione 
 		k_modify = u_proteggi_dw_get_modify("5", 0, "") 	//--- protezione di tutto
 
-	case kkg_flag_modalita.inserimento &
+	case kkg_flag_modalita.inserimento & 
 			,kkg_flag_modalita.modifica
 		k_colcount = integer(this.Describe("DataWindow.Column.Count"))
 
@@ -507,9 +441,7 @@ choose case this.ki_flag_modalita
 			if k_name = "?" or k_name = "!" then
 			else
 				
-				k_protect = u_get_evaluate_protect(k_ctr)
-
-				if k_protect = "0" then
+				if NOT u_get_protect(string(k_ctr)) then
 					k_tabsequence = trim(this.Describe(k_name + ".TabSequence"))
 	
 					if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
@@ -548,6 +480,125 @@ public subroutine u_proteggi_sproteggi_dw (string a_modalità, boolean a_mantien
 	
 	u_proteggi_sproteggi_dw( )
 end subroutine
+
+public function string u_get_evaluate (string a_field, string a_field_describe, long a_row);/*
+   torna il valore calcolato da EXPRESSION
+	inp: 
+	     field: nome campo
+	     filed_describe: es. background.color
+		  row: riga se però è una testata si può passare zero
+*/
+string ls_expression, ls_value, ls_eval
+int k_pos
+
+
+a_field = trim(a_field)
+
+IF IsNumber(a_field) THEN   
+	ls_expression = trim(this.describe("#" + a_field + "." + a_field_describe))
+else
+	ls_expression = trim(this.describe(a_field + "." + a_field_describe))
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Get the expression following the tab (~t) 
+ls_expression = trim(Right(ls_expression, Len(ls_expression) - Pos(ls_expression, "~t")))
+
+//--- se NON c'è una parentesi è poco probabile che sia una expression 
+if Pos(ls_expression, "(") = 0 then return ""     // ESCE con nulla
+
+//--- rimuove i doppi apici
+k_pos = Pos(ls_expression, '~"', 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "'")
+	k_pos = Pos(ls_expression, '~"', k_pos)
+loop
+k_pos = Pos(ls_expression, "~~", 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "")
+	k_pos = Pos(ls_expression, "~~", k_pos)
+loop
+
+if left(ls_expression, 1) = "'" then
+	ls_expression = trim(mid(ls_expression, 2))
+end if
+if mid(ls_expression, Len(ls_expression), 1) = "'" then
+	ls_expression = left(ls_expression, Len(ls_expression) -1)
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Build string for Describe. Include a leading   
+// quote to match the trailing quote that remains
+ls_eval = "Evaluate(~"" + ls_expression + "~", " + String(a_row) + ")"   
+
+ls_value = this.Describe(ls_eval)
+
+//--- se errore Torna nulla
+if ls_value = "!" then return ""
+		
+return trim(ls_value)
+
+end function
+
+public function string u_get_background_color (string a_field);/*
+   torna il COLORE di SFONDO
+*/
+string ls_value
+
+
+a_field = trim(a_field)
+
+if isnumber(a_field) then
+	ls_value = trim(this.describe("#" + a_field + ".Background.Color"))
+else
+	ls_value = trim(this.describe(a_field + ".Background.Color"))
+end if
+
+IF IsNumber(ls_value) THEN return ls_value  // OK buona! 
+
+ls_value = u_get_evaluate(a_field, "Background.Color", this.GetRow())
+	
+IF NOT IsNumber(ls_value) THEN return "0"  // NON trovato!
+
+return ls_value
+
+end function
+
+public function boolean u_get_protect (string a_field);string ls_protect
+
+
+a_field = trim(a_field)
+
+if isnumber(a_field) then
+	ls_protect = trim(this.describe("#" + a_field + ".Protect"))
+else
+	ls_protect = trim(this.describe(a_field + ".Protect"))
+end if
+
+IF not IsNumber(ls_protect) THEN  // se non è zero o 1 allora c'è un'espresssione da valutare
+	
+	ls_protect = u_get_evaluate(a_field, "Protect", this.GetRow() )
+
+	//IF NOT IsNumber(ls_protect) THEN return "!"  // NOT good!  
+
+end if
+
+if ls_protect = "1" then 
+	return TRUE
+else
+	return FALSE
+end if
+
+
+end function
 
 on uo_d_std_0.create
 end on

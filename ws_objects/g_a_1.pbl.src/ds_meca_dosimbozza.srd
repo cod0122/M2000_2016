@@ -1,32 +1,57 @@
 ﻿$PBExportHeader$ds_meca_dosimbozza.srd
-release 12.6;
-datawindow(units=0 timer_interval=0 color=1073741824 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 )
+release 22;
+datawindow(units=0 data.export.format=1 timer_interval=0 color=1073741824 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 )
 header(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=92 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes name=id_meca_dosimbozza dbname="meca_dosimbozza.id_meca_dosimbozza" )
- column=(type=long update=yes updatewhereclause=yes name=id_meca dbname="meca_dosimbozza.id_meca" )
- column=(type=char(13) update=yes updatewhereclause=yes name=barcode_lav dbname="meca_dosimbozza.barcode_lav" )
- column=(type=char(13) update=yes updatewhereclause=yes name=barcode dbname="meca_dosimbozza.barcode" )
- column=(type=char(13) update=yes updatewhereclause=yes name=barcode_dosimetro dbname="meca_dosimbozza.barcode_dosimetro" )
- column=(type=date update=yes updatewhereclause=yes name=dosim_data dbname="meca_dosimbozza.dosim_data" )
- column=(type=char(1) update=yes updatewhereclause=yes name=dosim_flg_tipo_dose dbname="meca_dosimbozza.dosim_flg_tipo_dose" )
- column=(type=decimal(2) update=yes updatewhereclause=yes name=dosim_dose dbname="meca_dosimbozza.dosim_dose" )
- column=(type=long update=yes updatewhereclause=yes name=dosim_assorb dbname="meca_dosimbozza.dosim_assorb" )
- column=(type=long update=yes updatewhereclause=yes name=dosim_spessore dbname="meca_dosimbozza.dosim_spessore" )
- column=(type=decimal(3) update=yes updatewhereclause=yes name=dosim_rapp_a_s dbname="meca_dosimbozza.dosim_rapp_a_s" )
- column=(type=char(16) update=yes updatewhereclause=yes name=dosim_lotto_dosim dbname="meca_dosimbozza.dosim_lotto_dosim" )
- column=(type=long update=yes updatewhereclause=yes name=dosim_temperatura dbname="meca_dosimbozza.dosim_temperatura" )
- column=(type=long update=yes updatewhereclause=yes name=dosim_umidita dbname="meca_dosimbozza.dosim_umidita" )
- column=(type=char(1) update=yes updatewhereclause=yes name=dosim_esito dbname="meca_dosimbozza.dosim_esito" )
- column=(type=char(254) update=yes updatewhereclause=yes name=dosim_note dbname="meca_dosimbozza.dosim_note" )
- column=(type=char(254) update=yes updatewhereclause=yes name=note dbname="meca_dosimbozza.note" )
- column=(type=datetime update=yes updatewhereclause=yes name=x_data_dosim_lettura dbname="meca_dosimbozza.x_data_dosim_lettura" )
- column=(type=char(12) update=yes updatewhereclause=yes name=x_utente_dosim_lettura dbname="meca_dosimbozza.x_utente_dosim_lettura" )
- column=(type=datetime update=yes updatewhereclause=yes name=x_datins dbname="meca_dosimbozza.x_datins" )
- column=(type=char(12) update=yes updatewhereclause=yes name=x_utente dbname="meca_dosimbozza.x_utente" )
- retrieve="PBSELECT( VERSION(400) TABLE(NAME=~"meca_dosimbozza~" ) COLUMN(NAME=~"meca_dosimbozza.id_meca_dosimbozza~") COLUMN(NAME=~"meca_dosimbozza.id_meca~") COLUMN(NAME=~"meca_dosimbozza.barcode_lav~") COLUMN(NAME=~"meca_dosimbozza.barcode~") COLUMN(NAME=~"meca_dosimbozza.barcode_dosimetro~") COLUMN(NAME=~"meca_dosimbozza.dosim_data~") COLUMN(NAME=~"meca_dosimbozza.dosim_flg_tipo_dose~") COLUMN(NAME=~"meca_dosimbozza.dosim_dose~") COLUMN(NAME=~"meca_dosimbozza.dosim_assorb~") COLUMN(NAME=~"meca_dosimbozza.dosim_spessore~") COLUMN(NAME=~"meca_dosimbozza.dosim_rapp_a_s~") COLUMN(NAME=~"meca_dosimbozza.dosim_lotto_dosim~") COLUMN(NAME=~"meca_dosimbozza.dosim_temperatura~") COLUMN(NAME=~"meca_dosimbozza.dosim_umidita~") COLUMN(NAME=~"meca_dosimbozza.dosim_esito~") COLUMN(NAME=~"meca_dosimbozza.dosim_note~") COLUMN(NAME=~"meca_dosimbozza.note~") COLUMN(NAME=~"meca_dosimbozza.x_data_dosim_lettura~") COLUMN(NAME=~"meca_dosimbozza.x_utente_dosim_lettura~") COLUMN(NAME=~"meca_dosimbozza.x_datins~") COLUMN(NAME=~"meca_dosimbozza.x_utente~")WHERE(    EXP1 =~"meca_dosimbozza.id_meca_dosimbozza~"   OP =~"=~"    EXP2 =~":k_id_meca_dosimbozza~" ) ) ARG(NAME = ~"k_id_meca_dosimbozza~" TYPE = number) " update="meca_dosimbozza" updatewhere=1 updatekeyinplace=no arguments=(("k_id_meca_dosimbozza", number)) )
+table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes name=id_meca_dosimbozza dbname="meca_dosimbozza.id_meca_dosimbozza" dbalias=".id_meca_dosimbozza" )
+ column=(type=long update=yes updatewhereclause=yes name=id_meca dbname="meca_dosimbozza.id_meca" dbalias=".id_meca" )
+ column=(type=char(13) update=yes updatewhereclause=yes name=barcode_lav dbname="meca_dosimbozza.barcode_lav" dbalias=".barcode_lav" )
+ column=(type=char(13) update=yes updatewhereclause=yes name=barcode dbname="meca_dosimbozza.barcode" dbalias=".barcode" )
+ column=(type=char(13) update=yes updatewhereclause=yes name=barcode_dosimetro dbname="meca_dosimbozza.barcode_dosimetro" dbalias=".barcode_dosimetro" )
+ column=(type=date update=yes updatewhereclause=yes name=dosim_data dbname="meca_dosimbozza.dosim_data" dbalias=".dosim_data" )
+ column=(type=char(1) update=yes updatewhereclause=yes name=dosim_flg_tipo_dose dbname="meca_dosimbozza.dosim_flg_tipo_dose" dbalias=".dosim_flg_tipo_dose" )
+ column=(type=decimal(2) update=yes updatewhereclause=yes name=dosim_dose dbname="meca_dosimbozza.dosim_dose" dbalias=".dosim_dose" )
+ column=(type=long update=yes updatewhereclause=yes name=dosim_assorb dbname="meca_dosimbozza.dosim_assorb" dbalias=".dosim_assorb" )
+ column=(type=long update=yes updatewhereclause=yes name=dosim_spessore dbname="meca_dosimbozza.dosim_spessore" dbalias=".dosim_spessore" )
+ column=(type=decimal(3) update=yes updatewhereclause=yes name=dosim_rapp_a_s dbname="meca_dosimbozza.dosim_rapp_a_s" dbalias=".dosim_rapp_a_s" )
+ column=(type=char(16) update=yes updatewhereclause=yes name=dosim_lotto_dosim dbname="meca_dosimbozza.dosim_lotto_dosim" dbalias=".dosim_lotto_dosim" )
+ column=(type=long update=yes updatewhereclause=yes name=dosim_temperatura dbname="meca_dosimbozza.dosim_temperatura" dbalias=".dosim_temperatura" )
+ column=(type=long update=yes updatewhereclause=yes name=dosim_umidita dbname="meca_dosimbozza.dosim_umidita" dbalias=".dosim_umidita" )
+ column=(type=char(1) update=yes updatewhereclause=yes name=dosim_esito dbname="meca_dosimbozza.dosim_esito" dbalias=".dosim_esito" )
+ column=(type=char(254) update=yes updatewhereclause=yes name=dosim_note dbname="meca_dosimbozza.dosim_note" dbalias=".dosim_note" )
+ column=(type=char(254) update=yes updatewhereclause=yes name=note dbname="meca_dosimbozza.note" dbalias=".note" )
+ column=(type=datetime update=yes updatewhereclause=yes name=x_data_dosim_lettura dbname="meca_dosimbozza.x_data_dosim_lettura" dbalias=".x_data_dosim_lettura" )
+ column=(type=char(12) update=yes updatewhereclause=yes name=x_utente_dosim_lettura dbname="meca_dosimbozza.x_utente_dosim_lettura" dbalias=".x_utente_dosim_lettura" )
+ column=(type=datetime update=yes updatewhereclause=yes name=x_datins dbname="meca_dosimbozza.x_datins" dbalias=".x_datins" )
+ column=(type=char(12) update=yes updatewhereclause=yes name=x_utente dbname="meca_dosimbozza.x_utente" dbalias=".x_utente" )
+ retrieve="  SELECT meca_dosimbozza.id_meca_dosimbozza,   
+         meca_dosimbozza.id_meca,   
+         meca_dosimbozza.barcode_lav,   
+         meca_dosimbozza.barcode,   
+         meca_dosimbozza.barcode_dosimetro,   
+         meca_dosimbozza.dosim_data,   
+         meca_dosimbozza.dosim_flg_tipo_dose,   
+         meca_dosimbozza.dosim_dose,   
+         meca_dosimbozza.dosim_assorb,   
+         meca_dosimbozza.dosim_spessore,   
+         meca_dosimbozza.dosim_rapp_a_s,   
+         meca_dosimbozza.dosim_lotto_dosim,   
+         meca_dosimbozza.dosim_temperatura,   
+         meca_dosimbozza.dosim_umidita,   
+         meca_dosimbozza.dosim_esito,   
+         meca_dosimbozza.dosim_note,   
+         meca_dosimbozza.note,   
+         meca_dosimbozza.x_data_dosim_lettura,   
+         meca_dosimbozza.x_utente_dosim_lettura,   
+         meca_dosimbozza.x_datins,   
+         meca_dosimbozza.x_utente  
+		--	,coalesce(barcode.impianto, 0) impianto 
+    FROM meca_dosimbozza  
+        --          left outer join barcode on meca_dosimbozza.barcode_lav = barcode.barcode
+   WHERE meca_dosimbozza.id_meca_dosimbozza = :k_id_meca_dosimbozza    
+" update="meca_dosimbozza" updatewhere=1 updatekeyinplace=no arguments=(("k_id_meca_dosimbozza", number)) )
 text(band=header alignment="2" text="Id Meca Dosimbozza" border="0" color="33554432" x="14" y="8" height="64" width="649" html.valueishtml="0"  name=id_meca_dosimbozza_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Id Meca" border="0" color="33554432" x="681" y="8" height="64" width="384" html.valueishtml="0"  name=id_meca_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Barcode Lav" border="0" color="33554432" x="1079" y="8" height="64" width="466" html.valueishtml="0"  name=barcode_lav_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
@@ -77,5 +102,6 @@ xsltgen()
 jsgen()
 export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
-export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" )
+export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
+ 

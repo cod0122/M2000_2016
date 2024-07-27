@@ -215,9 +215,14 @@ kst_esito = kguo_exception.inizializza(this.classname())
 if kst_tab_email.id_email > 0 then
 
   SELECT
-         email.oggetto 
+         trim(email.oggetto),   
+         case
+				when trim(email.oggetto_lang) > ' ' then trim(email.oggetto_lang)
+				else trim(email.oggetto) 
+			end
     INTO 
          :kst_tab_email.oggetto 
+         ,:kst_tab_email.oggetto_lang
     FROM email  
 	where email.id_email = :kst_tab_email.id_email
 	using sqlca;
@@ -564,6 +569,10 @@ if kst_tab_email.id_email > 0 then
          trim(email.stato),   
          trim(email.des),   
          trim(email.oggetto),   
+         case
+				when trim(email.oggetto_lang) > ' ' then trim(email.oggetto_lang)
+				else trim(email.oggetto) 
+			end, 
          trim(email.link_lettera),   
          trim(email.flg_lettera_html),   
          trim(email.flg_ritorno_ricev),  
@@ -573,6 +582,7 @@ if kst_tab_email.id_email > 0 then
          :kst_tab_email.stato,   
          :kst_tab_email.des,   
          :kst_tab_email.oggetto,   
+         :kst_tab_email.oggetto_lang,   
          :kst_tab_email.link_lettera,   
          :kst_tab_email.flg_lettera_html,   
          :kst_tab_email.flg_ritorno_ricev, 
@@ -583,10 +593,7 @@ if kst_tab_email.id_email > 0 then
 	using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.kist_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kguo_exception.kist_esito.SQLErrText = "Fallita lettura dati di configurazione E-mail Id '" &
-									+ string(kst_tab_email.id_email) + "' (email)! " + kkg.acapo + "Esito: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallita lettura dati di configurazione E-mail Id '" + string(kst_tab_email.id_email) + "' (email)! ")
 		throw kguo_exception
 	end if
 	

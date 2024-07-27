@@ -109,91 +109,98 @@ kuf_certif kuf1_certif
 st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
-
-kuf1_armo = create kuf_armo
-
-//--- get del ID lotto
-kst_tab_armo.id_armo = ast_tab_arsp.id_armo
-if kst_tab_armo.id_meca > 0 then
-else
-	kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
-end if
-
-//--- prima piglio il numero colli da spedire e i colli entrati
-kst_tab_armo_dasped.colli_2 = kuf1_armo.get_colli_da_sped(kst_tab_armo)
-//--- get colli eventualmente inseriti in questo ddt (es.sono in modifica) x sommarli al totale
-kst_tab_arsp.colli = 0
-if ast_tab_arsp.id_arsp > 0 then
-	kst_tab_arsp.id_arsp = ast_tab_arsp.id_arsp
-	kst_tab_arsp.colli = kiuf_sped.get_colli(kst_tab_arsp)
-end if
-if isnull(kst_tab_arsp.colli) then kst_tab_arsp.colli = 0
-kst_tab_armo_dasped.colli_2 += kst_tab_arsp.colli   // somma ai colli da spedire quelli eventuali di questo ddt
-
-//--- se Lotto da Trattare devo fare alcune verifiche tipo la Quarantena
-kuf1_armo.get_magazzino(kst_tab_armo)
-if kuf1_armo.if_da_trattare(kst_tab_armo) then
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
-//--- calcola i colli trattati	
-	kst_tab_armo_lav = kst_tab_armo
-	kst_tab_armo_lav.colli_2 = kuf1_armo.get_colli_trattati(kst_tab_armo_lav)
-	if kst_tab_armo_lav.colli_2 > 0 then // se ci sono colli trattati valuto se ho fatto l'ATTESTATO
-
-//--- se lotto da Trattare verifica presenza Certificato
-		kuf1_certif = create kuf_certif
-		kst_tab_certif.id_meca = kst_tab_armo.id_meca
-		kst_esito = kuf1_certif.get_num_certif(kst_tab_certif)
-		if kst_esito.esito = kkg_esito.db_ko then
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
+	kuf1_armo = create kuf_armo
+	
+	//--- get del ID lotto
+	kst_tab_armo.id_armo = ast_tab_arsp.id_armo
+	if kst_tab_armo.id_meca > 0 then
+	else
+		kuf1_armo.get_id_meca_da_id_armo(kst_tab_armo)
+	end if
+	
+	//--- prima piglio il numero colli da spedire e i colli entrati
+	kst_tab_armo_dasped.colli_2 = kuf1_armo.get_colli_da_sped(kst_tab_armo)
+	//--- get colli eventualmente inseriti in questo ddt (es.sono in modifica) x sommarli al totale
+	kst_tab_arsp.colli = 0
+	if ast_tab_arsp.id_arsp > 0 then
+		kst_tab_arsp.id_arsp = ast_tab_arsp.id_arsp
+		kst_tab_arsp.colli = kiuf_sped.get_colli(kst_tab_arsp)
+	end if
+	if isnull(kst_tab_arsp.colli) then kst_tab_arsp.colli = 0
+	kst_tab_armo_dasped.colli_2 += kst_tab_arsp.colli   // somma ai colli da spedire quelli eventuali di questo ddt
+	
+	//--- se Lotto da Trattare devo fare alcune verifiche tipo la Quarantena
+	kuf1_armo.get_magazzino(kst_tab_armo)
+	if kuf1_armo.if_da_trattare(kst_tab_armo) then
 		
-//--- se c'e' Attestato allora OK altrimenti prosegue x verificare se Parzialità consentite....		
-		if kst_tab_certif.num_certif > 0 then
-		else
-			kst_tab_meca.id = kst_tab_armo.id_meca
-			kuf1_armo.get_num_int(kst_tab_meca)
-
-//--- Lotto in Quarantena Aperta?
-			kuf1_meca_qtna = create kuf_meca_qtna
-			kst_tab_meca_qtna.id_meca = kst_tab_armo.id_meca
-			if kuf1_meca_qtna.if_aperta(kst_tab_meca_qtna) then
+	//--- calcola i colli trattati	
+		kst_tab_armo_lav = kst_tab_armo
+		kst_tab_armo_lav.colli_2 = kuf1_armo.get_colli_trattati(kst_tab_armo_lav)
+		if kst_tab_armo_lav.colli_2 > 0 then // se ci sono colli trattati valuto se ho fatto l'ATTESTATO
+	
+	//--- se lotto da Trattare verifica presenza Certificato
+			kuf1_certif = create kuf_certif
+			kst_tab_certif.id_meca = kst_tab_armo.id_meca
+			kuf1_certif.get_num_certif(kst_tab_certif)
 			
-//--- Se Colli non tutti Trattati
-				if not kuf1_armo.if_lotto_completo(kst_tab_armo) then
-			
-//--- controlla se DDT possono essere spediti anche se ho ancora da trattare
-					kst_tab_meca_qtna.id_meca = kst_tab_armo.id_meca
-					if NOT kuf1_meca_qtna.if_sped_lotto_no_completo_ok(kst_tab_meca_qtna) then
-							//if NOT kiuf_sped.if_ddt_lavparziale() then
-						kst_esito.esito = kkg_esito.no_esecuzione
-						kst_esito.sqlerrtext = "QUARANTENA (id " + string(kst_tab_meca_qtna.id_meca_qtna) + ")" &
-												+ " aperta senza opzione di spedizione Parziale per il Lotto " &
-												+ string(kst_tab_meca.num_int) + " del " + string(kst_tab_meca.data_int)
-						kguo_exception.inizializza()
-						kguo_exception.set_esito(kst_esito)
-						throw kguo_exception
-					end if
-				end if
-				
+	//--- se c'e' Attestato allora OK altrimenti prosegue x verificare se Parzialità consentite....		
+			if kst_tab_certif.num_certif > 0 then
 			else
-//--- Se NO in Quarantena allora NON posso spedire e lancio exception
-				kst_esito.esito = kkg_esito.no_esecuzione
-				kst_esito.sqlerrtext = "Manca l'Attestato, aprire la QUARANTENA se si vuole spedire il Lotto " + string(kst_tab_meca.num_int) + " del " + string(kst_tab_meca.data_int)
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if 
+				kst_tab_meca.id = kst_tab_armo.id_meca
+				kuf1_armo.get_num_int(kst_tab_meca)
+	
+	//--- Lotto in Quarantena Aperta?
+				kuf1_meca_qtna = create kuf_meca_qtna
+				kst_tab_meca_qtna.id_meca = kst_tab_armo.id_meca
+				if kuf1_meca_qtna.if_aperta(kst_tab_meca_qtna) then
+				
+	//--- Se Colli non tutti Trattati
+					if not kuf1_armo.if_lotto_completo(kst_tab_armo) then
+				
+	//--- controlla se DDT possono essere spediti anche se ho ancora da trattare
+						kst_tab_meca_qtna.id_meca = kst_tab_armo.id_meca
+						if NOT kuf1_meca_qtna.if_sped_lotto_no_completo_ok(kst_tab_meca_qtna) then
+								//if NOT kiuf_sped.if_ddt_lavparziale() then
+							kst_esito.esito = kkg_esito.no_esecuzione
+							kst_esito.sqlerrtext = "QUARANTENA (id " + string(kst_tab_meca_qtna.id_meca_qtna) + ")" &
+													+ " aperta senza opzione di spedizione Parziale per il Lotto " &
+													+ string(kst_tab_meca.num_int) + " del " + string(kst_tab_meca.data_int)
+							kguo_exception.inizializza()
+							kguo_exception.set_esito(kst_esito)
+							throw kguo_exception
+						end if
+					end if
+					
+				else
+	//--- Se NO in Quarantena allora NON posso spedire e lancio exception
+					kst_esito.esito = kkg_esito.no_esecuzione
+					kst_esito.sqlerrtext = "Manca l'Attestato, aprire la QUARANTENA se si vuole spedire il Lotto " + string(kst_tab_meca.num_int) + " del " + string(kst_tab_meca.data_int)
+					kguo_exception.inizializza( )
+					kguo_exception.set_esito(kst_esito)
+					throw kguo_exception
+				end if 
+			end if
 		end if
 	end if
-end if
+	
+	
+	if isnull(kst_tab_armo_dasped.colli_2) then kst_tab_armo_dasped.colli_2 = 0
+	
+	k_return = kst_tab_armo_dasped.colli_2 + ast_tab_arsp.colli 
 
-
-if isnull(kst_tab_armo_dasped.colli_2) then kst_tab_armo_dasped.colli_2 = 0
-
-k_return = kst_tab_armo_dasped.colli_2 + ast_tab_arsp.colli 
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_meca_qtna) then destroy kuf1_meca_qtna
+	if isvalid(kuf1_certif) then destroy kuf1_certif	
+	
+end try	
 
 return k_return
 

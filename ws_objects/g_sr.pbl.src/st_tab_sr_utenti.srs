@@ -9,6 +9,7 @@ global type st_tab_sr_utenti from structure
 	string		autenticazione		descriptor "comment" = "tipo di autenticazione M=M2000/W=Active Directory di Windows/X=entrambi"
 	string		password
 	string		password_crypt
+	string		pwd_server		descriptor "comment" = "password di autenticazione sul server crypt"
 	string		stato
 	string		dlgs196_chk_sintax
 	integer		scade_dopo_gg

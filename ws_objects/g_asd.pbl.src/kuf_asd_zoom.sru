@@ -31,13 +31,9 @@ end function
 
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;/*
   Attiva LINK cliccato 
- 
-  Par. Inut: 
-                datawindow su cui è stato attivato il LINK
+  Par. Inut:    datawindow su cui è stato attivato il LINK
                 nome campo di LINK
-  
   Rit: TRUE = ok 
-  
 */
   
 long k_rc
@@ -63,7 +59,7 @@ try
 
 	choose case a_campo_link
 	
-		case "b_asdrackbarcode", "b_asdrackbarcode_1"
+		case "asdrackbarcode", "asdrackbarcode_1"
 			a_campo_link = "barcode"
 			k_rcx = adw_link.describe(a_campo_link + ".color")
 			if k_rcx = "!" or k_rcx = "?" then
@@ -154,17 +150,9 @@ end function
 
 private function boolean anteprima_x_barcode (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackbarcode kst_tab_asdrackbarcode) throws uo_exception;/*
   Operazione di preparazione datastore dei dati richiesti
- 
-  Inut:  
-                datastore su cui fare l'anteprima
-                dati tabella per estrazione dell'anteprima
+  Inp: datastore su cui fare l'anteprima
+       dati tabella per estrazione dell'anteprima
   Out: datastore di anteprima
-  
-  Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-                                      2=Errore gestito
-                                      3=altro errore
-                                      100=Non trovato 
-  
 */
 long k_rc
 boolean k_return
@@ -182,9 +170,7 @@ boolean k_return
 		kds_anteprima.reset()	
 		k_rc=kds_anteprima.retrieve(kst_tab_asdrackbarcode.barcode)
 		if k_rc < 0 then
-			kguo_exception.kist_esito = kds_anteprima.kist_esito
-			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura dati Rack del barcode di lav.: " + trim(kst_tab_asdrackbarcode.barcode) &
-			                                    + kkg.acapo + kds_anteprima.kist_esito.sqlerrtext
+			kguo_exception.set_st_esito_err_ds(kds_anteprima, "Errore in lettura dati Rack del barcode di lav.: " + trim(kst_tab_asdrackbarcode.barcode))
 			throw kguo_exception
 		end if
 		
@@ -201,17 +187,9 @@ end function
 
 private function boolean anteprima_x_asddevice (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackcode kst_tab_asdrackcode) throws uo_exception;/*
   Operazione di preparazione datastore dei dati richiesti
- 
-  Inut:  
-                datastore su cui fare l'anteprima
-                dati tabella per estrazione dell'anteprima
+  Inp: datastore su cui fare l'anteprima
+       dati tabella per estrazione dell'anteprima
   Out: datastore di anteprima
-  
-  Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-                                      2=Errore gestito
-                                      3=altro errore
-                                      100=Non trovato 
-  
 */
 long k_rc
 boolean k_return

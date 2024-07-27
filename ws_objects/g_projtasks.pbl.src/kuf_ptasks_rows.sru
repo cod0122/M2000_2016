@@ -192,12 +192,8 @@ kuf_utility kuf1_utility
 						where id_ptasks_row = :kst_tab_ptasks_rows.id_ptasks_row
 						using kguo_sqlca_db_magazzino ;
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Fallito Aggiornamento 'Dati Attività di dettaglio Progetto'. Id riga " + string(kst_tab_ptasks_rows.id_ptasks_row) &
-							+ ", pulizia area dati (ptasks_rows): " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Fallito pulizia area 'Dati Attività di dettaglio Progetto' (clienti_mkt) per la Riga n. " + string(kst_tab_ptasks_rows.id_ptasks_row))
 				throw kguo_exception
 			end if
 
@@ -266,6 +262,8 @@ kuf_utility kuf1_utility
 			k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "pesolordoxlottokg"; if kst_tab_ptasks_rows.acc_pesolordoxlottokg > 0.00 then k_json_val[k_idx_max] = kuf1_utility.u_num_itatousa2(trim(string(kst_tab_ptasks_rows.acc_pesolordoxlottokg)), false)
 			k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "dhlbox";k_json_val[k_idx_max] = trim(kst_tab_ptasks_rows.acc_dhlbox)
 			k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "boxdimcm";k_json_val[k_idx_max] = trim(kst_tab_ptasks_rows.acc_boxdimcm)
+			k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "clie_1"; if kst_tab_ptasks_rows.acc_clie_1 > 0 then k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.acc_clie_1))
+			k_idx_max ++; k_json_key[k_idx_max] = "$.acc." + "clie_2"; if kst_tab_ptasks_rows.acc_clie_2 > 0 then k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.acc_clie_2))
 			
 			k_idx_max ++; k_json_key[k_idx_max] = "$.valid." + "modaccompn"; if kst_tab_ptasks_rows.valid_modaccompn > 0 then k_json_val[k_idx_max] = trim(string(kst_tab_ptasks_rows.valid_modaccompn))
 			k_idx_max ++; k_json_key[k_idx_max] = "$.valid." + "modaccomprogr";k_json_val[k_idx_max] = trim(kst_tab_ptasks_rows.valid_modaccomprogr)
@@ -319,13 +317,10 @@ kuf_utility kuf1_utility
 			loop
 			
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Fallito Aggiornamento 'Dati Attività di dettaglio Progetto'. Id riga: " + string(kst_tab_ptasks_rows.id_ptasks_row) &
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Fallito Aggiornamento 'Dati Attività di dettaglio Progetto' (ptasks_rows). Id riga: " + string(kst_tab_ptasks_rows.id_ptasks_row) &
 								+ ", campo: " + k_json_key[k_idx] &
-								+ " valore: "+ k_json_val[k_idx] + " (ptasks_rows). " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+								+ " valore: "+ k_json_val[k_idx] + ". ")
 				throw kguo_exception
 			end if
 
@@ -616,13 +611,10 @@ st_esito kst_esito
 				
 			if kguo_sqlca_db_magazzino.sqlcode < 0 then
 				if isnull(a_json_val) then a_json_val = "NULLO"
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Fallito Aggiornamento riga Progetto '" + string(ast_tab_ptasks_rows.id_ptasks_row) &
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Fallito Aggiornamento riga Progetto n. " + string(ast_tab_ptasks_rows.id_ptasks_row) &
 								+ ", campo: " + a_json_key + "' " &
-								+ "valore: '"+ a_json_val + "' (tab.ptasks_rows). " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+								+ "valore: '"+ a_json_val + "' (tab.ptasks_rows). " + trim(kguo_sqlca_db_magazzino.SQLErrText))
 				throw kguo_exception
 			end if
 

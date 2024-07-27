@@ -1,0 +1,18 @@
+﻿$PBExportHeader$st_tab_arsp_depo.srs
+global type st_tab_arsp_depo from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_arsp_depo
+	long		id_sped_depo
+	integer		nriga
+	string		stampa
+	long		colli
+	long		colli_out
+	double		peso_kg_out
+	long		id_armo
+	string		note_1
+	string		note_2
+	string		note_3
+	datetime		x_datins
+	string		x_utente
+end type
+

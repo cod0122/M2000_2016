@@ -15,7 +15,7 @@ end type
 
 global type uo_dw_periodo from datawindow
 boolean visible = false
-integer width = 1015
+integer width = 1033
 integer height = 508
 boolean enabled = false
 boolean titlebar = true
@@ -126,7 +126,6 @@ end event
 event u_pigiato_enter;//
 //--- Premuto ENTER: simulo come il clicked su ITEM_PICTURE
 //
-
 	THIS.Trigger Event ue_clicked_0(1, "b_ok") 
 
 

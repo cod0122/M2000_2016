@@ -14,7 +14,8 @@ global w_sr_profili w_sr_profili
 type variables
 //
 private datastore kdspi_elenco_output 
-constant string ki_dw_lista_funzioni = "d_sr_prof_funz_l_diverso" 
+private constant string ki_dw_lista_funzioni = "d_sr_prof_funz_l_diverso" 
+private kuf_sr_sicurezza kiuf_sr_sicurezza
 
 end variables
 
@@ -142,10 +143,10 @@ protected function integer cancella ();//
 //=== Cancellazione record dal DB
 //=== Ritorna : 0=OK 1=KO 2=non eseguita
 //
-int k_return=0
+int k_return=2
 string k_record, k_record_1, k_key, k_testo
 string k_errore = "0 " 
-long k_riga
+long k_riga, k_rows
 kuf_sr_sicurezza  kuf1_sr_sicurezza
 st_esito kst_esito
 st_tab_sr_profili kst_tab_sr_profili
@@ -153,10 +154,11 @@ st_tab_sr_funzioni kst_tab_sr_funzioni
 st_tab_sr_prof_funz kst_tab_sr_prof_funz
 
 
+kst_esito = kguo_exception.inizializza(this.classname())
 
-//=== 
 choose case tab_1.selectedtab 
 	case 1 
+		ki_esci_dopo_cancella = true
 		k_record = " " + trim(tab_1.tabpage_1.text) + " "
 		k_riga = tab_1.tabpage_1.dw_1.getrow()	
 		if k_riga > 0 then
@@ -181,27 +183,29 @@ choose case tab_1.selectedtab
 		k_key = trim(string(kst_tab_sr_profili.id))
  
 	case 2 
+		ki_esci_dopo_cancella = false
 		k_record = " " + trim(tab_1.tabpage_2.text) + " "
-		k_riga = tab_1.tabpage_2.dw_2.getselectedrow(0)	
-		if k_riga > 0 then
-			if tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> new! and &
-				tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
+		k_rows = tab_1.tabpage_2.dw_2.u_getselectedrows(0)	
+		if k_rows > 0 then
+			k_riga = tab_1.tabpage_2.dw_2.getselectedrow(0)	
+			kst_tab_sr_prof_funz.id = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "sr_prof_funz_id")
+			kst_tab_sr_funzioni.id = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "id")
+			kst_tab_sr_funzioni.nome = tab_1.tabpage_2.dw_2.getitemstring(k_riga, "nome")
+			if isnull(kst_tab_sr_funzioni.nome) or trim(kst_tab_sr_funzioni.nome) = "" then
 				
-				kst_tab_sr_prof_funz.id = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "sr_prof_funz_id")
-				kst_tab_sr_funzioni.id = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "id")
-				kst_tab_sr_funzioni.nome = tab_1.tabpage_2.dw_2.getitemstring(k_riga, "nome")
-				if isnull(kst_tab_sr_funzioni.nome) or trim(kst_tab_sr_funzioni.nome) = "" then
-					
-					k_testo = trim(tab_1.tabpage_2.dw_2.object.nome_t.text)
-					kst_tab_sr_funzioni.nome = "senza " + k_testo
-					
-				end if
-				k_record_1 = &
-					"Sei sicuro di voler eliminare l'associazione con la Funzione" + "~n~r" + &
-					trim(kst_tab_sr_funzioni.nome) + " id=" + string(kst_tab_sr_funzioni.id) &
-				   + " ?"
+				k_testo = trim(tab_1.tabpage_2.dw_2.object.nome_t.text)
+				kst_tab_sr_funzioni.nome = "senza " + k_testo
+				
+			end if
+			if k_rows = 1 then
+				k_record_1 = "Sei sicuro di voler eliminare da questo Profilo " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "id")) &
+							+ " l'associazione della Funzione " + kkg.acapo + &
+							trim(kst_tab_sr_funzioni.nome) + " id " + string(kst_tab_sr_funzioni.id)  + "? "
 			else
-				tab_1.tabpage_2.dw_2.deleterow(k_riga)
+				k_record_1 = "Sei sicuro di voler eliminare " + string(k_rows) &
+										+ " Funzioni associate a questo Profilo " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "id")) &
+										+ ", di cui la prima è " + kkg.acapo + &
+										+ trim(kst_tab_sr_funzioni.nome) + " id " + string(kst_tab_sr_funzioni.id)  + "? "
 			end if
 		else
 			messagebox("Elimina" + k_record,  "Selezionare almeno una riga. ")
@@ -261,30 +265,35 @@ if k_riga > 0 and LenA(trim(k_key)) > 0 then
 			case 1 
 				kst_esito = kuf1_sr_sicurezza.tb_delete_sr_profili(kst_tab_sr_profili) 
 			case 2
-				kst_esito = kuf1_sr_sicurezza.tb_delete_sr_prof_funz(kst_tab_sr_prof_funz) 
-		end choose	
-		if kst_esito.esito = "0" then
-
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				k_return = 1
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-
-			else
-				
-				choose case tab_1.selectedtab 
-					case 1 
-						tab_1.tabpage_1.dw_1.deleterow(k_riga)
-					case 2
+				k_riga = tab_1.tabpage_2.dw_2.getselectedrow(0)	
+				do while k_riga > 0 and kst_esito.esito = kkg_esito.ok
+					if tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> new! and &
+						tab_1.tabpage_2.dw_2.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
+						kst_tab_sr_prof_funz.id = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "sr_prof_funz_id")
+						kst_esito = kuf1_sr_sicurezza.tb_delete_sr_prof_funz(kst_tab_sr_prof_funz) 
+					end if
+					if kst_esito.esito = kkg_esito.ok then
 						tab_1.tabpage_2.dw_2.deleterow(k_riga)
-				end choose	
+						k_riga = tab_1.tabpage_2.dw_2.getselectedrow(0)	
+					end if
+				loop
+				
+		end choose	
+		if kst_esito.esito = kkg_esito.ok then
 
-			end if
+			kguo_sqlca_db_magazzino.db_commit()
+				
+			choose case tab_1.selectedtab 
+				case 1 
+					tab_1.tabpage_1.dw_1.deleterow(k_riga)
+				//case 2
+				//	tab_1.tabpage_2.dw_2.deleterow(k_riga)
+			end choose	
 
 		else
+			
 			k_return = 1
-			k_errore = kGuf_data_base.db_rollback()
+			kguo_sqlca_db_magazzino.db_rollback()
 
 			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
 						  trim(kst_esito.SQLErrText) ) 	
@@ -817,6 +826,7 @@ end if
 end subroutine
 
 protected subroutine open_start_window ();//
+kiuf_sr_sicurezza = create kuf_sr_sicurezza
 kdspi_elenco_output = create datastore
 
 ki_toolbar_window_presente=true
@@ -864,7 +874,6 @@ int k_return
 int k_rc
 st_esito kst_esito
 st_tab_sr_prof_funz kst_tab_sr_prof_funz 
-kuf_sr_sicurezza kuf1_sr_sicurezza
 
 
 if isvalid(kst_open_w) then
@@ -888,10 +897,8 @@ if isvalid(kst_open_w) then
 
 				if kst_tab_sr_prof_funz.id_funzioni > 0 then
 					k_return = 1
-					
-					kuf1_sr_sicurezza = create kuf_sr_sicurezza
-					kst_esito = kuf1_sr_sicurezza.tb_insert_sr_prof_funz (kst_tab_sr_prof_funz)
-					destroy kuf1_sr_sicurezza
+
+					kst_esito = kiuf_sr_sicurezza.tb_insert_sr_prof_funz (kst_tab_sr_prof_funz)
 					
 //--- torna a rileggere la lista					
 					inizializza_lista()
@@ -919,8 +926,12 @@ end event
 
 event close;call super::close;//
 	if isvalid(kdspi_elenco_output) then destroy kdspi_elenco_output 
+	if isvalid(kiuf_sr_sicurezza) then destroy kiuf_sr_sicurezza
 
 end event
+
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_sr_profili
+end type
 
 type st_ritorna from w_g_tab_3`st_ritorna within w_sr_profili
 integer x = 101

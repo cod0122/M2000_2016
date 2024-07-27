@@ -129,7 +129,7 @@ public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1)
 public function string u_dw_get_protect_evaluate (datawindow adw_1, integer a_field_n)
 public function string u_get_tooltip_text (string a_tooltip_tip) throws uo_exception
 public function string u_stringa_spezza (string k_stringa)
-public function int u_open_app_files (string a_file) throws uo_exception
+public function integer u_open_app_files (string a_file) throws uo_exception
 public function integer u_stringa_split (ref string a_string[], string a_sep)
 public function string u_url_sep_path_by_name (ref string a_url)
 public function string u_url_encode (string a_url, boolean a_replace_puls_sign)
@@ -138,6 +138,19 @@ private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw)
 private subroutine old_u_dw_set_column_color (ref datawindow k_dw)
 public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw)
 public function string u_stringa_alfanum_spazio (string k_stringa)
+public function boolean u_copy_dw_composite (ref datawindow adw_source, ref datawindow adw_target)
+public function boolean u_copy_ds_dw_composite (ref datastore ads_source, ref datawindow adw_target)
+public function boolean u_copy_ds_composite (ref datastore ads_source, ref datastore ads_target)
+private function string u_ds_get_evaluate_expression_all (ref uo_ds_std_1 ads_1)
+public function integer u_rowscopy_ds_to_dw (ref datastore ads_source, ref datawindow adw_target) throws uo_exception
+public function integer u_rowscopy_ds_to_ds (ref datastore ads_source, ref uo_ds_std_1 ads_target) throws uo_exception
+private function string u_dw_get_evaluate_expression_all (ref datawindow adw_1)
+public function integer u_rowscopy_dw_to_dw (ref datawindow adw_source, ref datawindow adw_target) throws uo_exception
+private function string u_ds_get_evaluate_expression_all (ref datastore ads_1)
+public function integer u_rowscopy_ds_to_ds (ref uo_ds_std_1 ads_source, ref uo_ds_std_1 ads_target) throws uo_exception
+public function integer u_rowscopy_ds_to_dw (ref uo_ds_std_1 ads_source, ref datawindow adw_target) throws uo_exception
+public function string u_ds_get_evaluate (ref datastore ads_1, string a_field, string a_field_describe, long a_row)
+public function string u_dw_get_evaluate (ref datawindow adw_1, string a_field, string a_field_describe, long a_row)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -915,7 +928,7 @@ return k_codice
 end function
 
 public function string u_stringa_campi_dw (integer k_tipo, long k_riga, ref datawindow k_dw);//---
-//--- Legge tutti i campi della dw e le stringa in un unico campo
+//--- Legge tutti i campi della dw e li compatta in un unico campo
 //---
 //--- parametri di input:
 //---    k_tipo tipo elaborazione: 1=stringa tutti campi di 1 riga da dw
@@ -942,13 +955,13 @@ int k_ctr, k_taborder, k_colcount
 					
 			choose case upper(left(k_coltype,2))
 					
-				case 'CH'
+				case "CH"
 					 k_item  = k_dw.getitemstring(k_riga, k_ctr)
 					
-				case 'DA'
+				case "DA"
 					 k_item  = string(k_dw.getitemdate(k_riga, k_ctr))
 
-				case 'TI'
+				case "TI"
 					 k_item  = string(k_dw.getitemtime(k_riga, k_ctr))
 	
 				case else
@@ -962,7 +975,7 @@ int k_ctr, k_taborder, k_colcount
 				k_item = trim(k_item) + ";"
 			end if
 			
-			k_stringa = k_stringa + k_item
+			k_stringa += k_item
 			
 		end if
 					
@@ -4738,7 +4751,7 @@ public function boolean u_open_app_file (string a_file) throws uo_exception;//
 //---  Apre un file con l'applicazione del sistema
 //
 boolean k_return 
-string k_ext=""
+string k_ext, k_esito
 kuf_file_explorer kuf1_file_explorer
 
 
@@ -4753,11 +4766,18 @@ try
 			
 		else
 			
-			k_ext = u_get_ext_file(a_file)
+			if kuf1_file_explorer.ki_esito > " " then
+				k_esito = kuf1_file_explorer.ki_esito
+			else
+				k_ext = u_get_ext_file(a_file)
+			   k_esito = "Il tipo '" + k_ext + "' non riconosciuto o non trovato. " 
+			end if
+			
 			
 			kguo_exception.inizializza()
 			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
-			kguo_exception.setmessage( "Il file "+ trim(a_file) + " non può essere aperto, tipo '" + k_ext + "' non riconosciuto o non trovato" )
+			kguo_exception.setmessage( "Il file " + kkg.acapo + trim(a_file) + kkg.acapo + "non è stato aperto per il seguente motivo: " &
+							+ kkg.acapo + k_esito)
 			throw kguo_exception
 		end if
 //	
@@ -5035,20 +5055,25 @@ return k_printer_orig
 end function
 
 public function string u_string_replace (string k_string, readonly string k_str_old, readonly string k_str_new);//
-//--- restituisce campo stringa con in carattere ricoperto
+//--- restituisce campo stringa con uno o più caratteri ricoperti
 //--- inp: stringa da ricoprire
 //---      vecchio carattere
 //---      nuovo carattere
 //
 int k_pos=1
+int k_len, k_len_in
 
 
 if k_str_old <> k_str_new then
+
+	k_len = len(k_str_new)
+	k_len_in = len(k_str_old)
 	
 	k_pos = pos(k_string, k_str_old, k_pos)
 	do while k_pos > 0 
 		
-		k_string = replace(k_string, k_pos, 1, k_str_new)
+		k_string = replace(k_string, k_pos, k_len_in, k_str_new)
+		k_pos += k_len
 		k_pos = pos(k_string, k_str_old, k_pos)
 		
 	loop
@@ -5334,16 +5359,18 @@ return k_return_stringa
 
 end function
 
-public function int u_open_app_files (string a_file) throws uo_exception;//
+public function integer u_open_app_files (string a_file) throws uo_exception;//
 //---  Apre più file separati da ';' con l'applicazione del sistema
 //
 string k_files[]
 int k_idx_max, k_idx, k_n_files
 
 
-	if trim(a_file) > " " then
+	a_file = trim(a_file)
+
+	if a_file > " " then
 		
-		k_files[1] = trim(a_file)
+		k_files[1] = a_file + ";"   // almeno un ';' finale deve esserci
 		
 		k_idx_max = u_stringa_split(k_files[], ";")
 		
@@ -5372,44 +5399,40 @@ public function integer u_stringa_split (ref string a_string[], string a_sep);/*
 	  Ret: numero di spezzoni
 */
 string k_string
-string k_str_split
-int k_pos_start, k_pos_end, k_len, k_str_split_idx
+int k_str_split_idx
+int k_pos, k_i, k_len_sep
 
 
 if upperbound(a_string[]) > 0 then
 	
 	k_string = trim(a_string[1])
 
-	a_string[1] = ""
-
-//--- trova il primo spezzone	
-	k_pos_start = 1
-	k_pos_end = pos(k_string, a_sep, k_pos_start)
+	if k_string > " " then
+		a_string[1] = ""
 	
-	do while k_pos_end > 1
-		
-		k_len = k_pos_end - k_pos_start  
-		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-		if k_str_split > " " then
+		k_len_sep = len(a_sep)
+	
+		k_i = 1
+		k_pos = pos(k_string, a_sep, k_i)
+		do while k_pos > 0
 			k_str_split_idx ++
-			a_string[k_str_split_idx] = k_str_split
+			a_string[k_str_split_idx] = mid(k_string, k_i, k_pos - k_i) 
+				
+			k_i = k_pos + k_len_sep
+			k_pos = pos(k_string, a_sep, k_i)
+			
+		loop
+		
+		if k_str_split_idx > 0 then
+			if k_i < len(k_string) then 
+				k_str_split_idx ++
+				a_string[k_str_split_idx] = mid(k_string, k_i, len(k_string) - k_i + 1) 
+			end if
+		else
+			k_str_split_idx = 1
+			a_string[1] = k_string   // nessun separatore trovato, rimette il valore originale
 		end if
 		
-//--- legge il successivo spezzone		
-		k_pos_start = k_pos_end + 1
-		k_pos_end = pos(k_string, a_sep, k_pos_start)
-		
-	loop
-
-//--- accoda ultimo spezzone se non ha il separatore
-	k_pos_end = len(k_string)
-	if k_pos_end > k_pos_start then
-		k_len = k_pos_end - k_pos_start  + 1
-		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-		if k_str_split > " " then
-			k_str_split_idx ++
-			a_string[k_str_split_idx] = k_str_split
-		end if
 	end if
 
 end if
@@ -5805,6 +5828,531 @@ int k_start_pos
 	
 return k_return_stringa
 			
+
+end function
+
+public function boolean u_copy_dw_composite (ref datawindow adw_source, ref datawindow adw_target);/*
+ Copia dal DW source Composite al DW target composite solo i dw child (composite)
+  Inp: dw_source  la dw sorgente
+  Out: dw_target  la dw in cui copiare 
+  Rit: true = copia eseguita
+*/
+boolean k_return
+int k_rc
+string k_name, k_objects[]
+string k_Processing
+int k_ctr
+int k_colcount
+datawindowchild kdwc_source, kdwc_target
+
+
+/* get del tipo DW che possono essere:
+0 -- (Default) Form, group, n-up, or tabular
+1 -- Grid
+2 -- Label
+3 -- Graph
+4 -- Crosstab
+5 -- Composite
+6 -- OLE
+7 -- RichText
+8 -- TreeView
+9 -- TreeView with Grid
+*/
+	k_Processing = trim(adw_source.Describe("DataWindow.Processing"))
+	if k_Processing <> "5" then return false
+
+//	k_colcount = this.u_dw_get_objects(adw_source, k_objects[])
+	k_objects[1] = trim(adw_source.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t")	
+
+	for k_ctr = 1 to k_colcount
+		k_name = trim(adw_source.Describe(k_objects[k_ctr] + ".name"))
+		if k_name <> "!" then 
+		
+			if adw_source.GetChild(k_name, kdwc_source) > 0 then
+				adw_target.GetChild(k_name, kdwc_target) 
+	
+	//--- Copia le RIGHE del composite
+				k_rc = kdwc_source.rowscopy(1, kdwc_source.rowcount(), primary!, kdwc_target, 1 ,primary!)
+				
+				k_rc = kdwc_target.rowcount()
+	
+				k_return = true
+			end if
+		
+		end if
+	next
+
+return k_return 
+
+end function
+
+public function boolean u_copy_ds_dw_composite (ref datastore ads_source, ref datawindow adw_target);/*
+ Copia dal DS source Composite al DW target composite solo i dw child (composite)
+  Inp: dw_source  la dw sorgente
+  Out: dw_target  la dw in cui copiare 
+  Rit: true = copia eseguita
+*/
+boolean k_return
+int k_rc
+string k_name, k_objects[]
+string k_Processing
+int k_ctr
+int k_colcount
+datawindowchild kdwc_source, kdwc_target
+
+
+/* get del tipo DW che possono essere:
+0 -- (Default) Form, group, n-up, or tabular
+1 -- Grid
+2 -- Label
+3 -- Graph
+4 -- Crosstab
+5 -- Composite
+6 -- OLE
+7 -- RichText
+8 -- TreeView
+9 -- TreeView with Grid
+*/
+	k_Processing = trim(ads_source.Describe("DataWindow.Processing"))
+	if k_Processing <> "5" then return false
+
+	//k_colcount = this.u_ds_get_objects(ads_source, k_objects[])
+	k_objects[1] = trim(ads_source.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t")	
+
+	for k_ctr = 1 to k_colcount
+		k_name = trim(ads_source.Describe(k_objects[k_ctr] + ".name"))
+		if k_name <> "!" then 
+		
+			if ads_source.GetChild(k_name, kdwc_source) > 0 then
+				adw_target.GetChild(k_name, kdwc_target) 
+	
+	//--- Copia le RIGHE del composite
+				k_rc = kdwc_source.rowscopy(1, kdwc_source.rowcount(), primary!, kdwc_target, 1 ,primary!)
+				
+				k_rc = kdwc_target.rowcount()
+	
+				k_return = true
+			end if
+		
+		end if
+	next
+
+return k_return 
+
+end function
+
+public function boolean u_copy_ds_composite (ref datastore ads_source, ref datastore ads_target);/*
+ Copia dal DS source Composite al DW source composite solo i dw child (composite)
+  Inp: dw_source  la dw sorgente
+  Out: dw_target  la dw in cui copiare 
+  Rit: true = copia eseguita
+*/
+boolean k_return
+int k_rc
+string k_name, k_objects[]
+string k_Processing
+int k_ctr
+int k_colcount
+datawindowchild kdwc_source, kdwc_target
+
+
+/* get del tipo DW che possono essere:
+0 -- (Default) Form, group, n-up, or tabular
+1 -- Grid
+2 -- Label
+3 -- Graph
+4 -- Crosstab
+5 -- Composite
+6 -- OLE
+7 -- RichText
+8 -- TreeView
+9 -- TreeView with Grid
+*/
+	k_Processing = trim(ads_source.Describe("DataWindow.Processing"))
+	if k_Processing <> "5" then return false
+
+	//k_colcount = this.u_ds_get_objects(ads_source, k_objects[])
+	k_objects[1] = trim(ads_source.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t") //"~t")	
+
+	for k_ctr = 1 to k_colcount
+		k_name = trim(ads_source.Describe(k_objects[k_ctr] + ".name"))
+		if k_name <> "!" then 
+		
+			if ads_source.GetChild(k_name, kdwc_source) > 0 then
+				ads_target.GetChild(k_name, kdwc_target) 
+	
+	//--- Copia le RIGHE del composite
+				k_rc = kdwc_source.rowscopy(1, kdwc_source.rowcount(), primary!, kdwc_target, 1 ,primary!)
+				
+				k_rc = kdwc_target.rowcount()
+	
+				k_return = true
+			end if
+		
+		end if
+	next
+
+return k_return 
+
+end function
+
+private function string u_ds_get_evaluate_expression_all (ref uo_ds_std_1 ads_1);/*
+   Estrae i Valori contenuti/calcolati nelle EXPRESSION dei tipi COMPUTE e TEXT
+	Rit: la string contiene il MODIFY da applicare
+*/
+int k_ctr, k_colcount
+string k_value, k_type, k_col, k_modify, k_rcx, k_band
+string k_objects[]
+
+
+	//k_colcount = u_ds_get_objects(ads_1, k_objects[])
+	k_objects[1] = trim(ads_1.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t")	
+
+	for k_ctr = 1 to k_colcount 
+
+		// get the BAND: Detail, Footer, Summary, Header, Trailer, Tree.Level, foreground, background
+		k_col = k_objects[k_ctr]
+		k_band = left(ads_1.Describe(k_col + ".band"), 4)
+		if k_band <> "deta" and k_band <> "tree" then
+			
+			k_type = ads_1.Describe(k_col + ".type")
+			choose case upper(left(k_type,4))
+				case "COMP"
+					k_value = ads_1.u_get_evaluate(k_col, "Expression", 0)
+					if k_value > " " then
+						k_modify += k_col + ".expression=~"string('" + k_value + "')~" " 		
+					end if
+				case "TEXT"
+					k_value = ads_1.u_get_evaluate(k_col, "Text", 0)
+					if k_value > " " then
+						k_modify += k_col + ".text = '" + k_value + "' " 		
+					end if
+				case else
+					k_value = ""
+			end choose		
+		end if
+	next
+	
+return k_modify
+	
+
+end function
+
+public function integer u_rowscopy_ds_to_dw (ref datastore ads_source, ref datawindow adw_target) throws uo_exception;/*
+  Copia righe e expression oltre ai report composite
+  rit: 1 = Ok
+*/
+int k_return
+string k_modify, k_rcx
+ 
+ 
+	k_return = ads_source.RowsCopy(1, ads_source.RowCount(), Primary!, adw_target, 1, Primary!)
+	k_modify = u_ds_get_evaluate_expression_all(ads_source)
+	k_modify = kgn_string.u_string_replace(k_modify, "''", "~~''")
+	k_rcx = adw_target.modify(k_modify)
+	u_copy_ds_dw_composite( ads_source, adw_target )
+	
+return k_return 	
+end function
+
+public function integer u_rowscopy_ds_to_ds (ref datastore ads_source, ref uo_ds_std_1 ads_target) throws uo_exception;/*
+  Copia righe e expression oltre ai report composite
+  rit: 1 = ok
+*/
+int k_return
+string k_modify, k_rcx
+ 
+
+	k_return = ads_source.RowsCopy(1, ads_source.RowCount(), Primary!, ads_target, 1, Primary!)
+	if k_return = 1 then
+		k_modify = u_ds_get_evaluate_expression_all(ads_source)
+		k_modify = kgn_string.u_string_replace(k_modify, "''", "~~''")
+		k_rcx = ads_target.modify(k_modify)
+		u_copy_ds_composite( ads_source, ads_target )
+	end if	
+	
+return k_return	
+end function
+
+private function string u_dw_get_evaluate_expression_all (ref datawindow adw_1);/*
+   Estrae i Valori contenuti/calcolati nelle EXPRESSION dei tipi COMPUTE e TEXT
+	Rit: la string contiene il MODIFY da applicare
+*/
+int k_ctr, k_colcount
+string k_value, k_type, k_col, k_modify, k_rcx, k_band
+string k_objects[]
+
+
+	//k_colcount = u_ds_get_objects(adw_1, k_objects[])
+	k_objects[1] = trim(adw_1.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t")	
+
+	for k_ctr = 1 to k_colcount 
+
+		
+		// get the BAND: Detail, Footer, Summary, Header, Trailer, Tree.Level
+		k_col = k_objects[k_ctr]
+		k_band = adw_1.Describe(k_col + ".band")
+		if k_band <> "deta" and k_band <> "tree" then
+			
+			k_type = adw_1.Describe(k_col + ".type")
+			choose case upper(left(k_type,4))
+				case "COMP"
+					k_value = u_dw_get_evaluate(adw_1, k_col, "Expression", 0)
+					if k_value > " " then
+						k_modify += k_col + ".expression=~"string('" + k_value + "')~" " 		
+					end if
+				case "TEXT"
+					k_value = u_dw_get_evaluate(adw_1, k_col, "Text", 0)
+					if k_value > " " then
+						k_modify += k_col + ".text = '" + k_value + "' " 		
+					end if
+				case else
+					k_value = ""
+			end choose		
+		end if
+	next
+	
+return k_modify
+	
+
+end function
+
+public function integer u_rowscopy_dw_to_dw (ref datawindow adw_source, ref datawindow adw_target) throws uo_exception;/*
+  Copia righe e expression oltre ai report composite
+  rit: 1 = Ok
+*/
+int k_return
+string k_modify, k_rcx
+ 
+
+	k_return = adw_source.RowsCopy(1, adw_source.RowCount(), Primary!, adw_target, 1, Primary!)
+	k_modify = u_dw_get_evaluate_expression_all(adw_source)
+	k_modify = kgn_string.u_string_replace(k_modify, "''", "~~''")
+	k_rcx = adw_target.modify(k_modify)
+	u_copy_dw_composite( adw_source, adw_target )
+	
+return k_return 	
+end function
+
+private function string u_ds_get_evaluate_expression_all (ref datastore ads_1);/*
+   Estrae i Valori contenuti/calcolati nelle EXPRESSION dei tipi COMPUTE e TEXT
+	Rit: la string contiene il MODIFY da applicare
+*/
+int k_ctr, k_colcount
+string k_value, k_type, k_col, k_modify, k_rcx, k_band
+string k_objects[]
+
+
+	//k_colcount = u_ds_get_objects(ads_1, k_objects[])
+	k_objects[1] = trim(ads_1.Describe("DataWindow.Objects")) 
+	k_colcount = kgn_string.u_stringa_split(k_objects[], "~t")	
+
+	for k_ctr = 1 to k_colcount 
+
+		// get the BAND: Detail, Footer, Summary, Header, Trailer, Tree.Level
+		k_col = k_objects[k_ctr]
+		k_band = ads_1.Describe(k_col + ".band")
+		if k_band <> "deta" and k_band <> "tree" then
+	
+			k_type = ads_1.Describe(k_col + ".type")
+			choose case upper(left(k_type,4))
+				case "COMP"
+					k_value = u_ds_get_evaluate(ads_1, k_col, "Expression", 0)
+					if k_value > " " then
+						k_modify += k_col + ".expression=~"string('" + k_value + "')~" " 		
+					end if
+				case "TEXT"
+					k_value = u_ds_get_evaluate(ads_1, k_col, "Text", 0)
+					if k_value > " " then
+						k_modify += k_col + ".text = '" + k_value + "' " 		
+					end if
+				case else
+					k_value = ""
+			end choose		
+			
+		end if
+
+	next
+	
+return k_modify
+	
+
+end function
+
+public function integer u_rowscopy_ds_to_ds (ref uo_ds_std_1 ads_source, ref uo_ds_std_1 ads_target) throws uo_exception;/*
+  Copia righe e expression oltre ai report composite
+  rit: 1 = ok
+*/
+int k_return
+string k_modify, k_rcx
+ 
+
+	k_return = ads_source.RowsCopy(1, ads_source.RowCount(), Primary!, ads_target, 1, Primary!)
+	if k_return = 1 then
+		k_modify = u_ds_get_evaluate_expression_all(ads_source)
+		k_modify = kgn_string.u_string_replace(k_modify, "''", "~~''")
+		k_rcx = ads_target.modify(k_modify)
+		u_copy_ds_composite( ads_source, ads_target )
+	end if	
+	
+return k_return	
+end function
+
+public function integer u_rowscopy_ds_to_dw (ref uo_ds_std_1 ads_source, ref datawindow adw_target) throws uo_exception;/*
+  Copia righe e expression oltre ai report composite
+  rit: 1 = Ok
+*/
+int k_return
+string k_modify, k_rcx
+ 
+
+	k_return = ads_source.RowsCopy(1, ads_source.RowCount(), Primary!, adw_target, 1, Primary!)
+	k_modify = u_ds_get_evaluate_expression_all(ads_source)
+	k_modify = kgn_string.u_string_replace(k_modify, "''", "~~''")
+	k_rcx = adw_target.modify(k_modify)
+	u_copy_ds_dw_composite( ads_source, adw_target )
+	
+return k_return 	
+end function
+
+public function string u_ds_get_evaluate (ref datastore ads_1, string a_field, string a_field_describe, long a_row);/*
+   torna il valore calcolato da EXPRESSION
+	inp: datastore: da cui estrarre il valore
+	     field: nome campo
+	     filed_describe: es. background.color
+		  row: riga se però è una testata si può passare zero
+*/
+string ls_expression, ls_value, ls_eval
+int k_pos
+
+
+a_field = trim(a_field)
+
+IF IsNumber(a_field) THEN   
+	ls_expression = trim(ads_1.describe("#" + a_field + "." + a_field_describe))
+else
+	ls_expression = trim(ads_1.describe(a_field + "." + a_field_describe))
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Get the expression following the tab (~t) 
+ls_expression = trim(Right(ls_expression, Len(ls_expression) - Pos(ls_expression, "~t")))
+
+//--- se NON c'è una parentesi è poco probabile che sia una expression 
+if Pos(ls_expression, "(") = 0 then return ""     // ESCE con nulla
+
+//--- rimuove i doppi apici
+k_pos = Pos(ls_expression, '~"', 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "'")
+	k_pos = Pos(ls_expression, '~"', k_pos)
+loop
+k_pos = Pos(ls_expression, "~~", 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "")
+	k_pos = Pos(ls_expression, "~~", k_pos)
+loop
+
+if left(ls_expression, 1) = "'" then
+	ls_expression = trim(mid(ls_expression, 2))
+end if
+if mid(ls_expression, Len(ls_expression), 1) = "'" then
+	ls_expression = left(ls_expression, Len(ls_expression) -1)
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Build string for Describe. Include a leading   
+// quote to match the trailing quote that remains
+ls_eval = "Evaluate(~"" + ls_expression + "~", " + String(a_row) + ")"   
+
+ls_value = ads_1.Describe(ls_eval)
+
+//--- se errore Torna nulla
+if ls_value = "!" then return ""
+		
+return trim(ls_value)
+
+end function
+
+public function string u_dw_get_evaluate (ref datawindow adw_1, string a_field, string a_field_describe, long a_row);/*
+   torna il valore calcolato da EXPRESSION
+	inp: datastore: da cui estrarre il valore
+	     field: nome campo
+	     filed_describe: es. background.color
+		  row: riga se però è una testata si può passare zero
+*/
+string ls_expression, ls_value, ls_eval
+int k_pos
+
+
+a_field = trim(a_field)
+
+IF IsNumber(a_field) THEN   
+	ls_expression = trim(adw_1.describe("#" + a_field + "." + a_field_describe))
+else
+	ls_expression = trim(adw_1.describe(a_field + "." + a_field_describe))
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Get the expression following the tab (~t) 
+ls_expression = trim(Right(ls_expression, Len(ls_expression) - Pos(ls_expression, "~t")))
+
+//--- se NON c'è una parentesi è poco probabile che sia una expression 
+if Pos(ls_expression, "(") = 0 then return ""     // ESCE con nulla
+
+//--- rimuove i doppi apici
+k_pos = Pos(ls_expression, '~"', 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "'")
+	k_pos = Pos(ls_expression, '~"', k_pos)
+loop
+k_pos = Pos(ls_expression, "~~", 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "")
+	k_pos = Pos(ls_expression, "~~", k_pos)
+loop
+
+if left(ls_expression, 1) = "'" then
+	ls_expression = trim(mid(ls_expression, 2))
+end if
+if mid(ls_expression, Len(ls_expression), 1) = "'" then
+	ls_expression = left(ls_expression, Len(ls_expression) -1)
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Build string for Describe. Include a leading   
+// quote to match the trailing quote that remains
+ls_eval = "Evaluate(~"" + ls_expression + "~", " + String(a_row) + ")"   
+
+adw_1.modify("DataWindow.NoUserPrompt='Yes'")
+ls_value = adw_1.Describe(ls_eval)
+adw_1.modify("DataWindow.NoUserPrompt='No'")
+
+//--- se errore Torna nulla
+if ls_value = "!" then return ""
+		
+return trim(ls_value)
 
 end function
 

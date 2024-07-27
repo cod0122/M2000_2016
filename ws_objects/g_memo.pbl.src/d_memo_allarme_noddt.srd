@@ -1,6 +1,6 @@
 ﻿$PBExportHeader$d_memo_allarme_noddt.srd
-release 17;
-datawindow(units=0 timer_interval=0 color=1073741824 brushmode=2 transparency=0 gradient.angle=0 gradient.color=32041192 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 selected.mouse=no )
+release 22;
+datawindow(units=0 data.export.format=1 timer_interval=0 color=1073741824 brushmode=2 transparency=0 gradient.angle=0 gradient.color=32041192 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 selected.mouse=no )
 header(height=264 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
@@ -25,9 +25,9 @@ table(column=(type=char(80) updatewhereclause=yes name=memo_titolo dbname="memo.
     FROM meca inner join clienti_memo on (meca.clie_1 = clienti_memo.id_cliente 
                                                or meca.clie_2 = clienti_memo.id_cliente 
                                                or meca.clie_3 = clienti_memo.id_cliente) and clienti_memo.allarme in ('S', 'T')  
-		left outer join meca_memo on meca.id = meca_memo.id_meca and meca_memo.allarme in ('S', 'T')  
+		   left outer join meca_memo on meca.id = meca_memo.id_meca and meca_memo.allarme in ('S', 'T')  
          left outer join memo on (clienti_memo.id_memo = memo.id_memo or meca_memo.id_memo = memo.id_memo)
-   WHERE meca.id in (:k_id_meca1
+   WHERE (:k_clie_2 = 0 and :k_clie_3 = 0) and meca.id in (:k_id_meca1
                                 ,:k_id_meca2
                                 ,:k_id_meca3
                                 ,:k_id_meca4
@@ -37,7 +37,19 @@ table(column=(type=char(80) updatewhereclause=yes name=memo_titolo dbname="memo.
                                 ,:k_id_meca8
                                 ,:k_id_meca9
                                 ,:k_id_meca10)
-" arguments=(("k_id_meca1", number),("k_id_meca2", number),("k_id_meca3", number),("k_id_meca4", number),("k_id_meca5", number),("k_id_meca6", number),("k_id_meca7", number),("k_id_meca8", number),("k_id_meca9", number),("k_id_meca10", number))  sort="x_datins D " )
+union all
+  SELECT distinct
+         memo.titolo,
+         memo.note,   
+         memo.id_memo,   
+         memo.tipo_memo,
+         memo.dataora_ins,
+         memo.utente_ins,
+         memo.x_datins,
+         memo.x_utente
+    FROM clienti_memo 
+         left outer join memo on (clienti_memo.id_memo = memo.id_memo)
+   WHERE (:k_clie_2 > 0 or :k_clie_3 > 0) and clienti_memo.id_cliente in (:k_clie_2, :k_clie_3) and clienti_memo.allarme in ('S', 'T')  " arguments=(("k_clie_2", number),("k_clie_3", number),("k_id_meca1", number),("k_id_meca2", number),("k_id_meca3", number),("k_id_meca4", number),("k_id_meca5", number),("k_id_meca6", number),("k_id_meca7", number),("k_id_meca8", number),("k_id_meca9", number),("k_id_meca10", number))  sort="x_datins D " )
 text(band=header alignment="2" text="
 titolo" border="0" color="8421504" x="192" y="148" height="112" width="1083" html.valueishtml="0"  name=memo_titolo_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="ID
@@ -70,6 +82,6 @@ xsltgen()
 jsgen()
 export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
-export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
+export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
  

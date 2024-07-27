@@ -34,7 +34,7 @@ datastore kds_1
 
 
 	kds_1 = create datastore
-	kds_1.dataobject = "dd_g3impianto"
+	kds_1.dataobject = "dd_impianto"
 	kds_1.retrieve( )
 	if kds_1.rowcount() > 0 then
 		k_rc = kds_1.find("impianto = " + string(a_impianto), 1, kds_1.rowcount())
@@ -44,7 +44,7 @@ datastore kds_1
 	end if
 	if isvalid(kds_1) then destroy kds_1
 	
-return k_return	
+return trim(k_return)
 
 end function
 

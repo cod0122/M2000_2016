@@ -148,6 +148,7 @@ protected boolean ki_tabpage_visible[10] // memorizza i tabpage visibili e no
 //protected uo_d_std_1 kidw_tabselezionato  // in inizializza_lista viene impostato il DW attivo
 protected string ki_exitNow="E"  // da impostare soprattutto nelle INIZIALIZZA se si vuole uscire subito 
 protected boolean ki_consenti_duplica=false
+protected boolean ki_from_u_activate    // è a TRUE quando questa viene attivata ad esempio da una chisura di un'altra window 
 
 protected int ki_tabtext_sizemax_onleft = 1030   // DA PERSONALIZZARE: lunghezza massima del texttab per contenere bene i dw
 														// 1     2     3     4     5     6     7     8     9  
@@ -2045,6 +2046,18 @@ end if
 
 end event
 
+event u_activate;call super::u_activate;//
+if ki_st_open_w.flag_primo_giro = 'S' then
+
+else
+
+	ki_from_u_activate = true	
+
+end if
+
+super::event u_activate( )
+end event
+
 type dw_print_0 from w_g_tab`dw_print_0 within w_g_tab_3
 end type
 
@@ -2514,9 +2527,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -2602,9 +2617,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -2688,9 +2705,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -2769,9 +2788,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -2854,9 +2875,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -2957,9 +2980,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -3041,9 +3066,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -3125,9 +3152,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 
@@ -3209,9 +3238,11 @@ end event
 
 event getfocus;call super::getfocus;//
 
-	event u_get_focus_change_tab( )
-	
-	//attiva_tasti()
+	if ki_from_u_activate then  // se arriva da u_activate spegne solo il flag
+		ki_from_u_activate = false 
+	else
+		event u_get_focus_change_tab( )
+	end if
 
 end event
 

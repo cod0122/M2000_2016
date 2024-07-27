@@ -22,7 +22,7 @@ table(column=(type=long update=yes updatewhereclause=yes identity=yes name=codic
  column=(type=long updatewhereclause=yes name=pilota_cmd_tipo dbname="pilota_cmd.tipo" values="Piano di Trattamento	1/Piano di Trattamento	11/Modifica Programm. del Pilota	3/Modifica Programm. del Pilota	13/Piano // Modifica Trattamento	/" )
  column=(type=long updatewhereclause=yes name=pilota_cmd_num_rich dbname="pl_barcode.pilota_cmd_num_rich" )
  column=(type=char(1) updatewhereclause=yes name=stato_pl dbname="stato_pl" )
- column=(type=long updatewhereclause=yes name=id_programma dbname="id_programma" )
+ column=(type=long updatewhereclause=yes name=programmi_richieste_id_programma dbname="id_programma" )
  column=(type=long updatewhereclause=yes name=impianto dbname="impianto" )
  retrieve="  SELECT pl_barcode.codice,   
          pl_barcode.data,   
@@ -52,6 +52,24 @@ table(column=(type=long update=yes updatewhereclause=yes identity=yes name=codic
             ( pl_barcode.stato = 'C'  AND  :k_operazione = 'chiusi' ) OR  
             ( pl_barcode.stato  = 'S' AND  :k_operazione = 'sospesi' )  )           
 " arguments=(("k_data", date),("k_operazione", string))  sort="data D codice D priorita A " )
+column(band=detail id=1 alignment="1" tabsequence=32766 border="0" color="0~tif ( 
+(data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
+fx_get_color('COLTEXT')
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="9" y="4" height="76" width="265" format="[general] " html.valueishtml="0"  name=codice visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.displayonly=yes  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+(data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
+ ,
+case( stato  
+when ~"C~" then rgb(166,218,166)
+when ~"T~"  then rgb(210,210,210)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
+else rgb(255,255,255))
+,
+rgb(252,252,252)
+
+)
+" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 column(band=detail id=2 alignment="2" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
@@ -59,11 +77,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -73,15 +91,15 @@ rgb(252,252,252)
 column(band=detail id=11 alignment="0" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="955" y="4" height="76" width="594" format="[General]" html.valueishtml="0"  name=stato visible="1" dddw.name=dd_pl_barcode_stato dddw.displaycolumn=descr dddw.datacolumn=stato dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="955" y="4" height="76" width="594" format="[General]" html.valueishtml="0"  name=stato visible="1" dddw.name=dd_pl_barcode_stato dddw.displaycolumn=descr dddw.datacolumn=stato dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.validation=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -95,11 +113,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -113,11 +131,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -131,11 +149,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -149,11 +167,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -167,11 +185,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -185,11 +203,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -199,33 +217,33 @@ rgb(252,252,252)
 column(band=detail id=15 alignment="0" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="2144" y="4" height="76" width="873" format="[general]" html.valueishtml="0"  name=pilota_cmd_tipo visible="1" ddlb.limit=0 ddlb.allowedit=no ddlb.autocompletemode=none ddlb.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="2144" y="4" height="76" width="873" format="[general]" html.valueishtml="0"  name=pilota_cmd_tipo visible="1" ddlb.limit=0 ddlb.allowedit=no ddlb.validation=no ddlb.autocompletemode=none ddlb.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
 
 )
 " background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-column(band=detail id=16 alignment="1" tabsequence=32766 border="0" color="0~tif ( 
+column(band=detail id=16 alignment="2" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="3031" y="4" height="76" width="270" format="[general]" html.valueishtml="0"  name=pilota_cmd_num_rich visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="5824" y="4" height="76" width="320" format="[general]" html.valueishtml="0"  name=pilota_cmd_num_rich visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -239,11 +257,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -253,15 +271,15 @@ rgb(252,252,252)
 column(band=detail id=12 alignment="0" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="4411" y="4" height="76" width="402" format="[general]" html.valueishtml="0"  name=priorita visible="1" ddlb.limit=0 ddlb.allowedit=no ddlb.autocompletemode=none ddlb.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="4411" y="4" height="76" width="402" format="[general]" html.valueishtml="0"  name=priorita visible="1" ddlb.limit=0 ddlb.allowedit=no ddlb.validation=no ddlb.autocompletemode=none ddlb.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -275,11 +293,11 @@ fx_get_color('COLTEXT')
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -289,33 +307,33 @@ rgb(252,252,252)
 column(band=detail id=17 alignment="0" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="1563" y="4" height="76" width="576" format="[general]" html.valueishtml="0"  name=stato_pl visible="1" dddw.name=dd_pl_barcode_stato dddw.displaycolumn=descr dddw.datacolumn=stato dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="1563" y="4" height="76" width="576" format="[general]" html.valueishtml="0"  name=stato_pl visible="1" dddw.name=dd_pl_barcode_stato dddw.displaycolumn=descr dddw.datacolumn=stato dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.validation=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
 
 )
 " background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-column(band=detail id=6 alignment="0" tabsequence=32766 border="0" color="0~tif ( 
+column(band=detail id=6 alignment="0" tabsequence=32766 border="0" color="128~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
  ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="5271" y="4" height="76" width="539" format="[general]" html.valueishtml="0"  name=note_1 visible="1" edit.limit=40 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.displayonly=yes edit.useellipsis=yes  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -325,15 +343,15 @@ rgb(252,252,252)
 column(band=detail id=18 alignment="1" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="5824" y="4" height="76" width="320" format="#" html.valueishtml="0"  name=id_programma visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="3031" y="4" height="76" width="270" format="#" html.valueishtml="0"  name=programmi_richieste_id_programma visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -343,33 +361,15 @@ rgb(252,252,252)
 column(band=detail id=19 alignment="2" tabsequence=32766 border="0" color="0~tif ( 
 (data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
 fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="288" y="4" height="76" width="270" format="[general]" html.valueishtml="0"  name=impianto visible="1" dddw.name=dd_g3impianto dddw.displaycolumn=descr dddw.datacolumn=impianto dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
+ ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="288" y="4" height="76" width="270" format="[general]" html.valueishtml="0"  name=impianto visible="1" dddw.name=dd_impianto dddw.displaycolumn=descr dddw.datacolumn=impianto dddw.percentwidth=0 dddw.lines=0 dddw.limit=0 dddw.allowedit=no dddw.validation=no dddw.autocompletemode=none dddw.useasborder=no dddw.case=any  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
 (data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
  ,
 case( stato  
-when ~"C~" then rgb(128,255,128)
+when ~"C~" then rgb(166,218,166)
 when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
-else rgb(255,255,255))
-,
-rgb(252,252,252)
-
-)
-" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-column(band=detail id=1 alignment="1" tabsequence=32766 border="0" color="0~tif ( 
-(data_chiuso >= relativedate( date(today()), -4 ) or isNull(data_chiuso)  or data_chiuso <  data ) ,
-fx_get_color('COLTEXT')
- ,if ( stato = 'I' or stato = 'T', fx_get_color('COLTEXTDIS'), fx_get_color('COLTEXT')))" x="9" y="4" height="76" width="265" format="[general] " html.valueishtml="0"  name=codice visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.displayonly=yes  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="0" background.color="536870912~tif ( 
-(data_chiuso = date(today())  or isNull(data_chiuso)  or data_chiuso <  data ) 
- ,
-case( stato  
-when ~"C~" then rgb(128,255,128)
-when ~"T~"  then rgb(210,210,210)
-when ~"I~" then rgb(240,128,128)
-when ~"A~" then rgb(206,255,206)
-when ~"R~" then rgb(206,255,206)
+when ~"I~" then rgb(230,170,170)
+when ~"A~" then rgb(226,255,226)
+when ~"R~" then rgb(226,255,226)
 else rgb(255,255,255))
 ,
 rgb(252,252,252)
@@ -377,24 +377,24 @@ rgb(252,252,252)
 )
 " background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 compute(band=footer alignment="2" expression="'N: '+string(count( codice  for all distinct), ~"###,###,##0~")"border="0" color="128" x="951" y="8" height="56" width="599" format="[GENERAL]" html.valueishtml="0"  name=compute_2 visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" font.italic="1" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Codice" border="0" color="8421504" x="9" y="20" height="56" width="265" html.valueishtml="0"  name=codice_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Data" border="0" color="8421504" x="562" y="20" height="56" width="379" html.valueishtml="0"  name=data_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Impianto" border="0" color="8421504" x="283" y="20" height="56" width="274" html.valueishtml="0"  name=impianto_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Stato" border="0" color="8421504" x="955" y="20" height="56" width="594" html.valueishtml="0"  name=stato_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Stato G2/G3" border="0" color="8421504" x="1559" y="24" height="52" width="581" html.valueishtml="0"  name=stato_pl_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Aggiornato" border="0" color="8421504" x="7941" y="20" height="56" width="603" html.valueishtml="0"  name=x_datins_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Utente" border="0" color="8421504" x="8553" y="20" height="56" width="311" html.valueishtml="0"  name=x_utente_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="File pilota" border="0" color="8421504" x="6149" y="20" height="56" width="1591" html.valueishtml="0"  name=path_file_pilota_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="File" border="0" color="8421504" x="7749" y="20" height="56" width="183" html.valueishtml="0"  name=k_path_file_pilota_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="0" text=" Priorità" border="0" color="8421504" x="4407" y="20" height="56" width="407" html.valueishtml="0"  name=priorita_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="0" text=" Prima del" border="0" color="8421504" x="4818" y="20" height="56" width="443" html.valueishtml="0"  name=prima_del_barcode_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Sospeso" border="0" color="8421504" x="3305" y="20" height="56" width="256" html.valueishtml="0"  name=data_sosp_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Chiuso" border="0" color="8421504" x="3570" y="20" height="56" width="347" html.valueishtml="0"  name=data_chiuso_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="0" text=" Tipologia" border="0" color="8421504" x="2144" y="20" height="56" width="873" html.valueishtml="0"  name=pilota_cmd_tipo_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="0" text=" Nr. Invio" border="0" color="8421504" x="3026" y="20" height="56" width="274" html.valueishtml="0"  name=pilota_cmd_num_rich_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="0" text=" da Utente" border="0" color="8421504" x="3927" y="20" height="56" width="471" html.valueishtml="0"  name=sr_utenti_nome_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Note" border="0" color="8421504" x="5271" y="20" height="56" width="539" html.valueishtml="0"  name=note_1_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Id Invio" border="0" color="8421504" x="5819" y="20" height="56" width="325" html.valueishtml="0"  name=id_programma_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.tip="~t'Codice ID di Invio al Pilota'" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Codice" border="0" color="8421504" x="9" y="20" height="60" width="265" html.valueishtml="0"  name=codice_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Data" border="0" color="8421504" x="562" y="20" height="60" width="379" html.valueishtml="0"  name=data_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Impianto" border="0" color="8421504" x="283" y="20" height="60" width="274" html.valueishtml="0"  name=impianto_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Stato" border="0" color="8421504" x="955" y="20" height="60" width="594" html.valueishtml="0"  name=stato_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Stato G2/G3" border="0" color="8421504" x="1559" y="20" height="60" width="581" html.valueishtml="0"  name=stato_pl_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Aggiornato" border="0" color="8421504" x="7941" y="20" height="60" width="603" html.valueishtml="0"  name=x_datins_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Utente" border="0" color="8421504" x="8553" y="20" height="60" width="311" html.valueishtml="0"  name=x_utente_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="File pilota" border="0" color="8421504" x="6149" y="20" height="60" width="1591" html.valueishtml="0"  name=path_file_pilota_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="File" border="0" color="8421504" x="7749" y="20" height="60" width="183" html.valueishtml="0"  name=k_path_file_pilota_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text=" Priorità" border="0" color="8421504" x="4407" y="20" height="60" width="407" html.valueishtml="0"  name=priorita_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text=" Prima del" border="0" color="8421504" x="4818" y="20" height="60" width="443" html.valueishtml="0"  name=prima_del_barcode_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Sospeso" border="0" color="8421504" x="3305" y="20" height="60" width="256" html.valueishtml="0"  name=data_sosp_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Chiuso" border="0" color="8421504" x="3570" y="20" height="60" width="347" html.valueishtml="0"  name=data_chiuso_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text=" Tipologia" border="0" color="8421504" x="2144" y="20" height="60" width="873" html.valueishtml="0"  name=pilota_cmd_tipo_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Id Invio" border="0" color="8421504" x="3026" y="20" height="60" width="274" html.valueishtml="0"  name=programmi_richieste_id_programma_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="1" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.tip="~t'Codice ID di Invio al Pilota'" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text=" da Utente" border="0" color="8421504" x="3927" y="20" height="60" width="471" html.valueishtml="0"  name=sr_utenti_nome_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Note" border="0" color="8421504" x="5271" y="20" height="60" width="539" html.valueishtml="0"  name=note_1_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="N. Invio" border="0" color="8421504" x="5819" y="20" height="60" width="325" html.valueishtml="0"  name=pilota_cmd_num_rich_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="16777215" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.tip="" tooltip.transparency="0" transparency="0" )
 htmltable(border="1" )
 htmlgen(clientevents="1" clientvalidation="1" clientcomputedfields="1" clientformatting="0" clientscriptable="0" generatejavascript="1" encodeselflinkargs="1" netscapelayers="0" pagingmethod=0 generatedddwframes="1" )
 xhtmlgen() cssgen(sessionspecific="0" )

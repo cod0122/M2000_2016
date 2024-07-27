@@ -75,7 +75,9 @@ string k_rag_soc
 long k_id_cliente
 string k_errore = "0 ", k_errore1 = "0 "
 long k_riga
-kuf_clienti  kuf1_clienti  
+//kuf_clienti  kuf1_clienti  
+kuf_clienti_tb_xxx kuf1_clienti_tb_xxx
+st_tab_clienti kst_tab_clienti
 
 
 k_riga = dw_lista_0.getrow()	
@@ -91,45 +93,25 @@ if k_riga > 0 then
 	if messagebox("Elimina Anagrafica", "Sei sicuro di voler Cancellare : ~n~r" + k_rag_soc, &
 				question!, yesno!, 2) = 1 then
  
-//=== Creo l'oggetto che ha la funzione x cancellare la tabella
-		kuf1_clienti = create kuf_clienti
-		
-//=== Cancella la riga dal data windows di lista
-		k_errore = kuf1_clienti.tb_delete(k_id_cliente) 
-		if LeftA(k_errore, 1) = "0" then
-	
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
+		kuf1_clienti_tb_xxx = create kuf_clienti_tb_xxx
+				
+		try
+			kst_tab_clienti.codice = k_id_cliente
+			kst_tab_clienti.st_tab_g_0.esegui_commit = "S"
+			kuf1_clienti_tb_xxx.tb_delete(kst_tab_clienti)    // CANCELLA
+			dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
+			dw_lista_0.deleterow(k_riga)
 
-			else
+		catch (uo_exception kuo_exception)
+			k_errore = "1" + kuo_exception.get_errtext( )
+			messagebox("Cancellazione Fallita", mid(k_errore1, 2) ) 	
 
-				dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
-				dw_lista_0.deleterow(k_riga)
+		end try
 
-			end if
+		dw_lista_0.setfocus()
+		attiva_tasti()
 
-			dw_lista_0.setfocus()
-
-		else
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
-
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
-	
-			attiva_tasti()
-
-		end if
-
-//=== Distruggo l'oggetto che ha avuto la funzione x cancellare la tabella
-		destroy kuf1_clienti
+		destroy kuf1_clienti_tb_xxx
 
 	else
 		messagebox("Elimina Anagrafica", "Operazione Annullata !!")
@@ -685,17 +667,10 @@ private subroutine stampa_crea_temptable () throws uo_exception;//==============
 int k_ctr
 long k_nr_clienti, k_riga, k_id_cliente
 string k_view, k_sql, k_campi
-st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-SetPointer(kkg.pointer_attesa)
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 //--- costruisco la temp-table con ID_MECA delle fatture emesse da data a data
 	k_view = kguf_data_base.u_get_nometab_xutente("clienti_l")   //"vx_" + trim(kguo_utente.get_codice( )) + "_clienti_l "
@@ -711,20 +686,14 @@ SetPointer(kkg.pointer_attesa)
    	EXECUTE IMMEDIATE :k_sql USING kguo_sqlca_db_magazzino ;
  
    	if kguo_sqlca_db_magazzino.SQLCode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.sqlerrtext = "Inserimanto dati nella Temp-Table '"  + trim(k_view) &
-										  + "' non riuscito: " + trim(kguo_sqlca_db_magazzino.SQLErrText) &
-										  + " (" + string(kguo_sqlca_db_magazzino.SQLcode) + ")"
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Inserimanto dati nella Temp-Table '"  + trim(k_view) + "' non riuscito. ")
 			throw kguo_exception
    	end if
 	next
 	kguo_sqlca_db_magazzino.db_commit()
 	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kkg.pointer_default)
+	SetPointer(kkg.pointer_default)
 
 
 end subroutine
@@ -740,6 +709,8 @@ try
 	//=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 	
+	kguo_exception.inizializza(this.classname())
+	
 	dw_stampa.visible = false
 	k_tipo_stampa_anag = trim(dw_stampa.getitemstring(1, "tipo_stampa"))
 	
@@ -747,77 +718,59 @@ try
 
 	stampa_crea_temptable( ) // Crea la tabella pilota con i clienti da estrarre
 
+	if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
 
 	choose case k_tipo_stampa_anag
 			
 		case "C"
 	//--- stampa in formato tabulato i dati cliente
-			if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
-			kst_stampe.ds_print.reset( )
 			kst_stampe.ds_print.dataobject = "d_clienti_l_1"
 			kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
-	//--- Aggiorna SQL della dw	
 			kguf_data_base.u_set_ds_change_name_tab(kst_stampe.ds_print, "vx_MAST2_clienti_l") 
 			k_rc = kst_stampe.ds_print.retrieve( )
-			if k_rc > 0 then
-				kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta
-				kst_stampe.titolo = trim(k_stampa)
-				kGuf_data_base.stampa_dw(kst_stampe)
-				kst_stampe.titolo = trim(k_stampa)
+			if k_rc < 0 then
+				kguo_exception.kist_esito.sqlerrtext = "Errore in stampa elenco Completo delle Anagrafiche. "+ kkg.acapo + kguo_exception.kist_esito.sqlerrtext
+				throw kguo_exception
 			end if
-
-//				dw_esporta.settransobject(sqlca)
-//				dw_esporta.retrieve(k_rag_soc, 0)
-			//k_rc = dw_lista_0.sharedata(dw_dett_0)
-			//kst_stampe.dw_esporta = dw_esporta
-//			kst_stampe.ds_esporta = create datastore
-//			dw_esporta.rowscopy(1, dw_esporta.rowcount( ) , primary!, kst_stampe.ds_esporta, 1, primary!)
-//			kGuf_data_base.stampa_dw(kst_stampe)
 				
 		case "X"
 	//--- stampa 'tutti' i dati cliente, utile per fare una esportazione XLS	
-			if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
-			kst_stampe.ds_print.reset( )
 			kst_stampe.ds_print.dataobject = "d_clienti_l_completa_x_exp"
 			kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
-	//--- Aggiorna SQL della dw	
 			kguf_data_base.u_set_ds_change_name_tab(kst_stampe.ds_print, "vx_MAST2_clienti_l") 
-			if kst_stampe.ds_print.retrieve() > 0 then
-				kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta
-				kst_stampe.titolo = trim(k_stampa)
-				kGuf_data_base.stampa_dw(kst_stampe)
+			if kst_stampe.ds_print.retrieve() < 0 then
+				kguo_exception.kist_esito.sqlerrtext = "Errore in stampa elenco Completo delle Anagrafiche. "+ kkg.acapo + kguo_exception.kist_esito.sqlerrtext
+				throw kguo_exception
 			end if
 				
 		case "N"
 	//--- stampa tutti i dati cliente, utile per fare una esportazione XLS	
-			if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
-			kst_stampe.ds_print.reset( )
 			kst_stampe.ds_print.dataobject = "d_clienti_lista_stampa_contatti"
 			kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
-	//--- Aggiorna SQL della dw	
 			kguf_data_base.u_set_ds_change_name_tab(kst_stampe.ds_print, "vx_MAST2_clienti_l") 
-			if kst_stampe.ds_print.retrieve() > 0 then
-				kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta
-				kst_stampe.titolo = trim(k_stampa)
-				kGuf_data_base.stampa_dw(kst_stampe)
+			if kst_stampe.ds_print.retrieve() < 0 then
+				kguo_exception.kist_esito.sqlerrtext = "Errore in stampa elenco Contatti. " + kkg.acapo + kguo_exception.kist_esito.sqlerrtext
+				throw kguo_exception
 			end if
 	
 		case else
 	//--- stampa quello che è a video	
-			if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
-			kst_stampe.ds_print.reset( )
 			kst_stampe.ds_print.dataobject = "d_clienti_lista_stampa"
 			kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
-//--- Aggiorna SQL della dw	
 			kguf_data_base.u_set_ds_change_name_tab(kst_stampe.ds_print, "vx_MAST2_clienti_l") 
-			if kst_stampe.ds_print.retrieve( ) > 0 then
-				kst_stampe.titolo = trim(k_stampa)
-				kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore
-				kGuf_data_base.stampa_dw(kst_stampe)
+			if kst_stampe.ds_print.retrieve( ) < 0 then
+				kguo_exception.kist_esito.sqlerrtext = "Errore in stampa elenco Anagrafiche. " + kkg.acapo + kguo_exception.kist_esito.sqlerrtext
+				throw kguo_exception
 			end if
 	end choose
+
+	kst_stampe.titolo = trim(k_stampa)
+	kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore
+	kGuf_data_base.stampa_dw(kst_stampe)
+
 	
 catch (uo_exception kuo_exception)
+	kuo_exception.setmessage("Stampa in Errore", kuo_exception.kist_esito.sqlerrtext)
 	kuo_exception.messaggio_utente()
 	
 end try
@@ -1226,6 +1179,11 @@ if k_campo = "rag_soc_1" and dw_guida.getitemnumber(1, "dinamico") = 1 then
 		this.SelectText (len (k_campo) + 1, 0)  // posizione del cursose a fine campo
 	end if
 end if
+
+end event
+
+event dw_guida::editchanged;call super::editchanged;//
+	event ue_retrieve_dinamico(dwo.name, data) 
 
 end event
 

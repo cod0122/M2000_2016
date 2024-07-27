@@ -329,8 +329,7 @@ listviewitem klvi_listviewitem
 st_profilestring_ini kst_profilestring_ini
 
 
-
-		 
+try		 
 //--- Ricavo l'oggetto figlio dal DB 
 //	kst_tab_treeview.id = k_tipo_oggetto
 //	u_select_tab_treeview(kst_tab_treeview)
@@ -502,8 +501,9 @@ st_profilestring_ini kst_profilestring_ini
 			kst_tab_clienti_fatt.rag_soc_10 = ""
 			if isnumber(trim(kst_wm_pkl_file.mandante)) then
 				kst_tab_clienti_fatt.codice = long(trim(kst_wm_pkl_file.mandante))
-				kst_esito = kuf1_clienti.get_nome(kst_tab_clienti_fatt)
-				if kst_esito.esito <> kkg_esito.ok then
+				kuf1_clienti.get_nome(kst_tab_clienti_fatt)
+				if kst_tab_clienti_fatt.rag_soc_10 > " "  then
+				else
 					kst_tab_clienti_fatt.rag_soc_10 = "*non identificato*"
 				end if
 			end if
@@ -545,8 +545,6 @@ st_profilestring_ini kst_profilestring_ini
 
 		loop
 		
-		if isvalid(kuf1_clienti) then destroy kuf1_clienti
-		
 	end if
  
  
@@ -573,8 +571,14 @@ st_profilestring_ini kst_profilestring_ini
 			
 	end if
 
+catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
 
- 
+finally 
+	if isvalid(kuf1_clienti) then	destroy kuf1_clienti
+	
+end try
+
 return k_return
 
  

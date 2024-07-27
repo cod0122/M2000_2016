@@ -156,7 +156,7 @@ if ki_st_open_w.flag_primo_giro = 'S' then
 
 else
 	
-//	this.setredraw(false)
+					//	this.setredraw(false)
 
 	//--- se ritorno da funzione esterna
 	//--- funzione utile per sincronizzare i dati dell window
@@ -171,7 +171,7 @@ else
 	
 //--- se non c'e' alcun menu non faccio sta roba
 	if isvalid(m_main) then
-		//ki_menu.reset_menu_strumenti( )
+				//ki_menu.reset_menu_strumenti( )
 		attiva_tasti()
 	end if
 	
@@ -179,13 +179,13 @@ else
 		ki_salva_restore_gia_fatto = true
 	end if
 
-////--- attiva nella toolbar dei programmi aperti la voce 
-//if ki_toolbar_programmi_attiva_voce then
-//	ki_toolbar_programmi_attiva_voce=false
-//	toolbar_programmi_attiva_voce()
-//end if
-
-//	this.setredraw(true)
+				////--- attiva nella toolbar dei programmi aperti la voce 
+				//if ki_toolbar_programmi_attiva_voce then
+				//	ki_toolbar_programmi_attiva_voce=false
+				//	toolbar_programmi_attiva_voce()
+				//end if
+				
+				//	this.setredraw(true)
 end if
 
 end event
@@ -1003,10 +1003,10 @@ end function
 private subroutine u_dw_cut_valore ();//
 //--- Copia valore dal campo
 //
-string k_valore
 int k_rc
+string k_val
 GraphicObject  kgo_1
-datawindow kdw_1
+uo_d_std_1 kdw_1
 MultiLineEdit kmle_1
 SingleLineEdit ksle_1
 RichTextEdit krte_1
@@ -1014,6 +1014,8 @@ InkEdit kie_1
 
 
 kgo_1 = getfocus() 
+if isnull(kgo_1) then return
+	
 if kgo_1.typeof( ) = MultiLineEdit! then
 	kmle_1 = kgo_1
 	k_rc = kmle_1.copy( ) //prima tenta // Ctrl+C con il COPY (campi di edit)
@@ -1028,55 +1030,11 @@ elseif kgo_1.typeof( ) = InkEdit! then
 	k_rc = kie_1.copy( ) //prima tenta // Ctrl+C con il COPY (campi di edit)
 
 elseif kgo_1.typeof( ) = datawindow! then
-	
-	
 	kdw_1 = kgo_1
-	
-//--- fisso l'elenco di ricerca 	
-//	if isvalid(kidw_selezionata) then
-//		kdw_1 = kidw_selezionata
-//	else
-//		kdw_1 = getfocus() //get_obj_trova()
-//	end if
-
 	if isvalid(kdw_1) then
-		if kdw_1.rowcount() > 0 then
-
-			k_rc = kdw_1.copy( ) //prima tenta // Ctrl+C con il COPY (campi di edit)
-			if	k_rc > 0 then  
-			else
-
-				k_valore = kdw_1.Describe("DataWindow.Selected.Data") // poi tenta così per selezioni su campi protetti ma con Mouse-selection attivo
-				Clipboard(trim(k_valore))   // Ctrl+C
-		
-
-//			k_valore = kdw_1.Describe( "Datawindow.Selected" ) //<start row>/<end row>/<start column>/<end column>
-//			k_pos = pos(k_valore, "/")
-//			if k_pos > 0 then
-//				pos(k_valore, "/", k_pos)
-//			end if
-//			if k_pos > 0 then
-//				k_valore = mid(k_valore, k_pos+1)
-//			end if
-//			IF Trim( k_valore ) > 0 AND NOT ls_range = "!" AND NOT ls_range = "?" THEN 
-//				k_pos_ini = pos(k_valore, "/", 0)
-//				k_pos_fin = pos(k_valore, "/", k_pos_ini+1)
-//				IF k_pos_ini > 0 AND k_pos_fin > 0 THEN 
-//					IF k_pos_ini < k_pos_fin THEN 
-//						FOR k_riga = k_pos_ini TO k_pos_fin 
-//							this.SelectRow( k_riga, TRUE ) 
-//						NEXT 
-//					ELSEIF k_pos_ini > k_pos_fin THEN 
-//						FOR k_riga = k_pos_ini TO k_pos_fin STEP -1 
-//							this.SelectRow( k_riga, TRUE ) 
-//						NEXT 
-//					ELSE // a single row is selected -- do nothing 
-//					END IF 
-//				END IF 
-//			END IF 
-			
-			end if
-			
+		k_val = kdw_1.u_get_ctrl_c_value( )
+		if k_val > " " then
+			k_val = Clipboard(k_val)
 		end if
 	end if
 end if
@@ -1342,8 +1300,7 @@ end on
 
 event activate;//---
 if (not ki_exit_si and not kguo_g.kG_exit_si) or IsNull(ki_exit_si) or IsNull(kguo_g.kG_exit_si) then
-	
-	
+
 	event u_activate( )
 	
 	

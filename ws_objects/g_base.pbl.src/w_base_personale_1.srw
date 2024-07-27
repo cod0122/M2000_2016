@@ -97,9 +97,6 @@ type st_1_retrieve from w_base_personale`st_1_retrieve within tabpage_1
 end type
 
 type tabpage_2 from w_base_personale`tabpage_2 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -110,9 +107,6 @@ type st_2_retrieve from w_base_personale`st_2_retrieve within tabpage_2
 end type
 
 type tabpage_3 from w_base_personale`tabpage_3 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -132,9 +126,6 @@ type cb_config_ini from w_base_personale`cb_config_ini within tabpage_3
 end type
 
 type tabpage_4 from w_base_personale`tabpage_4 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -148,9 +139,6 @@ type st_non_auth_4 from w_base_personale`st_non_auth_4 within tabpage_4
 end type
 
 type tabpage_5 from w_base_personale`tabpage_5 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -164,9 +152,6 @@ type st_non_auth_5 from w_base_personale`st_non_auth_5 within tabpage_5
 end type
 
 type tabpage_6 from w_base_personale`tabpage_6 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -210,9 +195,7 @@ type st_22 from w_base_personale`st_22 within tabpage_6
 end type
 
 type tabpage_7 from w_base_personale`tabpage_7 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
+boolean enabled = false
 end type
 
 type st_7_retrieve from w_base_personale`st_7_retrieve within tabpage_7
@@ -222,9 +205,6 @@ type dw_7 from w_base_personale`dw_7 within tabpage_7
 end type
 
 type tabpage_8 from w_base_personale`tabpage_8 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -359,9 +339,6 @@ type st_cb_placeholder_l from w_base_personale`st_cb_placeholder_l within tabpag
 end type
 
 type tabpage_10 from w_base_personale`tabpage_10 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -386,22 +363,17 @@ end type
 type dw_10 from w_base_personale`dw_10 within tabpage_10
 end type
 
-type cb_clienti_cntdep_l from w_base_personale`cb_clienti_cntdep_l within tabpage_10
+type b_clienti_cntdep_l from w_base_personale`b_clienti_cntdep_l within tabpage_10
 end type
 
 type tabpage_11 from w_base_personale`tabpage_11 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
+boolean enabled = false
 end type
 
 type dw_11 from w_base_personale`dw_11 within tabpage_11
 end type
 
 type tabpage_12 from w_base_personale`tabpage_12 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 
@@ -409,9 +381,6 @@ type dw_12 from w_base_personale`dw_12 within tabpage_12
 end type
 
 type tabpage_13 from w_base_personale`tabpage_13 within tab_1
-integer x = 210
-integer width = 2816
-integer height = 2736
 boolean enabled = false
 end type
 

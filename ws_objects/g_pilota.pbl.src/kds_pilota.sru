@@ -30,6 +30,11 @@ boolean k_return = false
 		//this.settransobject( kguo_sqlca_db_pilota)  // questo tipo si connessione blocca il PILOTA
 		if this.settrans(kguo_sqlca_db_pilota) > 0 then  // connessione-disconnessione in automatico 
 			k_return = true
+		else
+			kguo_exception.kist_esito = this.kist_esito
+			kguo_exception.kist_esito.sqlerrtext = "Errore SETTRANSOBJECT DB '" + kguo_sqlca_db_pilota.ki_db_descrizione + "' (u_settransobject) " &
+						+ kkg.acapo + this.kist_esito.sqlerrtext
+			kGuo_exception.scrivi_log( )
 		end if
 	end if
 	

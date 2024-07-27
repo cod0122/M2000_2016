@@ -106,7 +106,6 @@ forward prototypes
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode)
 public function string togli_pl_barcode_all (ref st_tab_barcode kst_tab_barcode)
 public function st_esito togli_pl_barcode_chiuso (st_tab_barcode kst_tab_barcode)
-public function st_esito select_barcode (ref st_tab_barcode kst_tab_barcode)
 public function st_esito tb_prendi_campo (ref st_tab_barcode kst_tab_barcode, string k_campo)
 public function st_esito tb_update_campo (st_tab_barcode kst_tab_barcode, string k_campo)
 public subroutine if_isnull (ref st_tab_barcode kst_tab_barcode)
@@ -131,13 +130,11 @@ public function long get_nr_barcode_da_non_trattare (readonly st_tab_barcode kst
 public function long get_nr_barcode_trattati (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function st_esito get_padre_id_meca (ref st_tab_barcode kst_tab_barcode)
 public function st_esito set_num_data_int (st_tab_barcode kst_tab_barcode)
-public function boolean if_essere_barcode_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception
 public function boolean if_essere_barcode_padre_con_giri_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception
 public function boolean if_essere_barcode_padre (st_tab_barcode kst_tab_barcode_padre) throws uo_exception
 public function st_esito tb_togli_da_groupage (st_tab_barcode kst_tab_barcode)
 public function boolean if_barcode_padre_no_trattati (st_tab_barcode kst_tab_barcode) throws uo_exception
 public function boolean if_barcode_padre (st_tab_barcode kst_tab_barcode) throws uo_exception
-public function boolean get_tipo_cicli (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 public function date get_data_lav_fin (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function date get_data_lav_ini (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function long get_nr_barcode (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
@@ -162,7 +159,6 @@ public function st_tab_barcode get_data_lav_ini_fin (readonly st_tab_barcode kst
 public function long get_durata_lav (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function integer get_conta_dosimetri (st_tab_barcode kst_tab_barcode) throws uo_exception
 public function boolean tb_add (st_tab_barcode ast_tab_barcode) throws uo_exception
-public function boolean get_lav_fila (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 public function long get_durata_lav_old (readonly st_tab_barcode kst_tab_barcode) throws uo_exception
 public function long set_imptime_second (st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine get_lav_fila_tot_x_id_meca (ref st_tab_barcode kst_tab_barcode) throws uo_exception
@@ -194,6 +190,16 @@ public function boolean tb_update_g3_reset (st_tab_barcode ast_tab_barcode) thro
 private subroutine tb_update_g3_update (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine tb_update_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine tb_update_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
+public function string get_tipo_cicli (ref st_tab_barcode kst_tab_barcode) throws uo_exception
+public function integer get_impianto (ref st_tab_barcode kst_tab_barcode) throws uo_exception
+public function integer get_g3npass (ref st_tab_barcode kst_tab_barcode) throws uo_exception
+public subroutine u_update_campo (st_tab_barcode kst_tab_barcode, string k_campo) throws uo_exception
+public function boolean if_essere_barcode_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception
+public subroutine get_fila_altri (ref st_tab_barcode kst_tab_barcode) throws uo_exception
+public subroutine get_lav_fila (ref st_tab_barcode kst_tab_barcode) throws uo_exception
+public function boolean select_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception
+public subroutine check_anomalie_lavorazione_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
+public function integer get_impianto_x_id_armo_pl_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 end prototypes
 
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode);//
@@ -514,121 +520,6 @@ return kst_esito
 
 end function
 
-public function st_esito select_barcode (ref st_tab_barcode kst_tab_barcode);//
-//------------------------------------------------------------------
-//--- Select rek Barcode
-//--- 
-//--- Ritorna tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//---                                     1=errore grave
-//---                                     2=errore > 0
-//--- 
-//------------------------------------------------------------------
-//
-
-string k_return = "0 "
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	select 
-	       data,
-	       barcode_lav,
-			 id_armo,
-			 pl_barcode,
-			 groupage,
-			 pl_barcode_progr,
-			 num_int,
-			 data_int,
-			 data_stampa,
-			 data_lav_ini,
-			 data_lav_fin,
-			 data_lav_ok,
-			 data_sosp,
-			 tipo_cicli,
-			 fila_1,
-			 fila_2,
-			 fila_1p,
-			 fila_2p,
-			 posizione,
-			 bilancella,
-			 id_meca,
-			 ora_lav_ini,
-			 ora_lav_fin,
-			 lav_fila_1,
-			 lav_fila_2,
-			 lav_fila_1p,
-			 lav_fila_2p,
-			 err_lav_fin,
-			 err_lav_ok
-			,g3ngiri 
-			,id_sl_pt_g3_lav
-			,g3ciclo 
-			,g3npass 
-			,g3lav_ngiri
-			,g3lav_ciclo
-			,g3lav_npass 	 
-			,x_datins
-			,x_utente
-		into
-	       :kst_tab_barcode.data,
-	       :kst_tab_barcode.barcode_lav,
-			 :kst_tab_barcode.id_armo,
-			 :kst_tab_barcode.pl_barcode,
-			 :kst_tab_barcode.groupage,
-			 :kst_tab_barcode.pl_barcode_progr,
-			 :kst_tab_barcode.num_int,
-			 :kst_tab_barcode.data_int,
-			 :kst_tab_barcode.data_stampa,
-			 :kst_tab_barcode.data_lav_ini,
-			 :kst_tab_barcode.data_lav_fin,
-			 :kst_tab_barcode.data_lav_ok,
-			 :kst_tab_barcode.data_sosp,
-			 :kst_tab_barcode.tipo_cicli,
-			 :kst_tab_barcode.fila_1,
-			 :kst_tab_barcode.fila_2,
-			 :kst_tab_barcode.fila_1p,
-			 :kst_tab_barcode.fila_2p,
-			 :kst_tab_barcode.posizione,
-			 :kst_tab_barcode.bilancella,
-			 :kst_tab_barcode.id_meca,
-			 :kst_tab_barcode.ora_lav_ini,
-			 :kst_tab_barcode.ora_lav_fin,
-			 :kst_tab_barcode.lav_fila_1,
-			 :kst_tab_barcode.lav_fila_2,
-			 :kst_tab_barcode.lav_fila_1p,
-			 :kst_tab_barcode.lav_fila_2p,
-			 :kst_tab_barcode.err_lav_fin,
-			 :kst_tab_barcode.err_lav_ok
-			,:kst_tab_barcode.g3ngiri 
-			,:kst_tab_barcode.id_sl_pt_g3_lav
-			,:kst_tab_barcode.g3ciclo 
-			,:kst_tab_barcode.g3npass 
-			,:kst_tab_barcode.g3lav_ngiri
-			,:kst_tab_barcode.g3lav_ciclo
-			,:kst_tab_barcode.g3lav_npass 
-			,:kst_tab_barcode.x_datins
-			,:kst_tab_barcode.x_utente
-		from barcode
-		where barcode = :kst_tab_barcode.barcode
-		using kguo_sqlca_db_magazzino;
-
-
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura del Barcode '" + trim(kst_tab_barcode.barcode) + "'~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			kst_esito.esito = kkg_esito.db_ko
-		end if
-	end if
-
-
-return kst_esito
-
-end function
-
 public function st_esito tb_prendi_campo (ref st_tab_barcode kst_tab_barcode, string k_campo);//
 //====================================================================
 //=== Prende un campo del rek Barcode
@@ -734,7 +625,10 @@ return kst_esito
 
 end function
 
-public function st_esito tb_update_campo (st_tab_barcode kst_tab_barcode, string k_campo);//
+public function st_esito tb_update_campo (st_tab_barcode kst_tab_barcode, string k_campo);/*
+     ATTENZIONE USARE U_UPDATE_CAMPO CHE LANCIA UN EXCEPTION !!!!
+*/
+
 //====================================================================
 //=== Update un campo del rek Piano Lavorazione Barcode
 //=== 
@@ -743,7 +637,7 @@ public function st_esito tb_update_campo (st_tab_barcode kst_tab_barcode, string
 //===                                     2=errore > 0
 //=== 
 //====================================================================
-date k_data_zero
+date k_data_NO
 st_esito kst_esito 
 kuf_base kuf1_base
 
@@ -1097,7 +991,7 @@ kuf_base kuf1_base
 	
 
 			case "data_lav_ok_x_id_meca_barcode_altri"
-				k_data_zero = kkg.data_zero
+				k_data_no = kkg.DATA_NO
 				kst_tab_barcode.causale = ki_causale_non_trattare
 				if kst_tab_barcode.id_meca > 0 then
 					update barcode set 	 
@@ -1109,7 +1003,7 @@ kuf_base kuf1_base
 							 x_datins = :kst_tab_barcode.x_datins,
 							 x_utente = :kst_tab_barcode.x_utente
 						where id_meca = :kst_tab_barcode.id_meca
-								 and (data_lav_ok is null or data_lav_ok < :k_data_zero)
+								 and (data_lav_ok is null or data_lav_ok < :k_data_no)
 								 and (causale is null or causale <> :kst_tab_barcode.causale)
 						using kguo_sqlca_db_magazzino;
 					else
@@ -1412,289 +1306,230 @@ public subroutine check_anomalie_lavorazione (ref st_tab_barcode kst_tab_barcode
 //--- k_errore: 2=interrotto da utente/dati insuff 1=errore programma 
 //
 string k_barcode_esito="0", k_flag_esponi_gia_lavorato
-
 st_esito kst_esito
-uo_exception kuo_exception
-//pointer oldpointer  // Declares a pointer variable
-
 kuf_armo kuf1_armo
 kuf_sl_pt kuf1_sl_pt
-
 st_tab_sl_pt kst_tab_sl_pt, kst_tab_sl_pt_vuota
 st_tab_armo kst_tab_armo, kst1_tab_armo, kst_tab_armo_vuota
 
 
-//oldpointer = SetPointer(HourGlass!)
+try
+	SetPointer(kkg.pointer_attesa)
 
-kuo_exception = create uo_exception
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.sqlerrtext = " "
-kst_esito.nome_oggetto = this.classname()
-	
-	
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuo_exception = create uo_exception
-	
-
-//---- x default esito POSITIVO
-kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ok
-
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 		
-kuf1_sl_pt = create kuf_sl_pt
-kuf1_armo = create kuf_armo
-//kuf1_artr = create kuf_artr
-//kuf1_certif = create kuf_certif
-
+	//---- x default esito POSITIVO
+	kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ok
+	
 			
-
-//--- pulizia campi di appoggio
-kst_tab_sl_pt.fila_1 = 0
-kst_tab_sl_pt.fila_2 = 0
-kst_tab_sl_pt.fila_1p = 0
-kst_tab_sl_pt.fila_2p = 0
-kst_tab_barcode.note_lav_fin = ""
-
-if kst_tab_barcode.id_armo > 0 then
-
-//--- legge tab ARMO x prendere cod sl-pt
-	kst_tab_armo = kst_tab_armo_vuota
-	kst_tab_armo.id_armo = kst_tab_barcode.id_armo
-	kst_esito = kuf1_armo.leggi_riga("1", kst_tab_armo)
-
-	if kst_esito.esito = kkg_esito.ok and kst_tab_armo.num_int > 0 then
-
-//--- legge tab ARMO x prendere totale colli del riferimento 
-		kst1_tab_armo = kst_tab_armo_vuota
-		kst1_tab_armo.id_armo = kst_tab_barcode.id_armo
-		kst_esito = kuf1_armo.leggi_riga("R", kst1_tab_armo)
-		if kst_esito.esito <> kkg_esito.ok then
-			kst1_tab_armo.colli_2 = 0
-		end if
-						
-//--- legge tab SL PT x prendere cod GIRI FILA
-		if not isnull(kst_tab_armo.cod_sl_pt) and &
-			LenA(trim(kst_tab_armo.cod_sl_pt)) > 0 then
-			
-			kst_tab_sl_pt = kst_tab_sl_pt_vuota
-			kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt 
-			kst_esito = kuf1_sl_pt.select_riga(kst_tab_sl_pt)
+	kuf1_sl_pt = create kuf_sl_pt
+	kuf1_armo = create kuf_armo
+	
+	//--- pulizia campi di appoggio
+	kst_tab_sl_pt.fila_1 = 0
+	kst_tab_sl_pt.fila_2 = 0
+	kst_tab_sl_pt.fila_1p = 0
+	kst_tab_sl_pt.fila_2p = 0
+	kst_tab_barcode.note_lav_fin = ""
+	
+	if kst_tab_barcode.id_armo > 0 then
+	
+	//--- legge tab ARMO x prendere cod sl-pt
+		kst_tab_armo = kst_tab_armo_vuota
+		kst_tab_armo.id_armo = kst_tab_barcode.id_armo
+		kst_esito = kuf1_armo.leggi_riga("1", kst_tab_armo)
+	
+		if kst_esito.esito = kkg_esito.ok and kst_tab_armo.num_int > 0 then
+	
+	//--- legge tab ARMO x prendere totale colli del riferimento 
+			kst1_tab_armo = kst_tab_armo_vuota
+			kst1_tab_armo.id_armo = kst_tab_barcode.id_armo
+			kst_esito = kuf1_armo.leggi_riga("R", kst1_tab_armo)
 			if kst_esito.esito <> kkg_esito.ok then
-				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-				kst_tab_barcode.note_lav_fin += "SL-PT non Trovato - "
-//					k_barcode_esito = "2"
-//					k_barcode_esito_txt = k_barcode_esito_txt + "SL-PT non Trovato - " 
-			else
+				kst1_tab_armo.colli_2 = 0
+			end if
+							
+	//--- legge tab SL PT x prendere cod GIRI FILA
+			if not isnull(kst_tab_armo.cod_sl_pt) and &
+				LenA(trim(kst_tab_armo.cod_sl_pt)) > 0 then
 				
-				if (kst_tab_sl_pt.fila_1 = 0 or isnull(kst_tab_sl_pt.fila_1)) &
-					and (kst_tab_sl_pt.fila_2 = 0 or isnull(kst_tab_sl_pt.fila_2)) &
-					and (kst_tab_sl_pt.fila_1p = 0 or isnull(kst_tab_sl_pt.fila_1p)) &
-					and (kst_tab_sl_pt.fila_2p = 0 or isnull(kst_tab_sl_pt.fila_2p)) &
-					then
+				kst_tab_sl_pt = kst_tab_sl_pt_vuota
+				kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt 
+				kst_esito = kuf1_sl_pt.select_riga(kst_tab_sl_pt)
+				if kst_esito.esito <> kkg_esito.ok then
 					kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-					kst_tab_barcode.note_lav_fin +=  "Cicli Non Impostati su SL-PT - "
-//									k_barcode_esito = "2"
-//									k_barcode_esito_txt = k_barcode_esito_txt + "Cicli Non Impostati su SL-PT - " 
+					kst_tab_barcode.note_lav_fin += "SL-PT non Trovato - "
+				else
+					
+					if (kst_tab_sl_pt.fila_1 = 0 or isnull(kst_tab_sl_pt.fila_1)) &
+						and (kst_tab_sl_pt.fila_2 = 0 or isnull(kst_tab_sl_pt.fila_2)) &
+						and (kst_tab_sl_pt.fila_1p = 0 or isnull(kst_tab_sl_pt.fila_1p)) &
+						and (kst_tab_sl_pt.fila_2p = 0 or isnull(kst_tab_sl_pt.fila_2p)) &
+						then
+						kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+						kst_tab_barcode.note_lav_fin +=  "Cicli Non Impostati su SL-PT - "
+					end if
 								
 				end if
-							
+			else
+				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+				kst_tab_barcode.note_lav_fin +=  "SL-PT non Impostato in Entrata (vedi riferimento) - " 
+				kst_tab_sl_pt.cod_sl_pt = " "
+				kst_tab_sl_pt.descr = " "
 			end if
 		else
-			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-			kst_tab_barcode.note_lav_fin +=  "SL-PT non Impostato in Entrata (vedi riferimento) - " 
-//				k_barcode_esito = "2"
-//				k_barcode_esito_txt = k_barcode_esito_txt + "SL-PT non Impostato in Entrata (vedi riferimento) - " 
-			kst_tab_sl_pt.cod_sl_pt = " "
-			kst_tab_sl_pt.descr = " "
+			kst_tab_barcode.note_lav_fin +=  "Riga Entrata merce non Trovata - " 
 		end if
 	else
-		kst_tab_barcode.note_lav_fin +=  "Riga Entrata merce non Trovata - " 
-//			k_barcode_esito_txt = k_barcode_esito_txt + "Riga Entrata merce non Trovata - " 
+		kst_tab_barcode.note_lav_fin +=  "Riga Entrata sconosciuta - " 
 	end if
-else
-	kst_tab_barcode.note_lav_fin +=  "Riga Entrata sconosciuta - " 
-end if
+		
+	if kst_esito.esito = kkg_esito.db_ko then // errore grave SQL
+		kGuo_exception.set_esito (kst_esito)
+		throw kGuo_exception
+	end if
+		
+	//--- controllo valori dei Cicli	del PILOTA con quelli presenti sul BARCODE		
+	if isnull(kst_tab_barcode.fila_1) then kst_tab_barcode.fila_1 = 0  
+	if isnull(kst_tab_barcode.fila_2) then kst_tab_barcode.fila_2 = 0  
+	if isnull(kst_tab_barcode.fila_1p) then kst_tab_barcode.fila_1p = 0  
+	if isnull(kst_tab_barcode.fila_2p) then kst_tab_barcode.fila_2p = 0  
+	if isnull(kst_tab_sl_pt.fila_1) then kst_tab_sl_pt.fila_1 = 0  
+	if isnull(kst_tab_sl_pt.fila_2) then kst_tab_sl_pt.fila_2 = 0  
+	if isnull(kst_tab_sl_pt.fila_1p) then	kst_tab_sl_pt.fila_1p = 0  
+	if isnull(kst_tab_sl_pt.fila_2p) then kst_tab_sl_pt.fila_2p = 0  
+						
+	//--- controllo se cicli impostati almeno sul piano di lavorazione 
+	if kst_tab_sl_pt.fila_1 = 0 and kst_tab_barcode.fila_1 = 0 &
+		and kst_tab_sl_pt.fila_2 = 0 and kst_tab_barcode.fila_2 = 0 &
+		and kst_tab_sl_pt.fila_1p = 0 and kst_tab_barcode.fila_1p = 0 &
+		and kst_tab_sl_pt.fila_2p = 0 and kst_tab_barcode.fila_2p = 0 then
+		kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		kst_tab_barcode.note_lav_fin +=   "PT e Pianificazione Lav. senza Cicli - " 
+	else
 	
-if kst_esito.esito = kkg_esito.db_ko then // errore grave SQL
-	kuo_exception.set_esito (kst_esito)
-	throw kuo_exception
-end if
-	
-//--- controllo valori dei Cicli	del PILOTA con quelli presenti sul BARCODE		
-if isnull(kst_tab_barcode.fila_1) then kst_tab_barcode.fila_1 = 0  
-if isnull(kst_tab_barcode.fila_2) then kst_tab_barcode.fila_2 = 0  
-if isnull(kst_tab_barcode.fila_1p) then kst_tab_barcode.fila_1p = 0  
-if isnull(kst_tab_barcode.fila_2p) then kst_tab_barcode.fila_2p = 0  
-if isnull(kst_tab_sl_pt.fila_1) then kst_tab_sl_pt.fila_1 = 0  
-if isnull(kst_tab_sl_pt.fila_2) then kst_tab_sl_pt.fila_2 = 0  
-if isnull(kst_tab_sl_pt.fila_1p) then	kst_tab_sl_pt.fila_1p = 0  
-if isnull(kst_tab_sl_pt.fila_2p) then kst_tab_sl_pt.fila_2p = 0  
-					
-
-//--- controllo se cicli impostati almeno sul piano di lavorazione 
-if kst_tab_sl_pt.fila_1 = 0 and kst_tab_barcode.fila_1 = 0 &
-	and kst_tab_sl_pt.fila_2 = 0 and kst_tab_barcode.fila_2 = 0 &
-	and kst_tab_sl_pt.fila_1p = 0 and kst_tab_barcode.fila_1p = 0 &
-	and kst_tab_sl_pt.fila_2p = 0 and kst_tab_barcode.fila_2p = 0 then
-	kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-	kst_tab_barcode.note_lav_fin +=   "SL-PT e Pian.Lavoraz. senza Cicli - " 
-//	k_barcode_esito = "2"
-//	k_barcode_esito_txt = k_barcode_esito_txt + "SL-PT e Pian.Lavoraz. senza Cicli - " 
-else
-
-//--- confronto tra cicli pianificati nel barcode con quelli su Sl-PT
-	if kst_tab_sl_pt.fila_1 <> kst_tab_barcode.fila_1 then
+	//--- confronto tra cicli pianificati nel barcode con quelli su Sl-PT
+		if kst_tab_sl_pt.fila_1 <> kst_tab_barcode.fila_1 then
+			if kst_tab_sl_pt.tipo_cicli <> kuf1_sl_pt.ki_tipo_cicli_a_scelta then
+				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+				kst_tab_barcode.note_lav_fin +=   "Impostati Cicli diversi tra PT (F1=" & 
+										 + trim(string(kst_tab_sl_pt.fila_1)) + ") " &
+										 + "e Pianificazione Lav. (F1=" &
+										 + trim(string(kst_tab_barcode.fila_1)) + ") "
+	//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F1=" &
+			else
+	//--- se tipo cicli "a scelta" controllo se diverso anche fila 2
+				if kst_tab_sl_pt.fila_2 <> kst_tab_barcode.fila_2 then
+					kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+					kst_tab_barcode.note_lav_fin +=    "Impostati Cicli diversi tra PT (F1/2=" & 
+										 + trim(string(kst_tab_sl_pt.fila_1)) + "/" &
+										 + trim(string(kst_tab_sl_pt.fila_2)) + ") " &
+										 + "e Pianinicazione Lav. (F1/2=" &
+										 + trim(string(kst_tab_barcode.fila_1)) + "/" &
+										 + trim(string(kst_tab_barcode.fila_2)) + ") "
+	//				k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F1/2=" &
+				end if	
+			end if	
+		end if
+		if kst_tab_sl_pt.fila_1p <> kst_tab_barcode.fila_1p then
+			if kst_tab_sl_pt.tipo_cicli <> kuf1_sl_pt.ki_tipo_cicli_a_scelta then
+				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+				kst_tab_barcode.note_lav_fin +=  "Impostati Cicli permutati diversi tra PT (F1p=" & 
+									 + trim(string(kst_tab_sl_pt.fila_1p)) + ") " &
+									 + "e Pianificazione Lav. (F1p=" &
+									 + trim(string(kst_tab_barcode.fila_1p)) + ") "
+	//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F1p=" &
+			else
+	//--- se tipo cicli "a scelta" controllo se diverso anche fila 2
+				if kst_tab_sl_pt.fila_2p <> kst_tab_barcode.fila_2p then
+					kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+					kst_tab_barcode.note_lav_fin += "Impostati Cicli permutati diversi tra PT (F1p/2p="  & 
+										 + trim(string(kst_tab_sl_pt.fila_1p)) + "/" &
+										 + trim(string(kst_tab_sl_pt.fila_2p)) + ") " &
+										 + "e Pianificazione Lav. (F1p/2p=" &
+										 + trim(string(kst_tab_barcode.fila_1p)) + "/" &
+										 + trim(string(kst_tab_barcode.fila_2p)) + ") "
+	//				k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F1p/2p=" &
+				end if	
+			end if	
+		end if
 		if kst_tab_sl_pt.tipo_cicli <> kuf1_sl_pt.ki_tipo_cicli_a_scelta then
-			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-			kst_tab_barcode.note_lav_fin +=   "Impostati Cicli diversi tra SL-PT (F1=" & 
-									 + trim(string(kst_tab_sl_pt.fila_1)) + ") " &
-									 + "e Pian.Lavoraz. (F1=" &
-									 + trim(string(kst_tab_barcode.fila_1)) + ") "
-//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F1=" &
-		else
-//--- se tipo cicli "a scelta" controllo se diverso anche fila 2
 			if kst_tab_sl_pt.fila_2 <> kst_tab_barcode.fila_2 then
 				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-				kst_tab_barcode.note_lav_fin +=    "Impostati Cicli diversi tra SL-PT (F1/2=" & 
-									 + trim(string(kst_tab_sl_pt.fila_1)) + "/" &
-									 + trim(string(kst_tab_sl_pt.fila_2)) + ") " &
-									 + "e Pian.Lavoraz. (F1/2=" &
-									 + trim(string(kst_tab_barcode.fila_1)) + "/" &
-									 + trim(string(kst_tab_barcode.fila_2)) + ") "
-//				k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F1/2=" &
-			end if	
-		end if	
-	end if
-	if kst_tab_sl_pt.fila_1p <> kst_tab_barcode.fila_1p then
-		if kst_tab_sl_pt.tipo_cicli <> kuf1_sl_pt.ki_tipo_cicli_a_scelta then
-			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-			kst_tab_barcode.note_lav_fin +=  "Impostati Cicli permutati diversi tra SL-PT (F1p=" & 
-								 + trim(string(kst_tab_sl_pt.fila_1p)) + ") " &
-								 + "e P.Lavoraz. (F1p=" &
-								 + trim(string(kst_tab_barcode.fila_1p)) + ") "
-//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F1p=" &
-		else
-//--- se tipo cicli "a scelta" controllo se diverso anche fila 2
+				kst_tab_barcode.note_lav_fin += "Impostati Cicli diversi tra PT (F2="  & 
+											 + trim(string(kst_tab_sl_pt.fila_2)) + ") " &
+											 + "e Pianificazione Lav. (F2=" &
+											 + trim(string(kst_tab_barcode.fila_2)) + ") "
+	//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F2=" &
+			end if
 			if kst_tab_sl_pt.fila_2p <> kst_tab_barcode.fila_2p then
 				kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-				kst_tab_barcode.note_lav_fin += "Impostati Cicli permutati diversi tra SL-PT (F1p/2p="  & 
-									 + trim(string(kst_tab_sl_pt.fila_1p)) + "/" &
-									 + trim(string(kst_tab_sl_pt.fila_2p)) + ") " &
-									 + "e Pian.Lavoraz. (F1p/2p=" &
-									 + trim(string(kst_tab_barcode.fila_1p)) + "/" &
-									 + trim(string(kst_tab_barcode.fila_2p)) + ") "
-//				k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F1p/2p=" &
-			end if	
-		end if	
-	end if
-	if kst_tab_sl_pt.tipo_cicli <> kuf1_sl_pt.ki_tipo_cicli_a_scelta then
-		if kst_tab_sl_pt.fila_2 <> kst_tab_barcode.fila_2 then
-			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-			kst_tab_barcode.note_lav_fin += "Impostati Cicli diversi tra SL-PT (F2="  & 
-										 + trim(string(kst_tab_sl_pt.fila_2)) + ") " &
-										 + "e P.Lavoraz. (F2=" &
-										 + trim(string(kst_tab_barcode.fila_2)) + ") "
-//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli diversi tra SL-PT (F2=" &
+				kst_tab_barcode.note_lav_fin += "Impostati Cicli permutati diversi tra PT (F2p="  & 
+											 + trim(string(kst_tab_sl_pt.fila_2p)) + ") " &
+											 + "e Pianificazione Lav. (F2p=" &
+											 + trim(string(kst_tab_barcode.fila_2p)) + ") "
+	//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F2p=" &
+			end if
 		end if
-		if kst_tab_sl_pt.fila_2p <> kst_tab_barcode.fila_2p then
-			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-			kst_tab_barcode.note_lav_fin += "Impostati Cicli permutati diversi tra SL-PT (F2p="  & 
-										 + trim(string(kst_tab_sl_pt.fila_2p)) + ") " &
-										 + "e P.Lavoraz. (F2p=" &
-										 + trim(string(kst_tab_barcode.fila_2p)) + ") "
-//			k_barcode_esito_txt = k_barcode_esito_txt + "Impostati Cicli permutati diversi tra SL-PT (F2p=" &
-		end if
-	end if
-
-//--- Se Barcode senza cicli pianificati le reperisco dal sl-pt
-	if kst_tab_barcode.fila_1 = 0 and kst_tab_barcode.fila_2 = 0 &
-		and kst_tab_barcode.fila_1p = 0 and kst_tab_barcode.fila_2p = 0 then
-		kst_tab_barcode.note_lav_fin += "Cicli letti dal SL-PT - " 
-//		k_barcode_esito_txt = k_barcode_esito_txt + "Cicli letti dal SL-PT - " 
-		kst_tab_barcode.fila_1 = kst_tab_sl_pt.fila_1  
-		kst_tab_barcode.fila_2 = kst_tab_sl_pt.fila_2 
-		kst_tab_barcode.fila_1p = kst_tab_sl_pt.fila_1p  
-		kst_tab_barcode.fila_2p = kst_tab_sl_pt.fila_2p 
-	end if
-end if
-					
-//--- Finalmente!! controllo se Cicli trattati uguali a quelli Pianificati	nel barcode	
-if kst_tab_barcode.fila_1 = kst_tab_barcode.lav_fila_1 &
-	and kst_tab_barcode.fila_2 = kst_tab_barcode.lav_fila_2  &
-	and kst_tab_barcode.fila_1p = kst_tab_barcode.lav_fila_1p &
-	and kst_tab_barcode.fila_2p = kst_tab_barcode.lav_fila_2p  &
-	then
 	
-	kst_tab_barcode.note_lav_fin +="Verifica Cicli Corretta. - "
-//	k_barcode_esito_txt = k_barcode_esito_txt + "Verifica Cicli Corretta. - "
+	//--- Se Barcode senza cicli pianificati li prendo dal sl-pt
+		if kst_tab_barcode.fila_1 = 0 and kst_tab_barcode.fila_2 = 0 &
+			and kst_tab_barcode.fila_1p = 0 and kst_tab_barcode.fila_2p = 0 then
+			kst_tab_barcode.note_lav_fin += "Cicli letti dal PT - " 
+	//		k_barcode_esito_txt = k_barcode_esito_txt + "Cicli letti dal SL-PT - " 
+			kst_tab_barcode.fila_1 = kst_tab_sl_pt.fila_1  
+			kst_tab_barcode.fila_2 = kst_tab_sl_pt.fila_2 
+			kst_tab_barcode.fila_1p = kst_tab_sl_pt.fila_1p  
+			kst_tab_barcode.fila_2p = kst_tab_sl_pt.fila_2p 
+		end if
+	end if
 						
-else
-	if k_barcode_esito = kkg_esito.ok then
-		kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-//		k_barcode_esito = "2"
+	//--- Finalmente!! controllo se Cicli trattati uguali a quelli Pianificati	nel barcode	
+	if kst_tab_barcode.fila_1 = kst_tab_barcode.lav_fila_1 &
+		and kst_tab_barcode.fila_2 = kst_tab_barcode.lav_fila_2  &
+		and kst_tab_barcode.fila_1p = kst_tab_barcode.lav_fila_1p &
+		and kst_tab_barcode.fila_2p = kst_tab_barcode.lav_fila_2p  &
+		then
+		
+		kst_tab_barcode.note_lav_fin +="Verifica Cicli Corretta. - "
+	//	k_barcode_esito_txt = k_barcode_esito_txt + "Verifica Cicli Corretta. - "
+							
+	else
+		if k_barcode_esito = kkg_esito.ok then
+			kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+	//		k_barcode_esito = "2"
+		end if
+		
+		kst_tab_barcode.note_lav_fin = "Cicli Pianificati: F1=" &
+									  + string(kst_tab_barcode.fila_1) &
+									  + "+" + string(kst_tab_barcode.fila_1p) &
+									  + ",  F2=" + string(kst_tab_barcode.fila_2) &
+									  + "+" + string(kst_tab_barcode.fila_2p) &
+									  + " - " + trim(kst_tab_barcode.note_lav_fin)
 	end if
-	
-	kst_tab_barcode.note_lav_fin = "Cicli pianificati: F1=" &
-								  + string(kst_tab_barcode.fila_1) &
-								  + "+" + string(kst_tab_barcode.fila_1p) &
-								  + ",  F2=" + string(kst_tab_barcode.fila_2) &
-								  + "+" + string(kst_tab_barcode.fila_2p) &
-								  + " - " + trim(kst_tab_barcode.note_lav_fin)
-//	k_barcode_esito_txt = "Cicli pianificati: F1=" &
-end if
-			
-//--- controllo se PL presente			
-if isnull(kst_tab_barcode.pl_barcode) or kst_tab_barcode.pl_barcode = 0 then
-	kst_tab_barcode.pl_barcode = 0
-	kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
-//	if trim(tab_1.tabpage_1.dw_1.getitemstring(1, "err_pl")) = "1" then
-//		k_barcode_esito = "3"
-//	else
-//		k_barcode_esito = "2"
-//	end if
-	kst_tab_barcode.note_lav_fin = "Barcode senza Piano di Lavoro"  &
-								 + " - " + trim(kst_tab_barcode.note_lav_fin)
-//	k_barcode_esito_txt = "Barcode senza Piano di Lavoro" &
-end if
-
-//k_colli_trattati = 0
-//k_num_certif = 0
-//if k_flag_esponi_gia_lavorato = "0" then
-////--- legge tab ARTR x prendere cod colli trattati 
-//	kst_tab_artr = kst_tab_artr_vuota
-//	kst_tab_artr.id_armo = kst_tab_barcode.id_armo
-//	kst_esito = kuf1_artr.leggi(1, kst_tab_artr)
-//	k_colli_trattati = kst_tab_artr.colli
-//	if isnull(k_colli_trattati) then
-//		k_colli_trattati = 0
-//	end if
-//
-////--- legge tab CERTIF x prendere cod Num. Certif 
-//	if kst_tab_armo.num_int > 0 then
-//		kst_tab_certif = kst_tab_certif_vuota
-//		kst_tab_certif.num_certif = 0
-//		kst_tab_certif.id_meca = kst_tab_armo.id_meca
-//		kst_esito = kuf1_certif.leggi(1, kst_tab_certif)
-//		k_num_certif = kst_tab_certif.num_certif
-//		if isnull(k_num_certif) then
-//			k_num_certif = 0
-//		end if
-//	end if
-//end if
 				
-destroy kuf1_armo
-destroy kuf1_sl_pt 
-//destroy kuf1_artr
-//destroy kuf1_certif
+	//--- controllo se PL presente			
+	if isnull(kst_tab_barcode.pl_barcode) or kst_tab_barcode.pl_barcode = 0 then
+		kst_tab_barcode.pl_barcode = 0
+		kst_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		kst_tab_barcode.note_lav_fin = "Barcode senza Piano di Lavoro"  &
+									 + " - " + trim(kst_tab_barcode.note_lav_fin)
+	end if	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
 
-
+end try
 end subroutine
 
 public subroutine togli_pl_barcode_non_chiuso (st_tab_barcode kst_tab_barcode) throws uo_exception;//
@@ -2737,136 +2572,6 @@ return kst_esito
 
 end function
 
-public function boolean if_essere_barcode_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception;//
-//====================================================================
-//=== Controlla se Barcode puo' diventare Figlio
-//=== 
-//=== 
-//=== Input:  kst_tab_barcode_padre    con  Barcode e File valorizzate (opzionale)
-//=== 	     kst_tab_barcode_figlio   con  Barcode e File valorizzate (opzionale)
-//=== 
-//=== 
-//=== Ritorna: TRUE=ok x PADRE; FALSE=non abile
-//=== Lancia EXCEPTION       
-//===                                   
-//====================================================================
-boolean k_return=FALSE
-long k_ctr
-string k_causale_non_trattare
-kuf_armo kuf1_armo
-st_tab_meca kst_tab_meca
-st_tab_barcode kst_tab_barcode
-st_esito kst_esito 
-
-	
-try 	
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	k_causale_non_trattare = ki_causale_non_trattare
-
-	if len(trim(kst_tab_barcode_figlio.barcode)) = 0 or Len(trim(kst_tab_barcode_padre.barcode)) = 0 then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Barcode figlio non indicato "
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-//--- barcode figlio e padre uguali? 
-	if kst_tab_barcode_figlio.barcode =  kst_tab_barcode_padre.barcode then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Anomalia: barcode Figlio e Padre uguali (" + trim(kst_tab_barcode_figlio.barcode) +"). "
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-
-//--- barcode già in piano chiuso? 
-	kst_tab_barcode.barcode = kst_tab_barcode_figlio.barcode
-	if if_barcode_in_pl_chiuso (kst_tab_barcode) then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " (Figlio) già Pianificato"   + ". "
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-	
-//--- Leggo barcode FIGLIO
-	kst_tab_barcode.barcode = kst_tab_barcode_figlio.barcode
-	kst_esito = select_barcode(kst_tab_barcode)
-	if kst_esito.esito <> kkg_esito.ok then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Errore durante lettura Barcode figlio " + trim(kst_tab_barcode_figlio.barcode) &
-					+ " non trovato (Errore=" &
-				  + string (sqlca.sqlcode, "#####") + " " + trim(sqlca.sqlerrtext) + ")"
-		
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-//--- Lotto nello STATO E1 giusto?
-	kuf1_armo = create kuf_armo
-	kst_tab_meca.id = kst_tab_barcode.id_meca
-	if NOT kuf1_armo.if_lotto_associato(kst_tab_meca) then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlerrtext = "Il Lotto del Barcode " + trim(kst_tab_barcode.barcode) + " (figlio) è nello Stato E1 '" &
-					+ trim(kst_tab_meca.e1srst) + "' deve invece essere come 'Associato'. "
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-		
-	if LenA(trim(kst_tab_barcode.barcode_lav)) > 0 then
-		if trim(kst_tab_barcode.barcode_lav) <> trim(kst_tab_barcode_padre.barcode) then
-			kst_esito.esito = kkg_esito.err_logico   //kkg_esito.db_wrn
-			kst_esito.sqlcode = 0
-			kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " è già figlio del Barcode " + trim(kst_tab_barcode.barcode_lav)
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-	end if
-
-	if kst_tab_barcode.data_stampa <= date(0) or isnull(kst_tab_barcode.data_stampa) then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " non ancora stampato. " 
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-		
-	if kst_tab_barcode.data_sosp > date(0) then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " sospeso. " 
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-	if kst_tab_barcode.causale = ki_causale_non_trattare then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " da 'non trattare'. " 
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-//--- OK IL BARCODE PUO' DIVENTARE FIGLIO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		
-	k_return = TRUE
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-
-end try
-
-			
-return k_return
-
-end function
-
 public function boolean if_essere_barcode_padre_con_giri_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception;//
 //====================================================================
 //=== Controlla se Barcode puo' diventare Padre
@@ -2985,19 +2690,32 @@ try
 		throw kguo_exception
 	end if
 
-//--- leggo il barcode			
+//--- leggo il barcode PADRE			
 	kst_tab_barcode.barcode = kst_tab_barcode_padre.barcode
-	kst_esito = select_barcode(kst_tab_barcode)
-	if kst_esito.esito <> kkg_esito.ok then
-		kst_esito.esito = kkg_esito.err_logico
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Errore in verifica se barcode puo' essere 'padre', codice " + trim(kst_tab_barcode_padre.barcode) &
-					+ " del Lotto non trovato. " 
-		if kst_esito.esito <> kkg_esito.not_fnd then
-			kst_esito.sqlerrtext += kkg.acapo + "(Errore=" &
-								  + string (sqlca.sqlcode, "#####") + " " + trim(sqlca.sqlerrtext) + ")"
-		end if
-		kguo_exception.set_esito(kst_esito)
+	select barcode_lav
+	     ,data_stampa
+		  ,data_sosp
+		  ,causale
+		  ,id_meca
+		  ,fila_1
+		  ,fila_1p
+		  ,fila_2
+		  ,fila_2p
+		into 
+			:kst_tab_barcode.barcode_lav
+			,:kst_tab_barcode.data_stampa
+			,:kst_tab_barcode.data_sosp
+			,:kst_tab_barcode.causale
+			,:kst_tab_barcode.id_meca
+			,:kst_tab_barcode.fila_1
+			,:kst_tab_barcode.fila_1p
+			,:kst_tab_barcode.fila_2
+			,:kst_tab_barcode.fila_2p
+		from barcode
+		where barcode = :kst_tab_barcode.barcode
+		using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then	
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in verifica se barcode puo' essere 'padre' codice  " + trim(kst_tab_barcode_padre.barcode))	
 		throw kguo_exception
 	end if
 
@@ -3023,7 +2741,7 @@ try
 		kst_tab_barcode_padre.fila_2p = kst_tab_barcode.fila_2p
 	end if
 					
-	if LenA(trim(kst_tab_barcode.barcode_lav)) > 0 then
+	if trim(kst_tab_barcode.barcode_lav) > " " then
 		kst_esito.esito = kkg_esito.err_logico
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Barcode " + trim(kst_tab_barcode.barcode) + " è già figlio del Barcode " + trim(kst_tab_barcode.barcode_lav) + " non può essere anche 'padre'"
@@ -3252,47 +2970,6 @@ return k_return
 
 end function
 
-public function boolean get_tipo_cicli (ref st_tab_barcode kst_tab_barcode) throws uo_exception;//
-//====================================================================
-//=== Torna il Tipo_Cicli di un Barcode 
-//=== 
-//=== Input: st_tab_barcode.barcode
-//=== Output: st_tab_barcode.tipo_cicli
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-boolean k_return=false
-st_esito kst_esito
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-	SELECT tipo_cicli into :kst_tab_barcode.tipo_cicli
-		 FROM barcode
-		WHERE (barcode = :kst_tab_barcode.barcode) 
-		using kguo_sqlca_db_magazzino;
-
-
-	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
-		k_return = true
-	else
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Tab.Barcode: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito (kst_esito)
-		throw kguo_exception
-	end if
-
-
-return k_return
-
-end function
-
 public function date get_data_lav_fin (readonly st_tab_barcode kst_tab_barcode) throws uo_exception;//
 //====================================================================
 //=== Estrae data di Fine lav piu' vecchia per id_meca  
@@ -3309,10 +2986,8 @@ kuf_base kuf1_base
 st_esito kst_esito
 st_tab_barcode kst_tab_barcode1
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_barcode.pl_barcode > 0 then
 		select distinct
@@ -3429,11 +3104,7 @@ long k_return=0
 st_esito kst_esito
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 if kst_tab_barcode.id_meca > 0 then
 
@@ -3449,7 +3120,7 @@ if kst_tab_barcode.id_meca > 0 then
 		end if
 	else
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Conta Barcode per Lotto. Errore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.SQLErrText = "Errore in Conteggio numero Barcode del Lotto. Errore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 		kguo_exception.inizializza( )
 		kguo_exception.set_esito (kst_esito)
@@ -3630,7 +3301,7 @@ st_esito kst_esito
 		end if
 	else
 		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore durante conteggio barcode che hanno iniziato la lavorazione (Barcode) x P.L.: " + string(kst_tab_barcode.pl_barcode) + ". Errore: " + trim(sqlca.SQLErrText)
+		kst_esito.SQLErrText = "Errore in conteggio barcode che hanno iniziato la lavorazione (Barcode) x P.L.: " + string(kst_tab_barcode.pl_barcode) + ". Errore: " + trim(sqlca.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 		kguo_exception.set_esito (kst_esito)
 		throw kguo_exception
@@ -3646,46 +3317,30 @@ return k_return
 
 end function
 
-public function long get_conta_barcode_x_id_armo_pl_barcode (readonly st_tab_barcode kst_tab_barcode) throws uo_exception;//
-//====================================================================
-//=== Conta il numero dei Barcode  CHE SONO STATI MESSI IN PL x codice PL e il ID_ARMO
-//=== 
-//=== Input: st_tab_barcode.id_armo e pl_barcode
-//=== Output: long con il contatore
-//===             
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-long k_return=0
-st_esito kst_esito
+public function long get_conta_barcode_x_id_armo_pl_barcode (readonly st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Conta il numero dei Barcode  CHE SONO STATI MESSI IN PL x codice PL e il ID_ARMO
+	 Inp: st_tab_barcode.id_armo e pl_barcode
+	 Out: long con il contatore
+*/
+long k_return
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 	SELECT count(*) into :k_return
 		 FROM barcode
 		WHERE (id_armo = :kst_tab_barcode.id_armo and pl_barcode = :kst_tab_barcode.pl_barcode)
-		using sqlca;
-//		            and data_lav_ini > date(0) ) 
+		using kguo_sqlca_db_magazzino;
 
-
-	if sqlca.sqlcode >= 0 then
-		if sqlca.sqlcode > 0 then
-			k_return = 0
-		end if
-	else
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.Barcode: " + trim(sqlca.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito (kst_esito)
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in Conteggio barcode in trattamento sul Piano di Lavorazione n. " + string(kst_tab_barcode.pl_barcode) &
+				  + " della riga Lotto n. " + string(kst_tab_barcode.id_armo))
 		throw kguo_exception
 	end if
 
-	if isnull(k_return) then
+	if k_return > 0 then
+	else
 		k_return = 0
 	end if
 
@@ -4209,11 +3864,8 @@ int k_return = 0
 int k_ctr
 st_esito kst_esito 
 	
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_barcode.id_meca > 0 then
 
@@ -4703,66 +4355,6 @@ return k_return
 
 end function
 
-public function boolean get_lav_fila (ref st_tab_barcode kst_tab_barcode) throws uo_exception;//
-//====================================================================
-//=== Estrae giri lav di fila 1 e fila 2
-//=== 
-//=== Input: barcode
-//=== Output: la struttura st_tab_barcode con lav_fila_* valorizzati
-//===             
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-boolean k_return=false
-kuf_base kuf1_base
-st_esito kst_esito
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-	if trim(kst_tab_barcode.barcode) > " " then
-		select lav_fila_1
-		       ,lav_fila_2
-		       ,lav_fila_1p
-		       ,lav_fila_2p
-			into
-				 :kst_tab_barcode.lav_fila_1
-				 ,:kst_tab_barcode.lav_fila_2
-				 ,:kst_tab_barcode.lav_fila_1p
-				 ,:kst_tab_barcode.lav_fila_2p
-			from barcode
-			where barcode = :kst_tab_barcode.barcode 
-			using kguo_sqlca_db_magazzino;
-	end if			
-
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_2 > 0 then
-			k_return = true
-		end if
-	else
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura nr Giri trattati in tab. Barcode (cod=" + trim(kst_tab_barcode.barcode)+ ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito (kst_esito)
-			throw kguo_exception
-		end if
-	end if
-
-	if isnull(kst_tab_barcode.lav_fila_1) then kst_tab_barcode.lav_fila_1 = 0
-	if isnull(kst_tab_barcode.lav_fila_2) then kst_tab_barcode.lav_fila_2 = 0
-	if isnull(kst_tab_barcode.lav_fila_1p) then kst_tab_barcode.lav_fila_1p = 0
-	if isnull(kst_tab_barcode.lav_fila_2p) then kst_tab_barcode.lav_fila_2p = 0
-
-return k_return
-
-
-end function
-
 public function long get_durata_lav_old (readonly st_tab_barcode kst_tab_barcode) throws uo_exception;//
 //------------------------------------------------------------------------------
 //--- Calcola in secondi la durata di Inizio e Fine lavorazione
@@ -4853,8 +4445,10 @@ try
 		kst_tab_barcode = ast_tab_barcode
 
 //--- get del numero giri effettuato dal barcode
-		if get_lav_fila(kst_tab_barcode) then
+		get_lav_fila(kst_tab_barcode) 
 		
+		if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_2 > 0 then
+			
 //--- get della data di fine lavorazione
 			kst_tab_imptime.data_ini = get_data_lav_fin(kst_tab_barcode)
 
@@ -4993,69 +4587,52 @@ st_esito kst_esito
 
 end subroutine
 
-public subroutine get_fila_tot_x_id_meca (ref st_tab_barcode kst_tab_barcode) throws uo_exception;//
-//====================================================================
-//=== Estrae totale giri pianificati di fila 1 e fila 2 x Lotto
-//=== 
-//=== Input: id_meca
-//=== Output: la struttura st_tab_barcode con fila_* valorizzati
-//===             
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
-kuf_base kuf1_base
-st_esito kst_esito
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+public subroutine get_fila_tot_x_id_meca (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Estrae totale giri pianificati di fila 1 e fila 2 x Lotto
+   Inp: st_barcode.id_meca
+   Out: st_tab_barcode con fila_* valorizzati
+*/
+	kguo_exception.inizializza(this.classname())
 	kst_tab_barcode.fila_1 = 0
 	kst_tab_barcode.fila_2 = 0
 	kst_tab_barcode.fila_1p = 0
 	kst_tab_barcode.fila_2p = 0
+	kst_tab_barcode.g3ngiri = 0
 
 	if kst_tab_barcode.id_meca > 0 then
-		select sum(fila_1)
+	else
+		kguo_exception.kist_esito.SQLErrText = "Operazione di lettura totale Giri pianificati per Lotto in tab. Barcode non eseguita, manca ID Lotto"
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+	end if
+	
+	select sum(fila_1)
 		       ,sum(fila_2)
 		       ,sum(fila_1p)
 		       ,sum(fila_2p)
+		       ,sum(g3ngiri)
 			into
 				 :kst_tab_barcode.fila_1
 				 ,:kst_tab_barcode.fila_2
 				 ,:kst_tab_barcode.fila_1p
 				 ,:kst_tab_barcode.fila_2p
+				 ,:kst_tab_barcode.g3ngiri
 			from barcode
 			where barcode.id_meca = :kst_tab_barcode.id_meca
 			using kguo_sqlca_db_magazzino;
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Operazione di lettura totale Giri pianificati per Lotto in tab. Barcode non eseguita, manca ID Lotto"
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito (kst_esito)
-		throw kguo_exception
-	end if			
 
 	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 		if isnull(kst_tab_barcode.fila_1) then kst_tab_barcode.fila_1 = 0
 		if isnull(kst_tab_barcode.fila_2) then kst_tab_barcode.fila_2 = 0
 		if isnull(kst_tab_barcode.fila_1p) then kst_tab_barcode.fila_1p = 0
 		if isnull(kst_tab_barcode.fila_2p) then kst_tab_barcode.fila_2p = 0
+		if isnull(kst_tab_barcode.g3ngiri) then kst_tab_barcode.g3ngiri = 0
 	else
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura totale Giri pianificati per Lotto in tab. Barcode (ID=" + string(kst_tab_barcode.id_meca)+ ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito (kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura totale Giri pianificati per Lotto in tab. Barcode (ID Lotto " + string(kst_tab_barcode.id_meca)+ ") ")	
 			throw kguo_exception
 		end if
 	end if
-
-
-
 
 end subroutine
 
@@ -6109,7 +5686,7 @@ try
 			if kst_tab_sl_pt.savedosimeter = 1 then
 				//--- se il n. dei barcode rimasti è minore del numero dell'unità di trattamento indicata allora no dosimetro
 				if (k_righe_barcode - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
-					k_riga_flegga_barcode = k_righe_barcode
+					k_riga_flegga_barcode = k_righe_barcode   	// flegga dosimetro sull'ultima riga
 				else
 					k_riga_flegga_barcode = 0   //no dosimetro
 				end if
@@ -6117,7 +5694,7 @@ try
 //--- 27/8/2019 deprecato (REZIO): 20/7/2010 se il numero colli e' pari o dispari? devo mettere il dosimetro sull'ultimo pari
 //--- 27/8/2019				k_resto = mod(k_righe_barcode, 2)
 //--- 27/8/2019				if k_resto = 0 then  // pari
-					k_riga_flegga_barcode = k_righe_barcode			// flegga il dosimetro sull'ultimo
+					k_riga_flegga_barcode = k_righe_barcode		//flegga dosimetro sull'ultima riga
 //--- 27/8/2019				else
 //--- 27/8/2019					k_riga_flegga_barcode = k_righe_barcode - 1		// flegga il dosimetro sul penultimo
 //--- 27/8/2019				end if
@@ -6364,8 +5941,6 @@ public function boolean if_essere_barcode_figlio_g2 (st_tab_barcode kst_tab_barc
 //===                                   
 //====================================================================
 boolean k_return=FALSE
-string k_causale_non_trattare
-st_tab_barcode kst_tab_barcode
 st_esito kst_esito 
 
 	
@@ -6374,33 +5949,43 @@ try
 
 	if_essere_barcode_figlio(kst_tab_barcode_figlio, kst_tab_barcode_padre)  // prima verifica valido anche x il G3
 
-	k_causale_non_trattare = ki_causale_non_trattare
-		
-//--- se FILE barcode FIGLIO NON passate ci metto quelle lette su tabella 
-	if (kst_tab_barcode_figlio.fila_1 = 0 or isnull(kst_tab_barcode_figlio.fila_1)) and (kst_tab_barcode_figlio.fila_1p = 0 or isnull(kst_tab_barcode_figlio.fila_1p)) &
-			and (kst_tab_barcode_figlio.fila_2 = 0 or isnull(kst_tab_barcode_figlio.fila_2)) and (kst_tab_barcode_figlio.fila_2p = 0 or isnull(kst_tab_barcode_figlio.fila_2p)) then
-		kst_tab_barcode_figlio.fila_1 = kst_tab_barcode.fila_1
-		kst_tab_barcode_figlio.fila_1p = kst_tab_barcode.fila_1p
-		kst_tab_barcode_figlio.fila_2 = kst_tab_barcode.fila_2
-		kst_tab_barcode_figlio.fila_2p = kst_tab_barcode.fila_2p
-	end if
-	
 //--- se FILE del padre non passate leggo!										
 	if (kst_tab_barcode_padre.fila_1 = 0 or isnull(kst_tab_barcode_padre.fila_1)) and (kst_tab_barcode_padre.fila_1p = 0 or isnull(kst_tab_barcode_padre.fila_1p)) &
 			and (kst_tab_barcode_padre.fila_2 = 0 or isnull(kst_tab_barcode_padre.fila_2)) and (kst_tab_barcode_padre.fila_2p = 0 or isnull(kst_tab_barcode_padre.fila_2p)) then
-		kst_esito = select_barcode(kst_tab_barcode_padre)
-		if kst_esito.esito <> kkg_esito.ok then
-			kst_esito.esito = kkg_esito.err_logico
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.sqlerrtext = "Errore durante lettura Barcode " + trim(kst_tab_barcode_figlio.barcode) &
-						+ " (Padre) non trovato (Errore=" &
-					  + string (sqlca.sqlcode, "#####") + " " + trim(sqlca.sqlerrtext) + ")"
-			kguo_exception.set_esito(kst_esito)
+		
+	//	kst_esito = select_barcode(kst_tab_barcode_padre)
+		select 
+			  id_meca
+			  ,fila_1
+			  ,fila_1p
+			  ,fila_2
+			  ,fila_2p
+			into 
+				:kst_tab_barcode_padre.id_meca
+				,:kst_tab_barcode_padre.fila_1
+				,:kst_tab_barcode_padre.fila_1p
+				,:kst_tab_barcode_padre.fila_2
+				,:kst_tab_barcode_padre.fila_2p
+			from barcode
+			where barcode = :kst_tab_barcode_padre.barcode
+			using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in verifica se barcode puo' essere 'figlio' codice barcode padre " + trim(kst_tab_barcode_padre.barcode))	
 			throw kguo_exception
 		end if
+	
+	end if
+
+//--- se FILE barcode FIGLIO NON passate ci metto quelle lette su tabella 
+	if (kst_tab_barcode_figlio.fila_1 = 0 or isnull(kst_tab_barcode_figlio.fila_1)) and (kst_tab_barcode_figlio.fila_1p = 0 or isnull(kst_tab_barcode_figlio.fila_1p)) &
+			and (kst_tab_barcode_figlio.fila_2 = 0 or isnull(kst_tab_barcode_figlio.fila_2)) and (kst_tab_barcode_figlio.fila_2p = 0 or isnull(kst_tab_barcode_figlio.fila_2p)) then
+		kst_tab_barcode_figlio.fila_1 = kst_tab_barcode_padre.fila_1
+		kst_tab_barcode_figlio.fila_1p = kst_tab_barcode_padre.fila_1p
+		kst_tab_barcode_figlio.fila_2 = kst_tab_barcode_padre.fila_2
+		kst_tab_barcode_figlio.fila_2p = kst_tab_barcode_padre.fila_2p
 	end if
 	
-	//--- Azzera i valori a NULL
+//--- Azzera i valori a NULL
 	if isnull(kst_tab_barcode_padre.fila_1) then kst_tab_barcode_padre.fila_1 = 0
 	if isnull(kst_tab_barcode_padre.fila_1p) then kst_tab_barcode_padre.fila_1p = 0
 	if isnull(kst_tab_barcode_padre.fila_2) then kst_tab_barcode_padre.fila_2 = 0
@@ -6652,6 +6237,681 @@ public subroutine tb_update_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_ex
 		
 
 end subroutine
+
+public function string get_tipo_cicli (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Torna il Tipo_Cicli di un Barcode 
+   Inp: st_tab_barcode.barcode
+   Out: st_tab_barcode.tipo_cicli
+*/
+string k_return
+
+
+	kguo_exception.inizializza(this.classname())
+
+	SELECT tipo_cicli
+		into :kst_tab_barcode.tipo_cicli
+		FROM barcode
+		WHERE (barcode = :kst_tab_barcode.barcode) 
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+		if kst_tab_barcode.tipo_cicli > " " then
+			k_return = kst_tab_barcode.tipo_cicli
+		end if			
+	else
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura Tipo Cilo del Barcode " + trim(kst_tab_barcode.barcode))		
+		throw kguo_exception
+	end if
+
+
+return k_return
+
+end function
+
+public function integer get_impianto (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Torna il Tipo_Cicli di un Barcode 
+   Inp: st_tab_barcode.barcode
+   Out: st_tab_barcode.impianto
+*/
+integer k_return
+
+
+	kguo_exception.inizializza(this.classname())
+
+	SELECT impianto
+		into :kst_tab_barcode.impianto
+		FROM barcode
+		WHERE (barcode = :kst_tab_barcode.barcode) 
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode >= 0 then
+		if kst_tab_barcode.tipo_cicli > " " then
+			k_return = kst_tab_barcode.impianto
+		end if			
+	else
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura Impianto del Barcode " + trim(kst_tab_barcode.barcode))		
+		throw kguo_exception
+	end if
+
+
+return k_return
+
+end function
+
+public function integer get_g3npass (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Estrae totale giri pianificati di fila 1 e fila 2 x Lotto
+   Inp: st_barcode.barcode
+   Out: st_tab_barcode.g3npass
+*/
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_barcode.g3npass = 0
+
+	if trim(kst_tab_barcode.barcode) > " " then
+	else
+		kguo_exception.kist_esito.SQLErrText = "Operazione di lettura N.Pass pianificato del Barcode non eseguita, manca il codice."
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+	end if
+	
+	select isnull(g3npass, 0)
+			into
+				 :kst_tab_barcode.g3npass
+			from barcode
+			where barcode.barcode = :kst_tab_barcode.barcode
+			using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura N.Pass pianificato il Barcode " + trim(kst_tab_barcode.barcode)+ ") ")	
+		throw kguo_exception
+	end if
+
+return kst_tab_barcode.g3npass
+end function
+
+public subroutine u_update_campo (st_tab_barcode kst_tab_barcode, string k_campo) throws uo_exception;/*
+    Update un campo del rek Piano Lavorazione Barcode
+*/
+st_esito kst_esito
+
+
+	kst_esito = tb_update_campo(kst_tab_barcode, k_campo)
+
+//--- se verificato errore					
+	if kst_esito.esito = kkg_esito.db_ko &
+					or kst_esito.esito = kkg_esito.no_esecuzione then
+		
+		if kst_esito.esito = kkg_esito.db_ko then
+			if kst_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+			else
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+		end if
+		
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+			
+	end if
+	
+
+end subroutine
+
+public function boolean if_essere_barcode_figlio (st_tab_barcode kst_tab_barcode_figlio, st_tab_barcode kst_tab_barcode_padre) throws uo_exception;//
+//====================================================================
+//=== Controlla se Barcode puo' diventare Figlio
+//=== 
+//=== 
+//=== Input:  kst_tab_barcode_padre    con  Barcode e File valorizzate (opzionale)
+//=== 	     kst_tab_barcode_figlio   con  Barcode e File valorizzate (opzionale)
+//=== 
+//=== 
+//=== Ritorna: TRUE=ok x PADRE; FALSE=non abile
+//=== Lancia EXCEPTION       
+//===                                   
+//====================================================================
+boolean k_return=FALSE
+long k_ctr
+string k_causale_non_trattare
+kuf_armo kuf1_armo
+st_tab_meca kst_tab_meca
+st_tab_barcode kst_tab_barcode
+st_esito kst_esito 
+
+	
+try 	
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	k_causale_non_trattare = ki_causale_non_trattare
+
+	if len(trim(kst_tab_barcode_figlio.barcode)) = 0 or Len(trim(kst_tab_barcode_padre.barcode)) = 0 then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.sqlerrtext = "Barcode figlio non indicato "
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+//--- barcode figlio e padre uguali? 
+	if kst_tab_barcode_figlio.barcode =  kst_tab_barcode_padre.barcode then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.sqlerrtext = "Anomalia: barcode Figlio e Padre uguali (" + trim(kst_tab_barcode_figlio.barcode) +"). "
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+
+//--- barcode già in piano chiuso? 
+	kst_tab_barcode.barcode = kst_tab_barcode_figlio.barcode
+	if if_barcode_in_pl_chiuso (kst_tab_barcode) then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " (Figlio) già Pianificato"   + ". "
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+	
+//--- Leggo barcode FIGLIO
+	kst_tab_barcode.barcode = kst_tab_barcode_figlio.barcode
+	select barcode_lav
+	     ,data_stampa
+		  ,data_sosp
+		  ,causale
+		  ,id_meca
+		into 
+			:kst_tab_barcode.barcode_lav
+			,:kst_tab_barcode.data_stampa
+			,:kst_tab_barcode.data_sosp
+			,:kst_tab_barcode.causale
+			,:kst_tab_barcode.id_meca
+		from barcode
+		where barcode = :kst_tab_barcode.barcode
+		using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then	
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura barcode figlio  " + trim(kst_tab_barcode_figlio.barcode))	
+		throw kguo_exception
+	end if
+
+//--- Lotto nello STATO E1 giusto?
+	kuf1_armo = create kuf_armo
+	kst_tab_meca.id = kst_tab_barcode.id_meca
+	if NOT kuf1_armo.if_lotto_associato(kst_tab_meca) then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlerrtext = "Il Lotto del Barcode " + trim(kst_tab_barcode.barcode) + " (figlio) è nello Stato E1 '" &
+					+ trim(kst_tab_meca.e1srst) + "' deve invece essere come 'Associato'. "
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+		
+	if LenA(trim(kst_tab_barcode.barcode_lav)) > 0 then
+		if trim(kst_tab_barcode.barcode_lav) <> trim(kst_tab_barcode_padre.barcode) then
+			kst_esito.esito = kkg_esito.err_logico   //kkg_esito.db_wrn
+			kst_esito.sqlcode = 0
+			kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " è già figlio del Barcode " + trim(kst_tab_barcode.barcode_lav)
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception
+		end if
+	end if
+
+	if kst_tab_barcode.data_stampa <= date(0) or isnull(kst_tab_barcode.data_stampa) then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " non ancora stampato. " 
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+		
+	if kst_tab_barcode.data_sosp > date(0) then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " sospeso. " 
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+	if kst_tab_barcode.causale = ki_causale_non_trattare then
+		kst_esito.esito = kkg_esito.err_logico
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Anomalia: barcode " + trim(kst_tab_barcode.barcode) + " da 'non trattare'. " 
+		kguo_exception.set_esito(kst_esito)
+		throw kguo_exception
+	end if
+
+//--- OK IL BARCODE PUO' DIVENTARE FIGLIO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		
+	k_return = TRUE
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+
+end try
+
+			
+return k_return
+
+end function
+
+public subroutine get_fila_altri (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Estrae giri lav di fila 1 e fila 2 e altri dati
+   Inp: st_tab_barcode.barcode
+   Out: st_tab_barcode.fila_* e altri dati
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	if trim(kst_tab_barcode.barcode) > " " then
+		
+		select isnull(fila_1, 0)
+		       ,isnull(fila_2, 0)
+		       ,isnull(fila_1p, 0)
+		       ,isnull(fila_2p, 0)
+				 ,isnull(barcode_lav, '')
+				 ,isnull(groupage, '')
+				 ,num_int
+				 ,id_meca				 
+			into
+				 :kst_tab_barcode.fila_1
+				 ,:kst_tab_barcode.fila_2
+				 ,:kst_tab_barcode.fila_1p
+				 ,:kst_tab_barcode.fila_2p
+				 ,:kst_tab_barcode.barcode_lav
+				 ,:kst_tab_barcode.groupage
+				 ,:kst_tab_barcode.num_int
+				 ,:kst_tab_barcode.id_meca
+			from barcode
+			where barcode = :kst_tab_barcode.barcode 
+			using kguo_sqlca_db_magazzino;
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura n. Giri Pianificati in tab. Barcode " + string(kst_tab_barcode.barcode))
+			throw kguo_exception
+		end if
+		
+	else
+		
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Lettura n. Giri Pianificati in tab. Barcode non eseguita, manca il codice."
+		throw kguo_exception
+		
+	end if			
+
+end subroutine
+
+public subroutine get_lav_fila (ref st_tab_barcode kst_tab_barcode) throws uo_exception;/*
+ Estrae giri lav di fila 1 e fila 2
+   Inp: st_tab_barcode.barcode
+   Out: st_tab_barcode.fila_*
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	if trim(kst_tab_barcode.barcode) > " " then
+		
+		select isnull(fila_1, 0)
+		       ,isnull(fila_2, 0)
+		       ,isnull(fila_1p, 0)
+		       ,isnull(fila_2p, 0)
+			into
+				 :kst_tab_barcode.fila_1
+				 ,:kst_tab_barcode.fila_2
+				 ,:kst_tab_barcode.fila_1p
+				 ,:kst_tab_barcode.fila_2p
+			from barcode
+			where barcode = :kst_tab_barcode.barcode 
+			using kguo_sqlca_db_magazzino;
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura n. Giri Trattati in tab. Barcode " + string(kst_tab_barcode.barcode))
+			throw kguo_exception
+		end if
+		
+	else
+		
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Lettura n. Giri Trattati in tab. Barcode non eseguita, manca il codice."
+		throw kguo_exception
+		
+	end if			
+
+end subroutine
+
+public function boolean select_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Select Barcode
+ inp: st_tab_barcode.barcode
+ out: st_tab_barcode.*
+ ret: TRUE = trovato
+*/
+boolean k_return
+st_tab_barcode kst_tab_barcode, kst_tab_barcode_vuota
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_barcode.barcode = trim(ast_tab_barcode.barcode)
+
+	select 
+	       data,
+	       barcode_lav,
+			 id_armo,
+			 pl_barcode,
+			 groupage,
+			 pl_barcode_progr,
+			 num_int,
+			 data_int,
+			 data_stampa,
+			 data_lav_ini,
+			 data_lav_fin,
+			 data_lav_ok,
+			 data_sosp,
+			 tipo_cicli,
+			 fila_1,
+			 fila_2,
+			 fila_1p,
+			 fila_2p,
+			 posizione,
+			 bilancella,
+			 id_meca,
+			 ora_lav_ini,
+			 ora_lav_fin,
+			 lav_fila_1,
+			 lav_fila_2,
+			 lav_fila_1p,
+			 lav_fila_2p,
+			 err_lav_fin,
+			 err_lav_ok
+			,g3ngiri 
+			,id_sl_pt_g3_lav
+			,g3ciclo 
+			,g3npass 
+			,g3lav_ngiri
+			,g3lav_ciclo
+			,g3lav_npass 	 
+			,impianto 	 
+			,x_datins
+			,x_utente
+		into
+	       :kst_tab_barcode.data,
+	       :kst_tab_barcode.barcode_lav,
+			 :kst_tab_barcode.id_armo,
+			 :kst_tab_barcode.pl_barcode,
+			 :kst_tab_barcode.groupage,
+			 :kst_tab_barcode.pl_barcode_progr,
+			 :kst_tab_barcode.num_int,
+			 :kst_tab_barcode.data_int,
+			 :kst_tab_barcode.data_stampa,
+			 :kst_tab_barcode.data_lav_ini,
+			 :kst_tab_barcode.data_lav_fin,
+			 :kst_tab_barcode.data_lav_ok,
+			 :kst_tab_barcode.data_sosp,
+			 :kst_tab_barcode.tipo_cicli,
+			 :kst_tab_barcode.fila_1,
+			 :kst_tab_barcode.fila_2,
+			 :kst_tab_barcode.fila_1p,
+			 :kst_tab_barcode.fila_2p,
+			 :kst_tab_barcode.posizione,
+			 :kst_tab_barcode.bilancella,
+			 :kst_tab_barcode.id_meca,
+			 :kst_tab_barcode.ora_lav_ini,
+			 :kst_tab_barcode.ora_lav_fin,
+			 :kst_tab_barcode.lav_fila_1,
+			 :kst_tab_barcode.lav_fila_2,
+			 :kst_tab_barcode.lav_fila_1p,
+			 :kst_tab_barcode.lav_fila_2p,
+			 :kst_tab_barcode.err_lav_fin,
+			 :kst_tab_barcode.err_lav_ok
+			,:kst_tab_barcode.g3ngiri 
+			,:kst_tab_barcode.id_sl_pt_g3_lav
+			,:kst_tab_barcode.g3ciclo 
+			,:kst_tab_barcode.g3npass 
+			,:kst_tab_barcode.g3lav_ngiri
+			,:kst_tab_barcode.g3lav_ciclo
+			,:kst_tab_barcode.g3lav_npass 
+			,:kst_tab_barcode.impianto
+			,:kst_tab_barcode.x_datins
+			,:kst_tab_barcode.x_utente
+		from barcode
+		where barcode = :kst_tab_barcode.barcode
+		using kguo_sqlca_db_magazzino;
+
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura del Barcode " + trim(kst_tab_barcode.barcode))
+		throw kguo_exception
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+		ast_tab_barcode = kst_tab_barcode
+	else
+		ast_tab_barcode = kst_tab_barcode_vuota  // svuota l'area
+		ast_tab_barcode.barcode = kst_tab_barcode.barcode
+	end if
+	
+return k_return	
+end function
+
+public subroutine check_anomalie_lavorazione_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+  Controllo dati di LAVORAZIONE GAMMA 3
+     Inp: st_tab_barcode con i dati di trattamento valorizzati tra i quali id_sl_pt_g3_lav
+     Out: st_tab_barcode con i dati di esito valorizzati
+*/
+string k_barcode_esito="0", k_flag_esponi_gia_lavorato
+st_esito kst_esito
+kuf_armo kuf1_armo
+kuf_sl_pt_g3 kuf1_sl_pt_g3
+st_tab_sl_pt_g3_lav kst_tab_sl_pt_g3_lav
+//st_tab_sl_pt kst_tab_sl_pt, kst_tab_sl_pt_vuota
+st_tab_armo kst_tab_armo, kst1_tab_armo, kst_tab_armo_vuota
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+
+	kguo_exception.inizializza(this.classname())
+			
+	ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ok  //---- x default esito POSITIVO
+			
+	kuf1_armo = create kuf_armo
+	kuf1_sl_pt_g3 = create kuf_sl_pt_g3
+	
+	//--- pulizia campi di appoggio
+	kst_tab_sl_pt_g3_lav.ngiri = 0
+	kst_tab_sl_pt_g3_lav.ciclo_max = 0
+	kst_tab_sl_pt_g3_lav.ciclo_min = 0
+	kst_tab_sl_pt_g3_lav.g3npass = 0
+	ast_tab_barcode.note_lav_fin = ""
+	
+	if ast_tab_barcode.id_armo > 0 then
+	
+	//--- legge tab ARMO x prendere cod sl-pt
+		kst_tab_armo = kst_tab_armo_vuota
+		kst_tab_armo.id_armo = ast_tab_barcode.id_armo
+		kuf1_armo.get_cod_sl_pt(kst_tab_armo)   //leggi_riga("1",kst_tab_armo)
+	
+		if trim(kst_tab_armo.cod_sl_pt) > " " then
+	
+	//--- legge tab ARMO x prendere totale colli della riga del Riferimento 
+			kst1_tab_armo = kst_tab_armo_vuota
+			kst1_tab_armo.id_armo = ast_tab_barcode.id_armo
+			kuf1_armo.get_colli_pedane(kst_tab_armo)			//leggi_riga("R", kst1_tab_armo)
+							
+	//--- legge tab SL PT G3 LAV x prendere GIRI e altri dati di Lav
+			if kst_tab_sl_pt_g3_lav.id_sl_pt_g3_lav > 0 then
+				
+				//kst_tab_sl_pt = kst_tab_sl_pt_vuota
+				//kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt 
+				kst_tab_sl_pt_g3_lav.id_sl_pt_g3_lav = ast_tab_barcode.id_sl_pt_g3_lav
+				if kuf1_sl_pt_g3.get_g3_lav_ngiri_altri(kst_tab_sl_pt_g3_lav) = 0 then // select_riga(kst_tab_sl_pt)
+					ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+					ast_tab_barcode.note_lav_fin += "Dati PT-G3 non Trovati - "
+				else
+					
+					if kst_tab_sl_pt_g3_lav.ngiri = 0  &
+								and kst_tab_sl_pt_g3_lav.g3npass = 0  &
+								and kst_tab_sl_pt_g3_lav.ciclo_min = 0  &
+								and kst_tab_sl_pt_g3_lav.ciclo_max = 0  &
+								then
+						ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+						ast_tab_barcode.note_lav_fin +=  "Dati PT-G3 Non Impostati - "
+					end if
+								
+				end if
+			else
+				ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+				ast_tab_barcode.note_lav_fin +=  "Id del PT-G3 non Impostato sul barcode '" + trim(ast_tab_barcode.barcode) + "' - " 
+			end if
+		else
+			ast_tab_barcode.note_lav_fin +=  "Dati per la Verifica non recuparati dal Piano di Trattamento, codice PT non Trovato sulla Riga " + string(ast_tab_barcode.id_armo) + " di Entrata Lotto - " 
+		end if
+	else
+		ast_tab_barcode.note_lav_fin +=  "Riga di Entrata Lotto Non Riconosciuta. Dati per la Verifica non recuparati dal Piano di Trattamento - " 
+	end if
+		
+	//--- Toglie NULL
+	if isnull(ast_tab_barcode.g3npass) then ast_tab_barcode.g3npass = 0  
+	if isnull(ast_tab_barcode.g3ciclo) then ast_tab_barcode.g3ciclo = 0  
+	if isnull(ast_tab_barcode.g3ngiri) then ast_tab_barcode.g3ngiri = 0  
+
+	//--- controllo se cicli impostati almeno sul piano di lavorazione 
+	if ast_tab_barcode.g3npass = 0 &
+				and ast_tab_barcode.g3ciclo = 0 &
+				and ast_tab_barcode.g3ngiri = 0 then
+			
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin += "Recuperati dal PT-G3 i dati di Pianificazione Lavorazione non presenti sul Barcode - " 
+
+		ast_tab_barcode.g3npass = kst_tab_sl_pt_g3_lav.g3npass  
+		ast_tab_barcode.g3ciclo = kst_tab_sl_pt_g3_lav.ciclo_target 
+		ast_tab_barcode.g3ngiri = kst_tab_sl_pt_g3_lav.ngiri  
+	end if							
+
+	//--- Controllo Dati di trattatamento e quelli Pianificati sul barcode	
+	if ast_tab_barcode.g3lav_npass <> ast_tab_barcode.g3npass then
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin += "Lavorazione a N.PASS " + string(ast_tab_barcode.g3npass) &
+									 + " diversa con quella Pianificata a " & 
+									 + string(ast_tab_barcode.g3npass) + " - "
+	end if
+	if kst_tab_sl_pt_g3_lav.ciclo_min > ast_tab_barcode.g3lav_ciclo then
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin +=  "Ciclo di Lavorazione " + trim(string(ast_tab_barcode.g3lav_ciclo)) &
+								+ " Minore del consentito dal PT " & 
+								 + trim(string(kst_tab_sl_pt_g3_lav.ciclo_min)) + " - " 
+	end if
+	if kst_tab_sl_pt_g3_lav.ciclo_max < ast_tab_barcode.g3lav_ciclo then
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin +=  "Ciclo di Lavorazione " + trim(string(ast_tab_barcode.g3lav_ciclo)) &
+								+ " Maggiore del consentito dal PT " & 
+								 + trim(string(kst_tab_sl_pt_g3_lav.ciclo_max)) + " - " 
+	end if
+	if ast_tab_barcode.g3lav_ngiri <> ast_tab_barcode.g3ngiri then
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin +=  "Numero Giri " + trim(string(ast_tab_barcode.g3ngiri)) &
+								+ " Lavorati diversi dai " & 
+								 + trim(string(kst_tab_sl_pt_g3_lav.ngiri)) + " Pianfificati - " 
+	end if
+	
+					
+	if ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ok then
+	
+	//--- confronto tra cicli pianificati nel barcode con quelli su Sl-PT
+		if kst_tab_sl_pt_g3_lav.g3npass <> ast_tab_barcode.g3npass then
+			ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+			ast_tab_barcode.note_lav_fin += "Impostati " + string(ast_tab_barcode.g3npass) &
+										 + "  N.PASS diversi con " & 
+										 + string(kst_tab_sl_pt_g3_lav.g3npass) + " Pianificati - "
+		end if
+		if kst_tab_sl_pt_g3_lav.ciclo_min > ast_tab_barcode.g3ciclo then
+			ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+			ast_tab_barcode.note_lav_fin +=  "Ciclo " + trim(string(ast_tab_barcode.g3ciclo)) &
+									+ " impostato in Pianificazione Minore del consentito dal PT " & 
+									 + trim(string(kst_tab_sl_pt_g3_lav.ciclo_min)) + " - " 
+		end if
+		if kst_tab_sl_pt_g3_lav.ciclo_max < ast_tab_barcode.g3ciclo then
+			ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+			ast_tab_barcode.note_lav_fin +=  "Ciclo " + trim(string(ast_tab_barcode.g3ciclo)) &
+									+ " impostato in Pianificazione Maggiore del consentito dal PT " & 
+									 + trim(string(kst_tab_sl_pt_g3_lav.ciclo_max)) + " - " 
+		end if
+		if kst_tab_sl_pt_g3_lav.ngiri <> ast_tab_barcode.g3ngiri then
+			ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+			ast_tab_barcode.note_lav_fin +=  "Numero Giri " + trim(string(ast_tab_barcode.g3ngiri)) &
+									+ " impostato in Pianificazione diversi dal PT " & 
+									 + trim(string(kst_tab_sl_pt_g3_lav.ngiri)) + " - " 
+		end if
+	end if
+	
+	
+	if ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ok then
+		
+		ast_tab_barcode.note_lav_fin +="Verifica Cicli Corretta. - "
+							
+	else
+		
+		ast_tab_barcode.note_lav_fin = "Dati Pianificati: N.Pass: " &
+									  + string(ast_tab_barcode.g3npass) &
+									  + ", Ciclo: " + string(ast_tab_barcode.g3ciclo) &
+									  + ", Giri: " + string(ast_tab_barcode.g3ngiri) &
+									  + " - " + trim(ast_tab_barcode.note_lav_fin)
+	end if
+				
+	//--- controllo se PL presente			
+	if isnull(ast_tab_barcode.pl_barcode) or ast_tab_barcode.pl_barcode = 0 then
+		ast_tab_barcode.pl_barcode = 0
+		ast_tab_barcode.err_lav_fin = ki_err_lav_fin_ko
+		ast_tab_barcode.note_lav_fin = "Barcode senza Piano di Lavorazione"  &
+									 + " - " + trim(ast_tab_barcode.note_lav_fin)
+	end if	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if ast_tab_barcode.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_sl_pt_g3) then destroy kuf1_sl_pt_g3
+	
+
+end try
+end subroutine
+
+public function integer get_impianto_x_id_armo_pl_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Torna l'impiantodi trattamento dei Barcode x codice PL e il ID_ARMO
+	 Inp: st_tab_barcode.id_armo e pl_barcode
+	 Out: Impianto
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	SELECT distinct isnull(impianto, 2) 
+	    into :ast_tab_barcode.impianto
+		 FROM barcode
+		WHERE (id_armo = :ast_tab_barcode.id_armo and pl_barcode = :ast_tab_barcode.pl_barcode)
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in lettura Impianto di trattamentodei barcode sul Piano di Lavorazione n. " + string(ast_tab_barcode.pl_barcode) &
+				  + " della riga Lotto n. " + string(ast_tab_barcode.id_armo))
+		throw kguo_exception
+	end if
+
+	if ast_tab_barcode.impianto > 0 then
+	else
+		ast_tab_barcode.impianto = 2
+	end if
+
+return ast_tab_barcode.impianto
+
+end function
 
 on kuf_barcode.create
 call super::create

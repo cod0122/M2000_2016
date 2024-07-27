@@ -306,7 +306,7 @@ end type
 type dw_3 from w_db_cfg_proprieta`dw_3 within tabpage_3
 boolean visible = true
 boolean enabled = true
-string dataobject = "d_programmi_richieste"
+string dataobject = "d_programmi_richieste_l"
 end type
 
 event dw_3::itemchanged;call super::itemchanged;//

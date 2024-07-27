@@ -99,10 +99,10 @@ global type st_tab_base from structure
 	string		rea_numero
 	string		rea_ufficio
 	string		report_export_dir		descriptor "comment" = "cartella nella quale esportare i report"
-	string		smart_pickup_lots_dir		descriptor "comment" = "path dei dati per SMART x Ritiro Lotti"
-	string		smart_pickup_lots_file		descriptor "comment" = "nome file dei dati per SMART x Ritiro Lotti"
-	string		smart_pickup_lots_sha_key		descriptor "comment" = "Chiave per calcolare il codice hash da attaccare al URL di cui sopra"
-	string		smart_pickup_lots_url_xbook		descriptor "comment" = "prefisso URL fornito da SMART per fare link di conferma della Prenotazione Ritiro Lotti"
+	string		smart_pickup_lots_dir		descriptor "comment" = "SMART: path dei dati per x Ritiro Lotti"
+	string		smart_pickup_lots_file		descriptor "comment" = "SMART: nome file dei dati x Ritiro Lotti"
+	string		smart_pickup_lots_sha_key		descriptor "comment" = "SMART Prenotazione Ritiro Lotti: Chiave per calcolare il codice hash da attaccare al URL"
+	string		smart_pickup_lots_url_xbook		descriptor "comment" = "SMART Prenotazione Ritiro Lotti: prefisso URL per fabbricare il link di conferma"
 	string		smtp_autorizz_rich		descriptor "comment" = "flag S/N se server richiede user e pwd"
 	string		smtp_logfile		descriptor "comment" = "flag S/N per attivare il log"
 	string		smtp_port		descriptor "comment" = "numero della porta del server smtp"

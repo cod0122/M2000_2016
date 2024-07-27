@@ -1448,7 +1448,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 				kuf1_listino.get_id_listini(kst_tab_listino[])
 			end if
 
-//--- Get dell'area Magazzino, ovviamente solo del primo barcode
+//--- Get area Magazzino, ovviamente solo del primo barcode
 			if k_righe_pklist_trovate then 
 				kst_tab_wm_receiptgammarad[1].id_meca = 0
 				kst_tab_wm_receiptgammarad[1].externalpalletcode = trim(kst_tab_wm_pklist_righe[1].wm_barcode)
@@ -1457,14 +1457,10 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 				end if
 			end if
 					
-//--- Get codice Impianto
+//--- Get Impianto
 			kist_tab_meca.impianto = kuf1_impianto.kki_impiantodefault
 			kst_tab_contratti.sl_pt = ""
-			kst_esito = kuf1_contratti.get_sl_pt(kst_tab_contratti)  // Get del Codice Piano di Trattamento	
-			if kst_esito.esito = kkg_esito.db_ko then
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
+			kuf1_contratti.get_sl_pt(kst_tab_contratti)  // Get del Codice Piano di Trattamento	
 			if kst_tab_contratti.sl_pt > " " then
 				kst_tab_sl_pt.cod_sl_pt = kst_tab_contratti.sl_pt
 				kist_tab_meca.impianto = kuf1_sl_pt.get_impianto(kst_tab_sl_pt) // get Impianto da SL_PT
@@ -1566,11 +1562,7 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then
 //--- Get del Codice Piano di Trattamento	
 					kst_tab_contratti.sl_pt = ""
 					kst_tab_contratti.codice = kst_tab_listino[k_ind_listino].contratto
-					kst_esito = kuf1_contratti.get_sl_pt(kst_tab_contratti)
-					if kst_esito.esito = kkg_esito.db_ko then
-						kguo_exception.set_esito(kst_esito)
-						throw kguo_exception
-					end if
+					kuf1_contratti.get_sl_pt(kst_tab_contratti)
 
 //--- Get Descrizione Prodotto 
 					if trim(kst_tab_listino[k_ind_listino].cod_art) > " " then

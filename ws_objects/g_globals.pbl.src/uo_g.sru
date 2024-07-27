@@ -98,6 +98,9 @@ private string ki_column_focus_before_name_colbck[2]     // colonna appena lasci
 public boolean theme_dark
 public string theme
 
+//--- def dei MESI 1=IT, 2=EN
+private string kg_month[12,2]
+
 end variables
 
 forward prototypes
@@ -142,6 +145,8 @@ public subroutine set_idprocedura (longlong a_handle)
 public function longlong get_idprocedura ()
 public subroutine xxxuse_col_background_input_field (ref datawindow adw, string a_col_name)
 public function datetime get_datetime_current_local ()
+public function string get_month (integer a_month, string a_lang)
+private subroutine set_month ()
 end prototypes
 
 public subroutine set_attiva_suoni (boolean a_attiva_suoni);
@@ -783,7 +788,6 @@ public function string get_app_release ();
 
 return trim(kkG.VERSIONE_MAJOR_REL + "." + u_replace(trim(string(kkG.versione, "00.0000")), ",", "."))
 
-
 end function
 
 public subroutine set_idprocedura (longlong a_handle);//-- es. 2.211.161.833
@@ -882,6 +886,34 @@ return k_return
 
 end function
 
+public function string get_month (integer a_month, string a_lang);//
+
+choose case a_lang
+	case "EN"
+		return kg_month[a_month, 2]
+	case else
+		return kg_month[a_month, 1]
+end choose
+
+
+end function
+
+private subroutine set_month ();//
+kg_month[1,1] = "Gen"; kg_month[1,2] = "Jan"
+kg_month[2,1] = "Feb"; kg_month[2,2] = "Feb"
+kg_month[3,1] = "Mar"; kg_month[3,2] = "Mar"
+kg_month[4,1] = "Apr"; kg_month[4,2] = "Apr"
+kg_month[5,1] = "Mag"; kg_month[5,2] = "May"
+kg_month[6,1] = "Giu"; kg_month[6,2] = "Jun"
+kg_month[7,1] = "Lug"; kg_month[7,2] = "Jul"
+kg_month[8,1] = "Ago"; kg_month[8,2] = "Aug"
+kg_month[9,1] = "Set"; kg_month[9,2] = "Sep"
+kg_month[10,1] = "Ott"; kg_month[10,2] = "Oct"
+kg_month[11,1] = "Nov"; kg_month[11,2] = "Nov"
+kg_month[12,1] = "Dic"; kg_month[12,2] = "Dec"
+
+end subroutine
+
 on uo_g.create
 call super::create
 TriggerEvent( this, "constructor" )
@@ -900,6 +932,7 @@ event constructor;////
 //
 ki_datazero = relativedate(date(0), 1)
 kids_current_datetime = create kds_current_datetime
+set_month() // imposta array globale con des breve dei mesi
 
 end event
 

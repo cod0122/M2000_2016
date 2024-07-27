@@ -474,7 +474,7 @@ try
 	
 	kds1_meca_ready_e1asn = create kds_meca_ready_e1asn
 
-	kds1_meca_ready_e1asn.db_connetti( )
+	//kds1_meca_ready_e1asn.db_connetti( )
 	k_righe = kds1_meca_ready_e1asn.u_retrieve()
 	
 	for k_riga = 1 to k_righe

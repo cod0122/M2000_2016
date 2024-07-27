@@ -15,6 +15,7 @@ global w_m_r_f w_m_r_f
 type variables
 //
 private kuf_clienti kiuf_clienti
+private kuf_clienti_tb_xxx kiuf_clienti_tb_xxx
 private st_tab_clienti_m_r_f ki_st_tab_clienti_m_r_f, ki_st_tab_clienti_m_r_f_orig
 private string ki_path_centrale =""
 
@@ -195,36 +196,31 @@ end function
 
 private function string cancella ();//
 string k_return="0 "
-string k_descr, k_descr1, k_descr2
+string k_descr, k_descr1, k_descr2, k_msg
 string k_codice
 string k_errore = "0 ", k_errore1 = "0 "
-long k_riga
+long k_riga, k_riga_dopo
 st_tab_clienti_m_r_f kst_tab_clienti_mrf
 st_esito kst_esito
 
 
-//=== Controllo se sul dettaglio c'e' qualche cosa
-if dw_dett_0.visible and dw_dett_0.rowcount() > 0 then
-	k_riga = 1
-	k_codice = string(dw_dett_0.getitemnumber(1, "clie_1"))
-	k_descr = trim(dw_dett_0.getitemstring(1, "client_a_rag_soc_10"))
-	k_descr1 = trim(dw_lista_0.getitemstring(k_riga, "client_b_rag_soc_10"))
-	k_descr2 = trim(dw_lista_0.getitemstring(k_riga, "client_c_rag_soc_10"))
-	kst_tab_clienti_mrf.clie_1 = dw_dett_0.getitemnumber(1, "clie_1") 
-	kst_tab_clienti_mrf.clie_2 = dw_dett_0.getitemnumber(1, "clie_2") 
-	kst_tab_clienti_mrf.clie_3 = dw_dett_0.getitemnumber(1, "clie_3") 
-else
 //=== Se sul dw non c'e' nessuna riga o nessun codice allora pesco dalla lista
-	k_riga = dw_lista_0.getselectedrow(0)	
-	if k_riga > 0 then
-		k_codice = string(dw_lista_0.getitemnumber(k_riga, "clie_1"))
-		k_descr = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_1"))
-		k_descr1 = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_2"))
-		k_descr2 = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_3"))
-		kst_tab_clienti_mrf.clie_1 = dw_lista_0.getitemnumber(k_riga, "clie_1") 
-		kst_tab_clienti_mrf.clie_2 = dw_lista_0.getitemnumber(k_riga, "clie_2") 
-		kst_tab_clienti_mrf.clie_3 = dw_lista_0.getitemnumber(k_riga, "clie_3") 
+k_riga = dw_lista_0.getselectedrow(0)	
+if k_riga > 0 then
+	k_codice = string(dw_lista_0.getitemnumber(k_riga, "clie_1"))
+	k_descr = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_1"))
+	k_descr1 = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_2"))
+	k_descr2 = trim(dw_lista_0.getitemstring(k_riga, "clienti_rag_soc_3"))
+	kst_tab_clienti_mrf.clie_1 = dw_lista_0.getitemnumber(k_riga, "clie_1") 
+	kst_tab_clienti_mrf.clie_2 = dw_lista_0.getitemnumber(k_riga, "clie_2") 
+	kst_tab_clienti_mrf.clie_3 = dw_lista_0.getitemnumber(k_riga, "clie_3") 
+	k_riga_dopo = dw_lista_0.getselectedrow(k_riga)	
+	if k_riga_dopo > 0 then
+		k_msg = "Sono stati selezionati più legami sei sicuro di volorli Elminare tutti? Il primo è "
+	else
+		k_msg = "Sei sicuro di voler Cancellare il Legame "
 	end if
+	
 end if
 
 if isnull(k_codice) then
@@ -234,60 +230,46 @@ if isnull(k_descr) = true or trim(k_descr) = "" then
 	k_descr = "Mandante senza nominativo" 
 end if
 
-if k_riga > 0 and isnull(k_codice) = false then	
+if k_riga > 0 and k_codice > " " then	
 	
 //=== Richiesta di conferma della eliminazione del rek
 
-	if messagebox("Elimina "  + this.title , "Sei sicuro di voler Cancellare il Legame: ~n~r" &
-	             + string(kst_tab_clienti_mrf.clie_1) + " " + trim(k_descr) + " ~n~r" &
-	             + string(kst_tab_clienti_mrf.clie_2) + " " + trim(k_descr1) + " ~n~r" &
+	if messagebox("Elimina "  + this.title , k_msg + kkg.acapo &
+	             + string(kst_tab_clienti_mrf.clie_1) + " " + trim(k_descr) + kkg.acapo  &
+	             + string(kst_tab_clienti_mrf.clie_2) + " " + trim(k_descr1) + kkg.acapo  &
 	             + string(kst_tab_clienti_mrf.clie_3) + " " + trim(k_descr2), &
 				question!, yesno!, 2) = 1 then
  
-		
+		try		
 //=== Cancella la riga dal data windows di lista
-		k_errore = kiuf_clienti.tb_delete_m_r_f(kst_tab_clienti_mrf) 
+			k_errore = "0"
+			do while k_riga > 0 and left(k_errore,1) = "0"
+		
+				kst_tab_clienti_mrf.clie_1 = dw_lista_0.getitemnumber(k_riga, "clie_1") 
+				kst_tab_clienti_mrf.clie_2 = dw_lista_0.getitemnumber(k_riga, "clie_2") 
+				kst_tab_clienti_mrf.clie_3 = dw_lista_0.getitemnumber(k_riga, "clie_3") 
+		
+				kst_tab_clienti_mrf.st_tab_g_0.esegui_commit = "S"
+				kiuf_clienti_tb_xxx.tb_delete_m_r_f(kst_tab_clienti_mrf) 
+	
+				dw_lista_0.deleterow(k_riga) // cancello riga a video
+					
+				k_riga = dw_lista_0.getselectedrow(0)	
+				
+			loop
+			
+		catch (uo_exception kuo_exception)
+			k_errore = "1" + kuo_exception.get_errtext( )
+		end try
+			
 		if left(k_errore,1) = "0"  then
-
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-
-			else
-
-//--- cancello riga a video
-				k_codice = " "
-//				k_riga = dw_dett_0.rowcount()	
-				if dw_dett_0.visible and dw_dett_0.rowcount() > 0 then
-//					k_codice = string(dw_dett_0.getitemnumber(1, "id_email_invio"))
-					dw_dett_0.deleterow(1)
-					
-//					mostra_nascondi_dw()
-					
-				else
-					if k_riga > 0 then
-						dw_lista_0.deleterow(k_riga)
-					end if
-				end if
-
-			end if
-
-			dw_dett_0.setfocus()
+	
+			attiva_tasti()
+			dw_lista_0.setfocus()
 
 		else
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
 
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-					"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
-			attiva_tasti()
-	
+			messagebox("Errore in Cancellazione", mid(k_errore, 2) ) 	
 
 		end if
 
@@ -295,12 +277,12 @@ if k_riga > 0 and isnull(k_codice) = false then
 		messagebox("Elimina " + this.title , "Operazione Annullata !!")
 	end if
 
-	dw_dett_0.setcolumn(1)
+	dw_dett_0.reset( )
 
 end if
 
 return(k_return)
-//
+
 
 end function
 
@@ -425,6 +407,7 @@ datawindowchild  kdwc_clienti_1, kdwc_clienti_2, kdwc_clienti_3,  kdwc_clienti_d
 
 
 	kiuf_clienti = create kuf_clienti
+	kiuf_clienti_tb_xxx = create kuf_clienti_tb_xxx
 
 	ki_toolbar_window_presente=true
 
@@ -573,8 +556,12 @@ end on
 
 event close;call super::close;//
 if isvalid(kiuf_clienti) then destroy kiuf_clienti
+if isvalid(kiuf_clienti_tb_xxx) then destroy kiuf_clienti_tb_xxx
 
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_m_r_f
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_m_r_f
 end type

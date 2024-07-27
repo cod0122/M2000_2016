@@ -112,13 +112,21 @@ kuf_clienti kuf1_clienti
 			if kist_tab_meca_arg.id > 0  then
 				dw_guida.setitem(1,"codice", string(kist_tab_meca_arg.id))
 			else
-				kuf1_clienti = create kuf_clienti
-				kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
-				kuf1_clienti.get_nome(kst_tab_clienti)
-				if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
-					dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
-				else
-					dw_guida.setitem(1,"codice", "")
+				if kist_tab_meca_arg.clie_3 > 0 then
+					try
+						kuf1_clienti = create kuf_clienti
+						kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
+						kuf1_clienti.get_nome( kst_tab_clienti )
+						if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
+							dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
+						else
+							dw_guida.setitem(1,"codice", "")
+						end if
+					catch (uo_exception kuo_exception)
+						kuo_exception.messaggio_utente()
+					finally	 
+						if isvalid(kuf1_clienti) then destroy kuf1_clienti
+					end try
 				end if
 			end if
 		end if
@@ -1692,6 +1700,11 @@ if k_campo = "dosimbozza_si" then
 	this.post event ue_buttonclicked("default")
 	
 end if
+
+end event
+
+event dw_guida::editchanged;call super::editchanged;//
+	event ue_retrieve_dinamico(dwo.name, data) 
 
 end event
 

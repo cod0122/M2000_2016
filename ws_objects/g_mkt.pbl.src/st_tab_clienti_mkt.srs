@@ -22,6 +22,8 @@ global type st_tab_clienti_mkt from structure
 	long		gruppo		descriptor "comment" = "codice gruppo"
 	string		doc_esporta		descriptor "comment" = "S=esporta documenti (soprattutto x il WEB); N=non esportare "
 	string		doc_esporta_prefpath		descriptor "comment" = "breve prefisso da mettere nel path di esportazione se manca mette il codice cliente"
+	string		for_qa_italy		descriptor "comment" = "raggruppamento Contatti utile per estrazioni S=per qualità italy"
+	string		for_cobalt_rload		descriptor "comment" = "raggruppamento Contatti utile per estrazioni S=per Cobalto Realoading"
 	datetime		x_datins
 	string		x_utente
 end type

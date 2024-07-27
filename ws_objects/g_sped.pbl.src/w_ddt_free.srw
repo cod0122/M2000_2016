@@ -62,6 +62,7 @@ protected function integer visualizza ()
 protected subroutine modifica ()
 public subroutine smista_funz (string k_par_in)
 private subroutine cambia_periodo_elenco ()
+private subroutine u_set_tabpage_2_title ()
 end prototypes
 
 private subroutine pulizia_righe ();//
@@ -120,6 +121,8 @@ choose case tab_1.selectedtab
 				proteggi_campi()
 				
 				ki_updated = true // aggiornato x rifare poi l'elenco
+				
+				inizializza( )  // torna sull'elenco
 				
 			catch (uo_exception kuo_exception)
 				k_return="1Fallito aggiornamento in archivio '" &
@@ -378,7 +381,11 @@ kuf_listino kuf1_listino
 		end if		
 	end if		
 
+	tab_1.selecttab(1)
+	
 	attiva_tasti()
+	u_set_tabpage_2_title( )
+	
 	SetPointer(kkg.pointer_default)
 
 return k_return
@@ -477,23 +484,23 @@ int k_rc
 	tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.inserimento
 
 //--- Argomenti:  KEY2= Data Inizio -   KEY3 = Data Fine 
-	if trim(ki_st_open_w.key2) = "" then
+	if trim(ki_st_open_w.key2) > " " then
 		if isdate(trim(ki_st_open_w.key2)) then
 			dw_periodo.ki_data_ini = date(trim(ki_st_open_w.key2))
 		else
-			dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -35)
+			dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -180)
 		end if
 	else
-		dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -35)
+		dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -180)
 	end if
-	if trim(ki_st_open_w.key3) = "" then
+	if trim(ki_st_open_w.key3) > " " then
 		if isdate(trim(ki_st_open_w.key3)) then
 			dw_periodo.ki_data_fin = date(trim(ki_st_open_w.key3))
 		else
-			dw_periodo.ki_data_fin = kg_dataoggi
+			dw_periodo.ki_data_fin = date(year(kg_dataoggi), 12, 31)
 		end if
 	else
-		dw_periodo.ki_data_fin = kg_dataoggi
+		dw_periodo.ki_data_fin = date(year(kg_dataoggi), 12, 31)
 	end if
 	
 	dw_periodo.kiw_parent = this
@@ -886,7 +893,7 @@ uo_exception kuo_exception
 //--- ripropone eventaulemnete i link
 	tab_1.tabpage_2.dw_2.event u_personalizza_dw()
 
-	tab_1.tabpage_2.dw_2.modify("clie_2_l.visible='1' clie_3_l.visible='1'") 
+	tab_1.tabpage_2.dw_2.modify("b_clie_2_l.visible='1' b_clie_3_l.visible='1'") 
 
 //--- protegge/sprotegge campi
 	proteggi_campi()
@@ -909,6 +916,8 @@ uo_exception kuo_exception
 		inserisci()
 		
 	end if
+
+	u_set_tabpage_2_title( )
 
 //--- se inserimento inabilito gli altri TAB, sono inutili
 //	if tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.inserimento then
@@ -1254,6 +1263,16 @@ private subroutine cambia_periodo_elenco ();//---
 
 //dw_periodo.event post ue_visibile
 dw_periodo.event ue_visible( )
+end subroutine
+
+private subroutine u_set_tabpage_2_title ();//
+tab_1.tabpage_2.text = "DDT"
+if tab_1.tabpage_2.dw_2.rowcount( ) > 0 then
+	if trim(tab_1.tabpage_2.dw_2.getitemstring(1, "sped_free_num_bolla_out")) > " " then 
+		tab_1.tabpage_2.text = "DDT " + trim(tab_1.tabpage_2.dw_2.getitemstring(1, "sped_free_num_bolla_out")) + "/" &
+								+ string(tab_1.tabpage_2.dw_2.getitemdate(1, "sped_free_data_bolla_out"), "yyyy") 
+	end if
+end if
 end subroutine
 
 on w_ddt_free.create
@@ -1675,63 +1694,6 @@ event dw_2::itemfocuschanged;call super::itemfocuschanged;//int k_rc
 //		kdwc_x.ShareData( kdwc_2)			
 //
 //end choose
-//
-//
-end event
-
-event dw_2::clicked;call super::clicked;////
-//long k_riga, k_id, k_rc
-//datawindowchild kdwc_1, kdwc_2
-//
-//
-//
-//SetPointer(kkg.pointer_attesa)
-//
-//if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or  ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-//
-//	if dwo.name = "quotazione_cod" &
-//					or dwo.name = "offerta_validita" &
-//					or dwo.name = "oggetto" &
-//					or dwo.name = "note" &
-//					or dwo.name = "fattura_da" &
-//					or dwo.name = "acconto_cod_pag" &
-//					or dwo.name = "altre_condizioni" &
-//					or dwo.name = "note_interne" &
-//					or dwo.name = "gest_doc_des" &
-//					or dwo.name = "dir_tecnico_des" &
-//					or dwo.name = "analisi_lab_des" &
-//					or dwo.name = "stoccaggio_des" &
-//					or dwo.name = "logistica_des" &
-//					or dwo.name = "altro_des" &
-//					or dwo.name = "venditore_nome" &
-//					or dwo.name = "venditore_ruolo" then
-//			this.getchild(dwo.name, kdwc_1)
-//			k_rc = kdwc_1.settransobject(sqlca)
-//			if kdwc_1.rowcount() < 2 then
-//				k_rc = kdwc_1.retrieve()
-//				k_rc = kdwc_1.insertrow(1)
-//			end if
-//	elseif dwo.name = "nome_contatto" &
-//					or dwo.name = "cliente_desprod" &
-//					or dwo.name = "cliente_desprod_rid" &
-//					 then
-//			k_id = this.getitemnumber(row, "id_cliente")
-//			this.getchild(dwo.name, kdwc_1)
-//			if kdwc_1.rowcount() > 1 then
-//				if k_id <> kdwc_1.getitemnumber(2, "id_cliente") then
-//					kdwc_1.reset( )
-//				end if
-//			end if
-//			if kdwc_1.rowcount() < 2 then
-//				k_rc = kdwc_1.settransobject(sqlca)
-//				k_rc = kdwc_1.retrieve(k_id)
-//				k_rc = kdwc_1.insertrow(1)
-//			end if
-//	end if
-//
-//end if
-//
-//SetPointer(kkg.pointer_default)
 //
 //
 end event

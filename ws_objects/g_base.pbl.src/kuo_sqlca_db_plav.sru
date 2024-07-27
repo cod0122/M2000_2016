@@ -14,6 +14,12 @@ end variables
 
 forward prototypes
 private subroutine x_db_profilo () throws uo_exception
+protected function boolean u_if_dberror_grave (integer a_code)
+public function boolean if_connesso_x () throws uo_exception
+protected function boolean u_error_db_if_login (ref st_esito ast_esito)
+protected function boolean u_error_db_if_conn (ref st_esito ast_esito)
+protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
+protected function boolean u_error_others (ref st_esito ast_esito)
 end prototypes
 
 private subroutine x_db_profilo () throws uo_exception;//
@@ -70,6 +76,156 @@ SetPointer(kkg.pointer_default)
 
 
 end subroutine
+
+protected function boolean u_if_dberror_grave (integer a_code);//--- evito di esporre gli errori di 'DROP TBABLE/VIEW' in MSSQL sono 3701 e 3705  
+//---     oppure di non connesso (11001 or 53)
+	if a_code <> -394 and a_code <> 3705 and a_code <> 3701 &
+			and a_code <> 11001 and a_code <> 53 &
+		then
+			
+		return true
+		
+	else
+		
+		return false
+		
+	end if
+end function
+
+public function boolean if_connesso_x () throws uo_exception;//
+int k_connesso=0
+
+	
+	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 &
+					or kiuo_sqlca_db_0_saved.sqldbcode = 53 then // connessione persa
+
+		return false
+
+	else
+		select count(*) into :k_connesso from sys.tables 
+			using this;
+		
+		if k_connesso > 0 then
+			
+			return true   
+			
+		else
+			
+			return false
+	
+		end if
+
+	end if
+
+end function
+
+protected function boolean u_error_db_if_login (ref st_esito ast_esito);//
+//---- Gestione PERSONALIZZATA a seconda del DB x errore di Login
+//
+//
+	if ast_esito.SQLdbcode = 18456 then // LOGIN ERRATO 
+	
+		ast_esito.esito = kkg_esito.no_esecuzione
+		ast_esito.sqlerrtext = "Login fallito, utente o password errata." 
+		kguo_exception.scrivi_log( ) // u_write_error()
+		
+		return true
+		
+	else
+		
+		return false
+		
+	end if
+
+end function
+
+protected function boolean u_error_db_if_conn (ref st_esito ast_esito);//
+//---- gestione prsonalizzata a seconda del DB per errore di CONNESSIONE
+//
+//
+
+	try 
+		if not if_connesso( ) then
+
+			//ast_esito.sqlerrtext = "Tentativo di Ri-connessione al database di Magazzino... " 
+			//kguo_exception.scrivi_log( ) // u_write_error()
+			//errori_scrivi_esito("W", kst_esito) 
+
+//--- tentativo di connessione al db.....
+			if not db_riconnetti( ) then
+				kguo_exception.messaggio_utente("Programma non operativo", "Persa la Connessione al database " + ki_db_descrizione + ", il programma verrà chiuso. " & 
+								+ kkg.acapo + "Motivo: " + left(ast_esito.sqlerrtext,40))
+			else
+				ast_esito.esito = kkg_esito.ok
+				ast_esito.sqlcode = 0
+				ast_esito.sqlerrtext = "Ri-connessione al database " + ki_db_descrizione + " conclusa con successo. " 
+				kguo_exception.scrivi_log( ) // u_write_error()
+			end if
+		
+		else
+		
+			return false
+
+		end if
+		
+	catch (uo_exception kuo_exception)
+			kguo_exception.messaggio_utente("Programma non operativo", "Persa la Connessione al database  " + ki_db_descrizione + ", prego chiudere e riavviare il programma")
+			
+	finally
+
+	end try
+	
+	return true
+
+end function
+
+protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito);//
+//---- gestione personalizzata a seconda del DB per errore di CONNESSIONE
+//
+//
+CHOOSE CASE ast_esito.SQLdbcode
+
+//informix	case -1811, -349, -1803, -25580 //--- manca connessione 
+	case 	-4060, -40197, -40501, -40613, -49918, -49919, -49920, -4221, 10054, 64 //, 121 timeout
+		
+		kguo_exception.messaggio_utente( &
+						"Fallita connessione al DB", "Connessione al db " + ki_db_descrizione + " in errore, superato il tempo massimo di attesa di risposta del server (" &
+						+ trim(ast_esito.sqlerrtext)+").")
+		kguo_exception.scrivi_log( ) // u_write_error()
+
+		return true
+		
+	case else
+		
+		return false
+
+END CHOOSE
+
+end function
+
+protected function boolean u_error_others (ref st_esito ast_esito);//
+//---- Gestione PERSONALIZZATA a seconda del DB x errore generico
+//
+//
+	if ast_esito.SQLdbcode = 208 then // Nome oggetto errato (tabella/view)
+	
+		ast_esito.esito = kkg_esito.db_ko
+		ast_esito.sqlerrtext = "Errore interno restituito dal DB '" + ki_db_descrizione + "' dovuto ad un nome errato (tabella o altro oggetto). " + ast_esito.sqlerrtext
+		kguo_exception.messaggio_utente( )
+		
+		return true
+		
+	elseif ast_esito.SQLdbcode = 13535 then // Errore in aggiornamento TEmporalTable
+
+		ast_esito.esito = kkg_esito.db_wrn
+		ast_esito.sqlerrtext = "Errore interno restituito dal DB '" + ki_db_descrizione + "' (tabella TemporalTable). " + ast_esito.sqlerrtext
+		kguo_exception.scrivi_log(ast_esito)
+		
+		return false
+		
+	end if
+
+end function
 
 on kuo_sqlca_db_plav.create
 call super::create

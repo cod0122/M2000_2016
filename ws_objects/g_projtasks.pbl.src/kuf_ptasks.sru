@@ -93,35 +93,26 @@ if isnull(ast_tab_ptasks.x_datins) then ast_tab_ptasks.x_datins = datetime(kkg.d
    
 end subroutine
 
-public function boolean tb_delete (st_tab_ptasks ast_tab_ptasks) throws uo_exception;//
-//------------------------------------------------------------------
-//--- Cancella il rek dalla tabella Progetti Attività (ptasks)
-//--- 
-//--- inp: st_tab_ptasks.id_ptask
-//--- rit: true = rimosso
-//--- 
-//--- 
-//------------------------------------------------------------------
+public function boolean tb_delete (st_tab_ptasks ast_tab_ptasks) throws uo_exception;/*
+ Cancella il rek dalla tabella Progetti Attività (ptasks)
+	inp: st_tab_ptasks.id_ptask
+	rit: true = rimosso
+*/
 boolean k_return
-st_esito kst_esito
 st_tab_ptasks_rows kst_tab_ptasks_rows
 kuf_ptasks_rows kuf1_ptasks_rows
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	delete from ptasks
 		where id_ptask = :ast_tab_ptasks.id_ptask 
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in Cancellazione del Progetto '" &
-						+ string(ast_tab_ptasks.id_ptask) + "': " &
-						+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)							
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in Cancellazione del Progetto id " + string(ast_tab_ptasks.id_ptask))		
 		throw kguo_exception
 	end if
 

@@ -16,13 +16,12 @@ private st_tab_base kist_tab_base
 
 
 //--- dati da restituire - il Report 
-public datastore kids_report_merce_da_sped
+public uo_ds_std_1 kids_report_merce_da_sped
 
 
 end variables
 
 forward prototypes
-private subroutine db_crea_view_spediti (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
 public subroutine get_st_report_merce_da_sped (ref st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
 private subroutine db_crea_view_trattati (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
 public subroutine get_id_meca (ref st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
@@ -31,34 +30,8 @@ private subroutine db_crea_view_da_non_trattare (st_report_merce_da_sped kst_rep
 private subroutine db_crea_view_da_sped_1 (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
 private subroutine db_crea_view_lotti_nomag (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
 public function integer get_report (ref st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception
+public subroutine u_db_crea_view_trattati (string a_view_name, long a_id_meca) throws uo_exception
 end prototypes
-
-private subroutine db_crea_view_spediti (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception;//
-//--- Crea View Spediti
-//
-kuf_sped kuf1_sped
-pointer kpointer  
-
-
-try
-	kpointer = SetPointer(HourGlass!)
-
-	kuf1_sped = create kuf_sped
-
-	kuf1_sped.u_db_crea_view_spediti("merce_da_sped_Spediti", kst_report_merce_da_sped.k_id_meca_da)
-
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_sped) then destroy kuf1_sped
-	
-	SetPointer(kpointer)
-
-end try
-
-end subroutine
 
 public subroutine get_st_report_merce_da_sped (ref st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception;//---
 //--- Imposta  l'area st_report_merce_da_sped
@@ -73,25 +46,16 @@ end subroutine
 private subroutine db_crea_view_trattati (st_report_merce_da_sped kst_report_merce_da_sped) throws uo_exception;//
 //--- Crea View Trattati
 //
-kuf_artr kuf1_artr
-pointer kpointer  
-
 
 try
-	kpointer = SetPointer(HourGlass!)
 
-	kuf1_artr = create kuf_artr
-
-	kuf1_artr.u_db_crea_view_trattati("merce_da_sped_Trattati", kst_report_merce_da_sped.k_id_meca_da)
+	u_db_crea_view_trattati("merce_da_sped_Trattati", kst_report_merce_da_sped.k_id_meca_da)
 
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
 
 finally
-	if isvalid(kuf1_artr) then destroy kuf1_artr
-	
-	SetPointer(kpointer)
 
 end try
 
@@ -207,13 +171,13 @@ kuf1_utility = create kuf_utility
 																	 + " coalesce(meca.e1doco, 0), " &
 																	 + " coalesce(meca.e1rorn, 0) " &
                                                     + ",coalesce(meca.e1srst, 'NC') " &   
-	                          + "   FROM ((((((( meca INNER JOIN  armo ON ( meca.id =  armo.id_meca)) " &
-	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_Trattati") + " as Trattati ON armo.id_armo = Trattati.id_armo) " &
-	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_daNonTrattare") + " as daNonTrattare ON  armo.id_armo= daNonTrattare.id_armo)" &
-	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_Spedit") + "i as sped ON armo.id_armo =  sped.id_armo)  " &
-	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_NoMag") + " as NoMag ON armo.id_armo =  NoMag.id_armo)  " &
-	                                               + " INNER JOIN  clienti AS  clienti_1 ON  meca.clie_1 =  clienti_1.codice)  " &
-	                                               + " INNER JOIN  clienti AS  clienti_2 ON  meca.clie_2 =  clienti_2.codice) " &
+	                          + "   FROM meca INNER JOIN armo ON meca.id = armo.id_meca " &
+	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_Trattati") + " as Trattati ON armo.id_armo = Trattati.id_armo " &
+	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_daNonTrattare") + " as daNonTrattare ON  armo.id_armo= daNonTrattare.id_armo " &
+	                                               + " LEFT JOIN v_colli_sped as sped ON armo.id_armo =  sped.id_armo  " &
+	                                               + " LEFT JOIN " + kguf_data_base.u_get_nometab_xutente("merce_da_sped_NoMag") + " as NoMag ON armo.id_armo =  NoMag.id_armo  " &
+	                                               + " INNER JOIN  clienti AS  clienti_1 ON  meca.clie_1 =  clienti_1.codice " &
+	                                               + " INNER JOIN  clienti AS  clienti_2 ON  meca.clie_2 =  clienti_2.codice " &
 	                          	+ " WHERE "  &
 	                          	+ "  meca.id  >=  "  + string(kst_report_merce_da_sped.k_id_meca_da)  + "   "    &
                             	+ "  and (meca.aperto is null or meca.aperto = ' ' " & 
@@ -282,9 +246,7 @@ pointer kpointer  // Declares a pointer variable
 //=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
 kpointer = SetPointer(HourGlass!)
 
-
 kuf1_utility = create kuf_utility
-
 
 //--- costruisco la view con ID_MECA con la somma dei colli da spedire
 	k_view = kguf_data_base.u_get_nometab_xutente("merce_da_sped_elenco_l")
@@ -447,10 +409,9 @@ string k_rcx=""
 long kind=0, kriga=0
 string k_sql_orig, k_stringn, k_string
 
-//st_report_merce_da_sped kst_report_merce_da_sped
-//
+
 kids_report_merce_da_sped.reset( )
-//
+
 if isnull(kst_report_merce_da_sped.k_clie_2) then kst_report_merce_da_sped.k_clie_2 = 0
 
 get_id_meca (kst_report_merce_da_sped)
@@ -459,7 +420,6 @@ if kst_report_merce_da_sped.k_id_meca_da > 0 then
 	
 //--- genero le view da usare
 	db_crea_view_Trattati(kst_report_merce_da_sped)
-	db_crea_view_spediti(kst_report_merce_da_sped)
 	db_crea_view_da_non_trattare(kst_report_merce_da_sped)
 	db_crea_view_lotti_nomag(kst_report_merce_da_sped)
 	db_crea_view_da_sped(kst_report_merce_da_sped)
@@ -472,6 +432,12 @@ if kst_report_merce_da_sped.k_id_meca_da > 0 then
 	
 	//--- Retrieve Datastore REPORT da restituire
 	k_return = kids_report_merce_da_sped.retrieve( kst_report_merce_da_sped.k_data_da,  kst_report_merce_da_sped.k_clie_2)
+	if k_return < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_st_esito_err_ds(kids_report_merce_da_sped, "Errore in lettura Lotti da Spedire del cliente " + string( kst_report_merce_da_sped.k_clie_2))
+		throw kguo_exception
+	end if
+
 end if
 
 return k_return
@@ -479,8 +445,45 @@ return k_return
 
 end function
 
+public subroutine u_db_crea_view_trattati (string a_view_name, long a_id_meca) throws uo_exception;//
+//--- crea View
+//
+int k_ctr
+string k_view, k_sql
+st_esito kst_esito
+
+
+	k_view =  kguf_data_base.u_get_nometab_xutente(a_view_name)
+	k_sql = &
+			"CREATE VIEW " + trim(k_view) &
+			 + " ( id_meca, id_armo, colli_trattati, colli_groupage, num_certif, data_stampa) AS   " &
+			 + "  SELECT armo.id_meca,   " &
+					 + " armo.id_armo,   " &
+					 + " sum(artr.colli_trattati), " &
+					 + " sum(artr.colli_groupage), " &
+					 + " artr.num_certif,    " &
+					 + " certif.data_stampa    " &
+			 + "FROM armo inner join artr on armo.id_armo = artr.id_armo  " &
+			 +                        " left outer join certif on artr.num_certif =  certif.num_certif  " &
+			 + " WHERE       " &
+				 + " armo.id_meca  >=  "  + string(a_id_meca) + "  "  &
+			 + " GROUP BY armo.id_meca,     " &
+				 + " armo.id_armo,  " & 
+				 + " artr.num_certif,   " & 
+				 + " certif.data_stampa    " 
+
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+
+	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito( kst_esito )
+		throw kguo_exception
+	end if
+
+end subroutine
+
 event constructor;//
-kids_report_merce_da_sped = create datastore
+kids_report_merce_da_sped = create uo_ds_std_1
 kids_report_merce_da_sped.dataobject = "d_merce_da_sped"
 kids_report_merce_da_sped.settransobject(sqlca)
 

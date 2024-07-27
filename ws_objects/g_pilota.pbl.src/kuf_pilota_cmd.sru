@@ -1671,74 +1671,30 @@ return k_return
 
 end function
 
-public subroutine set_blocca_richieste (st_tab_pilota_cfg kst_tab_pilota_cfg) throws uo_exception;//---
-//--- Imposta il flag di Blocco delle richieste
-//---
-//--- Imput: impostare il flag st_tab_pilota_cfg.blocca_richieste
-//---
-st_esito kst_esito
-uo_exception kuo_exception
-pointer koldpointer
+public subroutine set_blocca_richieste (st_tab_pilota_cfg kst_tab_pilota_cfg) throws uo_exception;/*
+  Imposta il flag di Blocco delle richieste
+  Imput: impostare il flag st_tab_pilota_cfg.blocca_richieste
+*/
 
-
-
-
-kst_esito.esito =kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuo_exception = create uo_exception
-
-//=== Puntatore Cursore da attesa.....
-koldpointer = SetPointer(HourGlass!)
-
-
-if isnull(kist_tab_pilota_cfg.st_tab_g_0.esegui_commit) or kist_tab_pilota_cfg.st_tab_g_0.esegui_commit <> "N" then
-	kist_tab_pilota_cfg.st_tab_g_0.esegui_commit = "S"
-end if
-
-
-//
-//if k_bool then
-//	kist_tab_pilota_cfg.blocca_richieste = ki_blocca_richieste_si
-//else
-//	kist_tab_pilota_cfg.blocca_richieste = ki_blocca_richieste_no
-//end if
+kguo_exception.inizializza(this.classname())
 
 update pilota_cfg
 	set blocca_richieste = :kst_tab_pilota_cfg.blocca_richieste
 	where codice = '1'
-	using sqlca;
-	
-	
-if sqlca.sqlcode = 0 then
-	if kist_tab_pilota_cfg.st_tab_g_0.esegui_commit = 'S' then
-		commit using sqlca;
-	end if
-else
-	if kist_tab_pilota_cfg.st_tab_g_0.esegui_commit = 'S' then
-		rollback using sqlca;
-	end if
-	
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore in Aggiornamento della Tab.Config. Pilota  (PILOTA_CFG)  ~n~r"  &
-								 + trim(sqlca.SQLErrText)
-								 
-	if sqlca.sqlcode = 100 then
-		kst_esito.esito = kkg_esito.not_fnd
+	using kguo_sqlca_db_magazzino;
+
+if kguo_sqlca_db_magazzino.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in impostazione del Blocco/Sblocco delle Richieste al Pilota Gamma 2 (PILOTA_CFG). " &
+									+ "Valore: " + kst_tab_pilota_cfg.blocca_richieste )		
+	throw kguo_exception
+end if
+		
+if kguo_sqlca_db_magazzino.sqlcode = 0 then
+	if kist_tab_pilota_cfg.st_tab_g_0.esegui_commit = 'N' then
 	else
-		if sqlca.sqlcode > 0 then
-			kst_esito.esito = kkg_esito.db_wrn
-		else	
-			kst_esito.esito = kkg_esito.db_ko
-			kuo_exception.set_esito (kst_esito)
-			throw kuo_exception
-		end if
+		kguo_sqlca_db_magazzino.db_commit( )
 	end if
 end if
-
-SetPointer(koldpointer)
 	
 
 end subroutine
@@ -1865,10 +1821,7 @@ st_tab_pilota_impostazioni kst_tab_pilota_impostazioni
 oldpointer = SetPointer(HourGlass!)
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 kguo_sqlca_db_pilota.db_connetti()
 

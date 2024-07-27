@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kds_sl_pt_g3_lav_if_datilav_ok.sru
 forward
-global type kds_sl_pt_g3_lav_if_datilav_ok from kds_db_magazzino
+global type kds_sl_pt_g3_lav_if_datilav_ok from ds_db_magazzino_parent
 end type
 end forward
 
-global type kds_sl_pt_g3_lav_if_datilav_ok from kds_db_magazzino
+global type kds_sl_pt_g3_lav_if_datilav_ok from ds_db_magazzino_parent
 string dataobject = "ds_sl_pt_g3_lav_if_datilav_ok"
 end type
 global kds_sl_pt_g3_lav_if_datilav_ok kds_sl_pt_g3_lav_if_datilav_ok
@@ -54,9 +54,4 @@ end on
 on kds_sl_pt_g3_lav_if_datilav_ok.destroy
 call super::destroy
 end on
-
-event constructor;call super::constructor;//
-this.post settransobject( kguo_sqlca_db_magazzino )
-
-end event
 

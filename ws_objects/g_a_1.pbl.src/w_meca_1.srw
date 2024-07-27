@@ -75,7 +75,6 @@ protected subroutine inizializza_2 () throws uo_exception
 protected function integer visualizza ()
 private subroutine inserisci_riga ()
 protected subroutine open_start_window ()
-private subroutine u_genera_alcuni_dati_lotto ()
 private subroutine u_genera_packing_list ()
 private subroutine u_accoppia_dosimetro ()
 protected subroutine inizializza_3 () throws uo_exception
@@ -102,6 +101,8 @@ private function integer u_print_barcode_0 (ref datastore kds_barcode_list)
 public subroutine u_rigenera_meca_dosim ()
 public subroutine u_autorizza_lotto ()
 private subroutine call_logtrace ()
+private subroutine u_aggiorna_data_lav_fine ()
+private function boolean u_stampa_certif ()
 end prototypes
 
 protected subroutine inizializza_1 ();//
@@ -613,7 +614,7 @@ st_tab_meca kst_tab_meca
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemvisible = true
 	m_main.m_strumenti.m_fin_gest_libero1.visible = true
 	m_main.m_strumenti.m_fin_gest_libero1.enabled = ki_consenti_modifica
-	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemname = "lucch32.png"
+	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemname = "lucch16.png"
 
 //--- Associa Dosimetro
 	if not m_main.m_strumenti.m_fin_gest_libero2.toolbaritemvisible or ki_st_open_w.flag_primo_giro = 'S' then
@@ -690,16 +691,16 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero7.libero1.toolbaritemname = "EditObject!"
 	end if
 
-//////--- Rigenera alcuni dati del Lotto 		
-////	if not m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.text = "Allinea data di Fine Trattamento nei barcode del Lotto"
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.microhelp = "Allinea data in anomalia di Fine Trattamento nei Barcode del Lotto"
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled =  ki_consenti_modifica or ki_consenti_modalita_inserimento
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemtext =  "Trattamento,"+ m_main.m_strumenti.m_fin_gest_libero7.libero2.text
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible = false
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = true
-////		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemname = "EditObject!"
-////	end if
+//--- Rigenera alcuni dati del Lotto 		
+	if not m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.text = "Allinea data di Fine Trattamento (dai barcode trattati)"
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.microhelp = "Allinea data di Fine Trattamento da quella indicata sui Barcode"
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled =  ki_consenti_modifica or ki_consenti_modalita_inserimento
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemtext =  "Fine.Lav.,"+ m_main.m_strumenti.m_fin_gest_libero7.libero2.text
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemvisible = false
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.visible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemname = "EditObject!"
+	end if
 
 //--- Genera PKLIST fittizia
 	if not m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
@@ -723,15 +724,26 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemname = "Insert!"
 	end if
 
-//--- Vedi LOG da TemporalTableLOTTO
-	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
-		m_main.m_strumenti.m_fin_gest_libero8.text = "Visualizza dati Storici del Lotto (Log Trace)"
-		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Visualizza dati Storici"
+//--- Ristampa ATTESTATO
+	if not m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible or ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero8.text = "Ristampa Attestato"
+		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Ristampa Attestato"
 		m_main.m_strumenti.m_fin_gest_libero8.enabled = true
-		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero8.text
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Att.,"+ m_main.m_strumenti.m_fin_gest_libero8.text
 		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
 		m_main.m_strumenti.m_fin_gest_libero8.visible = true
-		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "history16.png"
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "certificato16.gif"
+	end if
+
+//--- Vedi LOG da TemporalTableLOTTO
+	if not m_main.m_strumenti.m_fin_gest_libero9.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero9.text = "Visualizza dati Storici del Lotto (Log Trace)"
+		m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Visualizza dati Storici"
+		m_main.m_strumenti.m_fin_gest_libero9.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemtext =  "Log,"+ m_main.m_strumenti.m_fin_gest_libero9.text
+		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero9.visible = true
+		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemname = "history16.png"
 	end if
 	
 //--- Genera DDT
@@ -843,7 +855,7 @@ choose case trim(left(k_par_in, 3))
 		u_cambia_num_data()
 //--- Rigenera alcuni dati del Riferimento
 	case kkg_flag_richiesta.libero72
-		u_genera_alcuni_dati_lotto()		
+		u_aggiorna_data_lav_fine()		
 //--- Genera packing-list fittizia
 	case kkg_flag_richiesta.libero73
 		u_genera_packing_list( )
@@ -851,8 +863,12 @@ choose case trim(left(k_par_in, 3))
 	case kkg_flag_richiesta.libero74
 		inserisci_riga()
 		
-//--- vedi LOG TRACE
+//--- Ristampa Attestato
 	case kkg_flag_richiesta.libero8
+		u_stampa_certif( )	
+		
+//--- vedi LOG TRACE
+	case kkg_flag_richiesta.libero9
 		call_logtrace()	
 		
 //--- DDT
@@ -1144,34 +1160,6 @@ catch (uo_exception kuo_exception)
 
 finally 
 end try
-end subroutine
-
-private subroutine u_genera_alcuni_dati_lotto ();//
-int k_ok=0
-st_tab_meca kst_tab_meca
-
-
-	
-	kst_tab_meca.id = tab_1.tabpage_1.dw_1.object.id_meca[1]
-
-	try
-
-//--- Modifica 
-		k_ok = messagebox("Operazione di: "+trim(m_main.m_strumenti.m_fin_gest_libero4.text), "Operazione di aggiornamento dati Lotto, proseguire?", &
-							question!, yesno!, 2) 
-		if k_ok = 1 then
-//--- aggiorna lo stato del Riferimento
-			kiuf_armo.set_data_fine_lav(kst_tab_meca)
-			inizializza_lista()
-		end if
-			
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-	end try
-
-
-
-
 end subroutine
 
 private subroutine u_genera_packing_list ();//
@@ -2482,6 +2470,98 @@ end try
 
 end subroutine
 
+private subroutine u_aggiorna_data_lav_fine ();//
+int k_ok=0
+date k_data
+st_tab_meca kst_tab_meca
+
+
+	
+try
+	kst_tab_meca.id = tab_1.tabpage_1.dw_1.object.id_meca[1]
+
+	if kst_tab_meca.id > 0 then
+
+//--- Modifica 
+		k_ok = messagebox("Aggiorna Data Fine Trattamento", "Aggiorna la data solo se tutti i Barcode da Trattare hanno concluso il trattamento, proseguire?", &
+							question!, yesno!, 2) 
+		if k_ok = 1 then
+//--- aggiorna lo stato del Riferimento
+			k_data = kiuf_armo.set_data_lav_fine_se_trattato(kst_tab_meca)
+			if k_data > kkg.data_no then
+				messagebox("Operazione Terminata", "Aggiornata la data di fine trattamento al " + string(k_data))
+			else
+				messagebox("Operazione Terminata", "Data di fine trattamento non rilevata, nessun aggiornamento eseguito.")
+			end if
+			inizializza_lista()
+		end if
+		
+	end if
+			
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+finally
+
+		
+end try
+
+
+
+
+end subroutine
+
+private function boolean u_stampa_certif ();/*
+  Ristampa Attestato
+  ret: TRUE = stampato
+*/  
+boolean k_return
+st_tab_certif kst_tab_certif[]
+kuf_certif kuf1_certif
+kuf_certif_print kuf1_certif_print
+
+							
+try							
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+					
+	kuf1_certif = create kuf_certif						
+	kuf1_certif_print = create kuf_certif_print
+
+	kst_tab_certif[1].id_meca = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")					
+	if kst_tab_certif[1].id_meca > 0 then
+	else
+		return false
+	end if
+	if kuf1_certif.get_num_certif(kst_tab_certif[1]) > 0 then  //ristampa
+		
+		if messagebox("Stampa Attestato", "Ristampare l'Attestato n. " + &
+					+ string(kst_tab_certif[1].num_certif) + " di questo Lotto?", stopsign!, yesno!, 2) = 1 then
+		
+			kuf1_certif_print.ki_flag_stampa_di_test = TRUE  // Ristampa!
+	
+			if NOT kuf1_certif_print.stampa(kst_tab_certif[]) > 0 then  // RISTAMPA!!!
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
+				kguo_exception.kist_esito.sqlerrtext = "Stampa dell'Attestato n. " + string(kst_tab_certif[1].num_certif) + " non eseguita! "
+				throw kguo_exception
+			end if
+		
+			k_return = true
+		
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_certif_print) then destroy kuf1_certif_print
+	if isvalid(kuf1_certif) then destroy kuf1_certif
+	SetPointer(kkg.pointer_default)
+
+end try
+end function
+
 on w_meca_1.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
@@ -3589,7 +3669,7 @@ event u_display ( boolean a_visible )
 integer x = 1033
 integer y = 400
 integer width = 1751
-integer height = 856
+integer height = 1036
 integer taborder = 80
 boolean bringtotop = true
 boolean enabled = true

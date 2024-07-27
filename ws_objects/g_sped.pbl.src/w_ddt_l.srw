@@ -359,7 +359,7 @@ kuf_sped_free kuf1_sped_free
 
 kuf1_sped_free = create kuf_sped_free
 
-kst_open_w.key2 = string(dw_periodo.ki_data_ini)
+kst_open_w.key2 = "" //string(dw_periodo.ki_data_ini)
 
 kuf1_sped_free.u_open(kst_open_w)
 
@@ -522,7 +522,6 @@ integer width = 2807
 integer height = 708
 integer taborder = 120
 string dataobject = "d_sped_l_2"
-borderstyle borderstyle = stylelowered!
 end type
 
 type dw_guida from w_g_tab0`dw_guida within w_ddt_l

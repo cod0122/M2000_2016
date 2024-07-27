@@ -432,6 +432,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 		tab_1.tabpage_1.dw_1.setfocus()
 	else
 
+		tab_1.tabpage_1.text = "Utente " + string(kist_tab_sr_utenti.id)
 		k_rc = tab_1.tabpage_1.dw_1.retrieve(kist_tab_sr_utenti.id) 
 		tab_1.tabpage_2.dw_2.reset( )
 		tab_1.tabpage_3.dw_3.reset( )

@@ -18,6 +18,7 @@ forward prototypes
 public subroutine _readme ()
 public function st_esito u_open_zoom (string a_titolo, string a_campo_link, ref datastore adsi_elenco_output)
 public function st_esito u_open_zoom (string a_titolo, string a_campo_link, ref string a_url)
+public function st_esito u_open_zoom (string a_titolo, string a_campo_link, ref datastore adsi_elenco_output, string a_settrans_title_id)
 end prototypes
 
 public subroutine _readme ();//-------------------------------------------------------------------------------------
@@ -54,27 +55,8 @@ public function st_esito u_open_zoom (string a_titolo, string a_campo_link, ref 
 //--- Inp: necessario adsi_elenco_output + a_campo_link 
 //--- Out: st_esito
 //---
-st_open_w kst_open_w
-st_esito kst_esito
 
-
-	if adsi_elenco_output.rowcount() > 0 then
-		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
-		//kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
-		kst_open_w.flag_leggi_dw = " "
-		kst_open_w.flag_cerca_in_lista = " "
-		kst_open_w.key1 = trim(a_titolo)
-		kst_open_w.key2 = trim(adsi_elenco_output.dataobject)
-		kst_open_w.key3 = string(adsi_elenco_output.getrow())     //--- viene riempito con il nr di riga selezionata
-		kst_open_w.key4 = kGuf_data_base.prendi_win_attiva_titolo()    //--- Titolo della Window di chiamata per riconoscerla
-		kst_open_w.key6 = a_campo_link
-		kst_open_w.key12_any = adsi_elenco_output
-		kst_open_w.flag_where = " "
-		kst_esito = u_open(kst_open_w)
-	end if
-
-return kst_esito
-
+return this.u_open_zoom(a_titolo, a_campo_link, adsi_elenco_output, "")
 
 end function
 
@@ -99,6 +81,36 @@ st_esito kst_esito
 		kst_open_w.key4 = kGuf_data_base.prendi_win_attiva_titolo()    //--- Titolo della Window di chiamata per riconoscerla
 		kst_open_w.key6 = a_campo_link
 		kst_open_w.key8 = a_url
+		kst_open_w.flag_where = " "
+		kst_esito = u_open(kst_open_w)
+	end if
+
+return kst_esito
+
+
+end function
+
+public function st_esito u_open_zoom (string a_titolo, string a_campo_link, ref datastore adsi_elenco_output, string a_settrans_title_id);//---
+//--- Apre la funzione di ZOOM
+//--- Inp: necessario adsi_elenco_output + a_campo_link 
+//--- Out: st_esito
+//---
+st_open_w kst_open_w
+st_esito kst_esito
+
+
+	if adsi_elenco_output.rowcount() > 0 then
+		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
+		//kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
+		kst_open_w.flag_leggi_dw = " "
+		kst_open_w.flag_cerca_in_lista = " "
+		kst_open_w.key1 = trim(a_titolo)
+		kst_open_w.key2 = trim(adsi_elenco_output.dataobject)
+		kst_open_w.key3 = string(adsi_elenco_output.getrow())     //--- viene riempito con il nr di riga selezionata
+		kst_open_w.key4 = kGuf_data_base.prendi_win_attiva_titolo()    //--- Titolo della Window di chiamata per riconoscerla
+		kst_open_w.key6 = a_campo_link
+		kst_open_w.key12_any = adsi_elenco_output
+		kst_open_w.settrans = trim(a_settrans_title_id)
 		kst_open_w.flag_where = " "
 		kst_esito = u_open(kst_open_w)
 	end if

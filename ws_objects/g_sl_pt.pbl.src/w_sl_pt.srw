@@ -59,6 +59,7 @@ protected subroutine inizializza_3 () throws uo_exception
 protected subroutine u_pulizia_righe_g3 ()
 public subroutine u_copy_g2_to_g3 ()
 public subroutine u_copy_g3_to_g2 ()
+protected subroutine inizializza_7 () throws uo_exception
 end prototypes
 
 private function integer inserisci ();//
@@ -491,8 +492,8 @@ try
 		kst_tab_sl_pt.dosim_et_descr = left(kst_tab_sl_pt.dosim_et_descr,40) + tab_1.tabpage_1.dw_1.getitemstring(1, "dosim_et_descr_1")
 		if trim(kst_tab_sl_pt.dosim_et_descr) = "" then kst_tab_sl_pt.dosim_et_descr = "" 
 	
-		tab_1.tabpage_1.dw_1.setitem(k_row, "x_datins", kGuf_data_base.prendi_x_datins())
-		tab_1.tabpage_1.dw_1.setitem(k_row, "x_utente", kGuf_data_base.prendi_x_utente())
+		tab_1.tabpage_1.dw_1.setitem(1, "x_datins", kGuf_data_base.prendi_x_datins())
+		tab_1.tabpage_1.dw_1.setitem(1, "x_utente", kGuf_data_base.prendi_x_utente())
 
 		if tab_1.tabpage_1.dw_1.update() = 1 then
 
@@ -842,18 +843,19 @@ st_tab_sl_pt_g3 kst_tab_sl_pt_g3
 //--- G2	
 	if k_errore = "0" or k_errore = "4" then
 		if tab_1.tabpage_1.dw_1.getitemnumber( k_row, "dosetgminmin") > 0 and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmax") > 0 then		
-		   if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmax") then
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmax") > 0 &
+			   		and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgminmax") then
 				k_return = k_return + tab_1.tabpage_1.text + " G2: valore Massimo di 'Dose Target Minima' minore del Minimo; " &
 			           + kkg.acapo 
 				k_errore = "1"
 				k_nr_errori++
-			else
-			   if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmax") then
-					k_return = k_return + tab_1.tabpage_1.text + " G2: valore Massimo di 'Dose Target Massima' minore del Minimo; " &
+			end if
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmax") > 0 &
+						and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "dosetgmaxmax") then
+				k_return = k_return + tab_1.tabpage_1.text + " G2: valore Massimo di 'Dose Target Massima' minore del Minimo; " &
 			   		      + kkg.acapo 
-					k_errore = "1"
-					k_nr_errori++
-				end if
+				k_errore = "1"
+				k_nr_errori++
 			end if
 		end if
 	end if
@@ -870,18 +872,19 @@ st_tab_sl_pt_g3 kst_tab_sl_pt_g3
 //--- G3
 	if k_errore = "0" or k_errore = "4" then
 		if tab_1.tabpage_1.dw_1.getitemnumber( k_row, "g3_dosetgminmin") > 0 and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgminmax") > 0 then		
-		   if tab_1.tabpage_1.dw_1.getitemnumber( k_row, "g3_dosetgminmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgminmax") then
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgminmax") > 0 &
+			   		and tab_1.tabpage_1.dw_1.getitemnumber( k_row, "g3_dosetgminmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgminmax") then
 				k_return = k_return + tab_1.tabpage_1.text + " G3: valore Massimo di 'Dose Target Minima' minore del Minimo; " &
 			           + kkg.acapo 
 				k_errore = "1"
 				k_nr_errori++
-			else
-			   if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgmaxmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgmaxmax") then
-					k_return = k_return + tab_1.tabpage_1.text + " G3: valore Massimo di 'Dose Target Massima' minore del Minimo; " &
-			   		      + kkg.acapo 
-					k_errore = "1"
-					k_nr_errori++
-				end if
+			end if
+			if tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgmaxmax") > 0 &
+						and tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgmaxmin") > tab_1.tabpage_1.dw_1.getitemnumber ( k_row, "g3_dosetgmaxmax") then
+				k_return = k_return + tab_1.tabpage_1.text + " G3: valore Massimo di 'Dose Target Massima' minore del Minimo; " &
+							+ kkg.acapo 
+				k_errore = "1"
+				k_nr_errori++
 			end if
 		end if
 	end if
@@ -1578,45 +1581,25 @@ end try
 end subroutine
 
 protected subroutine inizializza_6 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//=== Inizializzazione del TAB 7 controllandone i valori se gia' presenti
 //======================================================================
 //
 string k_codice
-string k_scelta
-
 
 
 	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
-		k_codice = tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")  
-		k_scelta = trim(ki_st_open_w.flag_modalita)
 
-////=== Se cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
-//	if k_codice = 0 then
-//		inserisci()
-//		k_codice = tab_1.tabpage_7.dw_7.getitemnumber(1, "codice")  
-//	end if
-
-//=== Se tab_1 non ha righe INSERISCI_tab_1 altrimenti controllo che righe sono
-//=== Se le righe presenti non c'entrano con il cliente allora resetto		
 		if tab_1.tabpage_7.dw_7.rowcount() > 0 then
-			if tab_1.tabpage_7.dw_7.getitemstring(1, "sl_pt") <> k_codice then 
-				tab_1.tabpage_7.dw_7.reset()
-			end if
+			k_codice = trim(tab_1.tabpage_7.dw_7.getitemstring(1, "sl_pt"))
 		end if
 	
-		if tab_1.tabpage_7.dw_7.rowcount() < 1 then
-	
-//if tab_1.tabpage_7.dw_7.rowcount() = 0 then
-	
-
-//	k_key = long(mid(st_parametri.text, 3, 10))
-
-
-
-//=== Retrive 
-			if tab_1.tabpage_7.dw_7.retrieve(0, date(0), k_codice, 0) <= 0 then
-
-//			inserisci()
+//--- se codice cambiato lo devo rileggere
+		if k_codice <> trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")) then
+			
+			k_codice = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt"))
+			if tab_1.tabpage_7.dw_7.retrieve(0, date(0), k_codice, 0) < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura elenco Listini per il PT codice=" + k_codice)	
+				kguo_exception.messaggio_utente()
 			else
 				attiva_tasti()
 			end if				
@@ -1819,6 +1802,22 @@ public subroutine u_copy_g2_to_g3 ();//
 		else
 			tab_1.tabpage_1.dw_1.setitem(1,"g3_dosetgmaxtcalc", tab_1.tabpage_1.dw_1.getitemstring(1,"dosetgmaxtcalc"))
 		end if
+		if tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_dosetgminfattcorr_max") > 0 then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"g3_dosetgminfattcorr_max", tab_1.tabpage_1.dw_1.getitemnumber(1,"dosetgminfattcorr_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_dosetgmaxfattcorr_max") > 0 then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"g3_dosetgmaxfattcorr_max", tab_1.tabpage_1.dw_1.getitemnumber(1,"dosetgmaxfattcorr_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemstring(1,"g3_dosetgmintcalc_max") > " " then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"g3_dosetgmintcalc_max", tab_1.tabpage_1.dw_1.getitemstring(1,"dosetgmintcalc_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemstring(1,"g3_dosetgmaxtcalc_max") > " " then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"g3_dosetgmaxtcalc_max", tab_1.tabpage_1.dw_1.getitemstring(1,"dosetgmaxtcalc_max"))
+		end if
 		if tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_unitwork") > 0 then
 		else
 			tab_1.tabpage_1.dw_1.setitem(1,"g3_unitwork", tab_1.tabpage_1.dw_1.getitemnumber(1,"unitwork"))
@@ -1917,6 +1916,22 @@ public subroutine u_copy_g3_to_g2 ();//
 		else
 			tab_1.tabpage_1.dw_1.setitem(1,"dosetgmaxtcalc", tab_1.tabpage_1.dw_1.getitemstring(1,"g3_dosetgmaxtcalc"))
 		end if
+		if tab_1.tabpage_1.dw_1.getitemnumber(1,"dosetgminfattcorr_max") > 0 then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"dosetgminfattcorr_max", tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_dosetgminfattcorr_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemnumber(1,"dosetgmaxfattcorr_max") > 0 then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"dosetgmaxfattcorr_max", tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_dosetgmaxfattcorr_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemstring(1,"dosetgmintcalc_max") > " " then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"dosetgmintcalc_max", tab_1.tabpage_1.dw_1.getitemstring(1,"g3_dosetgmintcalc_max"))
+		end if
+		if tab_1.tabpage_1.dw_1.getitemstring(1,"dosetgmaxtcalc_max") > " " then
+		else
+			tab_1.tabpage_1.dw_1.setitem(1,"dosetgmaxtcalc_max", tab_1.tabpage_1.dw_1.getitemstring(1,"g3_dosetgmaxtcalc_max"))
+		end if
 		if tab_1.tabpage_1.dw_1.getitemnumber(1,"unitwork") > 0 then
 		else
 			tab_1.tabpage_1.dw_1.setitem(1,"unitwork", tab_1.tabpage_1.dw_1.getitemnumber(1,"g3_unitwork"))
@@ -1944,6 +1959,39 @@ public subroutine u_copy_g3_to_g2 ();//
 
 	attiva_tasti()
 	
+end subroutine
+
+protected subroutine inizializza_7 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 8 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_codice
+
+
+	if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+
+		if tab_1.tabpage_8.dw_8.rowcount() > 0 then
+			k_codice = trim(tab_1.tabpage_8.dw_8.getitemstring(1, "cod_sl_pt"))
+		end if
+	
+//--- se codice cambiato lo devo rileggere
+		if k_codice <> trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt")) then
+			
+			k_codice = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "cod_sl_pt"))
+			if tab_1.tabpage_8.dw_8.retrieve(k_codice) < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura elenco Lotti per il PT codice=" + k_codice)	
+				kguo_exception.messaggio_utente()
+			end if
+
+		end if
+	
+		tab_1.tabpage_8.dw_8.setfocus()
+		
+	end if
+	
+
+
+
 end subroutine
 
 on w_sl_pt.create
@@ -2044,7 +2092,8 @@ end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_sl_pt
 integer x = 0
-integer y = 0
+integer y = 4
+integer width = 3227
 end type
 
 on tab_1.create
@@ -2066,12 +2115,13 @@ end on
 
 event tab_1::u_constructor;//
 							// 1     2     3     4     5     6     7     8     9   
-ki_tabpage_enabled = {true, true, true, true, true, true, true, false, false} // disabilita alcune tabpage
+ki_tabpage_enabled = {true, true, true, true, true, true, true, true, false} // disabilita alcune tabpage
 super::event u_constructor( )
 
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+integer width = 3191
 long backcolor = 32238571
 string text = "Testata"
 long tabbackcolor = 32435950
@@ -2208,6 +2258,7 @@ type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+integer width = 3191
 long backcolor = 16777215
 string text = "Posizioni Dosimetri"
 end type
@@ -2298,6 +2349,7 @@ type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
 end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
+integer width = 3191
 end type
 
 type dw_3 from w_g_tab_3`dw_3 within tabpage_3
@@ -2316,6 +2368,7 @@ end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
+integer width = 3191
 boolean enabled = true
 string text = "Impianto G3"
 ln_1 ln_1
@@ -2408,6 +2461,7 @@ end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 boolean visible = true
+integer width = 3191
 boolean enabled = true
 string text = "Disp.Ausiliari"
 end type
@@ -2428,6 +2482,7 @@ type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
 end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
+integer width = 3191
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -2438,6 +2493,7 @@ end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 boolean visible = true
+integer width = 3191
 boolean enabled = true
 string text = "Listini"
 end type
@@ -2470,15 +2526,26 @@ end if
 end event
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
+boolean visible = true
+integer width = 3191
+boolean enabled = true
+string text = "Movimenti"
+string powertiptext = "Elenco lotti"
 end type
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
 end type
 
 type dw_8 from w_g_tab_3`dw_8 within tabpage_8
+boolean visible = true
+boolean enabled = true
+string dataobject = "d_sl_pt_meca_l"
+boolean ki_link_standard_sempre_possibile = true
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+integer width = 3191
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9

@@ -221,12 +221,8 @@ st_tab_clie_settori kst_tab_clie_settori
 st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
 try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_listino = create kuf_listino
 	kuf1_clienti = create kuf_clienti
@@ -261,12 +257,7 @@ try
 			kst_tab_clienti_contatto.rag_soc_10 = ""
 			if kst_tab_clienti[k_riga].kst_tab_clienti_mkt.id_contatto_1 > 0 then
 				kst_tab_clienti_contatto.codice = kst_tab_clienti[k_riga].kst_tab_clienti_mkt.id_contatto_1
-				kst_esito = kuf1_clienti.get_nome(kst_tab_clienti_contatto)
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito(kst_esito)
-					throw kguo_exception
-				end if
+				kuf1_clienti.get_nome(kst_tab_clienti_contatto)
 			end if
 			if isnull(kst_tab_clienti_contatto.rag_soc_10) then
 				kst_tab_clienti_contatto.rag_soc_10 = ""

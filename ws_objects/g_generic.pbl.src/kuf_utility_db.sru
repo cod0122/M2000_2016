@@ -43,6 +43,10 @@ private function boolean u_crea_view_v_temptable_sc_cf () throws uo_exception
 private function boolean u_crea_view_v_temptable_contratti () throws uo_exception
 private function boolean u_crea_view_v_temptable_listino () throws uo_exception
 private function boolean u_crea_view_v_temptable_sl_pt_g3 () throws uo_exception
+private function boolean u_crea_view_v_contatti () throws uo_exception
+private function boolean u_crea_view_v_meca_artr_impianto () throws uo_exception
+private function boolean u_tb_crea_view (string a_viewname, string a_sql) throws uo_exception
+private function boolean u_crea_view_v_colli_sped () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -598,7 +602,11 @@ try
 	if not krc then k_return=false	
 	krc = u_crea_view_v_temptable_listino( )
 	if not krc then k_return=false	
-
+	krc = u_crea_view_v_contatti( )
+	if not krc then k_return=false	
+	krc = u_crea_view_v_meca_artr_impianto( )
+	if not krc then k_return=false	
+	
 	kguo_sqlca_db_magazzino.db_commit( )
 
 catch (uo_exception kuo_exception)
@@ -1362,7 +1370,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_meca_pl_v1' completata." 
 		kuo_exception = create uo_exception
@@ -1686,7 +1694,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_meca_pl_v1' completata." 
 		kuo_exception = create uo_exception
@@ -1800,7 +1808,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_alarm_instock_tosend' completata." 
 		kuo_exception = create uo_exception
@@ -1948,7 +1956,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_asd_barcode_all' completata." 
 		kuo_exception = create uo_exception
@@ -2135,7 +2143,7 @@ k_sql = "create view  v_contratti_all_rid   " &
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_contratti_all_rid' completata." 
 		kuo_exception = create uo_exception
@@ -2378,7 +2386,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_contratti_doc' completata." 
 		kuo_exception = create uo_exception
@@ -2399,15 +2407,12 @@ private function boolean u_crea_view_v_ptasks_rows () throws uo_exception;//
 //=== Estemporanea da lanciare una sola volta
 //=== Crae tabella View  'v_ptsks_rows' 
 //===
-int k_errore=0
 boolean k_return = true
 string k_sql
 st_esito kst_esito
 uo_exception kuo_exception
 
 
-
-//=== Puntatore Cursore da attesa..... 
 	SetPointer(kkg.pointer_attesa)
 
 	k_sql = "create view v_ptasks_rows  " &
@@ -2454,6 +2459,8 @@ uo_exception kuo_exception
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata') > '01.01.2019' then convert(DATE, JSON_VALUE(ptasks_rows.data_json ,'$.acc.arrivodata'))  else null  end accettazione_arrivodata  " &
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.acc.e1wo')) else 0 end accettazione_e1wo " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg') > '0' then convert(decimal(8,3), JSON_VALUE(ptasks_rows.data_json ,'$.acc.pesolordoxlottokg')) else 0.0000 end accettazione_pesolordoxlottokg " & 
+		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.clie_1') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.acc.clie_1')) else 0 end accettazione_clie_1 " & 
+		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.acc.clie_2') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.acc.clie_2')) else 0 end accettazione_clie_2 " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.acc.dhlbox')) accettazione_dhlbox " & 
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.acc.boxdimcm')) accettazione_boxdimcm " & 
 		+ " , case when JSON_VALUE(ptasks_rows.data_json ,'$.valid.modaccompn') > '0' then convert(INTEGER, JSON_VALUE(ptasks_rows.data_json ,'$.valid.modaccompn')) else 0 end validation_modaccompn " & 
@@ -2491,7 +2498,6 @@ uo_exception kuo_exception
 
 	if sqlca.sqlcode <> 0 then
 		k_return = false
-		k_errore = 1
 		SetPointer(kkg.pointer_default)
 		kuo_exception = create uo_exception
 		kst_esito.nome_oggetto = this.classname()
@@ -2519,23 +2525,15 @@ uo_exception kuo_exception
 //		end if	
 	end if	
 			
-
-
-	SetPointer(kkg.pointer_default)
-
-	if k_errore = 0 then
-		
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Generazione VIEW 'v_ptasks_rows' completata." 
-		kuo_exception = create uo_exception
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
-		kuo_exception.set_esito(kst_esito )
-		kuo_exception.scrivi_log()
-		destroy kuo_exception
-	end if
-	
+	kst_esito.nome_oggetto = this.classname()
+	kst_esito.esito = kkg_esito.ok
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.sqlerrtext = "Generazione VIEW 'v_ptasks_rows' completata." 
+	kuo_exception = create uo_exception
+	kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
+	kuo_exception.set_esito(kst_esito )
+	kuo_exception.scrivi_log()
+	destroy kuo_exception
 	 
 SetPointer(kkg.pointer_default)
 
@@ -2606,7 +2604,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_meca_instock' completata." 
 		kuo_exception = create uo_exception
@@ -2803,7 +2801,7 @@ uo_exception kuo_exception
 	if k_errore = 0 then
 		
 		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
+		kst_esito.esito = kkg_esito.ok
 		kst_esito.sqlcode = sqlca.sqlcode
 		kst_esito.sqlerrtext = "Generazione VIEW 'v_sped_free' completata." 
 		kuo_exception = create uo_exception
@@ -4646,6 +4644,10 @@ uo_exception kuo_exception
             + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
             + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
             + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(dosetgminfattcorr_max, 0.0) dosetgminfattcorr_max "&
+            + ",isnull(dosetgmaxfattcorr_max, 0.0) dosetgmaxfattcorr_max "&
+            + ",isnull(dosetgmintcalc_max, '') dosetgmintcalc_max "&
+            + ",isnull(dosetgmaxtcalc_max, '') dosetgmaxtcalc_max "&
             + ",isnull(pesomax, '') pesomax "&
             + ",isnull(densita, 0.0) densita "&
             + ",isnull(densitamax, 0.0) densitamax "&
@@ -4700,6 +4702,10 @@ uo_exception kuo_exception
 		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr_max = LAG(dosetgminfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr_max = LAG(dosetgmaxfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc_max = LAG(dosetgmintcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc_max = LAG(dosetgmaxtcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextpesomax = LAG(pesomax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -4761,6 +4767,10 @@ uo_exception kuo_exception
             + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
             + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
             + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(dosetgminfattcorr_max, 0.0) dosetgminfattcorr_max "&
+            + ",isnull(dosetgmaxfattcorr_max, 0.0) dosetgmaxfattcorr_max "&
+            + ",isnull(dosetgmintcalc_max, '') dosetgmintcalc_max "&
+            + ",isnull(dosetgmaxtcalc_max, '') dosetgmaxtcalc_max "&
             + ",isnull(pesomax, '') pesomax "&
             + ",isnull(densita, 0.0) densita "&
             + ",isnull(densitamax, 0.0) densitamax "&
@@ -4815,6 +4825,10 @@ uo_exception kuo_exception
 		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr_max = LAG(dosetgminfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr_max = LAG(dosetgmaxfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc_max = LAG(dosetgmintcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc_max = LAG(dosetgmaxtcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextpesomax = LAG(pesomax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -4874,12 +4888,16 @@ uo_exception kuo_exception
 		   + "   ,('Dosim. descr. etichetta', 'dosim_et_descr' , CAST(dosim_et_descr AS NVARCHAR(4000)), CAST(nextdosim_et_descr AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target min. min.', 'dosetgminmin' , CAST(dosetgminmin AS NVARCHAR(4000)), CAST(nextdosetgminmin AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target min. max', 'dosetgminmax' , CAST(dosetgminmax AS NVARCHAR(4000)), CAST(nextdosetgminmax AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target min. fatt. correz.', 'dosetgminfattcorr' , CAST(dosetgminfattcorr AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target min. tipo calc.', 'dosetgmintcalc' , CAST(dosetgmintcalc AS NVARCHAR(4000)), CAST(nextdosetgmintcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. fatt. corr.min.', 'dosetgminfattcorr' , CAST(dosetgminfattcorr AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. tipo calc.min.', 'dosetgmintcalc' , CAST(dosetgmintcalc AS NVARCHAR(4000)), CAST(nextdosetgmintcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. fatt. corr.max.', 'dosetgmaxfattcorr' , CAST(dosetgmaxfattcorr AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. tipo calc.max.', 'dosetgmaxtcalc' , CAST(dosetgmaxtcalc AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target max. min.', 'dosetgmaxmin' , CAST(dosetgmaxmin AS NVARCHAR(4000)), CAST(nextdosetgmaxmin AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target max. max', 'dosetgmaxmax' , CAST(dosetgmaxmax AS NVARCHAR(4000)), CAST(nextdosetgmaxmax AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target max. fatt. correz.', 'dosetgmaxfattcorr' , CAST(dosetgmaxfattcorr AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target max. tipo calc.', 'dosetgmaxtcalc' , CAST(dosetgmaxtcalc AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. fatt. corr.min.', 'dosetgminfattcorr_max' , CAST(dosetgminfattcorr_max AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. tipo calc.min.', 'dosetgmintcalc_max' , CAST(dosetgmintcalc_max AS NVARCHAR(4000)), CAST(nextdosetgmintcalc_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. fatt. corr.max.', 'dosetgmaxfattcorr_max' , CAST(dosetgmaxfattcorr_max AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. tipo calc.max.', 'dosetgmaxtcalc_max' , CAST(dosetgmaxtcalc_max AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc_max AS NVARCHAR(4000))) " &
 		   + "   ,('Peso max', 'pesomax' , CAST(pesomax AS NVARCHAR(4000)), CAST(nextpesomax AS NVARCHAR(4000))) " &
 		   + "   ,('Densità', 'densita' , CAST(densita AS NVARCHAR(4000)), CAST(nextdensita AS NVARCHAR(4000))) " &
 		   + "   ,('Densità max', 'densitamax' , CAST(densitamax AS NVARCHAR(4000)), CAST(nextdensitamax AS NVARCHAR(4000))) " &
@@ -5865,6 +5883,10 @@ uo_exception kuo_exception
             + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
             + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
             + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(dosetgminfattcorr_max, 0.0) dosetgminfattcorr_max "&
+            + ",isnull(dosetgmaxfattcorr_max, 0.0) dosetgmaxfattcorr_max "&
+            + ",isnull(dosetgmintcalc_max, '') dosetgmintcalc_max "&
+            + ",isnull(dosetgmaxtcalc_max, '') dosetgmaxtcalc_max "&
             + ",isnull(densita, 0.0) densita "&
             + ",isnull(densitamax, 0.0) densitamax "&
             + ",isnull(unitwork, 0.0) unitwork "&
@@ -5889,6 +5911,10 @@ uo_exception kuo_exception
 		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr_max = LAG(dosetgminfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr_max = LAG(dosetgmaxfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc_max = LAG(dosetgmintcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc_max = LAG(dosetgmaxtcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -5920,6 +5946,10 @@ uo_exception kuo_exception
             + ",isnull(dosetgmaxfattcorr, 0.0) dosetgmaxfattcorr "&
             + ",isnull(dosetgmintcalc, '') dosetgmintcalc "&
             + ",isnull(dosetgmaxtcalc, '') dosetgmaxtcalc "&
+            + ",isnull(dosetgminfattcorr_max, 0.0) dosetgminfattcorr_max "&
+            + ",isnull(dosetgmaxfattcorr_max, 0.0) dosetgmaxfattcorr_max "&
+            + ",isnull(dosetgmintcalc_max, '') dosetgmintcalc_max "&
+            + ",isnull(dosetgmaxtcalc_max, '') dosetgmaxtcalc_max "&
             + ",isnull(densita, 0.0) densita "&
             + ",isnull(densitamax, 0.0) densitamax "&
             + ",isnull(unitwork, 0.0) unitwork "&
@@ -5944,6 +5974,10 @@ uo_exception kuo_exception
 		+ "  , nextdosetgmaxfattcorr = LAG(dosetgmaxfattcorr) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmintcalc = LAG(dosetgmintcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdosetgmaxtcalc = LAG(dosetgmaxtcalc) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgminfattcorr_max = LAG(dosetgminfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxfattcorr_max = LAG(dosetgmaxfattcorr_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmintcalc_max = LAG(dosetgmintcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
+		+ "  , nextdosetgmaxtcalc_max = LAG(dosetgmaxtcalc_max) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensita= LAG(densita) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextdensitamax = LAG(densitamax) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
 		+ "  , nextunitwork = LAG(unitwork) OVER (PARTITION BY cod_sl_pt ORDER BY x_ValidFrom) " &
@@ -5973,12 +6007,16 @@ uo_exception kuo_exception
 		   + "   ,('Dosim. descr. etichetta', 'dosim_et_descr' , CAST(dosim_et_descr AS NVARCHAR(4000)), CAST(nextdosim_et_descr AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target min. min.', 'dosetgminmin' , CAST(dosetgminmin AS NVARCHAR(4000)), CAST(nextdosetgminmin AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target min. max', 'dosetgminmax' , CAST(dosetgminmax AS NVARCHAR(4000)), CAST(nextdosetgminmax AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target min. fatt. correz.', 'dosetgminfattcorr' , CAST(dosetgminfattcorr AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target min. tipo calc.', 'dosetgmintcalc' , CAST(dosetgmintcalc AS NVARCHAR(4000)), CAST(nextdosetgmintcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. fatt. corr.min.', 'dosetgminfattcorr' , CAST(dosetgminfattcorr AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. tipo calc.min.', 'dosetgmintcalc' , CAST(dosetgmintcalc AS NVARCHAR(4000)), CAST(nextdosetgmintcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. fatt. corr.max.', 'dosetgmaxfattcorr' , CAST(dosetgmaxfattcorr AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target min. tipo calc.max.', 'dosetgmaxtcalc' , CAST(dosetgmaxtcalc AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target max. min.', 'dosetgmaxmin' , CAST(dosetgmaxmin AS NVARCHAR(4000)), CAST(nextdosetgmaxmin AS NVARCHAR(4000))) " &
 		   + "   ,('Dose target max. max', 'dosetgmaxmax' , CAST(dosetgmaxmax AS NVARCHAR(4000)), CAST(nextdosetgmaxmax AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target max. fatt. correz.', 'dosetgmaxfattcorr' , CAST(dosetgmaxfattcorr AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr AS NVARCHAR(4000))) " &
-		   + "   ,('Dose target max. tipo calc.', 'dosetgmaxtcalc' , CAST(dosetgmaxtcalc AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. fatt. corr.min.', 'dosetgminfattcorr_max' , CAST(dosetgminfattcorr_max AS NVARCHAR(4000)), CAST(nextdosetgminfattcorr_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. tipo calc.min.', 'dosetgmintcalc_max' , CAST(dosetgmintcalc_max AS NVARCHAR(4000)), CAST(nextdosetgmintcalc_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. fatt. corr.max.', 'dosetgmaxfattcorr_max' , CAST(dosetgmaxfattcorr_max AS NVARCHAR(4000)), CAST(nextdosetgmaxfattcorr_max AS NVARCHAR(4000))) " &
+		   + "   ,('Dose target max. tipo calc.max.', 'dosetgmaxtcalc_max' , CAST(dosetgmaxtcalc_max AS NVARCHAR(4000)), CAST(nextdosetgmaxtcalc_max AS NVARCHAR(4000))) " &
 		   + "   ,('Densità', 'densita' , CAST(densita AS NVARCHAR(4000)), CAST(nextdensita AS NVARCHAR(4000))) " &
 		   + "   ,('Densità max', 'densitamax' , CAST(densitamax AS NVARCHAR(4000)), CAST(nextdensitamax AS NVARCHAR(4000))) " &
 		   + "   ,('Unità di lavoro', 'unitwork' , CAST(unitwork AS NVARCHAR(4000)), CAST(nextunitwork AS NVARCHAR(4000))) " &
@@ -6049,6 +6087,155 @@ uo_exception kuo_exception
 	end if
 	 
 	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_contatti () throws uo_exception;//
+//=== Estemporanea da lanciare una sola volta
+//=== Crae tabella View  'v_contatti' 
+//===
+boolean k_return
+string k_sql
+
+
+	k_sql = "create view v_contatti  " &
+		+ " as " &
+		 +" SELECT  " &
+			+" isnull(clienti.codice, 0) id_cliente ," & 
+			+" isnull(clienti.stato,'6') stato, " & 
+			+" isnull(clienti.tipo,'') tipo, " & 
+			+" isnull(trim(clienti.rag_soc_10),'') rag_soc_10," & 
+			+" isnull(trim(clienti.rag_soc_11),'') rag_soc_11," & 
+			+" isnull(trim(clienti.indi_1),'') indi_1," & 
+			+" isnull(clienti.cap_1,'') cap_1," & 
+			+" isnull(trim(clienti.loc_1),'') loc_1," & 
+			+" isnull(clienti.prov_1,'') prov_1," & 
+			+" isnull(clienti.zona,'') zona," & 
+			+" isnull(clienti.p_iva,'') p_iva," & 
+			+" isnull(clienti.cf,'') cf," & 
+			+" isnull(trim(clienti.fono),'')  fono," & 
+			+" isnull(trim(clienti.fax),'')   fax, " & 
+			+" isnull(clienti.id_nazione_1,0) id_nazione," & 
+			+" clienti.x_datins," & 
+			+" clienti.x_utente," & 
+			+" isnull(trim(clienti_web.email),'')  email," & 
+			+" isnull(trim(clienti_web.email1),'') email1," & 
+			+" isnull(trim(clienti_web.email2),'') email2," &  
+			+" isnull(trim(clienti_web.note),' ')  note," & 
+			+" isnull(trim(clienti_web.sito_web),'')  sito_web," & 
+			+" isnull(trim(clienti_web.sito_web1),'') sito_web1, " & 
+			+" isnull(trim(clienti_web.blog_web),'')  blog_web, " &
+			+" isnull(trim(clienti_web.blog_web1),'')  blog_web1, " & 
+			+" isnull(clienti_mkt.id_cliente_link,0) id_cliente_link," & 
+			+" isnull(clienti_mkt.qualifica,'') qualifica, " & 
+			+" trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')) for_qa_italy, " & 
+			+" trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_cobalt_rload')) for_cobalt_rload " & 
+		 +" FROM clienti " & 
+			+" left outer join clienti_web on clienti.codice = clienti_web.id_cliente " & 
+			+" left outer join clienti_mkt on clienti.codice = clienti_mkt.id_cliente " &
+		 +" Where clienti.tipo = 'C' "
+		
+//				+ " ,JSON_VALUE(ptasks_rows.data_json ,'$.iva') iva " & 
+
+	k_return = u_tb_crea_view("v_contatti", k_sql)
+
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_meca_artr_impianto () throws uo_exception;//
+//=== Estemporanea da lanciare una sola volta
+//=== Crae tabella View  'v_meca_artr_impianto'
+//=== Righe fattura 
+//===
+boolean k_return 
+string k_sql
+
+
+	k_sql = "CREATE VIEW v_meca_artr_impianto  " &
+			+ " (id_meca , " &
+			+ " impianto " & 
+	      + ") " &
+			+ " AS  " &
+			+ " select  distinct " & 
+                      + " meca.id  " & 
+							 + " , case when max(artr.impianto) > 0 then max(artr.impianto) " &
+								 + " else isnull(meca.impianto, 2) " &
+                      + " end as impianto  " & 
+                      + " FROM meca inner join armo on meca.id = armo.id_meca " &
+									 + " left outer join artr on armo.id_armo = artr.id_armo " &
+					+ " group by meca.id, meca.impianto "
+
+	k_return = u_tb_crea_view("v_meca_artr_impianto", k_sql)
+
+return k_return
+
+end function
+
+private function boolean u_tb_crea_view (string a_viewname, string a_sql) throws uo_exception;/*
+  Esegue la CREATE VIEW
+  Inp: nome della view + sql della view
+  ret: TRUE = ok
+*/
+boolean k_return
+string k_immediate_sql
+
+
+try
+	
+	SetPointer(kkg.pointer_attesa)
+
+	kguo_exception.inizializza(this.classname())
+
+	k_immediate_sql = "drop VIEW " + a_viewname
+	EXECUTE IMMEDIATE :k_immediate_sql using kguo_sqlca_db_magazzino;
+
+	EXECUTE IMMEDIATE :a_sql using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino,	"Errore durante la creazione della View " + trim(a_viewname))
+		throw kguo_exception
+	end if	
+			
+	kguo_exception.kist_esito.nome_oggetto = this.classname()
+	kguo_exception.kist_esito.sqlerrtext = "Generazione della View '" + trim(a_viewname) + "' completata." 
+	kguo_exception.scrivi_log()
+	 
+	k_return = true
+
+catch ( uo_exception kuo_exception)	
+	throw kuo_exception
+		
+finally		
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_colli_sped () throws uo_exception;//
+//=== Estemporanea da lanciare una sola volta
+//=== Crae tabella View  'v_colli_sped' 
+//===
+boolean k_return
+string k_sql
+
+
+	k_sql = "create view v_colli_sped  " &
+			 + " ( id_meca, id_armo, colli_sped) AS   " &
+			 + "  SELECT armo.id_meca,   " &
+					+ " armo.id_armo,   " &
+					+ " sum(arsp.colli) " &
+			      + " FROM armo inner join arsp on armo.id_armo = arsp.id_armo   " &
+               + " group by  armo.id_meca, armo.id_armo " 
+
+	k_return = u_tb_crea_view("v_colli_sped", k_sql)
+
 
 return k_return
 

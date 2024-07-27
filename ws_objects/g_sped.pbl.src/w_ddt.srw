@@ -13,6 +13,7 @@ end type
 end forward
 
 global type w_ddt from w_g_tab_3
+integer width = 3035
 integer height = 1500
 string title = "DDT"
 boolean ki_toolbar_window_presente = true
@@ -2906,14 +2907,11 @@ k_return = super::aggiorna_dati( )
 ki_msg_dopo_update = k_msg_dopo_update  // ripristino del flag
 
 if left(k_return, 1) = "0" then
-//	u_if_allarme_memo( )
 
 	if tab_1.tabpage_5.visible and ki_alarm_todo_msg then
 		ki_alarm_todo_msg = false
 
 		post u_alarm_msg( )
-
-		//messagebox("Alarm", "Prima di proseguire, prendere visione dell'Allarme Memo", exclamation!)
 
 		k_return = "1"
 	end if
@@ -3093,6 +3091,8 @@ int k_return
 kuf_memo_allarme kuf1_memo_allarme
 int k_riga, k_righe
 long k_id_meca[10]
+long k_clie_2, k_clie_3
+
 
 try
 	
@@ -3102,10 +3102,16 @@ try
 		k_id_meca[k_riga] = tab_1.tabpage_4.dw_4.getitemnumber( k_riga, "id_meca")
 	next
 	if k_id_meca[1] > 0 then
-		k_return = tab_1.tabpage_5.dw_5.retrieve(k_id_meca[1], k_id_meca[2], k_id_meca[3] &
+		// verifica Allarmi per cliente con i Lotti associati
+		k_return = tab_1.tabpage_5.dw_5.retrieve(0, 0, k_id_meca[1], k_id_meca[2], k_id_meca[3] &
 														,k_id_meca[4], k_id_meca[5], k_id_meca[6] &
 														,k_id_meca[7], k_id_meca[8], k_id_meca[9] &
 														,k_id_meca[10])
+	else
+		// verifica Allarmi per cliente quando manca l'aggancio al Lotto
+		k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_2")
+		k_clie_3 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_3")
+		k_return = tab_1.tabpage_5.dw_5.retrieve(k_clie_2, k_clie_3, 0,0,0,0,0,0,0,0,0,0)
 	end if
 	
 	if tab_1.tabpage_5.dw_5.rowcount( ) > 0 then
@@ -3708,6 +3714,8 @@ kuf_utility kuf1_utility
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_ddt
+integer x = 0
+integer y = 0
 end type
 
 on tab_1.create
@@ -3829,6 +3837,8 @@ try
 						get_dati_cliente(kst_tab_clienti)
 						post put_video_clie_2(kst_tab_clienti)
 						post event u_setcolumn("rag_soc_10")
+						//--- Gestione di Allert per il cliente 	
+						post u_allarme_lotto( )
 					else
 						this.post modify( dwo.name + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
 					end if
@@ -3854,6 +3864,8 @@ try
 						get_dati_cliente(kst_tab_clienti)
 						post put_video_clie_2(kst_tab_clienti)
 						post event u_setcolumn(dwo.name)
+						//--- Gestione di Allert per il cliente 	
+						post u_allarme_lotto( )
 					else
 						this.post modify( dwo.name + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
 					end if
@@ -3909,7 +3921,7 @@ try
 																+ trim(kst_tab_clienti.id_nazione_1)  &
 																		) 
 							//--- Gestione di Allert per il cliente 	
-//							post u_allarme_cliente(kst_tab_clienti)
+							post u_allarme_lotto( )
 
 						else
 							this.post modify(dwo.name + ".Background.Color = '" + string(KKG_COLORE.ERR_DATO) + "' ") 
@@ -4690,8 +4702,8 @@ event u_attiva ( )
 boolean visible = false
 integer x = 818
 integer y = 240
-integer width = 1225
-integer height = 368
+integer width = 1312
+integer height = 448
 integer taborder = 40
 boolean bringtotop = true
 boolean titlebar = true

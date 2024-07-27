@@ -47,7 +47,7 @@ table(column=(type=long updatewhereclause=yes identity=yes name=codice dbname="c
  column=(type=char(8) updatewhereclause=yes name=id_clie_classe dbname="clienti.id_clie_classe" )
  column=(type=char(80) updatewhereclause=yes name=clie_classi_descr dbname="clie_classi.descr" )
  column=(type=char(80) updatewhereclause=yes name=clie_settori_descr dbname="clie_settori.descr" )
- column=(type=char(40) updatewhereclause=yes name=clienti_mkt_qualifica dbname="clienti_mkt.qualifica" )
+ column=(type=char(80) updatewhereclause=yes name=clienti_mkt_qualifica dbname="clienti_mkt.qualifica" )
  column=(type=char(8) updatewhereclause=yes name=clienti_mkt_tipo_rapporto dbname="clienti_mkt.tipo_rapporto" )
  column=(type=long updatewhereclause=yes name=clienti_mkt_id_cliente_link dbname="clienti_mkt.id_cliente_link" )
  column=(type=char(160) updatewhereclause=yes name=clienti_mkt_altra_sede dbname="clienti_mkt.altra_sede" )

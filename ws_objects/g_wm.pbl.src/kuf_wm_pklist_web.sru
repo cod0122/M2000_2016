@@ -768,40 +768,44 @@ kuf_wm_pbdom_xml_pkl_web kuf1_wm_pbdom_xml_pkl_web
 										case "barcode_peso_netto"
 											if len(trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )) > 0 then
 												k_x = trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )
-												k_ind = pos(k_x, ".")
-												k_x = replace(k_x, k_ind, 1,",")
+												k_x = kgn_string.u_num_itatousa2(k_x, false)
+//												k_ind = pos(k_x, ".")
+//												k_x = replace(k_x, k_ind, 1,",")
 												if isnumber(k_x) then
-													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_peso_netto = double(k_x)
+													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_peso_netto = dec(k_x)
 												end if
 											end if
 
 										case "barcode_peso_lordo"
 											if len(trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )) > 0 then
 												k_x = trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )
-												k_ind = pos(k_x, ".")
-												k_x = replace(k_x, k_ind, 1,",")
+												k_x = kgn_string.u_num_itatousa2(k_x, false)
+//												k_ind = pos(k_x, ".")
+//												k_x = replace(k_x, k_ind, 1,",")
 												if isnumber(k_x) then
-													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_peso_lordo = double(k_x)
+													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_peso_lordo = dec(k_x)
 												end if
 											end if
 
 										case "barcode_qta_scatole"
 											if len(trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )) > 0 then
 												k_x = trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )
-												k_ind = pos(k_x, ".")
-												k_x = replace(k_x, k_ind, 1,",")
+												k_x = kgn_string.u_num_itatousa2(k_x, false)
+//												k_ind = pos(k_x, ".")
+//												k_x = replace(k_x, k_ind, 1,",")
 												if isnumber(k_x) then
-													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_qta_scatole = double(k_x)
+													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_qta_scatole = dec(k_x)
 												end if
 											end if
 
 										case "barcode_qta_pezzi"
 											if len(trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )) > 0 then
 												k_x = trim(kuf1_wm_pbdom_xml_pkl_web.get_valore_liv2(k_ind_liv2) )
-												k_ind = pos(k_x, ".")
-												k_x = replace(k_x, k_ind, 1,",")
+												k_x = kgn_string.u_num_itatousa2(k_x, false)
+//												k_ind = pos(k_x, ".")
+//												k_x = replace(k_x, k_ind, 1,",")
 												if isnumber(k_x) then
-													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_qta_pezzi = double(k_x)
+													kst_wm_pkl_web_dett[k_ind_pkl_etichette].barcode_qta_pezzi = dec(k_x)
 												end if
 											end if
 
@@ -1208,7 +1212,9 @@ kuf_file_explorer kuf1_file_explorer
 		kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg)
 
 //--- piglia l'elenco dei file xml contenuti nella cartella
-		kds_dirlist = kuf1_file_explorer.DirList(trim(kst_tab_wm_pklist_cfg.cartella_pkl_da_web)+"\*.xml")
+		kds_dirlist = kuf1_file_explorer.DirList( &
+					kuf1_file_explorer.u_add_path_and_filename(kst_tab_wm_pklist_cfg.cartella_pkl_da_web, "*.xml"))
+			
 		k_nr_file_dirlist = kds_dirlist.rowcount( )
 
 		k_max_array = upperbound(kst_wm_pkl_web[])

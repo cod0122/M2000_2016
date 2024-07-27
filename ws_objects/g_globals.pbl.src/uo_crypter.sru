@@ -21,6 +21,8 @@ public function string u_encrypt_aes (string a_string)
 public function string u_decrypt_aes (string a_string) throws uo_exception
 public function string u_decrypt_aes_to_txt (string a_code_aes) throws uo_exception
 public function string u_encrypt_aes_to_txt (string a_string)
+public function string u_encrypt_sha256 (string a_string)
+public function string u_encrypt_sha1 (string a_string)
 end prototypes
 
 public function boolean u_if_app_user_is_master (string k_pwd);//
@@ -142,6 +144,80 @@ kCoderObject = Create CoderObject
 lb_Data = Blob(trim(a_string), EncodingUTF8!)
 lb_cryptedBase64 = this.SymmetricEncrypt( AES!, lb_Data, ki_secret_key)
 k_Return = kCoderObject.base64encode(lb_cryptedBase64)
+destroy kCoderObject
+
+return k_return
+
+
+end function
+
+public function string u_encrypt_sha256 (string a_string);/*
+Encrypt string with SHA256 algorithm 
+inp: stringa da criptare
+out: stringa criptata (in esadecimale)
+test su internet ad esempio: https://coding.tools/it/sha256
+*/
+//
+Blob lblb_data
+Blob lblb_sha256
+string k_return
+
+CoderObject kCoderObject
+CrypterObject kCrypterObject
+
+lblb_data = Blob(a_string, EncodingUTF8!)
+
+kCrypterObject = Create CrypterObject
+// Encrypt with SHA
+lblb_sha256 = kCrypterObject.SHA(SHA256!, lblb_data)
+//l_res = String(lblb_sha256, EncodingUTF8!)
+
+kCoderObject = create CoderObject
+k_return = kCoderObject.HexEncode(lblb_sha256)
+
+destroy kCrypterObject
+destroy kCoderObject
+
+
+//// ultima spiaggia... uso sql server
+//kds_crypter_to_sha256 = create datastore
+//kds_crypter_to_sha256.dataobject = "ds_crypter_to_sha256"
+//kds_crypter_to_sha256.settransobject(kguo_sqlca_db_magazzino)
+//if kds_crypter_to_sha256.retrieve(trim(a_string)) > 0 then
+//	k_Return = kds_crypter_to_sha256.getitemstring(1, "sha256")
+//end if
+//destroy kds_crypter_to_sha256
+
+return k_return
+
+
+end function
+
+public function string u_encrypt_sha1 (string a_string);/*
+Encrypt string with SHA1 algorithm 
+inp: stringa da criptare
+out: stringa criptata (in esadecimale)
+test su internet ad esempio: https://coding.tools/it/sha1
+*/
+//
+Blob lblb_data
+Blob lblb_sha1
+string k_return
+
+CoderObject kCoderObject
+CrypterObject kCrypterObject
+
+lblb_data = Blob(a_string, EncodingUTF8!)
+
+kCrypterObject = Create CrypterObject
+// Encrypt with SHA
+lblb_sha1 = kCrypterObject.SHA(SHA1!, lblb_data)
+//l_res = String(lblb_sha256, EncodingUTF8!)
+
+kCoderObject = create CoderObject
+k_return = kCoderObject.HexEncode(lblb_sha1)
+
+destroy kCrypterObject
 destroy kCoderObject
 
 return k_return

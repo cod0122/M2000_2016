@@ -725,7 +725,7 @@ st_profilestring_ini kst_profilestring_ini
 
 
 
-		 
+try		 
 //--- Ricavo l'oggetto figlio dal DB 
 //	kst_tab_treeview.id = k_tipo_oggetto
 //	u_select_tab_treeview(kst_tab_treeview)
@@ -888,7 +888,7 @@ st_profilestring_ini kst_profilestring_ini
 			else
 
 //--- piglia NOME e CODICE del Ricevente attraverso CODICE o P.IVA o C.FISCALE					
-				kst_esito = kuf1_clienti.get_nome_da_xyz(kst_tab_wm_receiptgammarad.receivercustomercode, kst_tab_clienti_ricev)
+				kuf1_clienti.get_nome_da_xyz(kst_tab_wm_receiptgammarad.receivercustomercode, kst_tab_clienti_ricev)
 //				if isnumber(trim(kst_tab_wm_receiptgammarad.receivercustomercode)) then
 //					kst_tab_clienti_ricev.codice = long(trim(kst_tab_wm_receiptgammarad.receivercustomercode))
 //					if kst_tab_clienti_ricev.codice > 0 then
@@ -907,7 +907,7 @@ st_profilestring_ini kst_profilestring_ini
 				kst_tab_clienti_fatt.codice = long(trim(kst_tab_wm_receiptgammarad.invoicecustomercode))
 			else
 //--- piglia NOME e CODICE del Fatturato attraverso CODICE o P.IVA o C.FISCALE					
-				kst_esito = kuf1_clienti.get_nome_da_xyz(kst_tab_wm_receiptgammarad.invoicecustomercode, kst_tab_clienti_fatt)
+				kuf1_clienti.get_nome_da_xyz(kst_tab_wm_receiptgammarad.invoicecustomercode, kst_tab_clienti_fatt)
 //				if isnumber(trim(kst_tab_wm_receiptgammarad.invoicecustomercode)) then
 //					kst_tab_clienti_fatt.codice = long(trim(kst_tab_wm_receiptgammarad.invoicecustomercode))
 //					if kst_tab_clienti_fatt.codice > 0 then
@@ -956,8 +956,6 @@ st_profilestring_ini kst_profilestring_ini
 
 		loop
 		
-		destroy kuf1_clienti
-		
 	end if
  
  
@@ -983,9 +981,15 @@ st_profilestring_ini kst_profilestring_ini
 		kuf1_treeview.kilv_lv1.extendedselect = true 
 			
 	end if
+		
+catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
 
+finally 
+	if isvalid(kuf1_clienti) then	destroy kuf1_clienti
+	
+end try
 
- 
 return k_return
 
  

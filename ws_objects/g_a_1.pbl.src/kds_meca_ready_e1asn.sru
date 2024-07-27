@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kds_meca_ready_e1asn.sru
 forward
-global type kds_meca_ready_e1asn from kds_db_magazzino
+global type kds_meca_ready_e1asn from ds_db_magazzino_parent
 end type
 end forward
 
-global type kds_meca_ready_e1asn from kds_db_magazzino
+global type kds_meca_ready_e1asn from ds_db_magazzino_parent
 string dataobject = "ds_meca_ready_e1asn"
 end type
 global kds_meca_ready_e1asn kds_meca_ready_e1asn
@@ -15,11 +15,10 @@ end prototypes
 
 public function integer u_retrieve ();//
 int k_return 
-date k_data_da
+date k_data_da 
 
 
 k_data_da = relativedate(kguo_g.get_dataoggi( ), -280)  // cerca indietro di circa 9 mesi!
-
 
 k_return = this.retrieve(k_data_da)
 

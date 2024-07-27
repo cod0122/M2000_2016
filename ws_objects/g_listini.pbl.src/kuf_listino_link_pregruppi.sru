@@ -404,7 +404,7 @@ try
 	
 	choose case a_campo_link
 	
-		case  "b_listino_link_pregruppi" 
+		case  "listino_link_pregruppi" 
 			kst_tab_listino_link_pregruppi.id_listino = adw_link.getitemnumber(adw_link.getrow(), "id_listino" )
 			if kst_tab_listino_link_pregruppi.id_listino > 0 then
 		

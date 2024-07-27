@@ -2096,22 +2096,22 @@ try
 	
 	choose case k_campo_link
 	
-		case "b_cap_l" 
+		case "cap_l" 
 			k_dataobject = kki_cap_l
 			kst_open_w.key1 = "elenco CAP "
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)
 	
-		case "b_clie_settori" 
+		case "clie_settori" 
 			k_dataobject = kki_clie_settori_l
 			kst_open_w.key1 = "elenco Settori Merceologici "
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)
 	
-		case "b_clie_classi" 
+		case "clie_classi" 
 			k_dataobject = kki_clie_classi_l
 			kst_open_w.key1 = "elenco Classi di Valenza "
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)
 	
-		case "b_nazioni_l" 
+		case "nazioni_l" 
 			k_dataobject = kki_nazioni_l
 			kst_open_w.key1 = "elenco Nazioni "
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)
@@ -2136,13 +2136,13 @@ try
 				k_return = false	
 			end if
 	
-		case "b_meca_causali_l" 
+		case "meca_causali_l" 
 			k_dataobject = kki_meca_causali
 			kst_open_w.key1 = "Elenco Causali Lotto di Entrata"
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)
 	
-		case "b_lotto_dosim" &
-		  ,"b_dosim_lotto_dosim_l"
+		case "lotto_dosim" &
+		  ,"dosim_lotto_dosim_l"
 			k_dataobject = "d_dosimetrie_lotto_l"
 			kst_open_w.key1 = "Elenco lotti dati Dosimetrici " 
 			k_id_programma = this.get_id_programma(kkg_flag_modalita.elenco)

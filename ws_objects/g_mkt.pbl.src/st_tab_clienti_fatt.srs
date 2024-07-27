@@ -8,8 +8,9 @@ global type st_tab_clienti_fatt from structure
 	string		modo_stampa		descriptor "comment" = "S=solo stampa cartacea; E=stampa digitale"
 	string		modo_email		descriptor "comment" = "A=invia solo avviso; F=invia lettera con allegata la fattura; N=non invia nulla"
 	string		email_invio		descriptor "comment" = "quale indirizzo e-mail inviare 1,2,3"
-	decimal{2}		impon_minimo		descriptor "comment" = "minimo di fatturazione in deroga su quello in base_fatt.impon_minimo"
+	decimal { 2 }		impon_minimo		descriptor "comment" = "minimo di fatturazione in deroga su quello in base_fatt.impon_minimo"
 	string		codice_ipa		descriptor "comment" = "codice IPA ovvero codice che identifica un ente pubblico (appunto PubblicaAmministrazione)"
+	string		fattura_per		descriptor "comment" = "W=Work Order; M=Mensile; C=per Camion"
 	datetime		x_datins
 	string		x_utente
 end type

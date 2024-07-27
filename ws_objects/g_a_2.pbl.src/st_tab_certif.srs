@@ -12,9 +12,9 @@ global type st_tab_certif from structure
 	long		id_docprod		descriptor "comment" = "id in tabella documenti esportati (archiviati in pdf) "
 	integer		clie_2
 	integer		colli
-	double		dose
-	double		dose_min
-	double		dose_max
+	decimal { 2 }		dose
+	decimal { 2 }		dose_min
+	decimal { 2 }		dose_max
 	date		lav_data_ini
 	date		lav_data_fin
 	string		st_dose_min
@@ -27,6 +27,7 @@ global type st_tab_certif from structure
 	string		note_2
 	string		form_di_stampa
 	boolean		flg_ristampa_xddt		descriptor "comment" = "0/1 stampato da uff. x ddt (presente in cartella Attestati x ddt)"
+	integer		impianto		descriptor "comment" = "2=old, 3=new"
 	datetime		x_datins
 	string		x_utente
 end type

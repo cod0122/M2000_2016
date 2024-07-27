@@ -33,7 +33,6 @@ public function boolean if_esiste_barcode_dosimetro (ref st_tab_meca_dosim kst_t
 public function integer if_gia_usato_barcode (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception
 public function integer if_gia_usato_dosimetro (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception
 public function boolean get_id_meca_da_barcode (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception
-public function st_tab_meca convalida (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public subroutine set_convalida (st_tab_meca ast_tab_meca) throws uo_exception
 public function integer get_barcode (ref st_tab_meca_dosim kst_tab_meca_dosim[]) throws uo_exception
 public subroutine tb_delete_x_barcode_lav (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
@@ -55,7 +54,6 @@ public function st_esito anteprima_dosim_l (ref datawindow adw_anteprima, st_tab
 public subroutine set_convalida_x_barcode (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public subroutine get_err_lav_ok (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public subroutine get_dosim_dose_min (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
-public subroutine get_dosim_dose_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public function boolean set_ultimo_numero_barcode_dsm_in_base (st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception
 public subroutine tb_delete_completa (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private function string get_ultimo_numero_barcode_da_base () throws uo_exception
@@ -70,13 +68,16 @@ private subroutine set_convalida_lotto (readonly st_tab_meca_dosim ast_tab_meca_
 public subroutine set_forza_convalida (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private subroutine set_convalida_lotto_ripristino (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public function integer get_nr_dosim_non_letti (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
-public subroutine get_dosim_dosemax_min (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 public function datetime get_data_x_certif (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception
 public function datetime get_dosim_data_max (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private subroutine set_add_avviso_pronto_merce (readonly st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
-public function st_tab_meca_dosim get_st_tab_meca_dosim (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception
 public subroutine tb_delete_x_id_meca_no_trattati (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+private function st_tab_meca old_convalida (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+public function st_tab_meca_dosim convalida_dosimetrica (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+public subroutine get_dosim_dose_max_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+public subroutine get_dosim_dose_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
+public subroutine get_dosim_dose_min_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception
 end prototypes
 
 public function boolean get_id_meca_da_barcode_dosimetro (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception;//
@@ -281,18 +282,15 @@ kuf_sicurezza kuf1_sicurezza
 		
 		throw kguo_exception
 			
-	else
-		
-		if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-		else
-			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-		end if
-		if kst_esito.esito = kkg_esito.ok then
-			k_return = TRUE
-		end if
-		
 	end if
-
+		
+	if kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kst_esito = kguo_sqlca_db_magazzino.db_commit( )
+	end if
+	if kst_esito.esito = kkg_esito.ok then
+		k_return = TRUE
+	end if	
 
 return k_return
 
@@ -755,242 +753,6 @@ end try
 
 	
 return k_return
-
-
-end function
-
-public function st_tab_meca convalida (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//--- Controllo dati di Convalida Dosimetrica 
-//--- Inp: st_tab_meca_dosim.  id_meca / dosim_lotto_dosim / dosim_rapp_a_s 
-//--- out: 
-//--- Ritorno: st_tab_meca.  note_lav_ok / err_lav_ok
-//---
-//--- Lancia EXCEPTION x errore grave
-//---
-boolean k_errore = true
-long k_riga
-string k_rc
-double k_dose_min, k_dose_max
-st_esito kst_esito
-//st_tab_armo kst_tab_armo 
-st_tab_meca kst_tab_meca, kst1_tab_meca
-st_tab_armo kst_tab_armo
-st_tab_sl_pt kst_tab_sl_pt
-st_tab_dosimetrie kst_tab_dosimetrie
-//st_tab_contratti kst_tab_contratti
-st_tab_base kst_tab_base
-st_tab_prodotti kst_tab_prodotti
-//kuf_contratti kuf1_contratti
-kuf_ausiliari kuf1_ausiliari
-kuf_armo kuf1_armo
-kuf_sl_pt kuf1_sl_pt
-kuf_base kuf1_base
-pointer kp_oldpointer
-
-
-try
-//--- Puntatore Cursore da attesa..... 
-	kp_oldpointer = SetPointer(HourGlass!)
-
-//	kuf1_contratti = create kuf_contratti
-	kuf1_ausiliari = create kuf_ausiliari
-	kuf1_sl_pt = create kuf_sl_pt
-	kuf1_base = create kuf_base 
-	kuf1_armo = create kuf_armo
-
-//--- get numero/data lotto (riferimento)
-	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
-	kuf1_armo.get_num_int(kst_tab_meca)	
-
-//--- get dati di Convalida
-	kst1_tab_meca.id = ast_tab_meca_dosim.id_meca
-	kuf1_armo.get_err_lav(kst1_tab_meca)	
-
-//--- get del codice PT x Lotto
-	kst_tab_armo.id_meca = ast_tab_meca_dosim.id_meca
-	kuf1_armo.get_cod_sl_pt_x_id_meca(kst_tab_armo)
- 
-////--- get codice contratto	
-//	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
-//	kst_tab_contratti.codice = kuf1_armo.get_contratto(kst_tab_meca)	
-
-////--- con il codice contratto get del Capitolato (sc-cf)
-//	kst_esito = kuf1_contratti.get_co_cf_pt(kst_tab_contratti)
-//	if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
-//		kguo_exception.inizializza( )
-//		kguo_exception.set_esito(kst_esito)
-//		throw kguo_exception
-//	end if
-	
-	setnull(kst_tab_meca.err_lav_ok)
-	setnull(kst_tab_meca.note_lav_ok)
-	
-//	if kst_esito.esito = kkg_esito.ok then
-
-//--- get della DOSE attraverso il coff_a_s nella tabella DOSIMETRIE(la curva) x fare la convalida
-		kst_tab_dosimetrie.lotto_dosim = trim(ast_tab_meca_dosim.dosim_lotto_dosim)
-		kst_tab_dosimetrie.coeff_a_s = ast_tab_meca_dosim.dosim_rapp_a_s
-		kst_tab_dosimetrie.dose = 0
-		kst_esito = kuf1_ausiliari.tb_dosimetrie_select(kst_tab_dosimetrie) 
-
-		if kst_esito.esito = kkg_esito.ok then
-			
-//--- get dati x dosimetria da tab PT
-			kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt
-			kuf1_sl_pt.get_dati_xconvalida(kst_tab_sl_pt)
-			
-			if kst_tab_sl_pt.dosetgminmin > 0 and kst_tab_sl_pt.dosetgminmax > 0 then
-				k_dose_min = kst_tab_sl_pt.dosetgminmin   // dose minima come dose di verifica
-				k_dose_max = kst_tab_sl_pt.dosetgminmax   // dose massima come dose di verifica
-				
-			else
-//--- get dell'eventuale tolleranza per la validazione dosimetrica
-				kst_tab_base.valid_t_dose_min = 0
-				k_rc = kuf1_base.prendi_dato_base("valid_tolleranza_dose_min")
-				if LeftA(k_rc,1) = "0" then
-					if isnumber (trim(MidA(k_rc,2))) then
-						kst_tab_base.valid_t_dose_min = integer(MidA(k_rc,2))
-					end if
-				end if
- 
-//--- valorizzo la tolleranza di misurazione della dose min-max				
-				k_dose_min = kst_tab_sl_pt.dose_min * (1 - kst_tab_base.valid_t_dose_min/100)
-//*** 14-7-2005 ********** ATTENZIONE SU RICHIESTA DELLA ZAMBONI DISATTIVO CONTROLLO CON LA TOLLERANZA **************
-//*** 03-1-2006 ********** ATTENZIONE SU RICHIESTA DI BASCHIERI RIATTIVO IL CONTROLLO CON LA TOLLERANZA **************
-//*** 04-4-2011 ********** ATTENZIONE SU RICHIESTA DI BASCHIERI ATTIVO IL CONTROLLO CON LA TOLLERANZA SOLO SU DOSE MINIMA **************
-//*** 04-4-2011 ********** ATTENZIONE SU RICHIESTA DI ZAMBONI TOLGO IL CHECK SU PRESENZA CAPITOLATO  **************
-//*** 05-4-2011 ********** ATTENZIONE SU RICHIESTA DI ZAMBONI IN VIA ECCEZIONALE EVITO IL CONTROLLO SE GRUPPI=17;85;209  **************
-
-//--- se ha il capitolato prendo il valore di riferimento dal contratto minimo + la Tolleranza		
-//				if LenA(trim(kst_tab_contratti.sc_cf)) > 0 then 
-					k_dose_max = kst_tab_sl_pt.dose_min * (1 + kst_tab_base.valid_t_dose_min/100)
-//					k_dose_max = kst_tab_sl_pt.dose_max * (1 + kst_tab_base.valid_t_dose_min/100)
-//				else
-//					k_dose_max = kst_tab_sl_pt.dose_max 
-//				end if
-			end if
-	
-//--- get Gruppo articolo
-			kst_tab_meca.id = ast_tab_meca_dosim.id_meca
-			select max(gruppo)
-				   into :kst_tab_prodotti.gruppo
-				   from prodotti inner join armo on prodotti.codice = armo.art
-					where armo.id_meca = :ast_tab_meca_dosim.id_meca
-					using kguo_sqlca_db_magazzino;
-			if isnull(kst_tab_prodotti.gruppo) then kst_tab_prodotti.gruppo = 0
-
-//--- Verifica la DOSE			
-			if (kst_tab_dosimetrie.dose >= k_dose_min and kst_tab_dosimetrie.dose <= k_dose_max) &
-							OR (kst_tab_prodotti.gruppo = 17  &
-								OR kst_tab_prodotti.gruppo = 85  &
-								OR kst_tab_prodotti.gruppo = 209)  &
-							then   // TOGLIERE L'ECCEZIONE IL PRIMA POSSIBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				k_errore = false
-				kst_tab_meca.note_lav_ok = "Verifica dosimetrica convalidata "
-//					tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kuf_armo.ki_err_lav_ok_conv_da_aut)
-//					tab_1.tabpage_1.dw_1.setitem(k_riga, "note_lav_ok", "Verifica dosimetrica convalidata ")
-			else
-				if kst_tab_sl_pt.dosetgminmin > 0 and kst_tab_sl_pt.dosetgminmax > 0 then
-					kst_tab_meca.note_lav_ok = &
-								 "Dose " &
-								 + string(kst_tab_dosimetrie.dose, "#####0.00") &
-								 + " fuori dal range previsto nel PT (" &
-								 + string(kst_tab_sl_pt.dosetgminmin) &
-								 + "-" + string(kst_tab_sl_pt.dosetgminmax) + ")"
-				else
-					kst_tab_meca.note_lav_ok = &
-								 "Dose " &
-								 + string(kst_tab_dosimetrie.dose, "#####0.00") &
-								 + " fuori dal range previsto nel PT (" &
-								 + string(kst_tab_sl_pt.dose_min) &
-								 + "-" + string(kst_tab_sl_pt.dose_max) + ")"
-				end if
-			end if
-//			else
-//				kst_tab_meca.note_lav_ok = "Piano di Lavorazione non trovato "
-//			end if
-		else
-			kst_tab_meca.note_lav_ok = "Lotto Dosimetrico non trovato per il rapporto A/S calcolato"
-		end if
-//	else
-//		kst_tab_meca.note_lav_ok = "Lotto non trovato "
-//	end if
-
-//------------------------------------------------------------------------------------------------------- 
-//--- se sono stati rilevati errori di dosimetria	
-	if k_errore then
-
-		choose case kst1_tab_meca.err_lav_ok
-//--- se era da "Prima Convalida"
-			case ki_err_lav_ok_da_conv
-				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
-//--- se era in "anomalia da autorizzare...."
-			case ki_err_lav_ok_conv_ko_da_aut
-				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_bloc
-//--- se era in "OK da autorizzare...."
-			case ki_err_lav_ok_conv_da_aut
-				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
-//--- se era in "BLOCCATO...."
-			case ki_err_lav_ok_conv_ko_bloc
-				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_sbloc
-				kst_tab_meca.note_lav_ok += " - Sbloccato "
-//--- in caso di valore non identificato (es. NULL)				
-			case else
-				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
-		end choose
-
-	else	
-		
-//--- se dosimetria OK	
-		if not k_errore then
-			
-			choose case kst1_tab_meca.err_lav_ok
-//--- se era da "Prima Convalida" si e' deciso di dare immediatamente l'autorizzazione
-				case ki_err_lav_ok_da_conv
-					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
-//--- se era in "anomalia da autorizzare...."
-				case ki_err_lav_ok_conv_ko_da_aut
-					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
-//--- se era in "OK da autorizzare...."
-				case ki_err_lav_ok_conv_da_aut
-					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
-//--- se era in "BLOCCATO...."
-				case ki_err_lav_ok_conv_ko_bloc
-					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
-//--- in caso di valore non identificato (es. NULL)				
-				case else
-					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
-			end choose
-			
-		end if
-	end if			
-	if isnull(kst_tab_meca.note_lav_ok) then
-		kst_tab_meca.err_lav_ok = kst_tab_meca.err_lav_ok
-		kst_tab_meca.note_lav_ok = kst_tab_meca.note_lav_ok
-//	else
-//		if isnull(kst_tab_meca.err_lav_ok) then
-//			kst_tab_meca.note_lav_ok += " - prima lettura da verificare "
-//		end if
-	end if
-//------------------------------------------------------------------------------------------------------- 
-
-catch (uo_exception kuo_exception)	
-	kuo_exception.inizializza( )
-	kuo_exception.set_esito(kst_esito)
-	throw kuo_exception
-
-finally
-//	if isvalid(kuf1_contratti) then destroy kuf1_contratti
-	if isvalid(kuf1_ausiliari) then destroy kuf1_ausiliari
-	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
-	if isvalid(kuf1_base) then destroy kuf1_base 
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-	
-	SetPointer(kp_oldpointer)
-
-end try
-
-return kst_tab_meca
 
 
 end function
@@ -1736,7 +1498,7 @@ if adw_link.getrow() = 0 then
 else
 	choose case a_campo_link
 	
-		case "b_barcode_dosim_l", "flg_dosimetro" 
+		case "barcode_dosim_l", "flg_dosimetro" 
 			if trim(adw_link.Describe("barcode.x")) = "!" then 
 				kst_esito.esito = kkg_esito.no_esecuzione
 				kst_esito.sqlerrtext = "Errore programma interno, nome colonna 'barcode' mancante. Anteprima inevasa."
@@ -1751,7 +1513,7 @@ else
 				end if
 			end if
 	
-		case "b_meca_dosim_barcode_l"
+		case "meca_dosim_barcode_l"
 			k_rcx = trim(adw_link.Describe("id_meca.x"))
 			if k_rcx = "!" then 
 				kst_esito.esito = kkg_esito.no_esecuzione
@@ -1777,8 +1539,7 @@ else
 				end if
 			end if
 	
-		case "meca_dosim_barcode" &
-		 		, "b_meca_dosim_barcode"
+		case "meca_dosim_barcode" 
 			kst_tab_meca_dosim.barcode = adw_link.getitemstring(adw_link.getrow(), "meca_dosim_barcode")
 			if trim(kst_tab_meca_dosim.barcode) > " " then
 				k_dataobject = "d_convalida_dosim_x_barcode"
@@ -1808,14 +1569,13 @@ if k_return then
 		
 		choose case a_campo_link
 					
-			case "b_barcode_dosim_l", "flg_dosimetro"  
+			case "barcode_dosim_l", "flg_dosimetro"  
 				k_rc=kdsi_elenco_output.retrieve(kst_tab_meca_dosim.barcode_lav)
 		
-			case "b_meca_dosim_barcode_l"
+			case "meca_dosim_barcode_l"
 				k_rc=kdsi_elenco_output.retrieve(kst_tab_meca_dosim.id_meca)
 					
-			case "meca_dosim_barcode" &
-		 			, "b_meca_dosim_barcode"
+			case "meca_dosim_barcode" 
 				k_rc=kdsi_elenco_output.retrieve(kst_tab_meca_dosim.barcode)
 		
 		end choose
@@ -2386,14 +2146,8 @@ try
 		kst_tab_barcode.note_lav_ok = ast_tab_meca_dosim.note_lav_ok
 		
 		kst_tab_barcode.st_tab_g_0.esegui_commit = ast_tab_meca_dosim.st_tab_g_0.esegui_commit
-		kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ok_x_barcode")
+		kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ok_x_barcode")
 	
-		if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-		
 	end if
 //-----------------------------------------------------------------------------------------------------------------------
 
@@ -2456,25 +2210,15 @@ st_esito kst_esito
 
 end subroutine
 
-public subroutine get_dosim_dose_min (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//-------------------------------------------------------------------------------------------------------
-//--- get valore MINIMO dose
-//--- 
-//--- Input : st_tab_meca_dosim.id_meca 
-//--- out: st_tab_meca_dosim.dosim_dose
-//--- Ritorna: nulla 
-//--- Exception se errore con st_esito valorizzato
-//---					
-//---   
-//--------------------------------------------------------------------------------------------------------
-st_esito kst_esito
+public subroutine get_dosim_dose_min (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;/*
+ get valore MINIMO dose tra i MINIMI
+	inp : st_tab_meca_dosim.id_meca 
+	out: st_tab_meca_dosim.dosim_dose
+*/
 st_tab_meca_dosim kst_tab_meca_dosim
 
 
-	kst_esito.esito = kkg_esito.ok  
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MINIMA	
 	ast_tab_meca_dosim.dosim_dose = 0.00
@@ -2491,72 +2235,10 @@ st_tab_meca_dosim kst_tab_meca_dosim
 			 and meca_dosim.barcode > ' '
 		using kguo_sqlca_db_magazzino ;
 
-//18092018				 and barcode_dosimetro > ' '
-//           		      or meca_dosim.barcode_lav in 
-// 				 		 (select barcode_lav from barcode where id_meca = :ast_tab_meca_dosim.id_meca)
-	
-	
-	if sqlca.sqlcode <> 0 then
-		if sqlca.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura dose MINIMA tra i valori Minimi Convalidati, Lotto: " + string(ast_tab_meca_dosim.id_meca) + ". Err.: " + trim(sqlca.sqlerrtext)
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito( kst_esito )
-			throw kguo_exception
-		end if
-	end if
-	
-	if ast_tab_meca_dosim.dosim_dose > 0 then
-	else
-		ast_tab_meca_dosim.dosim_dose = 0.00
-	end if
-
-end subroutine
-
-public subroutine get_dosim_dose_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//-------------------------------------------------------------------------------------------------------
-//--- get valore max DOSE
-//--- 
-//--- Input : st_tab_meca_dosim.id_meca 
-//--- out: st_tab_meca_dosim.dosim_dose
-//--- Ritorna: nulla 
-//--- Exception se errore con st_esito valorizzato
-//---					
-//---   
-//--------------------------------------------------------------------------------------------------------
-st_esito kst_esito
-st_tab_meca_dosim kst_tab_meca_dosim
-
-
-	kst_esito.esito = kkg_esito.ok  
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MASSIMA
-	ast_tab_meca_dosim.dosim_dose = 0.00
-
-	select max(dosim_dose)
-		into :ast_tab_meca_dosim.dosim_dose
-		from meca_dosim 
-		where (meca_dosim.id_meca = :ast_tab_meca_dosim.id_meca
-					)
-				and meca_dosim.dosim_flg_tipo_dose = :kst_tab_meca_dosim.dosim_flg_tipo_dose
-			 and meca_dosim.barcode > ' '
-		using kguo_sqlca_db_magazzino ;
-
-//18092018			    and barcode_dosimetro > ' '
-	
-	if sqlca.sqlcode <> 0 then
-		if sqlca.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura dose MAX tra i valori Massimi Convalidati el Lotto: " + string(ast_tab_meca_dosim.id_meca) + ". Err.: " + trim(sqlca.sqlerrtext)
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito( kst_esito )
-			throw kguo_exception
-		end if
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura dose MINIMA tra i valori Minimi Convalidati del Lotto: " + string(ast_tab_meca_dosim.id_meca))	
+		throw kguo_exception
 	end if
 	
 	if ast_tab_meca_dosim.dosim_dose > 0 then
@@ -3326,13 +3008,7 @@ try
 	kst_tab_barcode.note_lav_ok = ast_tab_meca_dosim.note_lav_ok
 	
 	kst_tab_barcode.st_tab_g_0.esegui_commit = ast_tab_meca_dosim.st_tab_g_0.esegui_commit
-	kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ok_x_id_meca_barcode_altri")
-	
-	if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
+	kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ok_x_id_meca_barcode_altri")
 
 //---- COMMIT....	
 	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca_dosim.st_tab_g_0.esegui_commit) then
@@ -3580,61 +3256,6 @@ return k_return
 
 end function
 
-public subroutine get_dosim_dosemax_min (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//-------------------------------------------------------------------------------------------------------
-//--- get valore MASSIMO tra le dosi MINIME 
-//--- 
-//--- Input : st_tab_meca_dosim.id_meca 
-//--- out: st_tab_meca_dosim.dosim_dose
-//--- Ritorna: nulla 
-//--- Exception se errore con st_esito valorizzato
-//---					
-//---   
-//--------------------------------------------------------------------------------------------------------
-st_esito kst_esito
-st_tab_meca_dosim kst_tab_meca_dosim
-
-
-	kst_esito.esito = kkg_esito.ok  
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MINIMA	
-	ast_tab_meca_dosim.dosim_dose = 0.00
-
-	select max(dosim_dose)
-		into :ast_tab_meca_dosim.dosim_dose
-		from meca_dosim 
-		where meca_dosim.id_meca = :ast_tab_meca_dosim.id_meca
-		        and (meca_dosim.dosim_flg_tipo_dose is null
-				       or meca_dosim.dosim_flg_tipo_dose = :kst_tab_meca_dosim.dosim_flg_tipo_dose
-						 or meca_dosim.dosim_flg_tipo_dose = ''
-						 )
-		using kguo_sqlca_db_magazzino ;
-
-//08102018 NO BUONO beccava i valori del padre	           		      or meca_dosim.barcode_lav in 
-// 				 		 (select barcode_lav from barcode where id_meca = :ast_tab_meca_dosim.id_meca)
-
-	
-	if sqlca.sqlcode <> 0 then
-		if sqlca.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura dose MAX tra i valori Minimi Convalidati, Lotto: " + string(ast_tab_meca_dosim.id_meca) + ". Err.: " + trim(sqlca.sqlerrtext)
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito( kst_esito )
-			throw kguo_exception
-		end if
-	end if
-	
-	if ast_tab_meca_dosim.dosim_dose > 0 then
-	else
-		ast_tab_meca_dosim.dosim_dose = 0.00
-	end if
-
-end subroutine
-
 public function datetime get_data_x_certif (ref st_tab_meca_dosim kst_tab_meca_dosim) throws uo_exception;//
 //--------------------------------------------------------------------------------------------
 //--- Torna la DATA di generazione per il CERTIFICATO
@@ -3870,17 +3491,473 @@ end try
 
 end subroutine
 
-public function st_tab_meca_dosim get_st_tab_meca_dosim (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//--- Controllo dati di Convalida Dosimetrica 
-//--- Inp: st_tab_meca_dosim.  id_meca / dosim_lotto_dosim / dosim_rapp_a_s 
-//--- out: 
-//--- Ritorno: st_tab_meca_dosim.  note_lav_ok / err_lav_ok / dosim_dose...
-//---
-//--- Lancia EXCEPTION x errore grave
-//---
+private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception;/*
+  Genera barcode dosimetri 
+		chiamata dalla u_genera_rimuove_barcode
+   inp: st_tab_meca_dosim.id_meca + barcode_lav (opzionale se fare solo quel barcode)
+	     datastore ds_barcode_set_flg_dosimetro con elenco barcode con il dosimetro
+   out: numero bcode generati
+*/
+int k_return
+long k_nr_barcode, k_riga_barcode, k_ind
+int k_nr_bcode_associati=0, k_nr_dosimpos
+uo_ds_std_1 kds_sl_pt_dosimpos
+kuf_barcode kuf1_barcode
+//kuf_armo kuf1_armo
+kuf_sl_pt kuf1_sl_pt
+kuf_impianto kuf1_impianto
+st_tab_meca_dosim kst_tab_meca_dosim, kst_tab_meca_dosim_ultimo, kst_tab_meca_dosim_delete
+//st_tab_armo kst_tab_armo
+//st_tab_meca kst_tab_meca
+st_tab_sl_pt kst_tab_sl_pt
+st_tab_barcode kst_tab_barcode
+st_esito kst_esito 
+
+
+try
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
+	kst_esito.st_tab_g_0 = ast_tab_meca_dosim.st_tab_g_0 
+
+//	kuf1_armo = create kuf_armo
+	kuf1_sl_pt = create kuf_sl_pt
+	kuf1_barcode = create kuf_barcode
+	
+	k_nr_barcode = ads_barcode_set_flg_dosimetro.rowcount()
+
+//--- get dal PT per leggere i dati di dove mettere i Dosimetri
+	//kst_tab_armo.id_armo = ads_barcode_set_flg_dosimetro.getitemnumber(1, "id_armo")
+	//kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo) // get codice SL PT
+	//kst_tab_meca.id = ast_tab_meca_dosim.id_meca
+	//kst_tab_sl_pt.impianto = kuf1_armo.get_impianto(kst_tab_meca)  // get Impianto
+
+	kst_tab_sl_pt.cod_sl_pt = ads_barcode_set_flg_dosimetro.getitemstring(1, "cod_sl_pt")
+	kst_tab_sl_pt.impianto = ads_barcode_set_flg_dosimetro.getitemnumber(1, "meca_impianto")
+	if kst_tab_sl_pt.impianto > 0 then 
+	else
+		kst_tab_sl_pt.impianto = kuf1_impianto.kki_impiantoDefault
+	end if
+	
+//--- get dei dati da PT circa il nr dosimetri		
+	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
+		kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
+		if kst_tab_sl_pt.dosim_x_bcode > 0 then
+		else
+			kst_tab_sl_pt.dosim_x_bcode = 1
+		end if
+	else
+		kst_tab_sl_pt.dosim_x_bcode = 1
+	end if
+
+//--- leggo i barcode del lotto 
+	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then 
+		kds_sl_pt_dosimpos = create uo_ds_std_1
+		kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
+		kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
+		k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt, kst_tab_sl_pt.impianto)
+		if k_nr_dosimpos < 0 then
+			kguo_exception.set_esito(ads_barcode_set_flg_dosimetro.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + ads_barcode_set_flg_dosimetro.kist_esito.sqlerrtext
+			throw kguo_exception 
+		end if
+	end if
+
+//--- calcolo dove mettere i dosimetri: se richiesto + di uno allora il primo barcode deve contenere il dosimetro
+	if kst_tab_sl_pt.dosim_x_bcode > 0 then
+		
+//--- se ho chiesto solo 1 barcode specifico mi posiziono su quello		
+		if ast_tab_meca_dosim.barcode_lav > " " then
+			k_riga_barcode = ads_barcode_set_flg_dosimetro.find("barcode = '" + trim(ast_tab_meca_dosim.barcode_lav) + "'", 1, ads_barcode_set_flg_dosimetro.rowcount())
+			k_nr_barcode = k_riga_barcode // forza SOLO 1 barcode!!
+		else
+			k_riga_barcode = 1
+		end if
+		
+		for k_riga_barcode = 1 to k_nr_barcode
+			if ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "flg_dosimetro") = kuf1_barcode.ki_flg_dosimetro_si then
+			
+//--- faccio tutto il LOTTO o solo il BARCODE di lavorazione indicato?					
+//				if ast_tab_meca_dosim.barcode_lav = "" or ast_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode") then 
+					
+					kst_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
+					
+//--- Se Barcode già trattato lo scarta					
+					kst_tab_barcode.barcode = kst_tab_meca_dosim.barcode_lav 
+					if NOT kuf1_barcode.if_barcode_trattato(kst_tab_barcode) then
+					
+	//--- torna nr barcode che sono già associati 	
+						k_nr_bcode_associati = if_esiste_barcode_lav(kst_tab_meca_dosim)
+						if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
+							tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
+						end if
+						if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
+							
+							k_nr_bcode_associati ++
+							for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
+								
+								//--- Aggiunge posizione del dosimetro								
+								if k_nr_dosimpos >= k_ind then
+									kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
+									kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
+								else
+									kst_tab_meca_dosim.id_dosimpos = 0
+									kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
+								end if
+								
+								//--- genera uno o più barcode per etichetta
+								kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
+								kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
+								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
+								if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
+									try
+										k_return ++
+										kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
+									
+									catch (uo_exception kuo1_exception)
+										throw kuo1_exception
+									
+									end try
+								end if
+								
+							next
+							
+							if kst_tab_meca_dosim_ultimo.barcode > " " then
+								set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
+							end if
+						
+						end if
+					end if // barcode già trattato
+				//end if  
+			else
+				kst_tab_meca_dosim_delete.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
+				if trim(kst_tab_meca_dosim_delete.barcode_lav) > " " then
+					tb_delete(kst_tab_meca_dosim_delete)  // rimuove i/il barcode dosimetro non richiesto
+				end if
+			end if
+		next
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_sl_pt_dosimpos) then destroy kds_sl_pt_dosimpos
+	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
+//	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	
+end try
+
+return k_return
+
+end function
+
+public subroutine tb_delete_x_id_meca_no_trattati (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
+//====================================================================
+//=== Cancella tutti i Dosimetri del LOTTO Non Trattati
+//=== Inp: id_meca
+//=== Out:
+//=== Ritorna:         Lancia Exception x errore
+//====================================================================
+date k_data
+
+
+try
+
+	kguo_exception.inizializza(this.classname())
+//	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
+
+	k_data = kkg.data_no
+
+//---- Cancellazione RIGA LOTTO										
+	delete from meca_dosim
+		where barcode_lav in
+		   (select barcode 
+			    from barcode 
+				 where barcode.id_meca = :ast_tab_meca_dosim.id_meca
+						and data_lav_fin < :k_data
+		    )
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino &
+						, "Errore in cancellazione Dosimetri associati al Lotto Id = " + string(ast_tab_meca_dosim.id_meca))	
+		throw kguo_exception
+		
+	else
+
+		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+		else
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	
+	end if
+										
+
+catch (uo_exception kuo_exception)
+	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+
+	
+end try
+		
+		
+
+
+
+
+end subroutine
+
+private function st_tab_meca old_convalida (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;////
+////--- Controllo dati di Convalida Dosimetrica 
+////--- Inp: st_tab_meca_dosim.  id_meca / dosim_lotto_dosim / dosim_rapp_a_s 
+////--- out: 
+////--- Ritorno: st_tab_meca.  note_lav_ok / err_lav_ok
+////---
+////--- Lancia EXCEPTION x errore grave
+////---
+//boolean k_errore = true
+//long k_riga
+//string k_rc
+//double k_dose_min, k_dose_max
+//st_esito kst_esito
+////st_tab_armo kst_tab_armo 
+st_tab_meca kst_tab_meca, kst1_tab_meca
+//st_tab_armo kst_tab_armo
+//st_tab_sl_pt kst_tab_sl_pt
+//st_tab_dosimetrie kst_tab_dosimetrie
+////st_tab_contratti kst_tab_contratti
+//st_tab_base kst_tab_base
+//st_tab_prodotti kst_tab_prodotti
+////kuf_contratti kuf1_contratti
+//kuf_ausiliari kuf1_ausiliari
+//kuf_armo kuf1_armo
+//kuf_sl_pt kuf1_sl_pt
+//kuf_base kuf1_base
+//pointer kp_oldpointer
+//
+//
+//try
+////--- Puntatore Cursore da attesa..... 
+//	kp_oldpointer = SetPointer(HourGlass!)
+//
+////	kuf1_contratti = create kuf_contratti
+//	kuf1_ausiliari = create kuf_ausiliari
+//	kuf1_sl_pt = create kuf_sl_pt
+//	kuf1_base = create kuf_base 
+//	kuf1_armo = create kuf_armo
+//
+////--- get numero/data lotto (riferimento)
+//	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
+//	kuf1_armo.get_num_int(kst_tab_meca)	
+//
+////--- get dati di Convalida
+//	kst1_tab_meca.id = ast_tab_meca_dosim.id_meca
+//	kuf1_armo.get_err_lav(kst1_tab_meca)	
+//
+////--- get del codice PT x Lotto
+//	kst_tab_armo.id_meca = ast_tab_meca_dosim.id_meca
+//	kuf1_armo.get_cod_sl_pt_x_id_meca(kst_tab_armo)
+// 
+//////--- get codice contratto	
+////	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
+////	kst_tab_contratti.codice = kuf1_armo.get_contratto(kst_tab_meca)	
+//
+//////--- con il codice contratto get del Capitolato (sc-cf)
+////	kst_esito = kuf1_contratti.get_co_cf_pt(kst_tab_contratti)
+////	if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
+////		kguo_exception.inizializza( )
+////		kguo_exception.set_esito(kst_esito)
+////		throw kguo_exception
+////	end if
+//	
+//	setnull(kst_tab_meca.err_lav_ok)
+//	setnull(kst_tab_meca.note_lav_ok)
+//
+////--- get della DOSE attraverso il coff_a_s nella tabella DOSIMETRIE(la curva) x fare la convalida
+//	kst_tab_dosimetrie.lotto_dosim = trim(ast_tab_meca_dosim.dosim_lotto_dosim)
+//	kst_tab_dosimetrie.coeff_a_s = ast_tab_meca_dosim.dosim_rapp_a_s
+//	kst_tab_dosimetrie.dose = 0
+//	kst_esito = kuf1_ausiliari.tb_dosimetrie_select(kst_tab_dosimetrie) 
+//
+//	if kst_esito.esito = kkg_esito.ok then
+//			
+////--- get dati x dosimetria da tab PT
+//		kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt
+//		kuf1_sl_pt.get_dati_xconvalida(kst_tab_sl_pt)
+//		
+//		if kst_tab_sl_pt.dosetgminmin > 0 and kst_tab_sl_pt.dosetgminmax > 0 then
+//			k_dose_min = kst_tab_sl_pt.dosetgminmin   // dose minima come dose di verifica
+//			k_dose_max = kst_tab_sl_pt.dosetgminmax   // dose massima come dose di verifica
+//			
+//		else
+////--- get dell'eventuale tolleranza per la validazione dosimetrica
+//			kst_tab_base.valid_t_dose_min = 0
+//			k_rc = kuf1_base.prendi_dato_base("valid_tolleranza_dose_min")
+//			if LeftA(k_rc,1) = "0" then
+//				if isnumber (trim(MidA(k_rc,2))) then
+//					kst_tab_base.valid_t_dose_min = integer(MidA(k_rc,2))
+//				end if
+//			end if
+// 
+////--- valorizzo la tolleranza di misurazione della dose min-max				
+//			k_dose_min = kst_tab_sl_pt.dose_min * (1 - kst_tab_base.valid_t_dose_min/100)
+////*** 14-7-2005 ********** ATTENZIONE SU RICHIESTA DELLA ZAMBONI DISATTIVO CONTROLLO CON LA TOLLERANZA **************
+////*** 03-1-2006 ********** ATTENZIONE SU RICHIESTA DI BASCHIERI RIATTIVO IL CONTROLLO CON LA TOLLERANZA **************
+////*** 04-4-2011 ********** ATTENZIONE SU RICHIESTA DI BASCHIERI ATTIVO IL CONTROLLO CON LA TOLLERANZA SOLO SU DOSE MINIMA **************
+////*** 04-4-2011 ********** ATTENZIONE SU RICHIESTA DI ZAMBONI TOLGO IL CHECK SU PRESENZA CAPITOLATO  **************
+////*** 05-4-2011 ********** ATTENZIONE SU RICHIESTA DI ZAMBONI IN VIA ECCEZIONALE EVITO IL CONTROLLO SE GRUPPI=17;85;209  **************
+//
+////--- se ha il capitolato prendo il valore di riferimento dal contratto minimo + la Tolleranza		
+////				if LenA(trim(kst_tab_contratti.sc_cf)) > 0 then 
+//					k_dose_max = kst_tab_sl_pt.dose_min * (1 + kst_tab_base.valid_t_dose_min/100)
+////					k_dose_max = kst_tab_sl_pt.dose_max * (1 + kst_tab_base.valid_t_dose_min/100)
+////				else
+////					k_dose_max = kst_tab_sl_pt.dose_max 
+////				end if
+//		end if
+//	
+////--- get Gruppo articolo
+//		kst_tab_meca.id = ast_tab_meca_dosim.id_meca
+//		select max(gruppo)
+//				into :kst_tab_prodotti.gruppo
+//				from prodotti inner join armo on prodotti.codice = armo.art
+//				where armo.id_meca = :ast_tab_meca_dosim.id_meca
+//				using kguo_sqlca_db_magazzino;
+//		if isnull(kst_tab_prodotti.gruppo) then kst_tab_prodotti.gruppo = 0
+//
+////--- Verifica la DOSE			
+//		if (kst_tab_dosimetrie.dose >= k_dose_min and kst_tab_dosimetrie.dose <= k_dose_max) &
+//						OR (kst_tab_prodotti.gruppo = 17  &
+//							OR kst_tab_prodotti.gruppo = 85  &
+//							OR kst_tab_prodotti.gruppo = 209)  &
+//						then   // TOGLIERE L'ECCEZIONE IL PRIMA POSSIBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//			k_errore = false
+//			kst_tab_meca.note_lav_ok = "Verifica dosimetrica convalidata "
+////					tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kuf_armo.ki_err_lav_ok_conv_da_aut)
+////					tab_1.tabpage_1.dw_1.setitem(k_riga, "note_lav_ok", "Verifica dosimetrica convalidata ")
+//		else
+//			if kst_tab_sl_pt.dosetgminmin > 0 and kst_tab_sl_pt.dosetgminmax > 0 then
+//				kst_tab_meca.note_lav_ok = &
+//							 "Dose " &
+//							 + string(kst_tab_dosimetrie.dose, "#####0.00") &
+//							 + " fuori dal range previsto nel PT (" &
+//							 + string(kst_tab_sl_pt.dosetgminmin) &
+//							 + "-" + string(kst_tab_sl_pt.dosetgminmax) + ")"
+//			else
+//				kst_tab_meca.note_lav_ok = &
+//							 "Dose " &
+//							 + string(kst_tab_dosimetrie.dose, "#####0.00") &
+//							 + " fuori dal range previsto nel PT (" &
+//							 + string(kst_tab_sl_pt.dose_min) &
+//							 + "-" + string(kst_tab_sl_pt.dose_max) + ")"
+//			end if
+//		end if
+//	else
+//		kst_tab_meca.note_lav_ok = "Lotto Dosimetrico non trovato per il rapporto A/S calcolato"
+//	end if
+//
+////------------------------------------------------------------------------------------------------------- 
+////--- se sono stati rilevati errori di dosimetria	
+//	if k_errore then
+//
+//		choose case kst1_tab_meca.err_lav_ok
+////--- se era da "Prima Convalida"
+//			case ki_err_lav_ok_da_conv
+//				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
+////--- se era in "anomalia da autorizzare...."
+//			case ki_err_lav_ok_conv_ko_da_aut
+//				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_bloc
+////--- se era in "OK da autorizzare...."
+//			case ki_err_lav_ok_conv_da_aut
+//				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
+////--- se era in "BLOCCATO...."
+//			case ki_err_lav_ok_conv_ko_bloc
+//				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_sbloc
+//				kst_tab_meca.note_lav_ok += " - Sbloccato "
+////--- in caso di valore non identificato (es. NULL)				
+//			case else
+//				kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_ko_da_aut
+//		end choose
+//
+//	else	
+//		
+////--- se dosimetria OK	
+//		if not k_errore then
+//			
+//			choose case kst1_tab_meca.err_lav_ok
+////--- se era da "Prima Convalida" si e' deciso di dare immediatamente l'autorizzazione
+//				case ki_err_lav_ok_da_conv
+//					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
+////--- se era in "anomalia da autorizzare...."
+//				case ki_err_lav_ok_conv_ko_da_aut
+//					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
+////--- se era in "OK da autorizzare...."
+//				case ki_err_lav_ok_conv_da_aut
+//					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
+////--- se era in "BLOCCATO...."
+//				case ki_err_lav_ok_conv_ko_bloc
+//					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
+////--- in caso di valore non identificato (es. NULL)				
+//				case else
+//					kst_tab_meca.err_lav_ok = ki_err_lav_ok_conv_aut_ok
+//			end choose
+//			
+//		end if
+//	end if			
+//	if isnull(kst_tab_meca.note_lav_ok) then
+//		kst_tab_meca.err_lav_ok = kst_tab_meca.err_lav_ok
+//		kst_tab_meca.note_lav_ok = kst_tab_meca.note_lav_ok
+////	else
+////		if isnull(kst_tab_meca.err_lav_ok) then
+////			kst_tab_meca.note_lav_ok += " - prima lettura da verificare "
+////		end if
+//	end if
+////------------------------------------------------------------------------------------------------------- 
+//
+//catch (uo_exception kuo_exception)	
+//	kuo_exception.inizializza( )
+//	kuo_exception.set_esito(kst_esito)
+//	throw kuo_exception
+//
+//finally
+////	if isvalid(kuf1_contratti) then destroy kuf1_contratti
+//	if isvalid(kuf1_ausiliari) then destroy kuf1_ausiliari
+//	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
+//	if isvalid(kuf1_base) then destroy kuf1_base 
+//	if isvalid(kuf1_armo) then destroy kuf1_armo
+//	
+//	SetPointer(kp_oldpointer)
+//
+//end try
+
+return kst_tab_meca
+
+
+end function
+
+public function st_tab_meca_dosim convalida_dosimetrica (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;/*
+  Controllo dati di Convalida Dosimetrica per Gamma 2 e Gamma 3
+  Inp: st_tab_meca_dosim.  id_meca / dosim_lotto_dosim / dosim_rapp_a_s 
+  Rit: st_tab_meca_dosim.  note_lav_ok / err_lav_ok / dosim_dose...
+*/
 boolean k_errore 
 long k_riga
-string k_rc
+string k_rc, k_impianto_descr
 double k_dose_min, k_dose_max
 st_esito kst_esito
 //st_tab_armo kst_tab_armo 
@@ -3891,10 +3968,13 @@ st_tab_sl_pt kst_tab_sl_pt
 st_tab_dosimetrie kst_tab_dosimetrie
 st_tab_base kst_tab_base
 st_tab_prodotti kst_tab_prodotti
+st_tab_barcode kst_tab_barcode
 kuf_ausiliari kuf1_ausiliari
 kuf_armo kuf1_armo
 kuf_sl_pt kuf1_sl_pt
 kuf_base kuf1_base
+kuf_barcode kuf1_barcode
+kuf_impianto kuf1_impianto
 
 
 try
@@ -3914,6 +3994,8 @@ try
 		kuf1_sl_pt = create kuf_sl_pt
 		kuf1_base = create kuf_base 
 		kuf1_armo = create kuf_armo
+		kuf1_barcode = create kuf_barcode
+		kuf1_impianto = create kuf_impianto
 	
 		setnull(kst_tab_meca_dosim.err_lav_ok)
 		setnull(kst_tab_meca_dosim.note_lav_ok)
@@ -3925,6 +4007,15 @@ try
 //--- get stato dosimetria
 		get_err_lav_ok(kst_tab_meca_dosim)	
 
+//--- get IMPIANTO dal barcode di Trattamento		
+		kst_tab_barcode.barcode = kst_tab_meca_dosim.barcode_lav
+		kuf1_barcode.get_impianto(kst_tab_barcode)
+		if kst_tab_barcode.impianto > 0 then
+		else
+			kst_tab_barcode.impianto = kuf1_impianto.kki_impiantodefault
+		end if
+		k_impianto_descr = kuf1_impianto.get_descr(kst_tab_barcode.impianto)
+		
 //--- get dati di Convalida
 		kst1_tab_meca.id = ast_tab_meca_dosim.id_meca
 		kuf1_armo.get_err_lav(kst1_tab_meca)	
@@ -3933,7 +4024,6 @@ try
 		kst_tab_armo.id_meca = ast_tab_meca_dosim.id_meca
 		kuf1_armo.get_cod_sl_pt_x_id_meca(kst_tab_armo)
  
-
 		kst_tab_meca_dosim.dosim_dose = 0
 
 //--- get della DOSE attraverso il coff_a_s nella tabella DOSIMETRIE(la curva) x fare la convalida
@@ -3947,7 +4037,8 @@ try
 			kst_tab_meca_dosim.dosim_dose = kst_tab_dosimetrie.dose
 			
 //--- get dati x dosimetria da tab PT
-			kst_tab_sl_pt.cod_sl_pt = kst_tab_armo.cod_sl_pt
+			kst_tab_sl_pt.impianto = kst_tab_barcode.impianto
+			kst_tab_sl_pt.cod_sl_pt = trim(kst_tab_armo.cod_sl_pt)
 			kuf1_sl_pt.get_dati_xconvalida(kst_tab_sl_pt)
 			
 			if kst_tab_sl_pt.dosetgminmin > 0 and kst_tab_sl_pt.dosetgminmax > 0 then
@@ -4000,7 +4091,7 @@ try
 //								OR kst_tab_prodotti.gruppo = 209)  &
 //							then   // TOGLIERE L'ECCEZIONE IL PRIMA POSSIBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				k_errore = false
-				kst_tab_meca_dosim.note_lav_ok = "Verifica dosimetrica convalidata "
+				kst_tab_meca_dosim.note_lav_ok = "Verifica dosimetrica convalidata (" + k_impianto_descr + ")."
 //					tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kuf_armo.ki_err_lav_ok_conv_da_aut)
 //					tab_1.tabpage_1.dw_1.setitem(k_riga, "note_lav_ok", "Verifica dosimetrica convalidata ")
 			else
@@ -4008,23 +4099,23 @@ try
 					kst_tab_meca_dosim.note_lav_ok = &
 								 "Dose " &
 								 + string(kst_tab_dosimetrie.dose, "#####0.00") &
-								 + " fuori dal range previsto nel PT (" &
+								 + " fuori dal range previsto nel PT: " &
 								 + string(kst_tab_sl_pt.dosetgminmin) &
-								 + "-" + string(kst_tab_sl_pt.dosetgminmax) + ")"
+								 + "-" + string(kst_tab_sl_pt.dosetgminmax) + " (" + k_impianto_descr + ")."
 				else
 					kst_tab_meca_dosim.note_lav_ok = &
 								 "Dose " &
 								 + string(kst_tab_dosimetrie.dose, "#####0.00") &
-								 + " fuori dal range previsto nel PT (" &
+								 + " fuori dal range previsto nel PT: " &
 								 + string(kst_tab_sl_pt.dose_min) &
-								 + "-" + string(kst_tab_sl_pt.dose_max) + ")"
+								 + "-" + string(kst_tab_sl_pt.dose_max) + " (" + k_impianto_descr + ")."
 				end if
 			end if
 //			else
 //				kst_tab_meca.note_lav_ok = "Piano di Lavorazione non trovato "
 //			end if
 		else
-			kst_tab_meca_dosim.note_lav_ok = "Lotto Dosimetrico (curva) non trovato per il rapporto A/S calcolato"
+			kst_tab_meca_dosim.note_lav_ok = "Lotto Dosimetrico (curva) non trovato per il rapporto A/S calcolato."
 		end if
 	end if
 
@@ -4098,9 +4189,10 @@ finally
 	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
 	if isvalid(kuf1_base) then destroy kuf1_base 
 	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
 	
 //	SetPointer(kkg.pointer_default)
-
 end try
 
 return kst_tab_meca_dosim
@@ -4108,218 +4200,113 @@ return kst_tab_meca_dosim
 
 end function
 
-private function integer u_genera_rimuove_barcode_1 (st_tab_meca_dosim ast_tab_meca_dosim, uo_ds_std_1 ads_barcode_set_flg_dosimetro) throws uo_exception;/*
-  Genera barcode dosimetri 
-		chiamata dalla u_genera_rimuove_barcode
-   inp: st_tab_meca_dosim.id_meca + barcode_lav (opzionale se fare solo quel barcode)
-	     datastore ds_barcode_set_flg_dosimetro con elenco barcode con il dosimetro
-   out: numero bcode generati
+public subroutine get_dosim_dose_max_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;/*
+ get valore MASSIMO dose tra i MASSIMI
+ 	inp: st_tab_meca_dosim.id_meca 
+	out: st_tab_meca_dosim.dosim_dose
 */
-int k_return
-long k_nr_barcode, k_riga_barcode, k_ind
-int k_nr_bcode_associati=0, k_nr_dosimpos
-uo_ds_std_1 kds_sl_pt_dosimpos
-kuf_barcode kuf1_barcode
-kuf_armo kuf1_armo
-kuf_sl_pt kuf1_sl_pt
-st_tab_meca_dosim kst_tab_meca_dosim, kst_tab_meca_dosim_ultimo, kst_tab_meca_dosim_delete
-st_tab_armo kst_tab_armo
-st_tab_meca kst_tab_meca
-st_tab_sl_pt kst_tab_sl_pt
-st_tab_barcode kst_tab_barcode
-st_esito kst_esito 
+st_tab_meca_dosim kst_tab_meca_dosim
 
-
-try
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_meca_dosim.st_tab_g_0 
-
-	kuf1_armo = create kuf_armo
-	kuf1_sl_pt = create kuf_sl_pt
-	kuf1_barcode = create kuf_barcode
-	
-	k_nr_barcode = ads_barcode_set_flg_dosimetro.rowcount()
-
-//--- get dal PT per leggere i dati di dove mettere i Dosimetri
-	kst_tab_armo.id_armo = ads_barcode_set_flg_dosimetro.getitemnumber(1, "id_armo")
-	kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo) // get codice SL PT
-	kst_tab_meca.id = ast_tab_meca_dosim.id_meca
-	kst_tab_sl_pt.impianto = kuf1_armo.get_impianto(kst_tab_meca)  // get Impianto
-	
-//--- get dei dati da PT circa il nr dosimetri		
-	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
-		kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
-		if kst_tab_sl_pt.dosim_x_bcode > 0 then
-		else
-			kst_tab_sl_pt.dosim_x_bcode = 1
-		end if
-	else
-		kst_tab_sl_pt.dosim_x_bcode = 1
-	end if
-
-//--- leggo i barcode del lotto 
-	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then 
-		kds_sl_pt_dosimpos = create uo_ds_std_1
-		kds_sl_pt_dosimpos.dataobject = "ds_sl_pt_dosimpos_l"
-		kds_sl_pt_dosimpos.settransobject(kguo_sqlca_db_magazzino)
-		k_nr_dosimpos = kds_sl_pt_dosimpos.retrieve(kst_tab_sl_pt.cod_sl_pt, kst_tab_sl_pt.impianto)
-		if k_nr_dosimpos < 0 then
-			kguo_exception.set_esito(ads_barcode_set_flg_dosimetro.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura numero Barcode Dosimetri da mettere sul Lotto del PT " + trim(kst_tab_sl_pt.cod_sl_pt) + ". " + kkg.acapo + ads_barcode_set_flg_dosimetro.kist_esito.sqlerrtext
-			throw kguo_exception 
-		end if
-	end if
-
-//--- calcolo dove mettere i dosimetri: se richiesto + di uno allora il primo barcode deve contenere il dosimetro
-	if kst_tab_sl_pt.dosim_x_bcode > 0 then
-		k_riga_barcode = 1
-		for k_riga_barcode = 1 to k_nr_barcode
-			if ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "flg_dosimetro") = kuf1_barcode.ki_flg_dosimetro_si then
-			
-//--- faccio tutto il LOTTO o solo il BARCODE di lavorazione indicato?					
-				if ast_tab_meca_dosim.barcode_lav = "" or ast_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode") then 
-					
-					kst_tab_meca_dosim.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
-					
-//--- Se Barcode già trattato lo scarta					
-					kst_tab_barcode.barcode = kst_tab_meca_dosim.barcode_lav 
-					if NOT kuf1_barcode.if_barcode_trattato(kst_tab_barcode) then
-					
-	//--- torna nr barcode che sono già associati 	
-						k_nr_bcode_associati = if_esiste_barcode_lav(kst_tab_meca_dosim)
-						if k_nr_bcode_associati > kst_tab_sl_pt.dosim_x_bcode then
-							tb_delete_x_barcode_lav(kst_tab_meca_dosim)  // rimuove solo il barcode_lav x rifarlo
-						end if
-						if kst_tab_sl_pt.dosim_x_bcode > k_nr_bcode_associati then
-							
-							k_nr_bcode_associati ++
-							for k_ind = k_nr_bcode_associati to kst_tab_sl_pt.dosim_x_bcode
-								
-								//--- Aggiunge posizione del dosimetro								
-								if k_nr_dosimpos >= k_ind then
-									kst_tab_meca_dosim.id_dosimpos = kds_sl_pt_dosimpos.getitemnumber( k_ind, "id_dosimpos")
-									kst_tab_meca_dosim.sl_pt_dosimpos_seq = kds_sl_pt_dosimpos.getitemnumber( k_ind, "seq")
-								else
-									kst_tab_meca_dosim.id_dosimpos = 0
-									kst_tab_meca_dosim.sl_pt_dosimpos_seq = 0
-								end if
-								
-								//--- genera uno o più barcode per etichetta
-								kst_tab_meca_dosim.id_meca = ast_tab_meca_dosim.id_meca
-								kst_tab_meca_dosim.barcode = genera_barcode( )  // genera il barcode 
-								kst_tab_meca_dosim.st_tab_g_0.esegui_commit = "S"  //??? no COMMIT altrimenti chiude il CURSORE  ???
-								if tb_add_barcode(kst_tab_meca_dosim)  then // insert barcode in tabella
-									try
-										k_return ++
-										kst_tab_meca_dosim_ultimo = kst_tab_meca_dosim
-									
-									catch (uo_exception kuo1_exception)
-										throw kuo1_exception
-									
-									end try
-								end if
-								
-							next
-							
-							if kst_tab_meca_dosim_ultimo.barcode > " " then
-								set_ultimo_numero_barcode_dsm_in_base(kst_tab_meca_dosim_ultimo)	// AGGIORNA ANCHE TAB BASE		
-							end if
-						
-						end if
-					end if
-				end if  // barcode già trattato
-			else
-				kst_tab_meca_dosim_delete.barcode_lav = ads_barcode_set_flg_dosimetro.getitemstring(k_riga_barcode, "barcode")
-				if trim(kst_tab_meca_dosim_delete.barcode_lav) > " " then
-					tb_delete(kst_tab_meca_dosim_delete)  // rimuove i/il barcode dosimetro non richiesto
-				end if
-			end if
-		next
-		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-		else
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	end if
-	
-catch (uo_exception kuo_exception)
-	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-	else
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
-	throw kuo_exception
-	
-finally
-	if isvalid(kds_sl_pt_dosimpos) then destroy kds_sl_pt_dosimpos
-	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-	if isvalid(kuf1_barcode) then destroy kuf1_barcode
-	
-end try
-
-return k_return
-
-end function
-
-public subroutine tb_delete_x_id_meca_no_trattati (st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;//
-//====================================================================
-//=== Cancella tutti i Dosimetri del LOTTO Non Trattati
-//=== Inp: id_meca
-//=== Out:
-//=== Ritorna:         Lancia Exception x errore
-//====================================================================
-date k_data
-
-
-try
 
 	kguo_exception.inizializza(this.classname())
-//	k_sicurezza = if_sicurezza(kkg_flag_modalita.cancellazione)
 
-	k_data = kkg.data_no
+	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MASSIMA
+	ast_tab_meca_dosim.dosim_dose = 0.00
 
-//---- Cancellazione RIGA LOTTO										
-	delete from meca_dosim
-		where barcode_lav in
-		   (select barcode 
-			    from barcode 
-				 where barcode.id_meca = :ast_tab_meca_dosim.id_meca
-						and data_lav_fin < :k_data
-		    )
-		using kguo_sqlca_db_magazzino;
+	select max(dosim_dose)
+		into :ast_tab_meca_dosim.dosim_dose
+		from meca_dosim 
+		where (meca_dosim.id_meca = :ast_tab_meca_dosim.id_meca
+					)
+				and meca_dosim.dosim_flg_tipo_dose = :kst_tab_meca_dosim.dosim_flg_tipo_dose
+			 and meca_dosim.barcode > ' '
+		using kguo_sqlca_db_magazzino ;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino &
-						, "Errore in cancellazione Dosimetri associati al Lotto Id = " + string(ast_tab_meca_dosim.id_meca))	
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura dose MASSIMA tra i valori Massimi Convalidati del Lotto: " + string(ast_tab_meca_dosim.id_meca))	
 		throw kguo_exception
-		
-	else
-
-		if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
-		else
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	
 	end if
-										
-
-catch (uo_exception kuo_exception)
-	if ast_tab_meca_dosim.st_tab_g_0.esegui_commit = "N" then
+	
+	if ast_tab_meca_dosim.dosim_dose > 0 then
 	else
-		kguo_sqlca_db_magazzino.db_rollback( )
+		ast_tab_meca_dosim.dosim_dose = 0.00
 	end if
-	throw kuo_exception
-	
-finally
+
+end subroutine
+
+public subroutine get_dosim_dose_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;/*
+ get valore dose MASSIMA tra le dosi MINIME 
+	inp: st_tab_meca_dosim.id_meca 
+	out: st_tab_meca_dosim.dosim_dose
+*/
+st_tab_meca_dosim kst_tab_meca_dosim
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MINIMA	
+	ast_tab_meca_dosim.dosim_dose = 0.00
+
+	select max(dosim_dose)
+		into :ast_tab_meca_dosim.dosim_dose
+		from meca_dosim 
+		where meca_dosim.id_meca = :ast_tab_meca_dosim.id_meca
+		        and (meca_dosim.dosim_flg_tipo_dose is null
+				       or meca_dosim.dosim_flg_tipo_dose = :kst_tab_meca_dosim.dosim_flg_tipo_dose
+						 or meca_dosim.dosim_flg_tipo_dose = ''
+						 )
+		using kguo_sqlca_db_magazzino ;
 
 	
-end try
-		
-		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura dose MASSIMA tra i valori Minimi Convalidati, Lotto: " + string(ast_tab_meca_dosim.id_meca))		
+		throw kguo_exception
+	end if
+	
+	if ast_tab_meca_dosim.dosim_dose > 0 then
+	else
+		ast_tab_meca_dosim.dosim_dose = 0.00
+	end if
+
+end subroutine
+
+public subroutine get_dosim_dose_min_max (ref st_tab_meca_dosim ast_tab_meca_dosim) throws uo_exception;/*
+ get valore MINIMO dose tra i MASSIMI
+	inp : st_tab_meca_dosim.id_meca 
+	out: st_tab_meca_dosim.dosim_dose
+*/
+st_tab_meca_dosim kst_tab_meca_dosim
 
 
+	kguo_exception.inizializza(this.classname())
 
+	kst_tab_meca_dosim.dosim_flg_tipo_dose = ki_dosim_flg_tipo_dose_MASSIMA	
+	ast_tab_meca_dosim.dosim_dose = 0.00
+
+	select min(dosim_dose)
+		into :ast_tab_meca_dosim.dosim_dose
+		from meca_dosim 
+		where (meca_dosim.id_meca = :ast_tab_meca_dosim.id_meca
+					)
+		        and (meca_dosim.dosim_flg_tipo_dose is null
+				       or meca_dosim.dosim_flg_tipo_dose = :kst_tab_meca_dosim.dosim_flg_tipo_dose
+						 or meca_dosim.dosim_flg_tipo_dose = ''
+						 )
+			 and meca_dosim.barcode > ' '
+		using kguo_sqlca_db_magazzino ;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura dose MINIMA tra i valori Massimi Convalidati del Lotto: " + string(ast_tab_meca_dosim.id_meca))	
+		throw kguo_exception
+	end if
+	
+	if ast_tab_meca_dosim.dosim_dose > 0 then
+	else
+		ast_tab_meca_dosim.dosim_dose = 0.00
+	end if
 
 end subroutine
 

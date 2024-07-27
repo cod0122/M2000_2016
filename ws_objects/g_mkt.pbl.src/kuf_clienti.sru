@@ -85,9 +85,7 @@ end variables
 
 forward prototypes
 public function st_esito conta_p_iva (ref st_tab_clienti kst_tab_clienti)
-public function st_esito tb_update_ind_comm (st_tab_ind_comm kst_tab_ind_comm)
 public function st_esito anteprima (ref datawindow kdw_anteprima, st_tab_clienti kst_tab_clienti)
-public function string tb_delete (long k_id_cliente)
 public subroutine if_isnull (ref st_tab_clienti kst_tab_clienti)
 public function st_esito check_piva (st_tab_clienti kst_tab_clienti)
 public function st_esito leggi_rag_soc (ref st_tab_clienti kst_tab_clienti)
@@ -102,12 +100,7 @@ public function st_esito check_cf_altro (st_tab_clienti kst_tab_clienti)
 public function st_esito get_nr_riceventi (ref st_tab_clienti kst_tab_clienti)
 public function st_esito get_nr_mandanti (ref st_tab_clienti kst_tab_clienti)
 public function st_esito get_nr_fatturati (ref st_tab_clienti kst_tab_clienti)
-public function st_esito tb_update (st_tab_clienti_fatt kst_tab_clienti_fatt)
-public function st_esito tb_delete (st_tab_clienti_fatt kst_tab_clienti_fatt)
-public function string tb_delete_ind_comm (st_tab_ind_comm kst_tab_ind_comm)
-public function string tb_delete_m_r_f (st_tab_clienti_m_r_f kst_tab_clienti_m_r_f)
 public function st_esito get_ultimo_id (ref st_tab_clienti kst_tab_clienti)
-public function st_esito get_nome (ref st_tab_clienti kst_tab_clienti)
 public function st_esito get_p_iva (ref st_tab_clienti kst_tab_clienti)
 public function st_esito get_tipo_banca (ref st_tab_clienti kst_tab_clienti)
 public function st_esito get_esenzione_iva (ref st_tab_clienti kst_tab_clienti)
@@ -115,10 +108,6 @@ public function boolean link_call (ref datawindow adw_link, string a_campo_link)
 public function integer if_presente_id_clie_settore (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function integer if_presente_id_clie_classe (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function st_esito get_indirizzi (ref st_tab_clienti kst_tab_clienti)
-public function st_esito tb_delete (st_tab_clienti_mkt kst_tab_clienti_mkt)
-public function st_esito tb_delete (st_tab_clienti_web kst_tab_clienti_web)
-public function st_esito tb_update (st_tab_clienti_mkt kst_tab_clienti_mkt)
-public function st_esito tb_update (st_tab_clienti_web kst_tab_clienti_web)
 public function st_esito anteprima_elenco (datastore kdw_anteprima, st_tab_clienti_mkt kst_tab_clienti_mkt)
 public function st_esito anteprima_elenco (datastore kdw_anteprima, st_tab_clienti_web kst_tab_clienti_web)
 public function st_esito anteprima_elenco (datastore kdw_anteprima, st_tab_m_r_f kst_tab_m_r_f)
@@ -135,8 +124,6 @@ public subroutine get_codice_da_piva (ref st_tab_clienti kst_tab_clienti) throws
 public subroutine elenco_m_r_f_3 (st_tab_clienti kst_tab_clienti)
 public function st_esito get_email (ref st_tab_clienti_web kst_tab_clienti_web)
 public function boolean if_presente_m_r_f (st_tab_clienti_m_r_f kst_tab_clienti_m_r_f) throws uo_exception
-public function st_esito get_nome_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti)
-public function st_esito get_codice_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti)
 public function boolean leggi (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function boolean leggi (ref st_tab_clienti kst_tab_clienti) throws uo_exception
 public function boolean if_esiste_doc_esporta_prefpath (st_tab_clienti_mkt kst_tab_clienti_mkt) throws uo_exception
@@ -149,10 +136,7 @@ public function boolean reset_id_meca_causale_all (st_tab_clienti ast_tab_client
 public function boolean set_id_meca_causale (st_tab_clienti ast_tab_clienti) throws uo_exception
 public function boolean get_doc_esporta (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception
 public function long get_id_cliente_memo (ref st_tab_clienti_memo kst_tab_clienti_memo) throws uo_exception
-public function boolean tb_delete (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception
 public function st_esito get_id_memo (ref st_tab_clienti_memo kst_tab_clienti_memo)
-public subroutine memo_save (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception
-public function st_esito tb_update (ref st_tab_clienti_memo kst_tab_clienti_memo) throws uo_exception
 public function long get_id_meca_causale (readonly st_tab_clienti ast_tab_clienti) throws uo_exception
 public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_clienti kst_tab_clienti)
 public function long get_codice_da_rag_soc (ref string a_rag_soc_10) throws uo_exception
@@ -179,13 +163,15 @@ public subroutine get_delivery (ref st_tab_clienti kst_tab_clienti) throws uo_ex
 public function string get_email_attestato (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function st_esito anteprima_elenco_clienti (datastore kdw_anteprima, st_tab_clienti kst_tab_clienti)
 public function string get_id_nazione (ref st_tab_clienti ast_tab_clienti) throws uo_exception
-public function boolean tb_update (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
 public function string get_email1 (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function string get_email2 (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function string get_email3 (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function string get_email4 (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function integer get_email_send_certif_off (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function long get_clie_3_da_rag_soc (ref string a_rag_soc_10) throws uo_exception
+public function string get_nome (ref st_tab_clienti ast_tab_clienti) throws uo_exception
+public function string get_nome_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception
+public function long get_codice_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception
 end prototypes
 
 public function st_esito conta_p_iva (ref st_tab_clienti kst_tab_clienti);//====================================================================
@@ -239,142 +225,6 @@ return kst_esito
 
 
 
-
-end function
-
-public function st_esito tb_update_ind_comm (st_tab_ind_comm kst_tab_ind_comm);//
-//====================================================================
-//=== Aggiunge rek nella tabella Indirizzo di Fatturazione
-//=== 
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti:  Standard
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-st_open_w kst_open_w
-
-
-try
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	if kst_tab_ind_comm.clie_c > 0 then
-	
-		kst_tab_ind_comm.x_datins = kGuf_data_base.prendi_x_datins()
-		kst_tab_ind_comm.x_utente = kGuf_data_base.prendi_x_utente()
-	
-		if isnull(kst_tab_ind_comm.rag_soc_1_c) then
-			kst_tab_ind_comm.rag_soc_1_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.rag_soc_2_c) then
-			kst_tab_ind_comm.rag_soc_2_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.indi_c) then
-			kst_tab_ind_comm.indi_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.loc_c) then
-			kst_tab_ind_comm.loc_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.cap_c) then
-			kst_tab_ind_comm.cap_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.prov_c) then
-			kst_tab_ind_comm.prov_c = " "
-		end if
-		if isnull(kst_tab_ind_comm.id_nazione_c ) then
-			kst_tab_ind_comm.id_nazione_c = ""
-		end if
-	
-		if_sicurezza(kkg_flag_modalita.modifica)	
-		
-		
-		select distinct clie_c
-				into :k_rcn
-				from ind_comm
-				WHERE ind_comm.clie_c = :kst_tab_ind_comm.clie_c 
-				using kguo_sqlca_db_magazzino;
-				
-					
-		//--- tento l'insert se manca in arch.
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			UPDATE ind_comm  
-				  SET rag_soc_1_c = :kst_tab_ind_comm.rag_soc_1_c,   
-						rag_soc_2_c = :kst_tab_ind_comm.rag_soc_2_c,   
-						indi_c = :kst_tab_ind_comm.indi_c,   
-						loc_c = :kst_tab_ind_comm.loc_c,   
-						cap_c = :kst_tab_ind_comm.cap_c,   
-						prov_c = :kst_tab_ind_comm.prov_c,  
-						id_nazione_c = :kst_tab_ind_comm.id_nazione_c,  
-						x_datins = :kst_tab_ind_comm.x_datins,  
-						x_utente = :kst_tab_ind_comm.x_utente  
-					WHERE ind_comm.clie_c = :kst_tab_ind_comm.clie_c 
-					using kguo_sqlca_db_magazzino;
-					
-		else
-				
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				INSERT INTO ind_comm  
-							( clie_c,   
-							  rag_soc_1_c,   
-							  rag_soc_2_c,   
-							  indi_c,   
-							  loc_c,   
-							  cap_c,   
-							  prov_c,   
-							  id_nazione_c,
-							  x_datins,   
-							  x_utente )  
-					  VALUES ( :kst_tab_ind_comm.clie_c,   
-							  :kst_tab_ind_comm.rag_soc_1_c,   
-							  :kst_tab_ind_comm.rag_soc_2_c,   
-							  :kst_tab_ind_comm.indi_c,   
-							  :kst_tab_ind_comm.loc_c,   
-							  :kst_tab_ind_comm.cap_c,   
-							  :kst_tab_ind_comm.prov_c,   
-							  :kst_tab_ind_comm.id_nazione_c,
-							  :kst_tab_ind_comm.x_datins,   
-							  :kst_tab_ind_comm.x_utente )  
-					using kguo_sqlca_db_magazzino;
-			end if
-		end if	
-		
-		
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in aggiornamento dati Indirizzi Commerciali: " + trim(sqlca.SQLErrText)
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if kguo_sqlca_db_magazzino.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else
-					kst_esito.esito = kkg_esito.db_ko
-					if kst_tab_ind_comm.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_ind_comm.st_tab_g_0.esegui_commit) then
-						kst_esito = kguo_sqlca_db_magazzino.db_rollback( )
-					end if
-				end if
-			end if
-		else
-			if kst_tab_ind_comm.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_ind_comm.st_tab_g_0.esegui_commit) then
-				kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-			end if
-		end if
-			
-	else
-		kst_esito.SQLErrText = "Aggiornamento dati Ind.Commerciali cliente non eseguito, manca il codice cliente"
-		kst_esito.esito = kkg_esito.no_esecuzione
-		
-	end if		
-	
-catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito( )
-	
-end try
-
-
-return kst_esito
 
 end function
 
@@ -449,152 +299,6 @@ end if
 
 return kst_esito
 
-end function
-
-public function string tb_delete (long k_id_cliente);//
-//====================================================================
-//=== Cancella il rek dalla tabella Clienti e Clienti_sped
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===   dal 2 char in poi descrizione dell'errore
-//====================================================================
-
-string k_return = "0 "
-boolean k_rc
-long k_num
-date k_data
-long k_id_cliente_rit
-//kuf_clienti kuf1_clienti
-kuf_sicurezza kuf1_sicurezza
-st_open_w kst_open_w
-st_tab_clienti_fatt kst_tab_clienti_fatt
-st_tab_clientI kst_tab_clienti
-st_tab_ind_comm kst_tab_ind_comm
-st_tab_clienti_mkt kst_tab_clienti_mkt
-st_tab_clienti_web kst_tab_clienti_web
-
-
-kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-kst_open_w.id_programma = kkg_id_programma_anag
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-
-if not k_rc then
-
-	k_return = "1" + "Cancellazione Anagrafica non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-
-else
-
-
-//=== Controllo se nelle ENTRATE ci sono clienti
-	DECLARE entrate CURSOR FOR  
-		  SELECT num_int,
-					data_int
-			 FROM meca
-			WHERE clie_1 = :k_id_cliente OR
-					clie_2 = :k_id_cliente OR
-					clie_3 = :k_id_cliente 
-		union all
-		  SELECT num_int,
-					data_int
-			 FROM o_armo
-			WHERE clie_1 = :k_id_cliente OR
-					clie_2 = :k_id_cliente OR
-					clie_3 = :k_id_cliente ; 
-
-//=== Controllo se in USCITA ci sono Clienti
-	DECLARE fatture CURSOR FOR  
-		  SELECT num_fatt,
-					data_fatt
-			 FROM arfa_testa
-			WHERE id_cliente = :k_id_cliente ; 
-			
-			
-			
-	
-	open entrate;
-	if sqlca.sqlCode = 0 then
-	
-		fetch entrate INTO :k_num, :k_data ;
-	
-		if sqlca.sqlCode = 0 then
-			k_return = "2" + "Cliente gia' movimentato come nel Rif.: ~n~r" + &
-				"n. " + string(k_num, "#####") + " del " + &
-				string(k_data, "dd/mm/yy") + "~n~r" 	
-		end if
-		close entrate;
-	end if
-	
-	if LeftA(k_return, 1) = "0" then
-		open fatture;
-		if sqlca.sqlCode = 0 then
-	
-			fetch fatture INTO 	:k_num, :k_data;
-	
-			if sqlca.sqlCode = 0 then
-				k_return = "2" + "Cliente con Fatture, come la:  ~n~r" + &
-					"n. " + string(k_num, "#####") + " del " + &
-					string(k_data, "dd/mm/yy") + "~n~r" 	
-	
-			end if
-			close fatture;
-		end if
-	end if
-	
-		
-	if LeftA(k_return, 1) = "0" then
-		
-		delete from clienti
-				where codice = :k_id_cliente ;
-	
-		if sqlca.sqlCode <> 0 then
-	
-			k_return = "1" + SQLCA.SQLErrText
-
-			if kst_tab_clienti.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
-			end if
-
-		else
-	
-//--- cancella indirizzi
-			kst_tab_ind_comm.st_tab_g_0.esegui_commit = "N"
-			kst_tab_ind_comm.clie_c = k_id_cliente
-			tb_delete_ind_comm(kst_tab_ind_comm)
-//			delete from ind_comm
-//				where clie_c = :k_id_cliente ;
-
-//--- cancella dati di fatturazione
-			kst_tab_clienti_fatt.st_tab_g_0.esegui_commit = "N"
-			kst_tab_clienti_fatt.id_cliente = k_id_cliente
-			tb_delete(kst_tab_clienti_fatt)
-
-//--- cancella dati di MKT
-			kst_tab_clienti_mkt.st_tab_g_0.esegui_commit = "N"
-			kst_tab_clienti_mkt.id_cliente = k_id_cliente
-			tb_delete(kst_tab_clienti_mkt)
-
-//--- cancella dati di WEB
-			kst_tab_clienti_web.st_tab_g_0.esegui_commit = "N"
-			kst_tab_clienti_web.id_cliente = k_id_cliente
-			tb_delete(kst_tab_clienti_web)
-
-			if kst_tab_clienti.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
-			end if
-	
-				
-		end if
-	end if
-end if
-
-
-return k_return
 end function
 
 public subroutine if_isnull (ref st_tab_clienti kst_tab_clienti);//---
@@ -938,10 +642,14 @@ else
 
 		kdw_anteprima.dataobject = "d_clienti_1_anteprima"		
 		kdw_anteprima.settransobject(sqlca)
-
-
-		kdw_anteprima.reset()	
 		k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+		if k_rc > 0 then
+			if kdw_anteprima.getitemstring(1, "clienti_tipo") = kki_tipo_contatto then
+				kdw_anteprima.dataobject = "d_contatto"		
+				kdw_anteprima.settransobject(sqlca)
+				k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+			end if
+		end if
 
 	else
 		kst_esito.sqlcode = 0
@@ -2237,314 +1945,6 @@ return kst_esito
 
 end function
 
-public function st_esito tb_update (st_tab_clienti_fatt kst_tab_clienti_fatt);//
-//====================================================================
-//=== Aggiunge rek nella tabella DATI di FATTURAZIONE
-//=== 
-//=== Input: st_tab_clienti_fatt 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if kst_tab_clienti_fatt.id_cliente > 0 then
-	
-	kst_tab_clienti_fatt.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_fatt.x_utente = kGuf_data_base.prendi_x_utente()
-
-	if isnull(kst_tab_clienti_fatt.fattura_da) then
-		kst_tab_clienti_fatt.fattura_da = kki_fattura_da_bolla
-	end if
-	if isnull(kst_tab_clienti_fatt.note_1) then
-		kst_tab_clienti_fatt.note_1 = " "
-	end if
-	if isnull(kst_tab_clienti_fatt.note_2) then
-		kst_tab_clienti_fatt.note_2 = " "
-	end if
-	
-	k_rcn = 0
-	select distinct 1
-		into :k_rcn
-		from clienti_fatt
-		WHERE clienti_fatt.id_cliente = :kst_tab_clienti_fatt.id_cliente 
-		using sqlca;
-		
-			
-//--- tento l'insert se manca in arch.
-	if sqlca.sqlcode  >= 0 then
-		
-		if k_rcn > 0 then
-			UPDATE clienti_fatt  
-			  SET fattura_da = :kst_tab_clienti_fatt.fattura_da,   
-					note_1 = :kst_tab_clienti_fatt.note_1,   
-					note_2 = :kst_tab_clienti_fatt.note_2 , 
-					modo_stampa = :kst_tab_clienti_fatt.modo_stampa , 
-					modo_email = :kst_tab_clienti_fatt.modo_email , 
-					email_invio = :kst_tab_clienti_fatt.email_invio , 
-					impon_minimo = :kst_tab_clienti_fatt.impon_minimo , 
-					codice_ipa = :kst_tab_clienti_fatt.codice_ipa , 
-					x_datins = :kst_tab_clienti_fatt.x_datins,  
-					x_utente = :kst_tab_clienti_fatt.x_utente  
-				WHERE id_cliente = :kst_tab_clienti_fatt.id_cliente 
-				using sqlca;
-				
-		else
-			
-			INSERT INTO clienti_fatt  
-						( id_cliente,   
-						  fattura_da,   
-						  note_1,   
-						  note_2,   
-						  modo_stampa,   
-						  modo_email,   
-						  email_invio,   
-						  impon_minimo,   
-						  codice_ipa,   
-						  x_datins,   
-						  x_utente )  
-				  VALUES ( :kst_tab_clienti_fatt.id_cliente,   
-						  :kst_tab_clienti_fatt.fattura_da,   
-						  :kst_tab_clienti_fatt.note_1,   
-						  :kst_tab_clienti_fatt.note_2,   
-						  :kst_tab_clienti_fatt.modo_stampa,   
-						  :kst_tab_clienti_fatt.modo_email,   
-						  :kst_tab_clienti_fatt.email_invio,   
-						  :kst_tab_clienti_fatt.impon_minimo,   
-						  :kst_tab_clienti_fatt.codice_ipa,   
-						  :kst_tab_clienti_fatt.x_datins,   
-						  :kst_tab_clienti_fatt.x_utente )  
-				using sqlca;
-		end if
-		
-	end if	
-
-
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Fatturazione cliente: " + trim(sqlca.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	else
-		if kst_tab_clienti_fatt.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_fatt.st_tab_g_0.esegui_commit) then
-			kst_esito = kGuf_data_base.db_commit_1( )
-		end if
-	end if
-
-else
-	kst_esito.SQLErrText = "Aggiornamento dati Fatturazione cliente non eseguito, manca il codice cliente"
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_delete (st_tab_clienti_fatt kst_tab_clienti_fatt);//
-//====================================================================
-//=== Cancella rek nella tabella DATI di FATTURAZIONE
-//=== 
-//=== Input: st_tab_clienti_fatt 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-st_open_w kst_open_w
-
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuf_sicurezza kuf1_sicurezza
-
-if kst_tab_clienti_fatt.id_cliente > 0 then
-	
-	kst_tab_clienti_fatt.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_fatt.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-	kst_open_w.id_programma = kkg_id_programma_anag
-	
-	//--- controlla se utente autorizzato alla funzione in atto
-	kuf1_sicurezza = create kuf_sicurezza
-	k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-	destroy kuf1_sicurezza
-	
-	
-	if not k_rc then
-	
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Cancellazione dati Fatturazione non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-		kst_esito.esito = "1"
-	
-	else
-		
-		delete 
-			from clienti_fatt
-			WHERE clienti_fatt.id_cliente = :kst_tab_clienti_fatt.id_cliente 
-			using sqlca;
-			
-				
-	//--- tento l'insert se manca in arch.
-		if sqlca.sqlcode <> 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Tab.dati Fatturazione:" + trim(sqlca.SQLErrText)
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if sqlca.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-		else
-			if kst_tab_clienti_fatt.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_fatt.st_tab_g_0.esegui_commit) then
-				kst_esito = kGuf_data_base.db_commit_1( )
-			end if
-		end if
-	
-	
-	
-	end if
-	
-else
-	kst_esito.SQLErrText = "Tab.dati Fatturazione: nessun dato cancellato (codice cliente non impostato) "
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
-
-
-return kst_esito
-
-end function
-
-public function string tb_delete_ind_comm (st_tab_ind_comm kst_tab_ind_comm);//
-//====================================================================
-//=== Cancella il rek dalla tabella INDIRIZZI clienti
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===   dal 2 char in poi descrizione dell'errore
-//====================================================================
-
-string k_return = "0 "
-long k_num
-date k_data
-
-boolean k_rc
-kuf_sicurezza kuf1_sicurezza
-st_open_w kst_open_w
-
-
-
-kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-kst_open_w.id_programma = kkg_id_programma_anag
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-
-if not k_rc then
-
-	k_return = "1" + "Cancellazione Indirizzo Commerciale non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-
-else
-
-	
-	delete from ind_comm
-			where clie_c = :kst_tab_ind_comm.clie_c ;
-
-	if sqlca.sqlCode <> 0 then
-
-		k_return = "1" + SQLCA.SQLErrText
-	else
-		
-		if kst_tab_ind_comm.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_ind_comm.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
-		end if
-
-	end if
-
-end if
-
-return k_return
-end function
-
-public function string tb_delete_m_r_f (st_tab_clienti_m_r_f kst_tab_clienti_m_r_f);//
-//====================================================================
-//=== Cancella il rek dalla tabella M-R-F legame Anagrafiche
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===   dal 2 char in poi descrizione dell'errore
-//====================================================================
-
-string k_return = "0 "
-	
-
-boolean k_rc
-kuf_sicurezza kuf1_sicurezza
-st_open_w kst_open_w
-
-
-
-kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-kst_open_w.id_programma = kkg_id_programma_anag
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-
-if not k_rc then
-
-	k_return = "1" + "Cancellazione Legame mandante-ricevente-cliente non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-
-else
-
-
-	delete from m_r_f
-			where  clie_1 = :kst_tab_clienti_m_r_f.clie_1
-			     and clie_2 = :kst_tab_clienti_m_r_f.clie_2
-			     and clie_3 = :kst_tab_clienti_m_r_f.clie_3;
-
-	if sqlca.sqlCode <> 0 then
-
-		k_return = "1" + SQLCA.SQLErrText
-
-	else
-		
-		if kst_tab_clienti_m_r_f.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_m_r_f.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
-		end if
-		
-	end if
-
-end if
-
-return k_return
-end function
-
 public function st_esito get_ultimo_id (ref st_tab_clienti kst_tab_clienti);//
 //====================================================================
 //=== Torna l'ultimo CODICE caricato 
@@ -2583,58 +1983,6 @@ return kst_esito
 
 
 
-
-end function
-
-public function st_esito get_nome (ref st_tab_clienti kst_tab_clienti);//
-//====================================================================
-//=== Legge tabella ANAGRAFICHE clienti per reperire il nome
-//=== 
-//=== Input: st_tab_clienti.codice
-//=== Out:i campi st_tab_clenti.rag_soc_10/ rag_soc_20       
-//=== Ritorna tab. ST_ESITO, Esiti: STANDARD; 
-//=== 
-//====================================================================
-st_esito kst_esito
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-  SELECT   
-		  CLIENTI.RAG_SOC_10,
-		  CLIENTI.RAG_SOC_11
-    INTO 
-	 	  :kst_tab_clienti.rag_soc_10,   
-           :kst_tab_clienti.rag_soc_11
-        FROM clienti
-        WHERE ( clienti.codice = :kst_tab_clienti.codice   )   
-		using  kguo_sqlca_db_magazzino;
-
-
-	if  kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		kst_esito.sqlcode =  kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Tab.Anagrafiche:" + trim( kguo_sqlca_db_magazzino.SQLErrText)
-		if  kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if  kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-		
-	end if
-
-	if_isnull(kst_tab_clienti)  // toglie i null
-
-	
-
-return kst_esito
 
 end function
 
@@ -2870,7 +2218,7 @@ if k_riga > 0 then
 				k_return = false
 			end if
 			
-		case "b_cliente_mkt"
+		case "cliente_mkt"
 			kst_tab_clienti_mkt.id_cliente = adw_link.getitemnumber(k_riga, "id_cliente")
 			if kst_tab_clienti_mkt.id_cliente > 0 then
 				kst_esito = this.anteprima_elenco( kdsi_elenco_output, kst_tab_clienti_mkt )
@@ -2884,7 +2232,7 @@ if k_riga > 0 then
 				k_return = false
 			end if
 			
-		case "b_cliente_web"
+		case "cliente_web"
 			kst_tab_clienti_web.id_cliente = adw_link.getitemnumber(k_riga, "id_cliente")
 			if kst_tab_clienti_web.id_cliente > 0 then
 				kst_esito = this.anteprima_elenco( kdsi_elenco_output, kst_tab_clienti_web )
@@ -2898,7 +2246,7 @@ if k_riga > 0 then
 				k_return = false
 			end if
 			
-		case "b_m_r_f"
+		case "m_r_f"
 			kst_tab_m_r_f.clie_3 = adw_link.getitemnumber(k_riga, "id_cliente")
 			if kst_tab_m_r_f.clie_3 > 0 then
 				kst_esito = this.anteprima_elenco( kdsi_elenco_output, kst_tab_m_r_f )
@@ -2912,7 +2260,7 @@ if k_riga > 0 then
 				k_return = false
 			end if
 			
-		case "b_elenco_clienti_del_contatto"
+		case "elenco_clienti_del_contatto"
 			kst_tab_clienti.codice = adw_link.getitemnumber(k_riga, "id_cliente")
 			if kst_tab_clienti.codice > 0 then
 				kst_esito = this.anteprima_elenco_clienti_del_contatto( kdsi_elenco_output, kst_tab_clienti )
@@ -2926,7 +2274,7 @@ if k_riga > 0 then
 				k_return = false
 			end if
 			
-		case "b_clienti"   // elenco clienti
+		case "clienti"   // elenco clienti
 			kst_tab_clienti.codice =  0 
 			kdsi_elenco_output.dataobject = kki_anteprima_clienti_l 
 			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_clienti )
@@ -2937,7 +2285,7 @@ if k_riga > 0 then
 			end if
 			k_titolo = "Elenco Anagrafiche " 
 
-		case "b_clie_1_l", "clie_1_l"   // elenco clienti mandanti
+		case "clie_1_l"   // elenco clienti mandanti
 			kst_tab_clienti.rag_soc_10 = "%" 
 			kdsi_elenco_output.dataobject = "d_clienti_l_riceventi"
 			kst_esito = this.anteprima_elenco_clienti( kdsi_elenco_output, kst_tab_clienti )
@@ -2947,7 +2295,7 @@ if k_riga > 0 then
 				throw kguo_exception
 			end if
 			k_titolo = "Elenco Mandanti " 
-		case "b_clie_2_l", "clie_2_l"   // elenco clienti riceventi
+		case "clie_2_l"   // elenco clienti riceventi
 			kst_tab_clienti.rag_soc_10 = "%" 
 			kdsi_elenco_output.dataobject = "d_clienti_l_riceventi"
 			kst_esito = this.anteprima_elenco_clienti( kdsi_elenco_output, kst_tab_clienti )
@@ -2957,7 +2305,7 @@ if k_riga > 0 then
 				throw kguo_exception
 			end if
 			k_titolo = "Elenco Riceventi " 
-		case "b_clie_3_l", "clie_3_l"   // elenco clienti fatt
+		case "clie_3_l"   // elenco clienti fatt
 			kst_tab_clienti.rag_soc_10 = "%" 
 			kdsi_elenco_output.dataobject = "d_clienti_l_fatturati"
 			kst_esito = this.anteprima_elenco_clienti( kdsi_elenco_output, kst_tab_clienti )
@@ -3275,505 +2623,6 @@ kst_esito.nome_oggetto = this.classname()
 
 	
 
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_delete (st_tab_clienti_mkt kst_tab_clienti_mkt);//
-//====================================================================
-//=== Cancella rek nella tabella DATI di MARKETING
-//=== 
-//=== Input: st_tab_clienti_fatt 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-st_open_w kst_open_w
-
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuf_sicurezza kuf1_sicurezza
-
-if kst_tab_clienti_mkt.id_cliente > 0 then
-	
-	kst_tab_clienti_mkt.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_mkt.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-	kst_open_w.id_programma = kkg_id_programma_anag
-	
-	//--- controlla se utente autorizzato alla funzione in atto
-	kuf1_sicurezza = create kuf_sicurezza
-	k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-	destroy kuf1_sicurezza
-	
-	
-	if not k_rc then
-	
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Cancellazione dati Marketing non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-		kst_esito.esito = "1"
-	
-	else
-		
-		delete 
-			from clienti_mkt
-			WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-			using sqlca;
-			
-				
-	//--- tento l'insert se manca in arch.
-		if sqlca.sqlcode <> 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Tab.dati Mkt-Cliente:" + trim(sqlca.SQLErrText)
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if sqlca.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-		else
-			if kst_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-				kst_esito = kGuf_data_base.db_commit_1( )
-			end if
-		end if
-	
-	
-	
-	end if
-	
-else
-	kst_esito.SQLErrText = "Tab.dati Marketing: nessun dato cancellato (codice Anagrafica non impostato) "
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_delete (st_tab_clienti_web kst_tab_clienti_web);//
-//====================================================================
-//=== Cancella rek nella tabella DATI di MARKETING
-//=== 
-//=== Input: st_tab_clienti_fatt 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-st_open_w kst_open_w
-
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuf_sicurezza kuf1_sicurezza
-
-if kst_tab_clienti_web.id_cliente > 0 then
-	
-	kst_tab_clienti_web.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_web.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione
-	kst_open_w.id_programma = kkg_id_programma_anag
-	
-	//--- controlla se utente autorizzato alla funzione in atto
-	kuf1_sicurezza = create kuf_sicurezza
-	k_rc = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-	destroy kuf1_sicurezza
-	
-	
-	if not k_rc then
-	
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Cancellazione dati 'WEB' non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-		kst_esito.esito = "1"
-	
-	else
-		
-		delete 
-			from clienti_web
-			WHERE id_cliente = :kst_tab_clienti_web.id_cliente 
-			using sqlca;
-			
-				
-	//--- tento l'insert se manca in arch.
-		if sqlca.sqlcode <> 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Tab.dati WEB-Anagrafica:" + trim(sqlca.SQLErrText)
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if sqlca.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-		else
-			if kst_tab_clienti_web.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_web.st_tab_g_0.esegui_commit) then
-				kst_esito = kGuf_data_base.db_commit_1( )
-			end if
-		end if
-	
-	
-	end if
-	
-else
-	kst_esito.SQLErrText = "Tab.dati 'Web': nessun dato cancellato (codice Anagrafica non impostato) "
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_update (st_tab_clienti_mkt kst_tab_clienti_mkt);//
-//====================================================================
-//=== Aggiunge rek nella tabella DATI di MARKETING
-//=== 
-//=== Input: st_tab_clienti_mkt 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc, k_senza_dati=false
-st_esito kst_esito
-st_tab_clienti kst_tab_clienti
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if kst_tab_clienti_mkt.id_cliente = 0 or isnull(kst_tab_clienti_mkt.id_cliente) then
-
-	kst_esito.SQLErrText = "Aggiornamento dati Marketing cliente non eseguito, manca il codice cliente"
-	kst_esito.esito = kkg_esito.no_esecuzione
-
-else
-	
-	kst_tab_clienti_mkt.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_mkt.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_tab_clienti.kst_tab_clienti_mkt = kst_tab_clienti_mkt
-	this.if_isnull( kst_tab_clienti )
-	kst_tab_clienti_mkt = kst_tab_clienti.kst_tab_clienti_mkt
-
-	k_rcn = 0
-	select distinct 1
-		into :k_rcn
-		from clienti_mkt
-		WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-		using kguo_sqlca_db_magazzino;
-		
-			
-//--- tento l'insert se manca in arch.
-	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
-
-//--- controllo se ci sono dati
-		if len(trim(kst_tab_clienti.kst_tab_clienti_mkt.altra_sede)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.tipo_rapporto)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.cod_atecori)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_1_qualif)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_2_qualif)) > 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_3_qualif)) > 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_4_qualif)) > 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_5_qualif)) > 0 &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_1 <> 0 &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_2 <> 0  &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_3  <> 0 &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_4  <> 0 &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_5  <> 0 &
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_cliente_link  <> 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.note_attivita)) > 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.note_prodotti)) > 0 & 
-				or kst_tab_clienti.kst_tab_clienti_mkt.gruppo > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.doc_esporta)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.doc_esporta_prefpath)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.qualifica)) > 0 then
-		
-			k_senza_dati = false
-		else
-			k_senza_dati = true
-		end if
-		
-		if k_rcn > 0 then
-			
-			if k_senza_dati then //allora non serve quindi lo  cancello
-				delete from clienti_mkt  
-					WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-					using kguo_sqlca_db_magazzino;
-			else
-				
-				UPDATE clienti_mkt  
-				  SET 
-						altra_sede = :kst_tab_clienti_mkt.altra_sede 
-						,cod_atecori = :kst_tab_clienti_mkt.cod_atecori 
-						,tipo_rapporto = :kst_tab_clienti_mkt.tipo_rapporto 
-						,contatto_1_qualif = :kst_tab_clienti_mkt.contatto_1_qualif
-						,contatto_2_qualif = :kst_tab_clienti_mkt.contatto_2_qualif
-						,contatto_3_qualif = :kst_tab_clienti_mkt.contatto_3_qualif 
-						,contatto_4_qualif = :kst_tab_clienti_mkt.contatto_4_qualif 
-						,contatto_5_qualif = :kst_tab_clienti_mkt.contatto_5_qualif 
-						,id_contatto_1 = :kst_tab_clienti_mkt.id_contatto_1 
-						,id_contatto_2 = :kst_tab_clienti_mkt.id_contatto_2 
-						,id_contatto_3 = :kst_tab_clienti_mkt.id_contatto_3 
-						,id_contatto_4 = :kst_tab_clienti_mkt.id_contatto_4 
-						,id_contatto_5 = :kst_tab_clienti_mkt.id_contatto_5 
-						,id_cliente_link = :kst_tab_clienti_mkt.id_cliente_link 
-						,note_attivita = :kst_tab_clienti_mkt.note_attivita 
-						,note_prodotti = :kst_tab_clienti_mkt.note_prodotti 
-						,qualifica = :kst_tab_clienti_mkt.qualifica 
-						,gruppo = :kst_tab_clienti_mkt.gruppo 
-						,doc_esporta = :kst_tab_clienti_mkt.doc_esporta 
-						,doc_esporta_prefpath = :kst_tab_clienti_mkt.doc_esporta_prefpath
-						,x_datins = :kst_tab_clienti_mkt.x_datins
-						,x_utente = :kst_tab_clienti_mkt.x_utente  
-					WHERE id_cliente = :kst_tab_clienti_mkt.id_cliente 
-					using kguo_sqlca_db_magazzino;
-			end if						
-		else
-			
-			if NOT k_senza_dati then //registra solo se contiene dati
-				INSERT INTO clienti_mkt 
-						(
-						id_cliente
-						,altra_sede 
-						,tipo_rapporto
-						,cod_atecori
-						,contatto_1_qualif
-						,contatto_2_qualif
-						,contatto_3_qualif 
-						,contatto_4_qualif 
-						,contatto_5_qualif 
-						,id_contatto_1
-						,id_contatto_2 
-						,id_contatto_3 
-						,id_contatto_4 
-						,id_contatto_5 
-						,id_cliente_link 
-						,note_attivita 
-						,note_prodotti 
-						,qualifica 
-						,gruppo 
-						,doc_esporta
-						,doc_esporta_prefpath
-						,x_datins 
-						,x_utente 
-						 )  
-				  VALUES ( 
-					 :kst_tab_clienti_mkt.id_cliente 
-					,:kst_tab_clienti_mkt.altra_sede 
-					,:kst_tab_clienti_mkt.tipo_rapporto 
-					,:kst_tab_clienti_mkt.cod_atecori 
-					,:kst_tab_clienti_mkt.contatto_1_qualif
-					,:kst_tab_clienti_mkt.contatto_2_qualif
-					,:kst_tab_clienti_mkt.contatto_3_qualif 
-					,:kst_tab_clienti_mkt.contatto_4_qualif 
-					,:kst_tab_clienti_mkt.contatto_5_qualif 
-					,:kst_tab_clienti_mkt.id_contatto_1 
-					,:kst_tab_clienti_mkt.id_contatto_2 
-					,:kst_tab_clienti_mkt.id_contatto_3 
-					,:kst_tab_clienti_mkt.id_contatto_4 
-					,:kst_tab_clienti_mkt.id_contatto_5 
-					,:kst_tab_clienti_mkt.id_cliente_link 
-					,:kst_tab_clienti_mkt.note_attivita 
-					,:kst_tab_clienti_mkt.note_prodotti 
-					,:kst_tab_clienti_mkt.qualifica 
-					,:kst_tab_clienti_mkt.gruppo 
-					,:kst_tab_clienti_mkt.doc_esporta 
-					,:kst_tab_clienti_mkt.doc_esporta_prefpath
-					,:kst_tab_clienti_mkt.x_datins
-					,:kst_tab_clienti_mkt.x_utente  
-						  )  
-				using kguo_sqlca_db_magazzino;
-				
-			end if
-		end if
-		
-	end if	
-
-
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Marketing cliente: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	else
-		if kst_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-			kst_esito = kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	end if
-
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_update (st_tab_clienti_web kst_tab_clienti_web);//
-//====================================================================
-//=== Aggiunge rek nella tabella DATI di WWW
-//=== 
-//=== Input: st_tab_clienti_web 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc, k_senza_dati
-st_esito kst_esito
-st_tab_clienti kst_tab_clienti
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if kst_tab_clienti_web.id_cliente > 0 then
-
-	kst_tab_clienti_web.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_web.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_tab_clienti.kst_tab_clienti_web = kst_tab_clienti_web
-	this.if_isnull( kst_tab_clienti )
-	kst_tab_clienti_web = kst_tab_clienti.kst_tab_clienti_web
-
-	k_rcn = 0
-	select distinct 1
-		into :k_rcn
-		from clienti_web
-		WHERE id_cliente = :kst_tab_clienti_web.id_cliente 
-		using sqlca;
-		
-			
-//--- tento l'insert se manca in arch.
-	if sqlca.sqlcode  >= 0 then
-
-//--- controllo se ci sono dati
-		if len(trim(kst_tab_clienti.kst_tab_clienti_web.blog_web)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.blog_web1)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.email)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.email1)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.email2)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.email3)) > 0 & 
-			  or kst_tab_clienti.kst_tab_clienti_web.email_prontomerce > 0 &
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.note)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.sito_web)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_web.sito_web1)) > 0 & 
-			  or kst_tab_clienti_web.email_send_certif_off > 0 &
-				 then
-		
-			k_senza_dati = false
-		else
-			k_senza_dati = true
-		end if
-		
-		
-		if k_rcn > 0 then
-			UPDATE clienti_web  
-			  SET 
-					blog_web = :kst_tab_clienti_web.blog_web 
-					,blog_web1 = :kst_tab_clienti_web.blog_web1 
-					,email = :kst_tab_clienti_web.email 
-					,email1 = :kst_tab_clienti_web.email1 
-					,email2 = :kst_tab_clienti_web.email2 
-					,email3 = :kst_tab_clienti_web.email3
-					,email_prontomerce = :kst_tab_clienti_web.email_prontomerce
-					,note = :kst_tab_clienti_web.note 
-					,sito_web = :kst_tab_clienti_web.sito_web 
-					,sito_web1 = :kst_tab_clienti_web.sito_web1 
-					,email_send_certif_off = :kst_tab_clienti_web.email_send_certif_off
-					,x_datins = :kst_tab_clienti_web.x_datins
-					,x_utente = :kst_tab_clienti_web.x_utente  
-				WHERE id_cliente = :kst_tab_clienti_web.id_cliente 
-				using sqlca;
-				
-		else
-			
-			INSERT INTO clienti_web  
-						(
-						id_cliente
-						,blog_web 
-						,blog_web1 
-						,email 
-						,email1  
-						,email2 
-						,email3 
-						,email_prontomerce
-						,note 
-						,sito_web 
-						,sito_web1 
-						,email_send_certif_off
-						,x_datins 
-						,x_utente 
-						 )  
-				  VALUES ( 
-					 :kst_tab_clienti_web.id_cliente 
-					,:kst_tab_clienti_web.blog_web 
-					,:kst_tab_clienti_web.blog_web1 
-					,:kst_tab_clienti_web.email 
-					,:kst_tab_clienti_web.email1
-					,:kst_tab_clienti_web.email2
-					,:kst_tab_clienti_web.email3
-					,:kst_tab_clienti_web.email_prontomerce
-					,:kst_tab_clienti_web.note 
-					,:kst_tab_clienti_web.sito_web 
-					,:kst_tab_clienti_web.sito_web1 
-					,:kst_tab_clienti_web.email_send_certif_off
-					,:kst_tab_clienti_web.x_datins
-					,:kst_tab_clienti_web.x_utente  
-						  )  
-				using sqlca;
-		end if
-		
-	end if	
-
-
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Web: " + trim(sqlca.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	else
-		if kst_tab_clienti_web.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_web.st_tab_g_0.esegui_commit) then
-			kst_esito = kGuf_data_base.db_commit_1( )
-		end if
-	end if
-
-else
-	kst_esito.SQLErrText = "Aggiornamento dati Web cliente non eseguito, manca il codice cliente"
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
 
 
 return kst_esito
@@ -4967,121 +3816,6 @@ return k_return
 
 end function
 
-public function st_esito get_nome_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti);//
-//====================================================================
-//=== Legge tabella ANAGRAFICHE clienti per reperire il nome attraverso il CF o P.IVA o Codice
-//=== 
-//=== Input: st_tab_clienti.codice
-//=== Out:i campi st_tab_clenti.rag_soc_10/ rag_soc_20       
-//=== Ritorna tab. ST_ESITO, Esiti: STANDARD; 
-//=== 
-//====================================================================
-st_esito kst_esito
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-if len(trim(k_codice)) > 0 then 
-
-//--- prima piglio il CODICE
-	kst_esito = get_codice_da_xyz(k_codice,kst_tab_clienti)
-
-//--- se tutto OK piglio il NOME	
-	if kst_esito.esito = kkg_esito.ok then
-		if kst_tab_clienti.codice > 0 then
-			kst_esito = get_nome(kst_tab_clienti)
-			if isnull(kst_tab_clienti.rag_soc_10) then	
-				kst_tab_clienti.rag_soc_10 = " "
-			end if
-		end if
-	end if
-
-end if					
-
-this.if_isnull(kst_tab_clienti)
-
-return kst_esito
-
-
-end function
-
-public function st_esito get_codice_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti);//
-//====================================================================
-//=== Legge tabella ANAGRAFICHE clienti per reperire il nome attraverso il CF o P.IVA o Codice
-//=== 
-//=== Input: st_tab_clienti.codice
-//=== Out:i campi st_tab_clenti.rag_soc_10/ rag_soc_20       
-//=== Ritorna tab. ST_ESITO, Esiti: STANDARD; 
-//=== 
-//====================================================================
-st_esito kst_esito
-string k_ctr = ""
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if len(trim(k_codice)) > 0 then 
-
-	
-	if len(trim(k_codice)) < 8 then //--- probabile che sia un codice
-	
-		if isnumber(trim(k_codice)) then
-			
-			kst_tab_clienti.codice = long(trim(k_codice))
-			
-		end if
-		
-	else
-
-		if left(string(trim(k_codice)), 3) = '000' and  len(trim(k_codice)) < 11 then //--- protrebbe essere un codice dal flusso WM a formato fisso (strano)
-
-			if isnumber(trim(k_codice)) then
-				
-				kst_tab_clienti.codice = long(trim(k_codice))
-				
-			end if
-		
-		else
-	
-			if left(trim(k_codice),2) = "IT" or left(trim(k_codice),2) = "it" then
-				k_codice = mid(k_codice, 3) 
-			end if
-		
-//--- probabimente e' P.IVA
-			kst_tab_clienti.p_iva = trim(k_codice)
-			try
-				get_codice_da_piva(kst_tab_clienti)
-			catch (uo_exception kuo_exception)
-				kst_esito = kuo_exception.get_st_esito()
-			end try
-				
-			if kst_esito.esito <> kkg_esito.ok then
-			
-//--- forse e' Codice Fiscale
-				kst_tab_clienti.cf = trim(k_codice)
-				try
-					get_codice_da_cf(kst_tab_clienti)
-				catch (uo_exception kuo1_exception)
-					kst_esito = kuo1_exception.get_st_esito()
-				end try
-				
-			end if
-
-		end if					
-	end if					
-
-end if					
-
-this.if_isnull(kst_tab_clienti)
-
-return kst_esito
-
-
-end function
-
 public function boolean leggi (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception;//
 //------------------------------------------------------------------------------------------------
 //--- Legge tabella dati ANAGRAFICI clienti Web ecc...
@@ -6027,64 +4761,6 @@ return k_return
 
 end function
 
-public function boolean tb_delete (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception;//
-//--------------------------------------------------------------------
-//--- Cancella rek nella tabella CLIENTI_MEMO
-//--- 
-//--- Input: st_tab_clienti_memo.id_memo
-//--- Ritorna  TRUE=OK; 
-//--- 
-//--- x errore lancia exception
-//--------------------------------------------------------------------
-boolean k_return = false
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-st_open_w kst_open_w
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-if ast_tab_clienti_memo.id_memo > 0 then
-	
-	delete 
-			from clienti_memo
-			WHERE id_memo = :ast_tab_clienti_memo.id_memo 
-			using kguo_sqlca_db_magazzino;
-			
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore Cancellazione NOTE dal Cliente (id memo " + string(ast_tab_clienti_memo.id_memo) + ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText) 
-
-			if ast_tab_clienti_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_memo.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_rollback( )
-			end if
-
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito( kst_esito)
-			throw kguo_exception
-		end if
-	else
-			
-		if ast_tab_clienti_memo.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_memo.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	end if
-
-
-end if
-
-
-
-return k_return
-
-end function
-
 public function st_esito get_id_memo (ref st_tab_clienti_memo kst_tab_clienti_memo);//
 //====================================================================
 //=== Torna  ID_MEMO da id_cliente_memo
@@ -6123,150 +4799,6 @@ return kst_esito
 
 
 
-
-end function
-
-public subroutine memo_save (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception;//
-//--- Fascicola il MEMO sul Cliente 
-//
-st_esito kst_esito
-kuf_memo_allarme kuf1_memo_allarme
-
-try   
-
-	kist_tab_clienti_memo.id_memo = ast_tab_clienti_memo.id_memo
-	if trim(kist_tab_clienti_memo.allarme) > " " then
-	else
-		kist_tab_clienti_memo.allarme = kuf1_memo_allarme.kki_memo_allarme_no
-	end if
-
-	kist_tab_clienti_memo.st_tab_g_0 = ast_tab_clienti_memo.st_tab_g_0
-	kst_esito = tb_update(ast_tab_clienti_memo)
-	if kst_esito.esito <> kkg_esito.ok then
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-catch (uo_exception	kuo_exception)
-	throw kuo_exception
-		
-end try
-	
-
-
-end subroutine
-
-public function st_esito tb_update (ref st_tab_clienti_memo kst_tab_clienti_memo) throws uo_exception;//====================================================================
-//=== Aggiunge rek nella tabella DATI di MEMO
-//=== 
-//=== Input: st_tab_clienti_memo
-//=== output: id_cliente_memo
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-long k_rcn
-boolean k_rc, k_senza_dati
-st_esito kst_esito
-
-
-try
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	if kst_tab_clienti_memo.id_cliente > 0 then
-	else
-		kst_esito.SQLErrText = "Aggiornamento dati Avvisi MEMO clienti non eseguito, manca il codice cliente"
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-	
-	kst_tab_clienti_memo.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_clienti_memo.x_utente = kGuf_data_base.prendi_x_utente()
-	
-	
-	k_rcn = 0
-	if kst_tab_clienti_memo.id_memo > 0 then
-		select distinct 1
-			into :k_rcn
-			from clienti_memo
-			WHERE id_memo = :kst_tab_clienti_memo.id_memo 
-			using kguo_sqlca_db_magazzino;
-	end if			
-		
-	//--- tento l'insert se manca in arch.
-	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
-
-		if k_rcn > 0 then
-			UPDATE clienti_memo  
-					SET id_cliente = :kst_tab_clienti_memo.id_cliente
-						 ,tipo_sv =  :kst_tab_clienti_memo.tipo_sv
-						 ,allarme = :kst_tab_clienti_memo.allarme
-						,x_datins = :kst_tab_clienti_memo.x_datins
-						,x_utente = :kst_tab_clienti_memo.x_utente  
-						WHERE id_memo = :kst_tab_clienti_memo.id_memo 
-						using kguo_sqlca_db_magazzino;
-		else
-			
-			if NOT k_senza_dati then
-				//id_cliente_memo
-				INSERT INTO clienti_memo  
-							(
-							tipo_sv
-							,id_memo
-							,id_cliente
-							 ,allarme
-							,x_datins 
-							,x_utente 
-							 )  
-					  VALUES ( 
-						:kst_tab_clienti_memo.tipo_sv
-						,:kst_tab_clienti_memo.id_memo 
-						,:kst_tab_clienti_memo.id_cliente 
-						,:kst_tab_clienti_memo.allarme 
-						,:kst_tab_clienti_memo.x_datins
-						,:kst_tab_clienti_memo.x_utente  
-						)  
-					using kguo_sqlca_db_magazzino;
-				if kguo_sqlca_db_magazzino.sqlcode = 0 then
-					kst_tab_clienti_memo.id_cliente_memo = get_id_cliente_memo_max()
-				end if	
-			end if
-					
-		end if
-			
-	end if	
-	
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati Avvisi Memo: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-				if kst_tab_clienti_memo.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_memo.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_rollback( )
-				end if
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if
-	else
-		if kst_tab_clienti_memo.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_clienti_memo.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-end try
-
-return kst_esito
 
 end function
 
@@ -6368,16 +4900,17 @@ else
 
 	if kst_tab_clienti.codice > 0 or kdw_anteprima.dataobject <> "d_clienti_1_anteprima" then
 
-//		kdw_anteprima.dataobject = "d_clienti_1"		
 		kdw_anteprima.settransobject(sqlca)
 
-//		kuf1_utility = create kuf_utility
-//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
 //--- retrive 
 		k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+		if k_rc > 0 then
+			if kdw_anteprima.getitemstring(1, "clienti_tipo") = kki_tipo_contatto then
+				kdw_anteprima.dataobject = "d_contatto"		
+				kdw_anteprima.settransobject(sqlca)
+				k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+			end if
+		end if
 
 	else
 		kst_esito.sqlcode = 0
@@ -6686,18 +5219,12 @@ public function boolean if_attivo (st_tab_clienti kst_tab_clienti) throws uo_exc
 //---   
 //------------------------------------------------------------------------------------------------------------------------------------
 boolean k_return=false
-st_esito kst_esito
 int k_ctr
-uo_exception kuo_exception
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 
 
 try
+	kguo_exception.inizializza(this.classname())
 
 	if kst_tab_clienti.codice > 0 then
 
@@ -6708,34 +5235,26 @@ try
 				where clienti.codice = :kst_tab_clienti.codice and stato = :kst_tab_clienti.stato
 				using kguo_sqlca_db_magazzino ;
 				
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in verifica 'STATO ATTIVO' del Cliente: " + string(kst_tab_clienti.codice))
+			throw kguo_exception
+		end if			
 	
+		if kguo_sqlca_db_magazzino.sqlcode = 100 then
+			k_return = false
+		else
 			if k_ctr = 1 then
 				k_return = true
 			end if
-			
-		else
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				k_return = false
-			else
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore in verifica 'STATO ATTIVO' del Cliente: " + string(kst_tab_clienti.codice)  + " ~n~r " + kguo_sqlca_db_magazzino.sqlerrtext
-				kuo_exception = create uo_exception
-				kuo_exception.set_esito( kst_esito )
-				throw kuo_exception
-			end if
-		end if
+		end if			
 	else
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.SQLErrText = "Errore in verifica 'STATO ATTIVO cliente': manca il codice " 
-		kuo_exception = create uo_exception
-		kuo_exception.set_esito( kst_esito )
-		throw kuo_exception
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Errore in verifica 'STATO ATTIVO' del cliente: manca il codice! " 
+		throw kguo_exception
 	end if
 
-catch (uo_exception kuo1_exception)
-	throw kuo1_exception
+catch (uo_exception kuo_exception)
+	throw kuo_exception
 	
 
 finally
@@ -7783,36 +6302,6 @@ return trim(k_return)
 
 end function
 
-public function boolean tb_update (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;//------------------------------------------------------------------
-//--- Aggiorna rek nella tabella altri DATI Cliente
-//--- 
-//--- Input: st_tab_clienti_altro con i dati x key id_cliente
-//--- output: 
-//--- Ritorna true = aggiornato 
-//--- 
-//------------------------------------------------------------------
-boolean k_return
-kuf_clienti_altro kuf1_clienti_altro
-
-
-try
-
-	kuf1_clienti_altro = create kuf_clienti_altro
-	
-	k_return = kuf1_clienti_altro.u_aggiona(kst_tab_clienti_altro)
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_clienti_altro) then destroy kuf1_clienti_altro
-	
-end try
-
-return k_return
-
-end function
-
 public function string get_email1 (ref st_tab_clienti_web kst_tab_clienti_web) throws uo_exception;//
 //------------------------------------------------------------------
 //--- Legge tabella Clienti_web per reperire i campi email
@@ -8100,6 +6589,122 @@ return kst_tab_clienti.codice
 
 
 
+
+
+end function
+
+public function string get_nome (ref st_tab_clienti ast_tab_clienti) throws uo_exception;/*
+ Legge tabella ANAGRAFICHE clienti per reperire il nome
+  Inp: st_tab_clienti.codice
+  Out: i campi st_tab_clenti.rag_soc_10/ rag_soc_11      
+  Rit: rag_soc_10 + rag_soc_11
+*/
+
+kguo_exception.inizializza(this.classname())
+
+SELECT   
+		  trim(isnull(CLIENTI.RAG_SOC_10, '')),
+		  trim(isnull(CLIENTI.RAG_SOC_11, ''))
+    INTO 
+	 	  :ast_tab_clienti.rag_soc_10,   
+        :ast_tab_clienti.rag_soc_11
+        FROM clienti
+        WHERE ( clienti.codice = :ast_tab_clienti.codice   )   
+		using  kguo_sqlca_db_magazzino;
+
+if kguo_sqlca_db_magazzino.sqlcode < 0 then		
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura Nominativo da Angrafe de codice " + string(ast_tab_clienti.codice))	
+	throw kguo_exception
+end if
+
+return ast_tab_clienti.rag_soc_10 + ' ' + ast_tab_clienti.rag_soc_11
+
+end function
+
+public function string get_nome_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception;/*
+ Legge tabella ANAGRAFICHE clienti per reperire il nome attraverso il CF o P.IVA o Codice
+ Inp: st_tab_clienti.codice
+ Out: i campi st_tab_clenti.rag_soc_10/ rag_soc_21
+ Rit: rag_soc_10/ rag_soc_21
+*/
+string k_return
+kguo_exception.inizializza(this.classname())
+
+if len(trim(k_codice)) > 0 then 
+
+//--- prima piglio il CODICE
+//	kst_esito = get_codice_da_xyz(k_codice,kst_tab_clienti)
+
+//--- se tutto OK piglio il NOME	
+	if kst_tab_clienti.codice > 0 then
+		k_return = get_nome(kst_tab_clienti)
+	end if
+
+end if					
+
+return k_return
+
+
+end function
+
+public function long get_codice_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception;/*
+ Legge tabella ANAGRAFICHE clienti per reperire il CODICE attraverso il CF o P.IVA o Codice
+ 	Inp: st_tab_clienti.codice
+ 	Out: i campi st_tab_clenti.rag_soc_10/ rag_soc_20       
+	Rit: codice
+*/
+string k_ctr = ""
+
+
+kguo_exception.inizializza(this.classname())
+
+kst_tab_clienti.codice = 0
+
+if len(trim(k_codice)) > 0 then 
+	
+	if len(trim(k_codice)) < 8 then //--- probabile che sia un codice
+	
+		if isnumber(trim(k_codice)) then
+			
+			kst_tab_clienti.codice = long(trim(k_codice))
+			
+		end if
+		
+	else
+
+		if left(string(trim(k_codice)), 3) = '000' and  len(trim(k_codice)) < 11 then //--- protrebbe essere un codice dal flusso WM a formato fisso (strano)
+
+			if isnumber(trim(k_codice)) then
+				
+				kst_tab_clienti.codice = long(trim(k_codice))
+				
+			end if
+		
+		else
+	
+			if left(trim(k_codice),2) = "IT" or left(trim(k_codice),2) = "it" then
+				k_codice = mid(k_codice, 3) 
+			end if
+		
+//--- probabimente e' P.IVA
+			kst_tab_clienti.p_iva = trim(k_codice)
+			
+			get_codice_da_piva(kst_tab_clienti)
+				
+			if kst_tab_clienti.codice > 0 then
+			else
+//--- forse e' Codice Fiscale
+				kst_tab_clienti.cf = trim(k_codice)
+			end if
+
+		end if					
+	end if					
+
+end if					
+
+if isnull(kst_tab_clienti.codice) then kst_tab_clienti.codice = 0
+
+return kst_tab_clienti.codice
 
 
 end function

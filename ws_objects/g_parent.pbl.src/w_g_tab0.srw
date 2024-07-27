@@ -120,6 +120,8 @@ protected subroutine riempi_id ()
 public function string u_lancia_funzione_update ()
 public function string u_lancia_funzione_if_modificato ()
 protected subroutine u_personalizza_dw (string a_flag_modalita)
+protected function long u_visualizza_modifica_open (string a_modalita, long k_key_n, string k_key_x)
+protected subroutine u_get_key_from_dw_row (ref long k_key_n, ref string k_key_x)
 end prototypes
 
 protected function string check_dati ();//======================================================================
@@ -649,7 +651,7 @@ int k_return=0
 string k_inizializza_return=""
 long k_riga_getrow=0
 int k_importa=0
-boolean k_insersci = false
+//boolean k_insersci = false
 
 
 	setpointer(kkg.pointer_attesa)	
@@ -698,11 +700,11 @@ boolean k_insersci = false
 
 		try
 			
-			if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento and cb_inserisci.enabled then 
+//			if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento and cb_inserisci.enabled then 
 			
-				k_insersci = true
+//				k_insersci = true
 				
-			else
+//			else
 			
 				k_inizializza_return = inizializza() //Reimposta i tasti e fa la retrieve di lista
 				
@@ -718,7 +720,7 @@ boolean k_insersci = false
 						kGuf_data_base.dw_importfile_set_row(trim(ki_syntaxquery), dw_lista_0)
 					end if
 				end if
-			end if
+//			end if
 			
 		catch (uo_exception kuo_exception)
 		end try
@@ -726,11 +728,11 @@ boolean k_insersci = false
 	end if
 	
 	if not ki_exit_si then  // se EXIT esce dalla funzione!!
-		if k_insersci then
+//		if k_insersci then
 	
-			cb_inserisci.event clicked( )
+//			cb_inserisci.event clicked( )
 		
-		else
+//		else
 			
 			inizializza_lista_ok(k_riga_getrow)
 			
@@ -741,7 +743,7 @@ boolean k_insersci = false
 				attiva_tasti()
 			end if
 			
-		end if
+//		end if
 	end if
 
 	if ki_exit_si then  // se EXIT esce dalla funzione!!
@@ -833,176 +835,46 @@ return k_boolean
 
 end function
 
-protected function integer modifica ();//===
-//=== Lettura del rek da modificare
-//=== Routine STANDARD ma event. modificabile
-//=== Torna : <=0=Ko, >0=Ok
+protected function integer modifica ();/*
+ MODIFICA
+ Routine STANDARD ma modificabile
+	Rit: <=0=Ko, >0=Ok
+*/
 int k_return
-any k_key
-string k_campo_key=""
-//kuf_utility kuf1_utility
-kuf_parent kuf1_parent 
-st_tab_g_0 kst_tab_g_0 
-st_open_w kst_open_w	
+string k_key_x
+long k_key_n
 
 
-	if trim(ki_st_open_w.nome_id_tabella) > " " then
-		k_campo_key = trim(ki_st_open_w.nome_id_tabella)
-	else
-		k_campo_key = "#1"
+	u_get_key_from_dw_row(k_key_n, k_key_x)
+
+	if trim(k_key_x) = "" and k_key_n = 0 then 
+		return 0
 	end if
 
-	if dw_lista_0.visible then 
-		if dw_lista_0.getrow() > 0 then
-			choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
-				case 'CH'
-					k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-				case else
-					k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-			end choose
-		end if
-	else
-		if dw_dett_0.visible then 
-			if dw_dett_0.getrow() > 0 then
-				choose case upper(Left(dw_dett_0.Describe(k_campo_key + ".Coltype"),2))
-					case 'CH'
-						k_key = dw_dett_0.getitemstring(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
-					case else
-						k_key = dw_dett_0.getitemnumber(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
-				end choose
-			end if
-		end if
-	end if
-			
-	if trim(string(k_key)) > " " then 
+	k_return = u_visualizza_modifica_open(kkg_flag_modalita.modifica, k_key_n, k_key_x)
 
-		kst_open_w.flag_modalita = kkg_flag_modalita.modifica
-//--- verifica la funzione da lanciare
-		kst_open_w.id_programma = ki_st_open_w.id_programma
-		if ki_st_open_w.nome_oggetto > " " then
-			kuf1_parent = create using ki_st_open_w.nome_oggetto  //nme oggetto = KUF_....
-			if isvalid(kuf1_parent) then
-				kst_open_w.id_programma = kuf1_parent.get_id_programma(kst_open_w.flag_modalita)
-			end if
-		end if
-		
-//--- se la funzione da lanciare è diversa da quella attuale lancio quella funzione	
-		if kst_open_w.id_programma <> ki_st_open_w.id_programma then
-			
-			if isnumber(string(k_key)) then
-				kst_tab_g_0.id = k_key
-			else
-				kst_tab_g_0.idx = trim(k_key)
-			end if
-			kuf1_parent.u_open_applicazione(kst_tab_g_0, kst_open_w.flag_modalita)
-			k_return = 1
-		
-		else
-//--- se la funzione è la stessa allora attivo il dw_dett_0
-			k_return = dw_dett_0.retrieve( k_key ) 
-		
-			if k_return > 0 then
-				ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-		
-//--- S-protezione campi per riabilitare la modifica a parte la chiave
-				//kuf1_utility = create kuf_utility
-				//kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
-				dw_dett_0.u_proteggi_dw("0", 0)
-	
-//--- Inabilita campo cliente per la modifica se Funzione MODIFICA
-				if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
-					dw_dett_0.u_proteggi_dw("1", 1)
-					//kuf1_utility.u_proteggi_dw("1", 1, dw_dett_0)
-				end if
-				//destroy kuf1_utility
-			end if
-		end if		
-	end if		
 
 return k_return
 
 end function
 
-protected function integer visualizza ();//===
-//=== Lettura del rek da modificare
-//=== Routine STANDARD ma event. modificabile
-//=== Torna : <=0=Ko, >0=Ok
+protected function integer visualizza ();/*
+ VISUALIZZAZIONE
+ Routine STANDARD ma modificabile
+	Rit: <=0=Ko, >0=Ok
+*/
 int k_return
-any k_key
-string k_campo_key=""
-//kuf_utility kuf1_utility
-kuf_parent kuf1_parent 
-st_tab_g_0 kst_tab_g_0 
-st_open_w kst_open_w	
+string k_key_x
+long k_key_n
 
 
-	if trim(ki_st_open_w.nome_id_tabella) > " " then
-		k_campo_key = trim(ki_st_open_w.nome_id_tabella)
-	else
-		k_campo_key = "#1"
+	u_get_key_from_dw_row(k_key_n, k_key_x)
+
+	if trim(k_key_x) = "" and k_key_n = 0 then 
+		return 0
 	end if
 
-	if dw_lista_0.visible then 
-		if dw_lista_0.getrow() > 0 then
-			choose case upper(Left(dw_lista_0.Describe(k_campo_key + ".Coltype"),2))
-				case 'CH'
-					k_key = dw_lista_0.getitemstring(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-				case else
-					k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), trim(dw_lista_0.Describe(k_campo_key + ".Name")))
-			end choose
-		end if
-	else
-		if dw_dett_0.visible then 
-			if dw_dett_0.getrow() > 0 then
-				choose case upper(Left(dw_dett_0.Describe(k_campo_key + ".Coltype"),2))
-					case 'CH'
-						k_key = dw_dett_0.getitemstring(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
-					case else
-						k_key = dw_dett_0.getitemnumber(dw_dett_0.getrow(), trim(dw_dett_0.Describe(k_campo_key + ".Name")))
-				end choose
-			end if
-		end if
-	end if
-
-	if trim(string(k_key)) > " " then 
-
-		kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-//--- verifica la funzione da lanciare
-		kst_open_w.id_programma = ki_st_open_w.id_programma
-		if ki_st_open_w.nome_oggetto > " " then
-			kuf1_parent = create using ki_st_open_w.nome_oggetto  //nme oggetto = KUF_....
-			if isvalid(kuf1_parent) then
-				kst_open_w.id_programma = kuf1_parent.get_id_programma(kst_open_w.flag_modalita)
-			end if
-		end if
-		
-//--- se la funzione da lanciare è diversa da quella attuale lancio quella funzione	
-		if kst_open_w.id_programma <> ki_st_open_w.id_programma then
-			
-			if isnumber(string(k_key)) then
-				kst_tab_g_0.id = k_key
-			else
-				kst_tab_g_0.idx = trim(k_key)
-			end if
-			kuf1_parent.u_open_applicazione(kst_tab_g_0, kst_open_w.flag_modalita)
-			k_return = 1
-		
-		else
-//--- se la funzione è la stessa allora attivo il dw_dett_0
-			k_return = dw_dett_0.retrieve( k_key ) 
-		
-			if k_return > 0 then
-				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-		
-//--- Protezione campi per disabilitare la modifica 
-				//kuf1_utility = create kuf_utility
-				//kuf1_utility.u_proteggi_dw("1", 0, dw_dett_0)
-				//destroy kuf1_utility
-				dw_dett_0.u_proteggi_dw("1", 0)
-
-			end if
-		end if		
-	end if		
+	k_return = u_visualizza_modifica_open(kkg_flag_modalita.visualizzazione, k_key_n, k_key_x)
 
 
 return k_return
@@ -1143,20 +1015,29 @@ end subroutine
 
 protected function string aggiorna_tabelle ();//
 //=== Update delle Tabelle
-string k_return = "0 "
+string k_return
+int k_rc
 
 
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 		dw_dett_0.setitemstatus(1, 0, primary!, NewModified!)
 	end if
 	
-	
-	if dw_dett_0.update() <> 1 then
+	k_rc = dw_dett_0.update()
+	choose case k_rc
+			
+		case 1
+			k_return = "0 "
+			
+		case -1
+			kguo_exception.set_st_esito_err_dw(dw_dett_0, "Errore in inserimento o aggiornamento dati! ")
+			k_return = "1" + kguo_exception.kist_esito.sqlerrtext 
+			
+		case else
+			k_return = "1Parametri di inserimento o aggiornamento dati errato! "
+			
+	end choose
 
-		k_return = "1Errore: " + dw_dett_0.kist_esito.SQLsyntax + " (" + string(dw_dett_0.kist_esito.SQLdbcode) + ")" 
-
-	end if
-		
 
 return k_return
 
@@ -1204,30 +1085,41 @@ uo_d_std_1 kdw_1
 
 if not ki_exit_si then
 
-	if dw_lista_0.visible then 
-		kdw_1 = dw_lista_0
-	else
-		if dw_dett_0.visible then 
+//---- Tenta il posizionamento sulla riga di Inizio lista dell'ultima exit
+	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
+
+		if dw_lista_0.visible then 
+			kdw_1 = dw_lista_0
+		elseif dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+		elseif dw_lista_0.enabled then 
+			kdw_1 = dw_lista_0
+		elseif dw_dett_0.enabled then 
 			kdw_1 = dw_dett_0
 		else
 			return "0"
 		end if
-	end if
-
-//---- Tenta il posizionamento sulla riga di Inizio lista dell'ultima exit
-	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
+	
 		if kdw_1.enabled and kdw_1.rowcount( ) > 1 then 
-			k_riga = kGuf_data_base.dw_setta_riga(trim(ki_syntaxquery), kdw_1)
-			if k_riga > 0 and k_riga <= kdw_1.rowcount( ) then 
-				if k_riga > 1 then
-					kdw_1.scrolltorow( k_riga - 1)
-				else 
-					kdw_1.scrolltorow( k_riga )
+			if kdw_1.getselectedrow(0) = 0 then
+				k_riga = kGuf_data_base.dw_setta_riga(trim(ki_syntaxquery), kdw_1)
+				if k_riga = 0 then k_riga = 1
+				if k_riga > 0 and k_riga <= kdw_1.rowcount( ) then 
+					if k_riga > 1 then
+						kdw_1.scrolltorow( k_riga - 1)
+					else 
+						kdw_1.scrolltorow( k_riga )
+					end if
+					kdw_1.selectrow(k_riga, true)
+					kdw_1.setrow(k_riga)
+					//kdw_1.setfocus( )
 				end if
-				kdw_1.selectrow(k_riga, true)
-				kdw_1.setrow(k_riga)
-				kdw_1.setfocus( )
 			end if
+		end if
+		if dw_guida.enabled then
+			dw_guida.post setfocus( )
+		elseif kdw_1.enabled then
+			kdw_1.post setfocus( )
 		end if
 	end if
 	
@@ -1865,7 +1757,7 @@ dw_dett_0.move(30000, 30000)
 end subroutine
 
 protected subroutine u_win_show ();//
-if not st_orizzontal.enabled and not ki_personalizza_pos_controlli then
+if not st_orizzontal.enabled and not ki_personalizza_pos_controlli and not dw_guida.enabled then
 	dw_lista_0.move(0, 0)
 	dw_dett_0.move(0, 0)
 end if
@@ -1939,8 +1831,9 @@ try
 			end if
 		else
 			kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-			kguo_exception.messaggio_utente( "Operazione fallita", "Dati non trovati in archivio~n~r" +&
-															"Provare a riaggiornare l'elenco e rifare l'operazione appena tentata")
+			kguo_exception.messaggio_utente( "Operazione fallita", "Dati non trovati in archivio. " &
+														+ kkg.acapo &
+														+ "Provare a riaggiornare l'elenco e rifare l'operazione appena tentata")
 			throw kguo_exception
 		end if
 	end if
@@ -2232,6 +2125,106 @@ protected subroutine u_personalizza_dw (string a_flag_modalita);//---
 	
 
 
+
+end subroutine
+
+protected function long u_visualizza_modifica_open (string a_modalita, long k_key_n, string k_key_x);/*
+	OPEN DELLA FUNZIONE O DELLA DW_DETT_0 PER OPERAZIONI DI VISUALIZZAZIONE O MODIFICA
+		Inp: modalità
+		Rit: return dalla Retrieve o dalla call di open della funzione
+*/
+long k_return
+st_open_w kst_open_w
+st_tab_g_0 kst_tab_g_0
+kuf_parent kuf1_parent
+
+
+	kst_open_w.flag_modalita = a_modalita
+//--- verifica la funzione da lanciare
+	kst_open_w.id_programma = ki_st_open_w.id_programma
+	if ki_st_open_w.nome_oggetto > " " then
+		kuf1_parent = create using ki_st_open_w.nome_oggetto  //nme oggetto = KUF_....
+		if isvalid(kuf1_parent) then
+			kst_open_w.id_programma = kuf1_parent.get_id_programma(kst_open_w.flag_modalita)
+		end if
+	end if
+
+//--- se la funzione da lanciare è diversa da quella attuale lancio quella funzione	
+	if kst_open_w.id_programma <> ki_st_open_w.id_programma then
+	
+		if k_key_n > 0 then
+			kst_tab_g_0.id = k_key_n
+		else
+			kst_tab_g_0.idx = trim(k_key_x)
+		end if
+		kuf1_parent.u_open_applicazione(kst_tab_g_0, kst_open_w.flag_modalita)
+		k_return = 1
+
+	else
+//--- se la funzione è la stessa allora attivo il dw_dett_0
+		if k_key_n > 0 then
+			k_return = dw_dett_0.retrieve( k_key_n ) 
+		else
+			k_return = dw_dett_0.retrieve( k_key_x ) 
+		end if
+
+		if k_return > 0 then
+			ki_st_open_w.flag_modalita = a_modalita
+			if a_modalita = kkg_flag_modalita.visualizzazione then
+
+				dw_dett_0.u_proteggi_dw("1", 0)  // protezione dei campi
+				
+			else
+				
+				dw_dett_0.u_proteggi_dw("0", 0)  // sprotezione dei campi
+				//dw_dett_0.u_proteggi_dw("1", 1)
+			end if
+		end if
+	end if		
+
+return k_return
+end function
+
+protected subroutine u_get_key_from_dw_row (ref long k_key_n, ref string k_key_x);/*
+ RECUPERA LA CHIAVE DELLA RIGA DEL DW SELEZIONATA
+ Routine STANDARD ma modificabile
+	Out: k_key_n > 0 allora la chiave è numerica
+		  k_key_x > ' ' allora la chiave è alfanumerica
+*/
+long k_row
+string k_campo_key=""
+uo_d_std_1 kdw_1
+
+
+	k_key_x = ""
+	k_key_n = 0
+
+	if trim(ki_st_open_w.nome_id_tabella) > " " then
+		k_campo_key = trim(ki_st_open_w.nome_id_tabella)
+	else
+		k_campo_key = "#1"
+	end if
+
+	if dw_lista_0.visible then 
+		kdw_1 = dw_lista_0
+		k_row = dw_lista_0.u_getrow(0)
+	else
+		if dw_dett_0.visible then 
+			kdw_1 = dw_dett_0
+			k_row = dw_lista_0.u_getrow(0)
+		end if
+	end if
+	
+	if k_row = 0 then
+		return 
+	end if
+	
+	choose case upper(Left(kdw_1.Describe(k_campo_key + ".Coltype"),2))
+		case 'CH'
+			k_key_x = kdw_1.getitemstring(k_row, trim(kdw_1.Describe(k_campo_key + ".Name")))
+		case else
+			k_key_n = kdw_1.getitemnumber(k_row, trim(kdw_1.Describe(k_campo_key + ".Name")))
+	end choose
 
 end subroutine
 
@@ -2695,6 +2688,14 @@ integer width = 2441
 integer taborder = 10
 boolean bringtotop = true
 end type
+
+event itemerror;call super::itemerror;//
+if data > " " then
+else
+	return 2
+end if
+
+end event
 
 type st_duplica from statictext within w_g_tab0
 boolean visible = false

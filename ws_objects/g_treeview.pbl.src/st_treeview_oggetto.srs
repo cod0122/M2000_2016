@@ -45,6 +45,7 @@ global type st_treeview_oggetto from structure
 	string		certif_da_st_farma_dett
 	string		certif_da_st_alimen_dett
 	string		certif_da_st_sd_dett
+	string		certif_da_st
 	string		certif_da_st_dett
 	string		certif_err_dett
 	string		certif_st_mese

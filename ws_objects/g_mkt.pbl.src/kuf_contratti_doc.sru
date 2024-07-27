@@ -496,7 +496,7 @@ choose case a_campo_link
 			k_return = false
 		end if
 
-	case "b_contratto_doc_dettaglio"
+	case "contratto_doc_dettaglio"
 		kst_tab_contratti_doc.id_contratto_doc = adw_link.getitemnumber(adw_link.getrow(), "id_contratto_doc")
 		if kst_tab_contratti_doc.id_contratto_doc > 0 then
 			kst_tab_contratti_doc.quotazione_tipo = adw_link.getitemstring(adw_link.getrow(), "quotazione_tipo")

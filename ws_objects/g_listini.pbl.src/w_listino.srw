@@ -1685,13 +1685,13 @@ protected subroutine inizializza_4 () throws uo_exception;//
 //======================================================================
 //
 string k_scelta
-long  k_key, k_clie_3, k_contratto, k_riga, k_larg, k_lung, k_alt
-int k_err_ins, k_rc=0, k_anno
+long  k_key, k_clie_3, k_contratto, k_riga, k_larg, k_lung, k_alt, k_rc
+int k_err_ins, k_anno
 double k_dose 
 string k_art
 string k_codice_prec
 st_tab_listino kst_tab_listino
-datawindowchild kdwc_barcode
+//datawindowchild kdwc_barcode
 
 
 ki_selectedtab = 5
@@ -1715,13 +1715,13 @@ if kst_tab_listino.id > 0 then
 	else
 	
 		if kiuf_listino.if_listino_gia_in_rif(kst_tab_listino) then
-			tab_1.tabpage_5.dw_5.getchild("barcode_elenco", kdwc_barcode)
-			kdwc_barcode.settransobject(sqlca)
-			kdwc_barcode.insertrow(0)
+	//		tab_1.tabpage_5.dw_5.getchild("barcode_elenco", kdwc_barcode)
+	//		kdwc_barcode.settransobject(sqlca)
+	//		kdwc_barcode.insertrow(0)
 
 			k_rc=tab_1.tabpage_5.dw_5.retrieve( kst_tab_listino.id, kst_tab_listino.contratto, ki_data_ini, ki_data_fin  )
 
-			if tab_1.tabpage_5.dw_5.rowcount() = 0 then
+			if k_rc = 0 then
 				tab_1.tabpage_5.dw_5.insertrow(0) 
 			end if
 		end if
@@ -1730,7 +1730,6 @@ if kst_tab_listino.id > 0 then
 					
 	
 	attiva_tasti()
-	
 	
 	tab_1.tabpage_5.dw_5.setfocus()
 end if
@@ -2503,7 +2502,8 @@ string k_errore="0", k_dataobject
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_listino
-integer y = 28
+integer x = 0
+integer y = 0
 integer width = 3072
 integer height = 1384
 end type
@@ -3170,27 +3170,27 @@ boolean controlmenu = true
 end type
 
 event dw_5::clicked;call super::clicked;//
-datawindowchild kdwc_barcode
-
-if row > 0 and dwo.Name = "barcode_elenco" then
-	
-	this.getchild("barcode_elenco", kdwc_barcode)
-
-	kdwc_barcode.settransobject(sqlca)
-
-	if this.rowcount() > 0 then
-
-		if kdwc_barcode.retrieve(this.getitemnumber(row,"id_meca")) > 0 then
-
-			kdwc_barcode.insertrow(0)
-			
-		end if
-	else
-		kdwc_barcode.insertrow(0)
-
-	end if
-
-end if
+//datawindowchild kdwc_barcode
+//
+//if row > 0 and dwo.Name = "barcode_elenco" then
+//	
+//	this.getchild("barcode_elenco", kdwc_barcode)
+//
+//	kdwc_barcode.settransobject(sqlca)
+//
+//	if this.rowcount() > 0 then
+//
+//		if kdwc_barcode.retrieve(this.getitemnumber(row,"id_meca")) > 0 then
+//
+//			kdwc_barcode.insertrow(0)
+//			
+//		end if
+//	else
+//		kdwc_barcode.insertrow(0)
+//
+//	end if
+//
+//end if
 
 end event
 
@@ -3312,6 +3312,7 @@ integer endy = 2376
 end type
 
 type dw_periodo from uo_d_std_1 within w_listino
+event u_button_ok ( )
 integer x = 777
 integer y = 620
 integer width = 955
@@ -3327,42 +3328,38 @@ boolean hsplitscroll = false
 boolean livescroll = false
 end type
 
-event buttonclicked;call super::buttonclicked;//
-st_stampe kst_stampe
-
-	
+event u_button_ok();//		
 
 try
-	SetPointer(kkg.pointer_attesa)
+	this.accepttext( )
+	
+	this.visible = false
+	
+	ki_data_ini  = this.getitemdate( 1, "data_dal")
+	ki_data_fin  = this.getitemdate( 1, "data_al")
+	inizializza_4()
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	
+	
+end try
+end event
+
+event buttonclicked;call super::buttonclicked;//
+
 
 	if dwo.name = "b_ok" then
 		
-		
-		this.visible = false
-		
-		ki_data_ini  = this.getitemdate( 1, "data_dal")
-		ki_data_fin  = this.getitemdate( 1, "data_al")
-		inizializza_4()
+		event u_button_ok( )
 	
 	else
 		if dwo.name = "b_annulla" then
 	
 			this.visible = false
 		
-		
 		end if
 	end if
-
-
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-
-
-finally
-	SetPointer(kkg.pointer_default)
-
-	
-end try
 
 end event
 
@@ -3370,7 +3367,7 @@ event ue_visibile;call super::ue_visibile;//
 int k_rc
 
 	this.width = long(this.object.data_al.x) + long(this.object.data_al.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 260
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4
@@ -3383,5 +3380,12 @@ int k_rc
 //	this.modify("data_al.background.color='"+string(kkg_colore.grigio)+"'")
 	this.visible = true
 	this.setfocus()
+	
+
+end event
+
+event u_pigiato_enter;//
+	event u_button_ok( )
+
 end event
 

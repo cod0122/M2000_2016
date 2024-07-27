@@ -1194,54 +1194,64 @@ private subroutine aggiorna_altri_archivi (st_memo ast_memo) throws uo_exception
 //----------------------------------------------------------------------------------------------
 long k_righe = 0, k_riga
 st_tab_memo_utenti kst_tab_memo_utenti
-kuf_clienti kuf1_clienti
+kuf_clienti_tb_xxx kuf1_clienti_tb_xxx
 kuf_armo_inout kuf1_armo_inout
 kuf_memo_utenti kuf1_memo_utenti
 kuf_sl_pt kuf1_sl_pt
 datastore kds_sr_utenti_settori_profili_l
 
-
-//---- aggiorna memo cliente
-kuf1_clienti = create kuf_clienti
-ast_memo.st_tab_clienti_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
-if ast_memo.st_tab_clienti_memo.id_cliente > 0 then
-	kuf1_clienti.memo_save(ast_memo.st_tab_clienti_memo)
-else	
-	kuf1_clienti.tb_delete(ast_memo.st_tab_clienti_memo)
-end if
-
-//----  aggiorna memo Lotto
-kuf1_armo_inout = create kuf_armo_inout
-ast_memo.st_tab_meca_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
-if ast_memo.st_tab_meca_memo.id_meca > 0 then
-	kuf1_armo_inout.memo_save(ast_memo.st_tab_meca_memo)
-else	
-	kuf1_armo_inout.tb_delete(ast_memo.st_tab_meca_memo)
-end if
-
-//----  aggiorna memo PT
-kuf1_sl_pt = create kuf_sl_pt
-ast_memo.st_tab_sl_pt_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
-if trim(ast_memo.st_tab_sl_pt_memo.cod_sl_pt) > " " then
-	kuf1_sl_pt.memo_save(ast_memo.st_tab_sl_pt_memo)
-else	
-	kuf1_sl_pt.tb_delete(ast_memo.st_tab_sl_pt_memo) 
-end if
-
-//---- aggiorna Avvisi memo 
-kuf1_memo_utenti = create kuf_memo_utenti
-if ast_memo.st_tab_memo.tipo_sv > " " then
-	kds_sr_utenti_settori_profili_l = create datastore
-	kds_sr_utenti_settori_profili_l.dataobject = "d_sr_utenti_settori_profili_l"
-	kds_sr_utenti_settori_profili_l.settransobject(kguo_sqlca_db_magazzino )
-	k_righe = kds_sr_utenti_settori_profili_l.retrieve(ast_memo.st_tab_memo.tipo_sv)
-	kst_tab_memo_utenti.id_memo = ast_memo.st_tab_memo.id_memo
-	kst_tab_memo_utenti.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
-	for k_riga = 1 to k_righe
-		kst_tab_memo_utenti.id_sr_utente = kds_sr_utenti_settori_profili_l.getitemnumber(k_riga, "id_sr_utente")
-		kuf1_memo_utenti.memo_save(kst_tab_memo_utenti)
-	end for
-end if
+try
+	
+	//---- aggiorna memo cliente
+	kuf1_clienti_tb_xxx = create kuf_clienti_tb_xxx
+	ast_memo.st_tab_clienti_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
+	if ast_memo.st_tab_clienti_memo.id_cliente > 0 then
+		kuf1_clienti_tb_xxx.memo_save(ast_memo.st_tab_clienti_memo)
+	else	
+		kuf1_clienti_tb_xxx.tb_delete(ast_memo.st_tab_clienti_memo)
+	end if
+	
+	//----  aggiorna memo Lotto
+	kuf1_armo_inout = create kuf_armo_inout
+	ast_memo.st_tab_meca_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
+	if ast_memo.st_tab_meca_memo.id_meca > 0 then
+		kuf1_armo_inout.memo_save(ast_memo.st_tab_meca_memo)
+	else	
+		kuf1_armo_inout.tb_delete(ast_memo.st_tab_meca_memo)
+	end if
+	
+	//----  aggiorna memo PT
+	kuf1_sl_pt = create kuf_sl_pt
+	ast_memo.st_tab_sl_pt_memo.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
+	if trim(ast_memo.st_tab_sl_pt_memo.cod_sl_pt) > " " then
+		kuf1_sl_pt.memo_save(ast_memo.st_tab_sl_pt_memo)
+	else	
+		kuf1_sl_pt.tb_delete(ast_memo.st_tab_sl_pt_memo) 
+	end if
+	
+	//---- aggiorna Avvisi memo  
+	kuf1_memo_utenti = create kuf_memo_utenti
+	if ast_memo.st_tab_memo.tipo_sv > " " then
+		kds_sr_utenti_settori_profili_l = create datastore
+		kds_sr_utenti_settori_profili_l.dataobject = "d_sr_utenti_settori_profili_l"
+		kds_sr_utenti_settori_profili_l.settransobject(kguo_sqlca_db_magazzino )
+		k_righe = kds_sr_utenti_settori_profili_l.retrieve(ast_memo.st_tab_memo.tipo_sv)
+		kst_tab_memo_utenti.id_memo = ast_memo.st_tab_memo.id_memo
+		kst_tab_memo_utenti.st_tab_g_0 = ast_memo.st_tab_memo.st_tab_g_0
+		for k_riga = 1 to k_righe
+			kst_tab_memo_utenti.id_sr_utente = kds_sr_utenti_settori_profili_l.getitemnumber(k_riga, "id_sr_utente")
+			kuf1_memo_utenti.memo_save(kst_tab_memo_utenti)
+		end for
+	end if
+	
+catch (uo_exception kuo_exception)
+	if isvalid(kuf1_clienti_tb_xxx) then destroy kuf1_clienti_tb_xxx
+	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout
+	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
+	if isvalid(kuf1_memo_utenti) then destroy kuf1_memo_utenti
+	throw kuo_exception
+	
+end try
 end subroutine
 
 public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception;//
@@ -1482,7 +1492,7 @@ st_tab_meca_ddt_in kst_tab_meca_ddt_in
 st_esito kst_esito
 kuf_memo_link kuf1_memo_link
 kuf_memo_utenti kuf1_memo_utenti
-kuf_clienti kuf1_clienti
+kuf_clienti_tb_xxx kuf1_clienti_tb_xxx
 kuf_armo_inout kuf1_armo_inout
 kuf_sl_pt kuf1_sl_pt
 kuf_meca_ddt_in kuf1_meca_ddt_in
@@ -1497,10 +1507,10 @@ try
 		kuf1_memo_link.tb_delete_x_id_memo(kst_tab_memo_link)
 
 //--- cancella il MEMO nel cliente		
-		kuf1_clienti = create kuf_clienti
+		kuf1_clienti_tb_xxx = create kuf_clienti_tb_xxx
 		kst_tab_clienti_memo.st_tab_g_0.esegui_commit = ast_tab_memo.st_tab_g_0.esegui_commit
 		kst_tab_clienti_memo.id_memo = ast_tab_memo.id_memo
-		kuf1_clienti.tb_delete(kst_tab_clienti_memo)
+		kuf1_clienti_tb_xxx.tb_delete(kst_tab_clienti_memo)
 //--- cancella il MEMO nel Lotto		
 		kuf1_armo_inout = create kuf_armo_inout
 		kst_tab_meca_memo.st_tab_g_0.esegui_commit =  ast_tab_memo.st_tab_g_0.esegui_commit
@@ -1530,7 +1540,7 @@ catch (uo_exception kuo_exception)
 
 finally
 	if isvalid(kuf1_memo_link) then destroy kuf1_memo_link 
-	if isvalid(kuf1_clienti) then destroy kuf1_clienti 
+	if isvalid(kuf1_clienti_tb_xxx) then destroy kuf1_clienti_tb_xxx 
 	if isvalid(kuf1_armo_inout) then destroy kuf1_armo_inout 
 	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt 
 	if isvalid(kuf1_memo_utenti) then destroy kuf1_memo_utenti 

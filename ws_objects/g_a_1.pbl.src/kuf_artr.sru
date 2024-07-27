@@ -19,23 +19,22 @@ forward prototypes
 public subroutine tree_cbarre (ref treeview ktree_artr)
 public function st_esito leggi (integer k_tipo, ref st_tab_artr kst_tab_artr)
 public function st_esito cancella_pl_barcode (ref st_tab_artr kst_tab_artr)
-public function st_esito crea_attestato_dettaglio (ref st_tab_artr kst_tab_artr)
 public subroutine if_isnull (st_tab_artr kst_tab_artr)
 public function st_esito aggiorna_data_stampa_attestato (ref st_tab_artr kst_tab_artr)
 public function st_esito tb_delete ()
-public function st_esito chiudi_lavorazione (ref st_tab_artr kst_tab_artr)
 public function st_esito anteprima (datawindow kdw_anteprima, st_tab_artr kst_tab_artr)
 public function st_esito togli_colli_in_lavorazione (ref st_tab_artr kst_tab_artr)
 public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function integer u_tree_riempi_treeview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
-public function st_esito apri_lavorazione (readonly st_tab_artr kst_tab_artr)
 public function st_esito get_num_certif (ref st_tab_artr kst_tab_artr)
 public function long get_id_armo_da_num_certif (st_tab_artr kst_tab_artr) throws uo_exception
 public function long get_colli_da_id_armo_pl_barcode (st_tab_artr kst_tab_artr) throws uo_exception
 public function boolean tb_sistema_lotto (st_tab_artr ast_tab_artr) throws uo_exception
 public function long get_colli_trattati_x_id_armo (st_tab_artr kst_tab_artr) throws uo_exception
 public function st_esito get_colli_trattati (ref st_tab_artr kst_tab_artr, long k_id_meca)
-public subroutine u_db_crea_view_trattati (string a_view_name, long a_id_meca) throws uo_exception
+public subroutine apri_lavorazione (readonly st_tab_artr kst_tab_artr) throws uo_exception
+public function boolean chiudi_lavorazione (ref st_tab_artr kst_tab_artr) throws uo_exception
+public function long crea_attestato_dettaglio (ref st_tab_artr kst_tab_artr) throws uo_exception
 end prototypes
 
 public subroutine tree_cbarre (ref treeview ktree_artr);//--- 
@@ -200,159 +199,6 @@ return kst_esito
 
 end function
 
-public function st_esito crea_attestato_dettaglio (ref st_tab_artr kst_tab_artr);//
-//====================================================================
-//=== 
-//=== Aggiorna, ARTR con il NUM CERTIF
-//=== 
-//=== Inp:  id_armo e pl_barcode
-//=== Out:  num_certif
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-string k_return = "0 ", k_rc
-long k_id_armo
-st_esito kst_esito, kst1_esito
-st_tab_base kst_tab_base
-st_tab_armo kst_tab_armo
-kuf_base kuf1_base
-
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-
-	k_id_armo = kst_tab_artr.id_armo
-
-//--- becco il ID_MECA dall'ARMO
-	select distinct id_meca 
-	    into :kst_tab_armo.id_meca
-	    from armo
-		 where id_armo = :k_id_armo;
-
-//--- estrazione delle righe x l'entrata con num certificato
-	declare c_crea_att_dett_1 cursor for
-	    select distinct b.num_certif
-	        from armo as a inner join artr as b on 
-					 a.id_armo = b.id_armo
-			 where a.id_meca = :kst_tab_armo.id_meca and 
-					 b.num_certif > 0
-			 order by b.num_certif desc
-			 using kguo_sqlca_db_magazzino;
-
-
-	kst_tab_artr.num_certif = 0 
-
-	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
-
-//--- becco il num_certif per la riga entrata e pl_barcode
-	select distinct artr.num_certif
-	     into :kst_tab_artr.num_certif
-		  from artr
-	   where id_armo = :k_id_armo and pl_barcode = :kst_tab_artr.pl_barcode 
-	   using kguo_sqlca_db_magazzino;
-
-//--- Se num certificato non ancora impostato, procedo
-	if kst_tab_artr.num_certif = 0 or isnull(kst_tab_artr.num_certif) then
-	
-		open c_crea_att_dett_1;
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			fetch c_crea_att_dett_1 into :kst_tab_artr.num_certif;
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore durante lettura Numero Certificato da id lotto: " + string(kst_tab_armo.id_meca) + " ~n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
-			end if
-			close c_crea_att_dett_1;
-		else
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then 
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore durante tentativo di lettura Numero Certificato da id lotto (open): " + string(kst_tab_armo.id_meca) + " ~n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
-			end if
-		end if
-		
-		if kst_esito.esito = "0" then
-			
-			if kst_tab_artr.num_certif > 0 then
-			else
-
-				kuf1_base = create kuf_base
-//--- Acchiappo numero certificato 
-				k_rc = kuf1_base.prendi_dato_base("num_certif")
-				if LeftA(k_rc, 1) = "0" then
-					kst_tab_artr.num_certif = long(trim(MidA(k_rc, 2))) + 1
-				end if
-				if isnull(kst_tab_artr.num_certif) or  kst_tab_artr.num_certif = 0 then
-					kst_esito.esito = kkg_esito.not_fnd
-					kst_esito.sqlcode = 0
-					kst_esito.SQLErrText = "Errore durante lettura Numero Attestato, controlla Archivio Azienda "
-				end if
-				
-//--- Imposta il nuovo num. certificato			
-				kst_tab_base.st_tab_g_0.esegui_commit = kst_tab_artr.st_tab_g_0.esegui_commit 
-				kst_tab_base.key = "num_certif"
-				kst_tab_base.key1 = string(kst_tab_artr.num_certif)
-				kst1_esito  = kuf1_base.metti_dato_base(kst_tab_base)
-				if kst1_esito.esito = kkg_esito.db_ko then
-					kst_esito.esito = kst1_esito.esito
-					kst_esito.sqlcode = kst1_esito.sqlcode
-					kst_esito.SQLErrText = "Errore durante scritttura in Archvio Azienda del Numero Certificato: " + string(kst_tab_artr.num_certif) + " ~n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
-				end if
-
-				destroy kuf1_base
-				
-			end if
-			
-				
-			if kst_esito.esito = kkg_esito.ok then
-				
-				update artr 
-						 set num_certif = :kst_tab_artr.num_certif,
-				    	    x_datins = :kst_tab_artr.x_datins,
-					       x_utente = :kst_tab_artr.x_utente
-						 where id_armo = :k_id_armo
-						   and pl_barcode = :kst_tab_artr.pl_barcode
-						using kguo_sqlca_db_magazzino;
-		
-				if kguo_sqlca_db_magazzino.sqlcode = 0 then
-				else
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.SQLErrText = &
-					"Errore durante aggiornamento Numero Attestato su archivio Trattamento (artr) ~n~r" 	+  trim(kguo_sqlca_db_magazzino.SQLErrText) 
-				end if
-
-				if kst_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_artr.st_tab_g_0.esegui_commit) then
-					if kguo_sqlca_db_magazzino.sqlcode = 0 then
-						kguo_sqlca_db_magazzino.db_commit()
-					else
-						kguo_sqlca_db_magazzino.db_rollback()
-					end if
-				end if
-				
-			end if
-
-			
-		end if
-		
-	end if	
-
-
-
-return kst_esito
-
-
-end function
-
 public subroutine if_isnull (st_tab_artr kst_tab_artr);//
 	
 if isnull(kst_tab_artr.data_in) then kst_tab_artr.data_in = date(0)
@@ -487,143 +333,6 @@ int k_ctr=0
 			kGuf_data_base.db_commit_1( )
 		end if
 	end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito chiudi_lavorazione (ref st_tab_artr kst_tab_artr);//
-//====================================================================
-//=== Aggiunge rek ARTR 
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-string k_return = "0 "
-long k_ctr //k_id_armo, k_colli_trattati, k_colli_in_lav  
-st_esito kst_esito
-st_tab_armo kst_tab_armo
-st_tab_barcode kst_tab_barcode
-st_tab_artr kst_tab_artr1
-kuf_armo kuf1_armo
-kuf_barcode kuf1_barcode
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	kst_esito.st_tab_g_0 = kst_tab_artr.st_tab_g_0 
-
-	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
-
-	try 
-			
-		kuf1_barcode = create kuf_barcode
-
-//--- Piglia la data di fine trattamento più recente x id riga 			
-		kst_tab_barcode.id_armo = kst_tab_artr.id_armo
-		kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
-		kst_tab_artr.data_fin = kuf1_barcode.get_data_lav_fin_x_id_armo(kst_tab_barcode)
-			
-//--- Piglia il numero colli che hanno finito il trattamento x id riga 			
-		kst_tab_barcode.id_armo = kst_tab_artr.id_armo
-		kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
-		kst_tab_artr.colli_trattati = kuf1_barcode.get_conta_barcode_x_id_armo_fine_lav(kst_tab_barcode)
-
-//--- controllo la presenza del record in ARTR
-		select sum(colli) , sum(colli_groupage)
-			 into :kst_tab_artr.colli
-			 	,:kst_tab_artr.colli_groupage
-			 from artr 
-			 where id_armo = :kst_tab_artr.id_armo 
-				 and pl_barcode = :kst_tab_artr.pl_barcode
-			 using kguo_sqlca_db_magazzino;
-
-//--- se manca il record del trattamento oppure  colli trattati sono maggiori dei colli in trattamento chiamo la 'apri trattamento'
-		if kguo_sqlca_db_magazzino.sqlcode = 100 or  kst_tab_artr.colli_trattati > kst_tab_artr.colli or isnull (kst_tab_artr.colli) or kst_tab_artr.colli = 0 then
-
-//--- Aggiornamento tabella ARTR 
-			kst_tab_artr1.pl_barcode = kst_tab_artr.pl_barcode
-			kst_tab_artr1.id_armo = kst_tab_artr.id_armo
-			kst_tab_artr1.st_tab_g_0.esegui_commit = kst_tab_artr.st_tab_g_0.esegui_commit 
-			kst_esito = apri_lavorazione(kst_tab_artr1)
-
-			if kst_esito.esito = kkg_esito.db_ko then
-				kst_esito.esito = kkg_esito.db_wrn
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore durante aggiornamento tabella Trattamenti: lotto id=" + string(kst_tab_artr.id_armo) + "!! " 
-			else
-
-//--- rifaccio la query x controllo la presenza del record in ARTR
-				select sum(colli) , sum(colli_groupage)
-					 into :kst_tab_artr.colli
-						,:kst_tab_artr.colli_groupage
-					 from artr 
-					 where id_armo = :kst_tab_artr.id_armo 
-						 and pl_barcode = :kst_tab_artr.pl_barcode
-					 using kguo_sqlca_db_magazzino;
-
-			end if
-		
-		end if
-
-//--- Imposto il numero colli che hanno concluso il Trattamento
-		if kst_esito.esito <> kkg_esito.db_ko then
-
-//--- se PL chiuso allora imposto la data di chiusura altrimenti aggiorno solo il numero dei colli
-			if  kst_tab_artr.colli_trattati >= kst_tab_artr.colli then
-
-//--- aggiornamento	
-				update artr 
-						 set data_fin = :kst_tab_artr.data_fin,
-							  colli_trattati = :kst_tab_artr.colli_trattati, 
-							  x_datins = :kst_tab_artr.x_datins,
-							  x_utente = :kst_tab_artr.x_utente
-						 where id_armo = :kst_tab_artr.id_armo
-						 and pl_barcode = :kst_tab_artr.pl_barcode
-						using kguo_sqlca_db_magazzino;
-			else
-//--- aggiornamento	
-				update artr 
-						 set 
-							  colli_trattati = :kst_tab_artr.colli_trattati, 
-							  x_datins = :kst_tab_artr.x_datins,
-							  x_utente = :kst_tab_artr.x_utente
-						 where id_armo = :kst_tab_artr.id_armo
-						 and pl_barcode = :kst_tab_artr.pl_barcode
-						using kguo_sqlca_db_magazzino;
-	
-			end if
-
-			if kguo_sqlca_db_magazzino.sqlcode = 0 then
-				if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_commit( )
-				end if
-			else
-				if kguo_sqlca_db_magazzino.sqlcode < 0 then
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.SQLErrText = "Tab. Lavorazioni: Errore in Aggiornamento Fine Lavorazione (id=" + string(kst_tab_artr.id_armo) + ").~n~r" &
-										+ "(" + trim(kguo_sqlca_db_magazzino.SQLErrText) + ")"
-					if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-						kguo_sqlca_db_magazzino.db_rollback( )
-					end if
-				end if
-			end if
-		end if
-	
-				
-	catch (uo_exception kuo_exception)
-		kst_esito = kuo_exception.get_st_esito()
-		
-	finally
-		if isvalid(kuf1_barcode) then destroy kuf1_barcode
-	end try 
 
 
 return kst_esito
@@ -1128,6 +837,7 @@ string k_tipo_oggetto_padre, k_tipo_oggetto_figlio
 string k_query_select, k_query_where, k_query_order
 date k_save_data_int, k_data_da, k_data_a, k_data_0, k_dataoggi_meno1anno, k_dataoggi
 boolean k_da_elaborare=false, k_flag_da_lavorare=false, k_flag_lotto_lav_completata=false, k_flag_record_da_esporre=false, k_lotto_convalidato=false
+boolean k_dosim_dose_ok= true
 treeviewitem ktvi_treeviewitem
 st_esito kst_esito//, kst_esito_appo
 st_treeview_data kst_treeview_data
@@ -1175,15 +885,15 @@ try
 	
 //--- Periodo di estrazione, se la data e' a zero allora calcolo in automatico -3 mesi
 	kst_treeview_data_any = kst_treeview_data.struttura
-	if (kst_treeview_data_any.st_tab_artr.data_in = date (0) &
-	    or isnull(kst_treeview_data_any.st_tab_artr.data_in)) &
-		 then
+	if kst_treeview_data_any.st_tab_artr.data_in < kkg.data_no then
 
-//--- Ricavo la data da dataoggi e vado indietro per sicurezza di alcuni mesi
 		k_dataoggi = kguo_g.get_dataoggi()
 		k_data_a = relativedate(k_dataoggi, 1)
+		
+//--- Ricavo la 'data da' da 'data a' e vado indietro per sicurezza di alcuni mesi
 		k_data_da = date(year(relativedate(k_data_a,-480)), month(relativedate(k_data_a,-480)),01)
 		k_dataoggi_meno1anno = relativedate(k_dataoggi,-480)
+			
 
 	else
 //--- Se data passata prendo periodo di 1 mese
@@ -1257,7 +967,7 @@ try
     		+ "  meca.err_lav_fin, " &    
 		+ "  meca.err_lav_ok,   " & 
 		+ "  meca.note_lav_ok,  " & 
-		+ "  meca.cert_forza_stampa,   " &
+		+ "  isnull(meca.cert_forza_stampa,'') cert_forza_stampa,   " &
 		+ "  meca.contratto, " &
 		+ "  (c1.rag_soc_10) as c1_rag_soc_10, " &
 		+ "  (c2.rag_soc_10) as c2_rag_soc_10, " &
@@ -1328,11 +1038,13 @@ try
 					else
  // se diverso da mat. come sopra oppure ho dato l'ok al mat. di cui sopra
 						k_query_where = k_query_where &
-							+ " and ((sl_pt.tipo is null or sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_altro + "' " &
-							+ "  or sl_pt.tipo is null or sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_dispositivo_medico + "' ) " &
-							+ " or ((sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_prodotto_farmaceutico + "' and meca.cert_farma_st_ok = '1') " &
-							+ "  or (sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_prodotto_alimentare + "' and meca.cert_aliment_st_ok = '1') " &
-							+ "   )) " 
+							+ " and (" &
+						 	   + " (sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_prodotto_farmaceutico + "' and meca.cert_farma_st_ok = '1') " &
+						  	+ " or (sl_pt.tipo = '" + kuf1_sl_pt.ki_tipo_prodotto_alimentare + "' and meca.cert_aliment_st_ok = '1') " &
+						 	+ " or sl_pt.tipo is null " &
+					      + " or (sl_pt.tipo <> '" + kuf1_sl_pt.ki_tipo_prodotto_farmaceutico + "' " &
+					   	   	                     + " and sl_pt.tipo <> '" + kuf1_sl_pt.ki_tipo_prodotto_alimentare + "') " &
+							 + ") " 
 // se sono solo x Contratti SD							
 					 	if k_tipo_oggetto = kuf1_treeview.kist_treeview_oggetto.certif_da_st_sd_dett then
 							k_query_where = k_query_where &
@@ -1555,6 +1267,7 @@ try
 					k_flag_lotto_lav_completata = false
 					k_flag_record_da_esporre = false
 					k_lotto_convalidato = false
+					k_dosim_dose_ok = true
 					kst_tab_meca.st_tab_meca_dosim.dosim_data_ora = datetime(date(0))
 					
 //--- per ogni lotto controllo se lavorazione completata 					
@@ -1578,9 +1291,23 @@ try
 						kst_tab_meca.st_tab_meca_dosim.id_meca = kst_tab_meca.id
 						kst_tab_meca.st_tab_meca_dosim.dosim_data_ora = kuf1_meca_dosim.get_dosim_data_max(kst_tab_meca.st_tab_meca_dosim)
 					end if
+
+//--- Verifica se c'è almeno una DOSE marcata come MIN o MAX 
+					if  kst_tab_meca.cert_forza_stampa = kuf1_armo.ki_cert_forza_stampa_SI then
+					else
+						if k_lotto_convalidato then
+							kuf1_meca_dosim.get_dosim_dose_min(kst_tab_meca.st_tab_meca_dosim)
+							if kst_tab_meca.st_tab_meca_dosim.dosim_dose = 0 then
+								kuf1_meca_dosim.get_dosim_dose_max(kst_tab_meca.st_tab_meca_dosim)
+								if kst_tab_meca.st_tab_meca_dosim.dosim_dose = 0 then
+									k_dosim_dose_ok = false
+								end if
+							end if
+						end if
+					end if
 					
 //--- lotto da_stampare/da_stampare_farmaceutico/da_stampare_alimentare
-					if k_lotto_convalidato &
+					if k_lotto_convalidato and k_dosim_dose_ok &
 					   and (k_tipo_oggetto=kuf1_treeview.kist_treeview_oggetto.certif_da_st_dett &
 				  		     or k_tipo_oggetto=kuf1_treeview.kist_treeview_oggetto.certif_da_st_farma_dett &
 				           or k_tipo_oggetto=kuf1_treeview.kist_treeview_oggetto.certif_da_st_alimen_dett) then
@@ -1598,9 +1325,8 @@ try
 					end if
 
 //--- lotto con anomalia
-//4-3-05						 and kst_treeview_data_any.st_tab_artr.colli <= kst_treeview_data_any.st_tab_artr.colli_trattati &
 					if k_tipo_oggetto = kuf1_treeview.kist_treeview_oggetto.certif_err_dett &
-						 			and k_flag_lotto_lav_completata &
+						 			and (k_flag_lotto_lav_completata or not k_dosim_dose_ok) &
 									and kst_tab_meca.st_tab_meca_dosim.dosim_data_ora > datetime(date(0)) then
 						k_flag_record_da_esporre = true
 					end if
@@ -1730,142 +1456,6 @@ return k_return
 
 end function
 
-public function st_esito apri_lavorazione (readonly st_tab_artr kst_tab_artr);//
-//====================================================================
-//=== Aggiunge rek ARTR 
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Non trovato 
-//===                                     2=Errore Grave
-//===                                     3=altro errore
-//====================================================================
-//
-string k_return = "0 "
-long k_ctr
-//long k_id_armo, k_colli, k_colli_trattati, k_colli_groupage 
-st_esito kst_esito
-st_tab_armo kst_tab_armo
-st_tab_barcode kst_tab_barcode
-kuf_armo kuf1_armo
-kuf_barcode kuf1_barcode
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-//	k_id_armo = kst_tab_artr.id_armo 
-	
-	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kuf1_barcode = create kuf_barcode
-	
-	try 
-
-//--- Piglia la data di inizio trattamento più antica x id riga 			
-		kst_tab_barcode.id_armo = kst_tab_artr.id_armo
-		kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
-		kst_tab_artr.data_in = kuf1_barcode.get_data_lav_ini_x_id_armo(kst_tab_barcode)
-
-//--- Piglia il numero colli che sono stati messi nel PL  x id riga 			
-		kst_tab_barcode.id_armo = kst_tab_artr.id_armo
-		kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
-		kst_tab_artr.colli = kuf1_barcode.get_conta_barcode_x_id_armo_pl_barcode(kst_tab_barcode)
-
-//--- Piglia il numero colli Groupage come Figli che sono in PL x id riga 			
-		kst_tab_barcode.id_armo = kst_tab_artr.id_armo
-		kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
-		kst_tab_artr.colli_groupage = kuf1_barcode.get_conta_barcode_groupage_x_id_armo(kst_tab_barcode)
-
-		setnull(kst_tab_artr.data_fin) 
-
-//--- Test di esistenza del record di Trattamento	
-		select count(*)  into :k_ctr
-			 from artr 
-			 where id_armo = : kst_tab_artr.id_armo  
-					 and pl_barcode = :kst_tab_artr.pl_barcode
-			 using sqlca;
- //colli, colli_trattati, colli_groupage			 
-//			 into :k_colli, :k_colli_trattati, :k_colli_groupage
-		
-
-		if sqlca.sqlcode = 100 or isnull(k_ctr) or k_ctr = 0 then
-	
-			insert into artr 
-				( id_armo
-				 ,data_in
-				 ,data_fin
-				 ,pl_barcode
-				 ,colli 
-				 ,colli_trattati
-				 ,colli_groupage
-				 ,x_datins
-				 ,x_utente)
-			values
-				( :kst_tab_artr.id_armo
-				 ,:kst_tab_artr.data_in
-				 ,:kst_tab_artr.data_fin
-				 ,:kst_tab_artr.pl_barcode
-				 ,:kst_tab_artr.colli 
-				 ,0
-				 ,:kst_tab_artr.colli_groupage
-				 ,:kst_tab_artr.x_datins
-				 ,:kst_tab_artr.x_utente
-				 )
-			 using sqlca;
-		
-		else
-				
-			update artr set
-				  colli = :kst_tab_artr.colli
-				 ,colli_groupage = :kst_tab_artr.colli_groupage
-				 ,x_datins = :kst_tab_artr.x_datins
-				 ,x_utente = :kst_tab_artr.x_utente
-			 where id_armo = : kst_tab_artr.id_armo 
-					 and pl_barcode = :kst_tab_artr.pl_barcode
-			 using sqlca;
-			
-		end if
-		
-		
-		if sqlca.sqlcode <> 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Tab.Lavorazioni: " + trim(SQLCA.SQLErrText)
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if sqlca.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.err_formale
-				else	
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-		end if
-	
-	
-		if sqlca.sqlcode < 0 then
-			if kist_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kist_tab_artr.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
-			end if
-		else
-			if kist_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kist_tab_artr.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
-			end if
-		end if
-
-	catch (uo_exception kuo_exception)
-		kst_esito = kuo_exception.get_st_esito()
-
-	finally
-		destroy kuf1_barcode
-		
-	end try
-
-return kst_esito
-
-end function
-
 public function st_esito get_num_certif (ref st_tab_artr kst_tab_artr);//
 //----------------------------------------------------------------------------------------------------------
 //--- 
@@ -1886,11 +1476,7 @@ kuf_base kuf1_base
 kuf_armo kuf1_armo
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_armo.id_armo = kst_tab_artr.id_armo
 
@@ -2306,43 +1892,401 @@ return kst_esito
 
 end function
 
-public subroutine u_db_crea_view_trattati (string a_view_name, long a_id_meca) throws uo_exception;//
-//--- crea View
-//
-int k_ctr
-string k_view, k_sql
+public subroutine apri_lavorazione (readonly st_tab_artr kst_tab_artr) throws uo_exception;/*
+  Aggiunge rek ARTR 
+ 	 inp: st_tab_artr
+*/
+long k_ctr
 st_esito kst_esito
+st_tab_armo kst_tab_armo
+st_tab_barcode kst_tab_barcode
+kuf_armo kuf1_armo
+kuf_barcode kuf1_barcode
 
 
-	k_view =  kguf_data_base.u_get_nometab_xutente(a_view_name)
-	k_sql = " "                                   
-	k_sql = + &
-	"CREATE VIEW " + trim(k_view) &
-	 + " ( id_meca, id_armo, colli_trattati, colli_groupage, num_certif, data_stampa) AS   " &
-	 + "  SELECT armo.id_meca,   " &
-			 + " armo.id_armo,   " &
-			 + " sum(artr.colli_trattati), " &
-			 + " sum(artr.colli_groupage), " &
-			 + " artr.num_certif,    " &
-			 + " certif.data_stampa    " &
-	 + "    FROM armo inner join artr on armo.id_armo = artr.id_armo  " &
-	 +                        " left outer join certif on artr.num_certif =  certif.num_certif  " &
-	 + "   WHERE       " &
-	 + "          armo.id_meca  >=  "  + string(a_id_meca) + "  "  &
-	 + " GROUP BY armo.id_meca,     " &
-			 + " armo.id_armo,  " & 
-			 + " artr.num_certif,   " & 
-			 + " certif.data_stampa    " 
+try 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
 
-	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
-		kguo_exception.inizializza(this.classname())
-		kguo_exception.set_esito( kst_esito )
+	kuf1_barcode = create kuf_barcode
+	
+//--- Piglia la data di inizio trattamento più antica x id riga 			
+	kst_tab_barcode.id_armo = kst_tab_artr.id_armo
+	kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
+	kst_tab_artr.data_in = kuf1_barcode.get_data_lav_ini_x_id_armo(kst_tab_barcode)
+
+//--- Piglia il numero colli per PL e id riga 			
+	kst_tab_artr.colli = kuf1_barcode.get_conta_barcode_x_id_armo_pl_barcode(kst_tab_barcode)
+//--- Piglia il numero colli Groupage come Figli per PL e id riga 			
+	kst_tab_artr.colli_groupage = kuf1_barcode.get_conta_barcode_groupage_x_id_armo(kst_tab_barcode)
+//--- Piglia Impianto di Trattamento per PL e id riga 			
+	kst_tab_artr.impianto = kuf1_barcode.get_impianto_x_id_armo_pl_barcode(kst_tab_barcode)
+
+	setnull(kst_tab_artr.data_fin) 
+
+//--- Test di esistenza del record di Trattamento	
+	select count(*)  into :k_ctr
+		 from artr 
+		 where id_armo = : kst_tab_artr.id_armo  
+				 and pl_barcode = :kst_tab_artr.pl_barcode
+		 using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode = 100 or isnull(k_ctr) or k_ctr = 0 then
+
+		insert into artr 
+			( id_armo
+			 ,data_in
+			 ,data_fin
+			 ,pl_barcode
+			 ,colli 
+			 ,colli_trattati
+			 ,colli_groupage
+			 ,impianto
+			 ,x_datins
+			 ,x_utente)
+		values
+			( :kst_tab_artr.id_armo
+			 ,:kst_tab_artr.data_in
+			 ,:kst_tab_artr.data_fin
+			 ,:kst_tab_artr.pl_barcode
+			 ,:kst_tab_artr.colli 
+			 ,0
+			 ,:kst_tab_artr.colli_groupage
+			 ,:kst_tab_artr.impianto
+			 ,:kst_tab_artr.x_datins
+			 ,:kst_tab_artr.x_utente
+			 )
+		 using kguo_sqlca_db_magazzino;
+		 
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Inserimento in tab Lavorazioni ARTR, Id Piano " & 
+							+ string(kst_tab_artr.pl_barcode) + " Riga Lotto: " + string(kst_tab_artr.id_armo))	
+			throw kguo_exception
+		end if
+	
+	else
+			
+		update artr set
+			  colli = :kst_tab_artr.colli
+			 ,colli_groupage = :kst_tab_artr.colli_groupage
+			 ,impianto = :kst_tab_artr.impianto
+			 ,x_datins = :kst_tab_artr.x_datins
+			 ,x_utente = :kst_tab_artr.x_utente
+		 where id_armo = : kst_tab_artr.id_armo 
+				 and pl_barcode = :kst_tab_artr.pl_barcode
+		 using kguo_sqlca_db_magazzino;
+		 
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Aggiornamento tab Lavorazioni ARTR, Id Piano " & 
+							+ string(kst_tab_artr.pl_barcode) + " Riga Lotto: " + string(kst_tab_artr.id_armo))	
+			throw kguo_exception
+		end if
+		
+	end if
+	
+
+	if kist_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kist_tab_artr.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+
+catch (uo_exception kuo_exception)
+	if kist_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kist_tab_artr.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+	
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	
+end try
+
+
+
+end subroutine
+
+public function boolean chiudi_lavorazione (ref st_tab_artr kst_tab_artr) throws uo_exception;/*
+  Aggiorna ARTR con la chiusura del Trattamento
+  inp: st_tab_artr.id_armo + pl_barcode
+  rit: TRUE aggiornamento eseguito
+*/
+boolean k_return 
+long k_ctr
+st_tab_barcode kst_tab_barcode
+st_tab_artr kst_tab_artr1
+kuf_barcode kuf1_barcode
+
+
+try 
+
+	kguo_exception.inizializza(this.classname())
+	
+	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
+
+			
+	kuf1_barcode = create kuf_barcode
+
+//--- Piglia la data di fine trattamento più recente x id riga 			
+	kst_tab_barcode.id_armo = kst_tab_artr.id_armo
+	kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
+	kst_tab_artr.data_fin = kuf1_barcode.get_data_lav_fin_x_id_armo(kst_tab_barcode)
+		
+//--- Piglia il numero colli che hanno finito il trattamento x id riga 			
+	kst_tab_barcode.id_armo = kst_tab_artr.id_armo
+	kst_tab_barcode.pl_barcode = kst_tab_artr.pl_barcode
+	kst_tab_artr.colli_trattati = kuf1_barcode.get_conta_barcode_x_id_armo_fine_lav(kst_tab_barcode)
+
+//--- controllo la presenza del record in ARTR
+	select sum(colli) , sum(colli_groupage)
+		 into :kst_tab_artr.colli
+			,:kst_tab_artr.colli_groupage
+		 from artr 
+		 where id_armo = :kst_tab_artr.id_armo 
+			 and pl_barcode = :kst_tab_artr.pl_barcode
+		 using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in registrazione Chiusura Lavorazione, lettura tab.Trattamenti (ARTR). Riga Lotto " &
+									+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
 		throw kguo_exception
 	end if
 
-end subroutine
+//--- se manca il record del trattamento oppure  colli trattati sono maggiori dei colli in trattamento chiamo la 'apri trattamento'
+	if kguo_sqlca_db_magazzino.sqlcode = 100 or  kst_tab_artr.colli_trattati > kst_tab_artr.colli or isnull (kst_tab_artr.colli) or kst_tab_artr.colli = 0 then
+
+//--- Aggiornamento tabella ARTR 
+		kst_tab_artr1.pl_barcode = kst_tab_artr.pl_barcode
+		kst_tab_artr1.id_armo = kst_tab_artr.id_armo
+		kst_tab_artr1.st_tab_g_0.esegui_commit = kst_tab_artr.st_tab_g_0.esegui_commit 
+		apri_lavorazione(kst_tab_artr1)
+
+//--- rifaccio la query x controllo la presenza del record in ARTR
+		select sum(colli) , sum(colli_groupage)
+			 into :kst_tab_artr.colli
+				,:kst_tab_artr.colli_groupage
+			 from artr 
+			 where id_armo = :kst_tab_artr.id_armo 
+				 and pl_barcode = :kst_tab_artr.pl_barcode
+			 using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in registrazione Chiusura Lavorazione, lettura 2 tab.Trattamenti (ARTR). Riga Lotto " &
+										+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+			throw kguo_exception
+		end if
+
+	end if
+
+//--- Imposto il numero colli che hanno concluso il Trattamento
+
+//--- se PL chiuso allora imposto la data di chiusura altrimenti aggiorno solo il numero dei colli
+	if kst_tab_artr.colli_trattati >= kst_tab_artr.colli then
+
+//--- aggiornamento	
+		update artr 
+					 set data_fin = :kst_tab_artr.data_fin,
+						  colli_trattati = :kst_tab_artr.colli_trattati, 
+						  x_datins = :kst_tab_artr.x_datins,
+						  x_utente = :kst_tab_artr.x_utente
+					 where id_armo = :kst_tab_artr.id_armo
+					 and pl_barcode = :kst_tab_artr.pl_barcode
+					using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in registrazione Chiusura Lavorazione, aggiornamento Data Fine in tab.Trattamenti (ARTR). Riga Lotto " &
+										+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+			throw kguo_exception
+		end if
+	else
+//--- aggiornamento	
+		update artr 
+					 set 
+						  colli_trattati = :kst_tab_artr.colli_trattati, 
+						  x_datins = :kst_tab_artr.x_datins,
+						  x_utente = :kst_tab_artr.x_utente
+					 where id_armo = :kst_tab_artr.id_armo
+					 and pl_barcode = :kst_tab_artr.pl_barcode
+					using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in registrazione Chiusura Lavorazione, aggiornamento Colli in tab.Trattamenti (ARTR). Riga Lotto " &
+										+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+			throw kguo_exception
+		end if
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kst_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_artr.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		k_return = true
+	end if
+			
+catch (uo_exception kuo_exception)
+	if kst_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_artr.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	
+end try 
+
+
+return k_return
+
+end function
+
+public function long crea_attestato_dettaglio (ref st_tab_artr kst_tab_artr) throws uo_exception;/*
+  Aggiorna ARTR con il NUM CERTIF
+  inp: st_tab_artr.id_armo + pl_barcode
+  Out: num_certif
+  rit: num_certif
+*/
+long k_return 
+long k_id_armo
+string k_rc
+st_esito kst_esito, kst1_esito
+st_tab_base kst_tab_base
+st_tab_armo kst_tab_armo
+kuf_base kuf1_base
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	k_id_armo = kst_tab_artr.id_armo
+
+//--- becco il ID_MECA dall'ARMO
+	select distinct id_meca 
+	    into :kst_tab_armo.id_meca
+	    from armo
+		 where id_armo = :k_id_armo;
+
+//--- estrazione delle righe x l'entrata con num certificato
+	declare c_crea_att_dett_1 cursor for
+	    select distinct b.num_certif
+	        from armo as a inner join artr as b on 
+					 a.id_armo = b.id_armo
+			 where a.id_meca = :kst_tab_armo.id_meca and 
+					 b.num_certif > 0
+			 order by b.num_certif desc
+			 using kguo_sqlca_db_magazzino;
+
+
+	kst_tab_artr.num_certif = 0 
+
+	kst_tab_artr.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_artr.x_utente = kGuf_data_base.prendi_x_utente()
+
+//--- becco il num_certif per la riga entrata e pl_barcode
+	select distinct artr.num_certif
+	     into :kst_tab_artr.num_certif
+		  from artr
+	   where id_armo = :k_id_armo and pl_barcode = :kst_tab_artr.pl_barcode 
+	   using kguo_sqlca_db_magazzino;
+
+//--- Se num certificato non ancora impostato, procedo
+	if kst_tab_artr.num_certif = 0 or isnull(kst_tab_artr.num_certif) then
+	
+		open c_crea_att_dett_1;
+		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			fetch c_crea_att_dett_1 into :kst_tab_artr.num_certif;
+
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore operazione di Aggiornamento Numero Attestato in lettura del Numero da testata Lotto Id " &
+											+ string(kst_tab_armo.id_meca) + " Riga Lotto " &
+											+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+				close c_crea_att_dett_1;
+				throw kguo_exception
+			end if
+			close c_crea_att_dett_1;
+		else
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then 
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore operazione di Aggiornamento Numero Attestato in lettura (open) del Numero da testata Lotto Id " &
+											+ string(kst_tab_armo.id_meca) + " Riga Lotto " &
+											+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+				throw kguo_exception
+			end if
+		end if
+		
+		
+		if kst_tab_artr.num_certif > 0 then
+		else
+
+			kuf1_base = create kuf_base
+//--- Acchiappo numero certificato dal BASE
+			k_rc = kuf1_base.prendi_dato_base("num_certif")
+			if LeftA(k_rc, 1) = "0" then
+				kst_tab_artr.num_certif = long(trim(MidA(k_rc, 2))) + 1
+			end if
+			if isnull(kst_tab_artr.num_certif) or kst_tab_artr.num_certif = 0 then
+				kguo_exception.kist_esito.esito = kkg_esito.not_fnd
+				kguo_exception.kist_esito.SQLErrText = "Errore durante lettura Numero Attestato, controllare Archivio Proprietà Azienda "
+				throw kguo_exception
+			end if
+				
+//--- Imposta il nuovo num. certificato			
+			kst_tab_base.st_tab_g_0.esegui_commit = kst_tab_artr.st_tab_g_0.esegui_commit 
+			kst_tab_base.key = "num_certif"
+			kst_tab_base.key1 = string(kst_tab_artr.num_certif)
+			kst1_esito  = kuf1_base.metti_dato_base(kst_tab_base)
+			if kst1_esito.esito = kkg_esito.db_ko then
+				kguo_exception.kist_esito.esito = kst1_esito.esito
+				kguo_exception.kist_esito.sqlcode = kst1_esito.sqlcode
+				kguo_exception.kist_esito.SQLErrText = "Errore durante scrittura in Archvio Proprietà Azienda del Numero Certificato: " + string(kst_tab_artr.num_certif) + " ~n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
+				throw kguo_exception
+			end if
+
+		end if
+			
+				
+		update artr 
+				 set num_certif = :kst_tab_artr.num_certif,
+					 x_datins = :kst_tab_artr.x_datins,
+					 x_utente = :kst_tab_artr.x_utente
+				 where id_armo = :k_id_armo
+					and pl_barcode = :kst_tab_artr.pl_barcode
+				using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore operazione di Aggiornamento Numero Attestato su tab Trattamenti." &
+										+ " Riga Lotto " &
+										+ string(kst_tab_artr.id_armo) + ", Codice Piano " + string(kst_tab_artr.pl_barcode) ) 
+			throw kguo_exception
+
+		end if
+		
+		if kguo_sqlca_db_magazzino.sqlcode = 0 then
+			if kst_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_artr.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit()
+			end if
+			
+			k_return = kst_tab_artr.num_certif
+			
+		end if
+				
+		
+	end if	
+
+	
+catch (uo_exception kuo_exception)
+	if kst_tab_artr.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_artr.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback()
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_base) then destroy kuf1_base
+
+end try
+
+
+return k_return
+
+
+end function
 
 on kuf_artr.create
 call super::create

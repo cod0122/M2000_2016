@@ -56,6 +56,7 @@ integer x = 101
 integer y = 100
 integer width = 1413
 integer height = 1680
+string title = "Stampa"
 string menuname = ""
 boolean controlmenu = false
 boolean minbox = false

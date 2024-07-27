@@ -362,7 +362,7 @@ public function st_esito metti_dato_base (st_tab_base kst_tab_base);//
 //
 //---------------------------------------------------------------------------------------------------------------------------------
 int k_file
-string k_record, k_key, k_key_1
+string k_record, k_key, k_key_1, k_rcx
 int k_bytes, k_pos_ini = 0, k_lungo = 0
 date k_data
 long k_long
@@ -430,12 +430,13 @@ st_esito kst_esito
 			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "2"
 			if kst_profilestring_ini.valore <> "MASTER" then   //ECCEZIONE evito di udp se utente speciale
-				kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
+				k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
 				if kst_profilestring_ini.esito <> "0" then
 					kst_esito.esito = kkg_esito.db_ko 
 					kst_esito.sqlcode = 0
-					kst_esito.SQLErrText = "Dato 'Nome Ultimo Utente Acceduto' non registrato. Errore: " &
-												  + trim(kst_profilestring_ini.esito)
+					kst_esito.SQLErrText = "Dato 'Nome Ultimo Utente Acceduto' non registrato. " &
+											+ "Errore: " + trim(kst_profilestring_ini.esito) + " " &
+											+ kkg.acapo + k_rcx
 				end if
 			end if
 
@@ -446,12 +447,13 @@ st_esito kst_esito
 			kst_profilestring_ini.nome = "ultimo_utente_login_data"
 			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "2"
-			kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
+			k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
 			if kst_profilestring_ini.esito <> "0" then
 				kst_esito.esito = kkg_esito.db_ko 
 				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Dato 'Data Ultimo Accesso' non registrato. Errore: " &
-				                       + trim(kst_profilestring_ini.esito)
+				kst_esito.SQLErrText = "Dato 'Data Ultimo Accesso' non registrato. " &
+											+ "Errore: " + trim(kst_profilestring_ini.esito) + " " &
+											+ kkg.acapo + k_rcx
 			end if
 
 		case "personale_font_alt" 
@@ -461,12 +463,13 @@ st_esito kst_esito
 			kst_profilestring_ini.nome = "font_alt"
 			kst_profilestring_ini.valore = trim(kst_tab_base.st_tab_base_personale.font_alt)
 			kst_profilestring_ini.operazione = "2"
-			kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
+			k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
 			if kst_profilestring_ini.esito <> "0" then
 				kst_esito.esito = kkg_esito.db_ko 
 				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Dato 'Dimensioni Font' non registrato. Errore: " &
-				                       + trim(kst_profilestring_ini.esito)
+				kst_esito.SQLErrText = "Dato 'Dimensioni Font' non registrato. " &
+											+ "Errore: " + trim(kst_profilestring_ini.esito) + " " &
+											+ kkg.acapo + k_rcx
 			end if
 
 //		case "memo_window_open" 
@@ -1078,12 +1081,13 @@ st_esito kst_esito
 			kst_profilestring_ini.nome = kst_tab_base.key
 			kst_profilestring_ini.valore = trim(kst_tab_base.key1)
 			kst_profilestring_ini.operazione = "2"
-			kst_profilestring_ini.esito = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
+			k_rcx = kGuf_data_base.profilestring_ini(kst_profilestring_ini)
 			if kst_profilestring_ini.esito <> "0" then
 				kst_esito.esito = kkg_esito.db_ko 
 				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Dato " + kst_tab_base.key + " con valore '" + trim(kst_tab_base.key1) + "' non registrato. Errore: " &
-				                       + trim(kst_profilestring_ini.esito)
+				kst_esito.SQLErrText = "Dato Proprietà Base '" + kst_tab_base.key + "' con valore '" + trim(kst_tab_base.key1) + "' non registrato. " &
+											+ "Errore: " + trim(kst_profilestring_ini.esito) + " " &
+											+ kkg.acapo + k_rcx
 			end if
 			
 	end choose
@@ -2345,20 +2349,15 @@ return k_return
 
 end function
 
-private function boolean tb_update_base_vari (st_tab_base kst_tab_base) throws uo_exception;//
-//====================================================================
-//=== Aggiorna rek nella tabella BASE per dati VARI 
-//=== 
-//=== Input: st_tab_base 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
+private function boolean tb_update_base_vari (st_tab_base kst_tab_base) throws uo_exception;/*
+ Aggiorna rek nella tabella BASE per dati VARI 
+	 Input: st_tab_base 
+*/
 boolean k_return
 long k_rcn
-st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+kguo_exception.inizializza(this.classname())
 
 if len(trim(kst_tab_base.id_base)) > 0 then
 	
@@ -2410,10 +2409,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	end if	
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati 'Proprietà Procedura' (base_vari):" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento dati 'Proprietà Procedura' (base_vari), codice=" + trim(kst_tab_base.id_base))		
 		throw kguo_exception
 	else
 		if kguo_sqlca_db_magazzino.sqlcode = 0 then
@@ -2425,9 +2421,8 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	end if
 
 else
-	kst_esito.SQLErrText = "Carico dati 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
-	kst_esito.esito = kkg_esito.no_esecuzione
-	kguo_exception.set_esito(kst_esito)
+	kguo_exception.kist_esito.SQLErrText = "Carico dati 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 	throw kguo_exception
 end if
 
@@ -2659,6 +2654,7 @@ string k_record, k_return = " ", k_stato, k_errore = ""
 int k_pos_ini = 0, k_lungo = 0, k_anno, k_rcn
 string k_path, k_descr, k_rcx, k_flag=""
 date k_data, k_dataoggi
+datetime k_datetime
 long k_long
 double k_num1, k_num2, k_num3, k_double
 ulong k_ulong 
@@ -2959,6 +2955,17 @@ kuf_stampe kuf1_stampe
 				k_record = "Estrazione conclusa il " + string(k_data, "dd/mm/yyyy") + " alle " + trim(k_descr)
 			end if
 			k_record = trim(k_record)
+			k_pos_ini = 1
+			k_lungo = len(k_record)
+		
+		case "data_ultima_estrazione_statistici"
+			select data_stat
+				 into :k_data
+				 from base;
+			if isnull(k_data) then
+				k_data = date(0)
+			end if
+			k_record = string(k_data)
 			k_pos_ini = 1
 			k_lungo = len(k_record)
 			

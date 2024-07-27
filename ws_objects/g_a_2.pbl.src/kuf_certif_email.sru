@@ -20,39 +20,31 @@ public function date tb_pulizia () throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
 public function integer tb_add (ref string k_status) throws uo_exception
 public function boolean set_certif_e1_e1doco (st_tab_certif_email kst_tab_certif_email) throws uo_exception
-private function st_tab_email_invio u_add_email_invio_0 () throws uo_exception
-public function long u_add_email_invio_1 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception
+private function st_tab_email u_add_email_invio_0 (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio) throws uo_exception
+public function long u_add_email_invio_2 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception
+private function long u_add_email_invio_1 (ref uo_ds_std_1 ads_1, integer a_riga_ds, ref st_tab_email_invio ast_tab_email_invio, ref st_tab_email ast_tab_email, ref kuf_email auf_email, ref st_tab_meca ast_tab_meca, ref kuf_certif_print auf_certif_print) throws uo_exception
 end prototypes
 
-public function long u_add_email_invio () throws uo_exception;//
-//====================================================================
-//=== Legge Avvisi Certificati Email (E1+M2000) e li carica in tab Email-Invio 
-//=== 
-//=== Inp: 
-//=== Ritorna: nr di email caricate 
-//=== Lancia EXCEPTION
-//===  
-//====================================================================
-//
+public function long u_add_email_invio () throws uo_exception;/*
+ Carica email Attestati in tab Email-Invio che non hanno ancora la email (scarta i clienti che non hanno l'indirizzo)
+	 Rit: nr di email caricate 
+*/
 long k_return 
-long k_riga, k_righe, k_righe_daelab, k_riga1000, k_riga_ds, k_rc, k_riga_tab
+long k_riga, k_righe, k_righe_daelab, k_riga1000, k_riga_ds, k_rc, k_email_inserite
 datetime k_datetime
-st_tab_certif_email kst_tab_certif_email[], kst_tab_certif_email_vuoto[]
+//st_tab_certif_email kst_tab_certif_email[], kst_tab_certif_email_vuoto[]
 st_tab_meca kst_tab_meca
 st_tab_email_invio kst_tab_email_invio, kst_tab_email_invio_orig
+st_tab_email kst_tab_email
 st_esito kst_esito
 st_tab_clienti_fatt kst_tab_clienti_fatt
-st_tab_clienti_web kst_tab_clienti_web
-st_tab_clienti kst_tab_clienti
-st_tab_certif kst_tab_certif
 kuf_certif_print kuf1_certif_print
+kuf_email kuf1_email
 uo_ds_std_1 kds_1
 
-//setpointer()
-
-kst_esito = kguo_exception.inizializza(this.classname())
 
 try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_certif_print = create kuf_certif_print
 	
@@ -60,13 +52,18 @@ try
 	kds_1.dataobject = "ds_certif_email_noemail"
 	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	k_righe = kds_1.retrieve() // estrazione avvisi senza ancora il id_email_invio
+	if k_righe < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in lettura email Attestati ancora da inviare. ")
+		throw kguo_exception
+	end if
+	if k_righe = 0 then return 0   // Non fa nulla uscita!
 	
 	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
 	
-	if k_righe > 0 then
-		kst_tab_email_invio_orig = u_add_email_invio_0( )    // riempie area st_tab_email_invio comune a queste email
-	end if
+	kuf1_email = create kuf_email
+	kst_tab_email = u_add_email_invio_0(kuf1_email, kst_tab_email_invio_orig)    // riempie area st_tab_email_invio comune a queste email
 	
 	for k_riga = 1 to k_righe
 		
@@ -78,8 +75,8 @@ try
 		end if
 		k_riga1000 = k_riga + k_righe_daelab 
 		
-		k_riga_tab = 0
-		kst_tab_certif_email[] = kst_tab_certif_email_vuoto[]
+		k_email_inserite = 0
+//		kst_tab_certif_email[] = kst_tab_certif_email_vuoto[]
 		
 		for k_riga_ds = k_riga to k_riga1000
 			
@@ -92,58 +89,16 @@ try
 			
 //--- se e-mail NON impostata sul cliente NON invio nulla!!!
 			if trim(kst_tab_email_invio.email) > " " then
-				
-				kst_tab_clienti.id_nazione_1 = kds_1.getitemstring( k_riga_ds, "id_nazione_1")
-				if kst_tab_clienti.id_nazione_1 > " " and kst_tab_clienti.id_nazione_1 <> "IT" and kst_tab_clienti.id_nazione_1 <> "SM" then
-					kst_tab_email_invio.lang = "EN"
-				else
-					kst_tab_email_invio.lang = ""
-				end if
-
-//--- get del DDT mandante		
-				kst_tab_meca.num_bolla_in = kds_1.getitemstring( k_riga_ds, "num_bolla_in")
-				kst_tab_meca.data_bolla_in = kds_1.getitemdate( k_riga_ds, "data_bolla_in")
-//--- Composizione dell'OGGETTO: somma alla dicitura del Prototipo il ddt del mandante a anche il Nome quando cliente diverso da mandante
-				if kst_tab_meca.num_bolla_in > " " then
-					kst_tab_email_invio.oggetto = trim(kst_tab_email_invio.oggetto) + " related to delivery Notes # " + trim(kst_tab_meca.num_bolla_in)
-					if kst_tab_meca.data_bolla_in > date(0) then
-						kst_tab_email_invio.oggetto += " of " + string(kst_tab_meca.data_bolla_in, "dd mmm yyyy")
-					end if
-				end if
-			//		if kst_tab_meca.num_int > 0 then
-			//			kst_tab_email_invio.oggetto = trim(kst_tab_email_invio.oggetto) + " rif. interno " + string(kst_tab_meca.num_int)
-			//		end if
-				kst_tab_clienti.rag_soc_10 = kds_1.getitemstring( k_riga_ds, "rag_soc_10")
-				if trim(kst_tab_clienti.rag_soc_10) > " " then // se cliente mandante diverso aggiungo il nome
-					kst_tab_email_invio.oggetto = trim(kst_tab_email_invio.oggetto) + ". Customer '" + trim(kst_tab_clienti.rag_soc_10) + "'"
-				end if
-			
-				kst_tab_email_invio.note = "Attestato n. " + string(kds_1.getitemnumber(k_riga_ds, "num_certif")) &
-							+ ", WO " + string(kds_1.getitemnumber( k_riga_ds, "certif_e1_e1doco")) &
-							+ ", Lotto " + string(kds_1.getitemnumber(k_riga_ds,"num_int")) &
-							+ "  " +  string(kds_1.getitemdate(k_riga_ds, "data_int")) &
-							+ "   id " + string(kds_1.getitemnumber( k_riga_ds, "id_meca")) + " "  
-
-//--- Buidling del path
-				kst_tab_certif.id_meca = kds_1.getitemnumber( k_riga_ds, "id_meca")
-				kst_tab_email_invio.allegati_cartella = kuf1_certif_print.get_path_email(kst_tab_certif)			
-							
-				k_riga_tab ++
-//--- Prepara l'array per popolare la tabella email
-				kst_tab_certif_email[k_riga_tab].id_certif = kds_1.getitemnumber( k_riga_ds, "id_certif")
-				kst_tab_certif_email[k_riga_tab].id_meca = kds_1.getitemnumber( k_riga_ds, "id_meca")
-				kst_tab_certif_email[k_riga_tab].certif_e1_e1doco = kds_1.getitemnumber( k_riga_ds, "certif_e1_e1doco")
-				
-				kst_tab_certif_email[k_riga_tab].st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
-				kst_tab_certif_email[k_riga_tab].id_email_invio = u_add_email_invio_1(kst_tab_certif_email[k_riga_tab], kst_tab_email_invio) // ADD EMAIL
-				if kst_tab_certif_email[k_riga_tab].id_email_invio > 0 then
-//--- Imposta id email invio in tabella Certif email
-					kds_1.setitem(k_riga_ds, "id_email_invio", kst_tab_certif_email[k_riga_tab].id_email_invio)
-					kds_1.setitem(k_riga_ds, "x_datins", kst_tab_meca.x_datins)
-					kds_1.setitem(k_riga_ds, "x_utente", kst_tab_meca.x_utente)
-				//else
-				//	kds_1.setitem(k_riga_ds, "id_email_invio", 0)
-				end if
+								
+//--- Add EMAIL - carica il datastore ds_certif_email_noemail
+				if u_add_email_invio_1(kds_1, k_riga_ds &
+										, kst_tab_email_invio &
+										, kst_tab_email &
+										, kuf1_email &
+										, kst_tab_meca &
+										, kuf1_certif_print) > 0 then
+					k_email_inserite ++
+				end if				
 				
 			else
 				kguo_exception.inizializza( )
@@ -158,17 +113,15 @@ try
 		k_rc = kds_1.update( )  // AGGIORNA ID_EMAIL_INVIO!!
 		if k_rc > 0 then
 			kguo_sqlca_db_magazzino.db_commit( )
+			k_return += k_email_inserite
 		else
+			kguo_exception.set_st_esito_err_ds(kds_1, "Errore in caricamento email nuovi Attestati di M2000. " &
+													+ kkg.acapo + "Per esempio per l'Attestato id: " &
+													+ string(kds_1.getitemnumber(k_riga, "id_certif")) &
+													+ " ASN: " + string(kds_1.getitemnumber(k_riga, "id_meca")) &
+													+ " Lotto: "  + " ASN: " + string(kds_1.getitemnumber(k_riga, "num_int")) &
+													+ " del " + string(kds_1.getitemdate(k_riga, "data_int")) + ". ")
 			kguo_sqlca_db_magazzino.db_rollback( )
-			kst_esito = kds_1.kist_esito
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.SQLErrText = "Errore in inserimemtno di " + string(k_righe) + " email Attestati. " &
-							+ kkg.acapo + "Per esempio Attestato id: " &
-							+ string(kds_1.getitemnumber(k_riga, "id_certif")) + " ASN: " + string(kds_1.getitemnumber(k_riga, "id_meca")) &
-							+ " Lotto: "  + " ASN: " + string(kds_1.getitemnumber(k_riga, "num_int")) + string(kds_1.getitemdate(k_riga, "data_int")) + " " &
-			            + kkg.acapo + "Errore: " + trim(kst_esito.nome_oggetto) + " " &
-							+ string(kst_esito.sqlcode) +  " " + trim(kst_esito.sqlerrtext)
-			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
 		
@@ -187,6 +140,7 @@ finally
 	if isvalid(kds_1) then destroy kds_1
 //	if isvalid(kuf1_clienti) then destroy kuf1_clienti
 	if isvalid(kuf1_certif_print) then destroy kuf1_certif_print
+	if isvalid(kuf1_email) then destroy kuf1_email
 	
 
 end try
@@ -406,7 +360,7 @@ return k_return
 
 end function
 
-private function st_tab_email_invio u_add_email_invio_0 () throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
+private function st_tab_email u_add_email_invio_0 (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
 //--- Imposta campi generici di invio email Certificati
 //--- Inp: 
 //--- Out: st_tab_email_invio
@@ -414,9 +368,8 @@ private function st_tab_email_invio u_add_email_invio_0 () throws uo_exception;/
 //
 kuf_email_invio kuf1_email_invio
 kuf_email_funzioni kuf1_email_funzioni
-kuf_email kuf1_email
 st_tab_email kst_tab_email
-st_tab_email_invio kst_tab_email_invio
+//st_tab_email_invio kst_tab_email_invio
 st_tab_email_funzioni kst_tab_email_funzioni
 st_esito kst_esito
 
@@ -427,7 +380,6 @@ try
 	
 	kuf1_email_invio = create kuf_email_invio
 	kuf1_email_funzioni = create kuf_email_funzioni
-	kuf1_email = create kuf_email
 	
 	kst_tab_email_invio.flg_allegati = kuf1_email_invio.ki_allegati_si
 	kst_tab_email_invio.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_attestati  // INFO che sono i CERTIFICATI
@@ -444,11 +396,11 @@ try
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
-	
+
 //--- recupero diversi dati x riempire la tab email-invio			
 	kuf1_email.get_riga(kst_tab_email)
 	
-	kst_tab_email_invio.oggetto = kst_tab_email.oggetto
+	//kst_tab_email_invio.oggetto = kst_tab_email.oggetto
 	kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
 	kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 	kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
@@ -473,18 +425,17 @@ catch (uo_exception kuo_exception)
 	
 finally
 	if isvalid(kuf1_email_invio) then destroy kuf1_email_invio
-	if isvalid(kuf1_email) then destroy kuf1_email
 	if isvalid(kuf1_email_funzioni) then destroy kuf1_email_funzioni
 	
 end try
 
 
 
-return kst_tab_email_invio
+return kst_tab_email //_invio
 
 end function
 
-public function long u_add_email_invio_1 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
+public function long u_add_email_invio_2 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
 //--- Fa il Carico nella tabella email-invio 
 //--- Inp: st_tab_certif_email valorizzata con i campi necessari
 //--- Out: il ID del email_invio
@@ -492,17 +443,15 @@ public function long u_add_email_invio_1 (ref st_tab_certif_email ast_tab_certif
 //
 long k_return=0 
 kuf_email_invio kuf1_email_invio
-st_esito kst_esito
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	if ast_tab_certif_email.id_certif > 0 then 
 	else
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlerrtext =  "Manca id del Certificato. Generazione email non eseguita."
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext =  "Manca id del Certificato. Generazione email non eseguita."
 		throw kguo_exception
 	end if
 	
@@ -511,11 +460,9 @@ try
 //--- se la cartella non esiste non genera la email
 	if DirectoryExists(ast_tab_email_invio.allegati_cartella) then
 	else
-		kguo_exception.inizializza( )
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlerrtext = "Attestati: errore durante preparazione e-mail da inviare; cartella allegati Attestati non trovata: " &
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Attestati: errore durante preparazione e-mail da inviare; cartella allegati Attestati non trovata: " &
 									+ "'" + ast_tab_email_invio.allegati_cartella + "'. Verificare il log degli errori per ulteriori informazioni."
-		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
 
@@ -524,8 +471,8 @@ try
 	k_return = kuf1_email_invio.u_add_email(ast_tab_email_invio)  // Carico EMAIL per l'invio
 	
 catch (uo_exception kuo_exception)	
-	kst_esito = kuo_exception.get_st_esito()
-	if kst_esito.esito = kkg_esito.no_esecuzione then
+	kuo_exception.scrivi_log()
+	if kuo_exception.kist_esito.esito = kkg_esito.no_esecuzione then
 		k_return = 0
 	else
 		throw kuo_exception
@@ -537,6 +484,87 @@ finally
 end try
 
 
+
+return k_return
+
+end function
+
+private function long u_add_email_invio_1 (ref uo_ds_std_1 ads_1, integer a_riga_ds, ref st_tab_email_invio ast_tab_email_invio, ref st_tab_email ast_tab_email, ref kuf_email auf_email, ref st_tab_meca ast_tab_meca, ref kuf_certif_print auf_certif_print) throws uo_exception;/*
+    Avvisi Certificati Email (E1+M2000) e li carica in tab Email-Invio 
+    chiamata da u_add_email_invio
+	 	rit: id_email_invio
+*/
+long k_return
+st_tab_clienti kst_tab_clienti
+st_tab_certif kst_tab_certif
+st_tab_certif_email kst_tab_certif_email
+
+
+try
+
+	kst_tab_clienti.id_nazione_1 = ads_1.getitemstring( a_riga_ds, "id_nazione_1")
+	if kst_tab_clienti.id_nazione_1 > " " and kst_tab_clienti.id_nazione_1 <> "IT" and kst_tab_clienti.id_nazione_1 <> "SM" then
+		ast_tab_email_invio.lang = "EN"
+	else
+		ast_tab_email_invio.lang = ""
+	end if
+
+	auf_email.get_oggetto(ast_tab_email)
+	ast_tab_email_invio.oggetto = ast_tab_email.oggetto
+
+//--- get del DDT mandante		
+	ast_tab_meca.num_bolla_in = ads_1.getitemstring( a_riga_ds, "num_bolla_in")
+	ast_tab_meca.data_bolla_in = ads_1.getitemdate( a_riga_ds, "data_bolla_in")
+//--- Composizione dell'OGGETTO: somma alla dicitura del Prototipo il ddt del mandante a anche il Nome quando cliente diverso da mandante
+	if ast_tab_meca.num_bolla_in > " " then
+		ast_tab_email_invio.oggetto = trim(ast_tab_email_invio.oggetto) + " related to delivery Notes # " + trim(ast_tab_meca.num_bolla_in)
+		if ast_tab_meca.data_bolla_in > date(0) then
+			ast_tab_email_invio.oggetto += " of " + string(ast_tab_meca.data_bolla_in, "dd mmm yyyy")
+		end if
+	end if
+//		if ast_tab_meca.num_int > 0 then
+//			ast_tab_email_invio.oggetto = trim(ast_tab_email_invio.oggetto) + " rif. interno " + string(ast_tab_meca.num_int)
+//		end if
+	kst_tab_clienti.rag_soc_10 = ads_1.getitemstring( a_riga_ds, "rag_soc_10")
+	if trim(kst_tab_clienti.rag_soc_10) > " " then // se cliente mandante diverso aggiungo il nome
+		ast_tab_email_invio.oggetto = trim(ast_tab_email_invio.oggetto) + ". Customer '" + trim(kst_tab_clienti.rag_soc_10) + "'"
+	end if
+
+	ast_tab_email_invio.note = "Attestato n. " + string(ads_1.getitemnumber(a_riga_ds, "num_certif")) &
+				+ ", WO " + string(ads_1.getitemnumber( a_riga_ds, "certif_e1_e1doco")) &
+				+ ", Lotto " + string(ads_1.getitemnumber(a_riga_ds,"num_int")) &
+				+ "  " +  string(ads_1.getitemdate(a_riga_ds, "data_int")) &
+				+ "   id " + string(ads_1.getitemnumber( a_riga_ds, "id_meca")) + " "  
+
+//--- Buidling del path
+	kst_tab_certif.id_meca = ads_1.getitemnumber( a_riga_ds, "id_meca")
+	ast_tab_email_invio.allegati_cartella = auf_certif_print.get_path_email(kst_tab_certif)			
+
+//--- Prepara l'array per popolare la tabella email
+	kst_tab_certif_email.id_certif = ads_1.getitemnumber( a_riga_ds, "id_certif")
+	kst_tab_certif_email.id_meca = ads_1.getitemnumber( a_riga_ds, "id_meca")
+	kst_tab_certif_email.certif_e1_e1doco = ads_1.getitemnumber( a_riga_ds, "certif_e1_e1doco")
+	
+	kst_tab_certif_email.st_tab_g_0.esegui_commit = "S" //"N" x temporaltable
+	
+	kst_tab_certif_email.id_email_invio = u_add_email_invio_2(kst_tab_certif_email, ast_tab_email_invio) // ADD EMAIL
+	
+	if kst_tab_certif_email.id_email_invio > 0 then
+		k_return = kst_tab_certif_email.id_email_invio
+//--- Imposta id email invio in tabella Certif email
+		ads_1.setitem(a_riga_ds, "id_email_invio", kst_tab_certif_email.id_email_invio)
+		ads_1.setitem(a_riga_ds, "x_datins", ast_tab_meca.x_datins)
+		ads_1.setitem(a_riga_ds, "x_utente", ast_tab_meca.x_utente)
+	end if
+	
+	
+catch (uo_exception kuo_exception) 
+	kguo_sqlca_db_magazzino.db_rollback( )
+	throw kuo_exception
+	
+finally
+
+end try
 
 return k_return
 

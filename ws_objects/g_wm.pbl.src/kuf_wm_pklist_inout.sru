@@ -674,57 +674,36 @@ public function long get_id_cliente (string k_codice) throws uo_exception;//---
 st_esito kst_esito
 st_tab_clienti kst_tab_clienti 
 kuf_clienti kuf1_clienti
-uo_exception kuo_exception
 
 
-//try 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+try 
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_clienti = create kuf_clienti
 	
-	kst_esito = kuf1_clienti.get_codice_da_xyz( k_codice, kst_tab_clienti )
+	kuf1_clienti.get_codice_da_xyz( k_codice, kst_tab_clienti )
 	
-//	kst_tab_clienti.p_iva = k_codice
-//	kuf1_clienti.get_codice_da_piva(kst_tab_clienti)
-//	
-//	if kst_tab_clienti.codice = 0 then
-//		kst_tab_clienti.cf = k_codice 
-//		kuf1_clienti.get_codice_da_cf(kst_tab_clienti)  
-//	end if 
-	if kst_esito.esito = kkg_esito.ok then
-		if kst_tab_clienti.codice = 0 or isnull(kst_tab_clienti.codice) then 
-			if isnumber(k_codice) and not isnull(kst_tab_clienti.codice) then 
-				if long(trim(k_codice)) > 0 then
-					kst_tab_clienti.codice = long(trim(k_codice))
-				else
-					kst_tab_clienti.codice = 0
-				end if
+	if kst_tab_clienti.codice > 0 then 
+	else
+		if isnumber(k_codice) and not isnull(kst_tab_clienti.codice) then 
+			if long(trim(k_codice)) > 0 then
+				kst_tab_clienti.codice = long(trim(k_codice))
 			else
 				kst_tab_clienti.codice = 0
 			end if
-		end if
-	else
-		if kst_esito.esito = kkg_esito.db_wrn or kst_esito.esito = kkg_esito.not_fnd then
-			kst_tab_clienti.codice = 0
 		else
-			kuo_exception = create uo_exception
-			kuo_exception.set_esito(kst_esito)
-			throw kuo_exception
+			kst_tab_clienti.codice = 0
 		end if
 	end if
 
-//catch (uo_exception kuo_exception)
-//	kst_esito = kuo_exception.get_st_esito()
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
 	
-//finally
-	destroy kuf1_clienti
+finally
+	if isvalid(kuf1_clienti) then destroy kuf1_clienti
 	
-//end try
+end try
 	
 
 return kst_tab_clienti.codice

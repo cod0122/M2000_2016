@@ -24,9 +24,17 @@ try
 
 	if kguo_sqlca_db_plav.db_connetti( ) then
 		k_rc = this.settransobject(kguo_sqlca_db_plav)
+		if k_rc < 0 then
+			kguo_exception.kist_esito = this.kist_esito
+			kguo_exception.kist_esito.sqlerrtext = "Errore SETTRANSOBJECT DB '" + kguo_sqlca_db_plav.ki_db_descrizione + "' (u_settransobject) " &
+						+ kkg.acapo + this.kist_esito.sqlerrtext
+			kGuo_exception.scrivi_log( )
+		end if
 	end if
 	
 catch (uo_exception kuo_exception)
+	kuo_exception.kist_esito.sqlerrtext = "Errore Connessione DB '" + kguo_sqlca_db_plav.ki_db_descrizione + "' (u_settransobject) " &
+					+ kkg.acapo + kuo_exception.kist_esito.sqlerrtext
 	kuo_exception.scrivi_log( )
 	throw kuo_exception
 	

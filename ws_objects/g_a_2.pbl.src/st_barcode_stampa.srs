@@ -35,5 +35,6 @@ global type st_barcode_stampa from structure
 	string		dosim_tipo_des		descriptor "comment" = "descrizione del tipo del dosimetro (RED, AMBER...)"
 	string		tipo_dose_des		descriptor "comment" = "tipo dose: MASSIMA, MINIMA..."
 	string		dosimpos_codice		descriptor "comment" = "codice posizione dosimetro da stampare "
+	string		sl_pt_tipo_descr		descriptor "comment" = "Descrizione Tipo del sl_pt"
 end type
 

@@ -41,6 +41,8 @@ type m_emailinviobatch from menu within m_ottimizzadb
 end type
 type m_disattivazionelistiniscaduti from menu within m_ottimizzadb
 end type
+type m_estinzionecontatti from menu within m_ottimizzadb
+end type
 type m_esportacodapilotainhtml from menu within m_ottimizzadb
 end type
 type m_creatabellanavigatore from menu within m_ottimizzadb
@@ -64,6 +66,7 @@ m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
 m_disattivazionelistiniscaduti m_disattivazionelistiniscaduti
+m_estinzionecontatti m_estinzionecontatti
 m_esportacodapilotainhtml m_esportacodapilotainhtml
 m_creatabellanavigatore m_creatabellanavigatore
 m_creaview m_creaview
@@ -236,6 +239,8 @@ type m_getbcodedaeone from menu within m_elaborazioniesterne
 end type
 type m_importalavorazioni from menu within m_elaborazioniesterne
 end type
+type m_importalavorazioni_g3 from menu within m_elaborazioniesterne
+end type
 type m_datilavtoe1 from menu within m_elaborazioniesterne
 end type
 type m_importareportpilota from menu within m_elaborazioniesterne
@@ -257,6 +262,7 @@ m_creapackinglistdaweb m_creapackinglistdaweb
 m_importapackinglist m_importapackinglist
 m_getbcodedaeone m_getbcodedaeone
 m_importalavorazioni m_importalavorazioni
+m_importalavorazioni_g3 m_importalavorazioni_g3
 m_datilavtoe1 m_datilavtoe1
 m_importareportpilota m_importareportpilota
 m_creaemailattestatie1m2000 m_creaemailattestatie1m2000
@@ -265,6 +271,10 @@ end type
 type m_5 from menu within m_magazzino
 end type
 type m_modificaprogrammazione from menu within m_magazzino
+end type
+type m_7 from menu within m_magazzino
+end type
+type m_modificaprogrammazioneg3 from menu within m_magazzino
 end type
 type m_magazzino from menu within m_main
 m_mag_navigatore m_mag_navigatore
@@ -300,6 +310,8 @@ m_inviopianog3 m_inviopianog3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
+m_7 m_7
+m_modificaprogrammazioneg3 m_modificaprogrammazioneg3
 end type
 type m_stat from menucascade within m_main
 end type
@@ -2052,6 +2064,7 @@ m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
 m_disattivazionelistiniscaduti m_disattivazionelistiniscaduti
+m_estinzionecontatti m_estinzionecontatti
 m_esportacodapilotainhtml m_esportacodapilotainhtml
 m_creatabellanavigatore m_creatabellanavigatore
 m_creaview m_creaview
@@ -2086,6 +2099,7 @@ this.m_emailprontomerce=create m_emailprontomerce
 this.m_emailattestati0=create m_emailattestati0
 this.m_emailinviobatch=create m_emailinviobatch
 this.m_disattivazionelistiniscaduti=create m_disattivazionelistiniscaduti
+this.m_estinzionecontatti=create m_estinzionecontatti
 this.m_esportacodapilotainhtml=create m_esportacodapilotainhtml
 this.m_creatabellanavigatore=create m_creatabellanavigatore
 this.m_creaview=create m_creaview
@@ -2101,6 +2115,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_emailprontomerce
 this.Item[UpperBound(this.Item)+1]=this.m_emailattestati0
 this.Item[UpperBound(this.Item)+1]=this.m_emailinviobatch
 this.Item[UpperBound(this.Item)+1]=this.m_disattivazionelistiniscaduti
+this.Item[UpperBound(this.Item)+1]=this.m_estinzionecontatti
 this.Item[UpperBound(this.Item)+1]=this.m_esportacodapilotainhtml
 this.Item[UpperBound(this.Item)+1]=this.m_creatabellanavigatore
 this.Item[UpperBound(this.Item)+1]=this.m_creaview
@@ -2120,6 +2135,7 @@ destroy(this.m_emailprontomerce)
 destroy(this.m_emailattestati0)
 destroy(this.m_emailinviobatch)
 destroy(this.m_disattivazionelistiniscaduti)
+destroy(this.m_estinzionecontatti)
 destroy(this.m_esportacodapilotainhtml)
 destroy(this.m_creatabellanavigatore)
 destroy(this.m_creaview)
@@ -2705,6 +2721,63 @@ on m_disattivazionelistiniscaduti.destroy
 call super::destroy
 end on
 
+type m_estinzionecontatti from menu within m_ottimizzadb
+end type
+
+event clicked;//
+st_esito kst_esito
+kuf_contatti_change_stato kuf1_contatti_change_stato
+
+try
+	if messagebox ("Modifica Stato dei Contatti", &
+			"Estingue i Contatti per Cliente già Estinto o senza Listini Attivi. Proseguire?", question!, YesNo!, 2) = 1 then
+		
+		setpointer(kkg.pointer_attesa)
+		
+		kuf1_contatti_change_stato = create kuf_contatti_change_stato
+			
+		kst_esito = kuf1_contatti_change_stato.u_batch_run()
+
+	else
+		
+		kst_esito.sqlerrtext = "Elaborazione non eseguita."
+
+	end if
+	
+catch (uo_exception kuo_exception)
+	kst_esito = kuo_exception.get_st_esito()
+	
+finally
+	messagebox("Operazione Conclusa", kst_esito.sqlerrtext)
+	if isvalid(kuf1_contatti_change_stato) then destroy kuf1_contatti_change_stato
+	setpointer(kkg.pointer_default)
+
+end try
+ 
+end event
+
+on m_estinzionecontatti.create
+call super::create
+this.text = "Estinzione Contatti"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_estinzionecontatti.destroy
+call super::destroy
+end on
+
 type m_esportacodapilotainhtml from menu within m_ottimizzadb
 end type
 
@@ -2738,7 +2811,8 @@ end event
 on m_esportacodapilotainhtml.create
 call super::create
 this.tag = "master"
-this.text = "Esporta Coda Pilota in HTML"
+this.text = "Report Pallet in Coda sul Gamma2"
+this.microhelp = "Report in formato html "
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -3640,6 +3714,8 @@ m_inviopianog3 m_inviopianog3
 m_elaborazioniesterne m_elaborazioniesterne
 m_5 m_5
 m_modificaprogrammazione m_modificaprogrammazione
+m_7 m_7
+m_modificaprogrammazioneg3 m_modificaprogrammazioneg3
 end type
 
 on m_magazzino.create
@@ -3692,6 +3768,8 @@ this.m_inviopianog3=create m_inviopianog3
 this.m_elaborazioniesterne=create m_elaborazioniesterne
 this.m_5=create m_5
 this.m_modificaprogrammazione=create m_modificaprogrammazione
+this.m_7=create m_7
+this.m_modificaprogrammazioneg3=create m_modificaprogrammazioneg3
 this.Item[UpperBound(this.Item)+1]=this.m_mag_navigatore
 this.Item[UpperBound(this.Item)+1]=this.m_marketing
 this.Item[UpperBound(this.Item)+1]=this.m_lotti
@@ -3725,6 +3803,8 @@ this.Item[UpperBound(this.Item)+1]=this.m_inviopianog3
 this.Item[UpperBound(this.Item)+1]=this.m_elaborazioniesterne
 this.Item[UpperBound(this.Item)+1]=this.m_5
 this.Item[UpperBound(this.Item)+1]=this.m_modificaprogrammazione
+this.Item[UpperBound(this.Item)+1]=this.m_7
+this.Item[UpperBound(this.Item)+1]=this.m_modificaprogrammazioneg3
 end on
 
 on m_magazzino.destroy
@@ -3762,6 +3842,8 @@ destroy(this.m_inviopianog3)
 destroy(this.m_elaborazioniesterne)
 destroy(this.m_5)
 destroy(this.m_modificaprogrammazione)
+destroy(this.m_7)
+destroy(this.m_modificaprogrammazioneg3)
 end on
 
 type m_mag_navigatore from menu within m_magazzino
@@ -6100,6 +6182,7 @@ m_creapackinglistdaweb m_creapackinglistdaweb
 m_importapackinglist m_importapackinglist
 m_getbcodedaeone m_getbcodedaeone
 m_importalavorazioni m_importalavorazioni
+m_importalavorazioni_g3 m_importalavorazioni_g3
 m_datilavtoe1 m_datilavtoe1
 m_importareportpilota m_importareportpilota
 m_creaemailattestatie1m2000 m_creaemailattestatie1m2000
@@ -6126,6 +6209,7 @@ this.m_creapackinglistdaweb=create m_creapackinglistdaweb
 this.m_importapackinglist=create m_importapackinglist
 this.m_getbcodedaeone=create m_getbcodedaeone
 this.m_importalavorazioni=create m_importalavorazioni
+this.m_importalavorazioni_g3=create m_importalavorazioni_g3
 this.m_datilavtoe1=create m_datilavtoe1
 this.m_importareportpilota=create m_importareportpilota
 this.m_creaemailattestatie1m2000=create m_creaemailattestatie1m2000
@@ -6134,6 +6218,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_creapackinglistdaweb
 this.Item[UpperBound(this.Item)+1]=this.m_importapackinglist
 this.Item[UpperBound(this.Item)+1]=this.m_getbcodedaeone
 this.Item[UpperBound(this.Item)+1]=this.m_importalavorazioni
+this.Item[UpperBound(this.Item)+1]=this.m_importalavorazioni_g3
 this.Item[UpperBound(this.Item)+1]=this.m_datilavtoe1
 this.Item[UpperBound(this.Item)+1]=this.m_importareportpilota
 this.Item[UpperBound(this.Item)+1]=this.m_creaemailattestatie1m2000
@@ -6146,6 +6231,7 @@ destroy(this.m_creapackinglistdaweb)
 destroy(this.m_importapackinglist)
 destroy(this.m_getbcodedaeone)
 destroy(this.m_importalavorazioni)
+destroy(this.m_importalavorazioni_g3)
 destroy(this.m_datilavtoe1)
 destroy(this.m_importareportpilota)
 destroy(this.m_creaemailattestatie1m2000)
@@ -6193,38 +6279,37 @@ try
 	kuf1_wm_pklist_file = create kuf_wm_pklist_file
 
 	if  messagebox ("Importa Packing List Mandante (Web/FTP/TXT)", &
-						"L'operazione AGGIORNA gli Archivi!!~n~r" &
-						+ "Saranno caricati a magazzino i Packing-List generati dai mandanti della merce." &
-						+" ~n~r" &
-						+ "Vuoi proseguire con l'operazione?" &
+						"L'operazione AGGIORNA gli Archivi." &
+						+ kkg.acapo + "Saranno caricati a magazzino i Packing-List di entrata merce." &
+						+ kkg.acapo + "Vuoi proseguire con l'operazione?" &
 						 ,question!, YesNo!, 2) = 1 then
 
 		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
 
 //--- SEMAFORO ROSSO: importazione già in esecuzione
 		SetPointer(kkg.pointer_attesa)
+		
 		k_semaforo_ROSSO = kuf1_wm_pklist_cfg.if_importa_in_esecuzione( )   
 		
 		SetPointer(kkg.pointer_default)
 		
 		if k_semaforo_ROSSO then
 			messagebox ("Operazione di Importazione Packing List Mandante bloccata", &
-						"Operazione bloccata perchè segnalata come già in elaborazione.~n~r" &
-						+ "Si prega di riprovare più tardi oppure di sbloccare l'operazione in Proprietà 'Packing-List WM'"  &
+						"Operazione bloccata perchè segnalata come già in elaborazione." &
+						+ kkg.acapo + "Si prega di riprovare più tardi oppure di sbloccare l'operazione in Proprietà 'Packing-List WM'"  &
 						 ,Information!) 
 		else
 			k_contati = kuf1_wm_pklist_file.importa_wm_pklist_file() 
 
 			if k_contati > 0 then
 				messagebox ("Importa Packing List Mandante (Web/FTP/TXT)", &
-						"L'operazione conclusa correttamente.~n~r" &
-						+ "Sono stati caricati a magazzino " + string (k_contati) + " Packig-List. "  &
+						"L'operazione conclusa correttamente. " &
+						+ kkg.acapo + "Sono stati caricati a magazzino " + string (k_contati) + " Packig-List. "  &
 						 ,Information!) 
 			else
 				messagebox ("Importa Packing List Mandante (Web/FTP/TXT)", &
-						"Operazione conclusa.~n~rNessun dato caricato a magazzino.~n~r" &
-							+ "Non e' stato trovato alcun Packing-List da importare." &
-							+" ~n~r" &
+						"Operazione conclusa.~n~rNessun dato caricato a magazzino. " &
+							+ kkg.acapo + "Non e' stato trovato alcun Packing-List da importare." &
 						 ,Information!) 
 			end if
 		end if
@@ -6423,11 +6508,10 @@ kuf_pl_barcode kuf1_pl_barcode
 try
 	kuf1_pl_barcode = create kuf_pl_barcode
 
-	if messagebox ("Importa dati di trattamento dei Pallet", &
-						"Operazione di AGGIORNAMENTO degli Archivi!!~n~r" &
-						+ "Importa inizio e fine periodo di lavorazione Impianto dal 'Pilota'." &
-						+" ~n~r" &
-						+ "Avviare l'operazione?" &
+	if messagebox ("Importa dati di trattamento dal Gamma 2 dei Pallet", &
+						"Operazione di AGGIORNAMENTO degli Archivi!! " &
+						+ kkg.acapo + "Importa inizio e fine data lavorazione Impianto dal 'Pilota'." &
+						+ kkg.acapo + "Avviare l'operazione?" &
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
@@ -6477,8 +6561,8 @@ end event
 on m_importalavorazioni.create
 call super::create
 this.tag = "pilota_imp_p"
-this.text = "Importa Lavorazioni "
-this.microhelp = "Importa i dati di Trattamento dalle Tabelle del Nuovo Pilota"
+this.text = "Importa Lavorazioni Gamma2"
+this.microhelp = "Importa i dati di Trattamento dalle Tabelle del Pilota Impianto Gamma 2"
 this.menuimage = "Custom013_2!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -6496,6 +6580,92 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_importalavorazioni.destroy
+call super::destroy
+end on
+
+type m_importalavorazioni_g3 from menu within m_elaborazioniesterne
+end type
+
+event clicked;//
+int k_importati_ini=0, k_importati_fin=0, k_rack_nr
+string k_Text
+st_esito kst_esito
+kuf_pl_barcode_g3 kuf1_pl_barcode_g3
+
+		
+//--- apre la connessione al DB PILOTA
+try
+	kuf1_pl_barcode_g3 = create kuf_pl_barcode_g3
+
+	if messagebox ("Importa dati di trattamento dal GAMMA 3 dei Pallet", &
+						"Operazione di AGGIORNAMENTO degli Archivi!! " &
+						+ kkg.acapo + "Importa inizio e fine data lavorazione Impianto dal 'Pilota'." &
+						+ kkg.acapo + "Avviare l'operazione?" &
+						 ,question!, YesNo!, 2) = 1 then
+
+		SetPointer(kkg.pointer_attesa)
+		k_importati_ini = kuf1_pl_barcode_g3.importa_inizio_lav_pilota_g3()
+
+		SetPointer(kkg.pointer_attesa)
+		k_importati_fin = kuf1_pl_barcode_g3.importa_trattati_pilota_g3() 
+
+		SetPointer(kkg.pointer_default)
+
+		if (k_importati_ini + k_importati_fin) > 0 then
+			messagebox ("Importa dati di trattamento dal GAMMA 3 dei Pallet", &
+					"Operazione conclusa correttamente.~n~r" &
+					+ "Sono stati importati " + string(k_importati_ini)  &
+					+ " barcode per inizio lavorazione e " + string(k_importati_fin) &
+					+ " per fine lavorazione," &
+					+ " dal 'Pilota'. " &
+					+ k_Text &
+					 ,Information!) 
+		else
+			messagebox ("Importa dati di trattamento dal GAMMA3 dei Pallet", &
+					"Operazione conclusa.~n~rNessun dato importato dal Pilota.~n~r" &
+						+ "Nessun Barcode ha iniziato o concluso il Trattamento. " &
+						+ k_Text &
+					 ,Information!) 
+		end if
+	
+	end if
+	
+catch (uo_exception kuo_exception)
+	SetPointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente() 
+//	kst_esito = kuo_exception.get_st_esito()
+//	kst_esito.sqlerrtext = "Operazione INTERROTTA!!~n~r" + kst_esito.sqlerrtext
+//	kguo_exception.messaggio_utente("Importa dati di trattamento dei Pallet", kst_esito.sqlerrtext)
+
+finally
+	if isvalid(kuf1_pl_barcode_g3) then destroy kuf1_pl_barcode_g3
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end event
+
+on m_importalavorazioni_g3.create
+call super::create
+this.text = "Importa Lavorazioni Gamma3"
+this.microhelp = "Importa i dati di Trattamento dalle Tabelle del Pilota Impianto Gamma 3"
+this.menuimage = "Custom013_2!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_importalavorazioni_g3.destroy
 call super::destroy
 end on
 
@@ -6929,42 +7099,20 @@ type m_modificaprogrammazione from menu within m_magazzino
 end type
 
 event clicked;//
-date k_data
-st_open_w k_st_open_w
-st_tab_base k_st_tab_base
-kuf_base kuf1_base
-//---17092008kuf_menu_window kuf1_menu_window
+kuf_pilota_prg kuf1_pilota_prg
 
+kuf1_pilota_prg = create kuf_pilota_prg
 
+kuf1_pilota_prg.u_open(kkg_flag_modalita.modifica)
 
-//===
-//=== Situazione Scadenzario
-//===
-K_st_open_w.id_programma = kkg_id_programma.pilota_programmazione
-K_st_open_w.flag_primo_giro = "S"
-K_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-K_st_open_w.flag_leggi_dw = "N"
-K_st_open_w.flag_cerca_in_lista = "1"
-K_st_open_w.key1 = " " // 
-K_st_open_w.key2 = " " // 
-K_st_open_w.key3 = " " 
-K_st_open_w.key4 = " "
-K_st_open_w.key5 = " " 
-K_st_open_w.flag_where = " "
-							
-//---17092008kuf1_menu_window = create kuf_menu_window 
-kGuf_menu_window.open_w_tabelle(k_st_open_w)
-//---17092008destroy kuf1_menu_window
-
-
+destroy kuf1_pilota_prg
 end event
 
 on m_modificaprogrammazione.create
 call super::create
 this.tag = "pilota_prg"
-this.text = "Modifica Programmazione"
-this.microhelp = "Modifica la coda di Pianificazione Impianto gia~' inviata al Pilota"
+this.text = "G2 -> Modifica Programmazione"
+this.microhelp = "Modifica la coda di Pianificazione Impianto Gamma 2 già inviata al Pilota"
 this.menuimage = "UserObject!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -6982,6 +7130,69 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_modificaprogrammazione.destroy
+call super::destroy
+end on
+
+type m_7 from menu within m_magazzino
+end type
+
+on m_7.create
+call super::create
+this.text = "-"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_7.destroy
+call super::destroy
+end on
+
+type m_modificaprogrammazioneg3 from menu within m_magazzino
+end type
+
+event clicked;//
+kuf_pilota_prg_g3 kuf1_pilota_prg_g3
+
+kuf1_pilota_prg_g3 = create kuf_pilota_prg_g3
+
+kuf1_pilota_prg_g3.u_open(kkg_flag_modalita.modifica)
+
+destroy kuf1_pilota_prg_g3
+end event
+
+on m_modificaprogrammazioneg3.create
+call super::create
+this.tag = "pilota_pg3"
+this.text = "G3 -> Modifica Programmazione"
+this.microhelp = "Modifica la coda di Pianificazione Impianto Gamma 3 già inviata al Pilota"
+this.menuimage = "UserObject!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_modificaprogrammazioneg3.destroy
 call super::destroy
 end on
 
@@ -7110,13 +7321,6 @@ k_anno = trim(MidA(kuf1_base.prendi_dato_base("anno"),2))
 destroy kuf1_base
 
 
-//
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key= vedi sotto
 	st_open_w k_st_open_w
 
 	kuf1_stat_invent = create kuf_stat_invent
@@ -7125,15 +7329,15 @@ destroy kuf1_base
 	K_st_open_w.id_programma = kuf1_stat_invent.get_id_programma( K_st_open_w.flag_modalita ) 
 	K_st_open_w.flag_primo_giro = "S"
 	K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-	K_st_open_w.flag_leggi_dw = " "
-	K_st_open_w.flag_cerca_in_lista = " "
-	K_st_open_w.key1 = "0000000000" //cliente
-	K_st_open_w.key2 = "0000000000" // dose
-	K_st_open_w.key3 = "0000000000"  //gruppo
-	K_st_open_w.key4 = "01/01/" + k_anno  //data da
-	K_st_open_w.key5 = "31/12/" + k_anno //data a
-	K_st_open_w.key6 = " " //
-	K_st_open_w.flag_where = " "
+	K_st_open_w.flag_leggi_dw = ""
+	K_st_open_w.flag_cerca_in_lista = ""
+	K_st_open_w.key1 = "000000" //cliente
+	K_st_open_w.key2 = "000000" // dose
+	K_st_open_w.key3 = "000000"  //gruppo
+	K_st_open_w.key4 = "" //"01/01/" + k_anno  //data da
+	K_st_open_w.key5 = "" //" 31/12/" + k_anno //data a
+	K_st_open_w.key6 = "" //
+	K_st_open_w.flag_where = ""
 	
 	kGuf_menu_window.open_w_tabelle(k_st_open_w)
 								
@@ -7210,7 +7414,9 @@ end event
 on m_st_fatt.create
 call super::create
 this.tag = "skc"
+this.visible = false
 this.text = "Fatturato/ABC"
+this.enabled = false
 this.microhelp = "Statistici Fatturato e Classifiche ABC "
 this.toolbaritemname = "graph1_2!"
 this.toolbaritemtext = "St.Fatt, Statistico Fatturato"

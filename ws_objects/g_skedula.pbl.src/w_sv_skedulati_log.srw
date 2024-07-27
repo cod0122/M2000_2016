@@ -215,7 +215,7 @@ public subroutine u_set_operazione ();//
 datetime k_now
 	
 	dw_lista_0.setcolumn(1)
-	
+
 	k_now = kGuf_data_base.prendi_dataora( )
 	
 	if isnull(kist_sv_eventi_sked_log.log_data) then
@@ -229,7 +229,7 @@ datetime k_now
 	end if
 	dw_lista_0.setitem(1, "log_data", kist_sv_eventi_sked_log.log_data)
 	dw_lista_0.setitem(1, "log_ora", kist_sv_eventi_sked_log.log_ora )
-	dw_lista_0.setitem(1, "log_testo", kist_sv_eventi_sked_log.log_testo)
+	dw_lista_0.setitem(1, "log_testo", kgn_string.u_stringa_pulisci_x_msg(kist_sv_eventi_sked_log.log_testo))
 	
 //--- Posiziona il cursore 
 	dw_lista_0.setfocus() 

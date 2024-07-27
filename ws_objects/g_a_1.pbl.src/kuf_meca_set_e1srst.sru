@@ -30,9 +30,9 @@ public function long u_set_stato_lotto_da_e1 () throws uo_exception;//
 //--- 
 //--------------------------------------------------------------------------------------------------------------
 long k_return
-long k_righe_ds_1
+long k_righe_ds_1, k_righe_changed_first
 long k_righe_daelab, k_rc, k_riga_tab, k_tab_e1_asn_nrows, k_riga_find_ds_1
-long k_righe_changed, k_canceled
+long k_righe_changed, k_canceled // canceled = Lotti da Annullare (no cancellare)
 long k_riga
 uo_ds_std_1 kds_1
 kuf_e1_asn kuf1_e1_asn
@@ -54,6 +54,10 @@ try
 	kds_1.dataobject = "ds_meca_aperti_nostato95"
 	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	k_righe_ds_1 = kds_1.retrieve() // estrazione ID lotti x aggiornare lo STATO
+	if k_righe_ds_1 < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in lettura Lotti Aperti per aggiornamento dello STATO da E1 (" + trim(kds_1.dataobject)+"). ")
+		throw kguo_exception
+	end if
 
 //--- Tratta non più di 600 righe alla volta...		
 	if k_righe_ds_1 < 600 then
@@ -86,6 +90,7 @@ try
 				if trim(kds_1.getitemstring(k_riga_find_ds_1, "e1srst")) <> kst_tab_e1_asn[k_riga_tab].wasrst then
 					
 					k_righe_changed ++
+					if k_righe_changed_first = 0 then k_righe_changed_first = k_righe_changed
 					
 					kds_1.setitem(k_riga_find_ds_1, "e1srst", kst_tab_e1_asn[k_riga_tab].wasrst)
 					kds_1.setitem(k_riga_find_ds_1, "x_datins", kst_tab_meca.x_datins)
@@ -108,17 +113,14 @@ try
 		k_return = k_righe_changed 
 
 		k_rc = kds_1.update( )  // AGGIORNA STATO!!
-		if k_rc > 0 then
-			kguo_sqlca_db_magazzino.db_commit( )
-		else
-			kst_esito.sqlcode = k_return
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.SQLErrText = "Errore in aggiornamento 'Stato' dei Lotti da E1 (MECA). Il primo ID doveva essere '" + string(kds_1.getitemnumber(1, "id")) + "' " &
-										  + kkg.acapo + "Errore: " + trim(kds_1.kist_esito.sqlerrtext) + " - " + string(kds_1.kist_esito.sqlerrtext) + ") "
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kds_1.kist_esito)
+		if k_rc < 0 then
+			kguo_exception.set_st_esito_err_ds(kds_1, &
+							"Errore in aggiornamento da E1 dello 'Stato' di " + string(k_righe_changed) &
+							+ " Lotti (MECA). Da cancellare erano " + string(k_canceled) + " Lotti." &
+							+ "Il primo ID da aggiornare '" + string(kds_1.getitemnumber(k_righe_changed_first, "id")) + "' ")
 			throw kguo_exception
 		end if
+		kguo_sqlca_db_magazzino.db_commit( )
 		
 		if k_canceled > 0 then
 			u_meca_annulla(kst_tab_e1_asn_ann[])  // ANNULLA LOTTI

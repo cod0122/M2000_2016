@@ -568,13 +568,18 @@ datawindowchild kdwc_clienti_d
 				 dw_dett_0.setitem(1, "rag_soc_10", kdwc_clienti_d.getitemstring( k_riga, "rag_soc_1") )
 			end if
 		else
-			kuf1_clienti = create kuf_clienti
-			kst_tab_clienti.codice = ki_st_tab_contratti_arg.cod_cli
-			kst_esito = kuf1_clienti.get_nome( kst_tab_clienti )
-			if kst_esito.esito = kkg_esito.ok then
-		 		dw_dett_0.setitem(1, "rag_soc_10", kst_tab_clienti.rag_soc_10 )
+			if ki_st_tab_contratti_arg.cod_cli > 0 then
+				try
+					kuf1_clienti = create kuf_clienti
+					kst_tab_clienti.codice = ki_st_tab_contratti_arg.cod_cli
+					kuf1_clienti.get_nome( kst_tab_clienti )
+					dw_dett_0.setitem(1, "rag_soc_10", kst_tab_clienti.rag_soc_10 )
+				catch (uo_exception kuo_exception)
+					kuo_exception.messaggio_utente()
+				finally	 
+					if isvalid(kuf1_clienti) then destroy kuf1_clienti
+				end try
 			end if
-			destroy kuf1_clienti
 		end if 
 	end if
 

@@ -124,11 +124,15 @@ private subroutine smista_funz (string k_par_in);//===
 choose case trim(k_par_in) 
 
 	case KKG_FLAG_RICHIESTA.refresh		//Aggiorna Liste
-		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
-			kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].leggi_liste()
-		else
-			kiuo_g_tab_elenco_tabpage_web[ki_tab_selected[tab_1.selectedtab]].u_refresh()
-		end if
+		try
+			if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
+				kiuo_g_tab_elenco_tabpage[ki_tab_selected[tab_1.selectedtab]].leggi_liste()
+			else
+				kiuo_g_tab_elenco_tabpage_web[ki_tab_selected[tab_1.selectedtab]].u_refresh()
+			end if
+		catch (uo_exception kuo_exception)
+			kuo_exception.messaggio_utente()
+		end try
 
 	case KKG_FLAG_RICHIESTA.inserimento		//richiesta inserimento
 		if ki_tab_elenco_typeof[tab_1.selectedtab] = "uo_g_tab_elenco_tabpage" then  // tab con le dw
@@ -577,7 +581,7 @@ int k_tabpage_i, k_i
 	k_tabpage_i = upperbound(tab_1.control[])
 	for k_i = 1 to k_tabpage_i
 		//tab_1.control[k_i].resize(tab_1.width - 80, tab_1.height - 180)
-		tab_1.control[k_i].event DYNAMIC resize(tab_1.width - 130, tab_1.height - 30)
+		tab_1.control[k_i].event DYNAMIC resize(tab_1.width - 180, tab_1.height - 30)
 	next
 
 	this.setredraw(true)

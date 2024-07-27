@@ -59,8 +59,6 @@ public string ki_icona_selezionata = "UserObject5!"
 //--- disattiva moment.la funz.'aggiorna' fino a che non mod.un dato
 public boolean ki_disattiva_moment_cb_aggiorna = true
 
-//--- Operazione a cui e' sottoposta la dw (x default è Visualizzazione) utile x i LINK
-//public string ki_flag_modalita = ""
 
 //--- attiva/disattiva i LINK
 private kuf_link_zoom kiuf_link_zoom
@@ -76,6 +74,7 @@ protected boolean ki_border
 //--- attiva colore in background in Evidenza x riga aggiornata di recente
 public boolean ki_colora_riga_aggiornata = true
 
+public string ki_clicked_colname
 //public string ki_SQLsyntax = " "
 //public string ki_SQLErrText = " "
 //public long ki_SQLdbcode = 0
@@ -99,7 +98,8 @@ public boolean ki_select_multirows = true
 //--- ultima riga selezionatatrsa
 public long ki_UltRigaSel = 0
 
-//--- Attiva/disattiva il Drag & Drop....
+//------------------------------------------------------------------------------------------------------------------------
+//--- Drag & Drop....
 public boolean ki_attiva_DRAGDROP_solo_INS_MOD = true // Abilitazione DRAG&DROP come indicato solo se in INSERIMENTO e MODIFICA
 public boolean ki_attiva_DRAGDROP = false // Abilitazione al DRAG&DROP
 public boolean ki_attiva_DRAGDROP_self = false // Abilitazione al DRAG&DROP sulla stessa DW
@@ -108,10 +108,8 @@ public boolean ki_in_DRAG = false     // dragging in corso....
 private int ki_mouse_down_x = 0
 private int ki_mouse_down_y = 0  
 private long ki_riga_dragwithin = 0
-private long ki_clicked_row = 0
-private long ki_clicked_row_sel = 0
 private long ki_lbuttondown_row=0
-private string ki_dw_name_lbuttondown
+//private string ki_dw_name_lbuttondown
 private string ki_drag_colname = ""
 private boolean ki_drag_scroll=false
 private boolean ki_u_drag_scroll_lanciata=false
@@ -124,6 +122,10 @@ private string ki_dragging_label_value
 private string ki_dragging_label_height
 private string ki_dragging_label_width
 private uo_d_std_1 kidw_dragdrop_source
+//------------------------------------------------------------------------------------------------------------------------
+
+private long ki_clicked_row = 0
+private long ki_clicked_row_sel = 0
 
 //--- variabile gestione x errori DB
 //public st_esito kist_esito
@@ -185,8 +187,6 @@ private subroutine u_sleep (integer a_sec)
 public subroutine u_menu_popup (integer a_xpos, ref integer a_ypos)
 public function long u_get_band_pointer ()
 private function string modifica_set_color ()
-public function string u_getitemstring (datawindow adw_link, string a_colonna, long a_riga)
-protected function boolean link_standard_call (datawindow adw_link, string a_nome_link, long a_riga) throws uo_exception
 public subroutine u_fine_primo_giro ()
 public function boolean u_group_ricalc ()
 public function boolean u_rowscopy_form_ds (datastore kds_1)
@@ -203,6 +203,12 @@ private subroutine u_dragging_label_destroy ()
 private function string u_dragging_label_show ()
 private function boolean u_if_in_dragging ()
 public function long u_selectrow_onclick (readonly long a_row)
+public function long u_set_ki_lbuttondown_row ()
+public function long u_getselectedrows (long a_row)
+public function string u_getitemstring (string a_colonna, long a_riga)
+private function string link_standard_call_if (string a_nome_link, long a_riga) throws uo_exception
+private function boolean link_standard_call (string a_nome_link, long a_riga) throws uo_exception
+public function string u_get_ctrl_c_value ()
 end prototypes
 
 event ue_dwnkey;//
@@ -466,8 +472,8 @@ end event
 event type long ue_dropfromthis(long k_droprow, uo_d_std_1 kdw_source);
 // We Dragged From this... we Drop to this...
 
-Long		l_row=0, l_selectedRows=0, l_rowSave[], l_index, l_rowCount, l_getRow
-long 		l_rowMoved[]
+Long		l_row=0, l_selectedRows=0, l_rowSave[], l_index, l_rowCount, l_getRow, l_indexMoved
+long 		l_rowMoved[], l_selectedRowsMoved[]
 Long		l_subRows=0
 boolean  k_moved
 
@@ -507,28 +513,33 @@ if isvalid(kdw_source) and k_droprow > 0 and l_rowCount > 1 then
 		k_moved = true
 		l_rowMoved[l_index+1] = k_dropRow + l_index
 		kdw_source.RowsMove(l_rowCount, l_rowCount, primary!, this, l_rowMoved[l_index+1], primary!)
+		
+		l_indexMoved ++
+		l_selectedRowsMoved[l_indexMoved] = l_rowMoved[l_index+1]
 		// Fire Drop Row Event
 //		this.EVENT ue_AfterDropRow(k_droprow + l_index)
 	NEXT
 	
 //--- rimetto il SELECTED sulle righe spostate	
-	kdw_source.selectrow( 0, false)
-	FOR l_index = 1 TO UpperBound(l_rowMoved[])
-		l_rowMoved[l_index] =  k_dropRow + l_index
-		kdw_source.selectrow(l_rowMoved[l_index], true)
+	this.selectrow( 0, false)
+	//FOR l_index = 1 TO UpperBound(l_rowMoved[])
+	//	l_rowMoved[l_index] = k_dropRow + l_index
+	//	kdw_source.selectrow(l_rowMoved[l_index], true)
+	for l_index = 1 to upperbound(l_selectedRowsMoved[])
+		this.post selectrow(l_selectedRowsMoved[l_index], true)
 	NEXT
 	
 //--- CurrentRow Should Be Dragged Row now
 	ki_UltRigaSel 	= k_dropRow
-//	kil_lastSelectedRow 	= k_dropRow
 	
 //--- attiva lo status del DW a modificato sulla prima riga
 	if k_moved then
 		if this.ki_flag_modalita = kkg_flag_modalita.modifica &
-				or this.ki_flag_modalita = kkg_flag_modalita.inserimento then
+					or this.ki_flag_modalita = kkg_flag_modalita.inserimento then
 			this.setitemstatus(1, 0, Primary!, DataModified!)
 		end if
 	end if
+	
 END IF
 
 
@@ -554,9 +565,13 @@ end event
 event ue_dwnmousemove;//
 //---- Muove il mouse con il tasto left premuto allora posso attivare il DRAG&DROP
 //
-long k_riga
+//long k_riga
 string k_rcx
+string k_value, k_colname
+int k_rc
 
+
+u_set_ki_lbuttondown_row( )  // imposta il ki_lbuttondown_row
 
 //--- Attiva il Drag&Drop se ho indicato di attivarlo e sono in Modifica o Inserimento a meno che non abbia in gla che lo concede anche in Visualizzazione
 if (this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self) &
@@ -568,7 +583,7 @@ if (this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self) &
 //-- se sono in DRAG
 	if u_if_in_dragging( ) then
 		
-		k_rcx = u_dragging_label_show() 
+		//k_rcx = u_dragging_label_show() 
 		
 	else
 	
@@ -576,20 +591,43 @@ if (this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self) &
 			
 //--- se ho trascinato il mouse x un po' da una colonna....
 //			if (Abs(PointerX() - ki_mouse_down_x) > 50) OR (Abs(PointerY() - ki_mouse_down_y) > 50) OR (PointerX() = 0) OR (PointerY() = 0) THEN  
-			if dwo.type = "column" or dwo.type = "compute" or dwo.type = "text" then
+//			if dwo.type = "column" or dwo.type = "compute" or dwo.type = "text" then
 
-				if abs(PointerX() - ki_mouse_down_x) > 100 OR Abs(PointerY() - ki_mouse_down_y) > 100 then //OR xpos = 0 OR ypos = 0 THEN  
-					k_riga = ki_lbuttondown_row //this.getselectedrow(0) 
-					if k_riga > 0 then
+				if ki_lbuttondown_row > 0 and row > 0 then
+					k_colname = trim(dwo.name)
+					k_rcx = dwo.type 
+					choose case k_rcx
+						case "column"
+						case "compute"
+							k_value = trim(string(dwo.Primary[ki_lbuttondown_row]))
+					end choose
+				end if
 
-				//--- Mostra un'etichetta con un valore durante il dragging
-						ki_dragging_label_colname = trim(dwo.name)
-						ki_dragging_label_value = trim(string(dwo.Primary[k_riga]))
-						ki_dragging_label_height = this.describe(dwo.name + ".height")
-						ki_dragging_label_width = this.describe(dwo.name + ".width")
-						k_rcx = u_dragging_label_show() 
+	//kguo_exception.u_write_x_debug(this.classname(), "ue_dwnmousemove k_colname: " + string(k_colname)+" POINTER: " + string(abs(PointerX()))+"-"+string(ki_mouse_down_x)+","+string(Abs(PointerY()))+"-"+string(ki_mouse_down_y) )
+				if ki_mouse_down_x > 0 and ki_mouse_down_y > 0 &
+						and (abs(PointerX() - ki_mouse_down_x) > 100 OR Abs(PointerY() - ki_mouse_down_y) > 100) then //OR xpos = 0 OR ypos = 0 THEN  
+	//				k_riga = ki_lbuttondown_row //this.getselectedrow(0) 
+					if ki_lbuttondown_row > 0 then
+
+						ki_in_DRAG = true		 
+						kidw_dragdrop_source = this
+						
+//	TROPPO LENTO			//--- Mostra un'etichetta con un valore durante il dragging
+//						ki_dragging_label_colname = k_colname
+//						ki_dragging_label_height = this.describe(dwo.name + ".height")
+//						ki_dragging_label_width = this.describe(dwo.name + ".width")
+//						if k_value > " " then
+//							ki_dragging_label_value = k_value
+//						else
+//							if ki_dragging_label_colname > " " then
+//							else
+//								ki_dragging_label_colname = trim(this.describe("#1.name"))
+//							end if
+//							ki_dragging_label_value = trim(string(this.object.data[ki_lbuttondown_row,integer(this.describe(ki_dragging_label_colname + ".id"))]))
+//						end if
+//						k_rcx = u_dragging_label_show() 
 				
-						if this.getselectedrow(k_riga) > 0 then
+						if this.getselectedrow(ki_lbuttondown_row) > 0 then
 	//						this.dragicon = kGuo_path.get_risorse() + "\drag2.ico"
 							this.dragicon = ki_dragicon2   
 						else
@@ -597,13 +635,11 @@ if (this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self) &
 							this.dragicon = ki_dragicon1
 						end if
 								
-						ki_in_DRAG = true		 
 						this.drag(begin!)
-						kidw_dragdrop_source = this
 					end if
 					
 				end if
-			end if
+			//end if
 		end if
 		
 	end if
@@ -613,6 +649,7 @@ end event
 
 event ue_lbuttondown;//
 int k_pos
+long k_row
 string k_col_name, k_col_pointer
 String k_band, k_row_x
 
@@ -621,6 +658,7 @@ String k_band, k_row_x
 if this.ki_attiva_DRAGDROP or this.ki_attiva_dragdrop_self then
 	
 	k_band = this.GetBandAtPointer()
+	
 	if left(k_band,6) = "detail" then
 		
 		k_col_pointer = this.GetObjectAtPointer()
@@ -628,31 +666,34 @@ if this.ki_attiva_DRAGDROP or this.ki_attiva_dragdrop_self then
 		
 		k_row_x = trim(mid(k_col_pointer, k_pos + 1))
 		if isnumber(k_row_x) then 
-			ki_lbuttondown_row = long(k_row_x)
+			//ki_lbuttondown_row = long(k_row_x)
+			k_row = long(k_row_x)
 		end if
-		ki_dw_name_lbuttondown = this.classname( )
-		
-		if flags = 1 then //left button
+		//ki_dw_name_lbuttondown = this.classname( )
+
+		if flags = 1 or keydown( keyshift! ) then  //flags = 1 left button
 			if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.DataWindow.Processing = kki_tipo_processing_tree &
 					or this.Object.DataWindow.Processing = kki_tipo_processing_altro) then
 	
-			this.event u_dragdrop_mouse_pos()
-			
-	//--- button down se riga non selez. la seleziona e deseleziona tutto il resto
-			//k_row = this.getrow()
-				if ki_lbuttondown_row > 0 then
-					if not this.isselected(ki_lbuttondown_row) then
+				if k_row > 0 then
+					ki_mouse_down_x = PointerX() //xpos // original coordinates of pointer x fare il drag&drop 
+					ki_mouse_down_y = PointerY() //ypos // original coordinates of pointer x fare il drag&drop  			
+	//kguo_exception.u_write_x_debug(this.classname(), "ue_lbuttondown ki_mouse_down_y: " + string(ki_mouse_down_y))
+
+					if not this.isselected(k_row) then
 						this.selectrow ( 0, false )
-						this.selectrow ( ki_lbuttondown_row, true )
-						this.setrow (ki_lbuttondown_row)
+						this.selectrow ( k_row, true )
+						this.setrow (k_row)
 					end if
 				end if
 			end if
 		end if		
 		
-	else
-		ki_lbuttondown_row = 0
-		ki_dw_name_lbuttondown = ""
+		ki_lbuttondown_row = k_row
+		
+//	else
+//		ki_lbuttondown_row = 0
+//		ki_dw_name_lbuttondown = ""
 	end if
 end if
 
@@ -660,22 +701,23 @@ end event
 
 event ue_dragdrop_end();//
 //	st_barcode.visible = false
+	this.ki_mouse_down_x = 0
+	this.ki_mouse_down_y = 0
 	this.ki_lbuttondown_row = 0
+	this.ki_riga_dragwithin = 0
 	this.ki_in_DRAG = false		 
 	this.drag(end!)
 	this.ki_drag_scroll=false	
 	this.dragicon = ""
 	this.modify("k_dragdrop_row.Expression='0' ")
-	this.u_dragging_label_destroy()
+//	this.u_dragging_label_destroy()
+	
+//--- devo chiudere anche il drag&drop anche sul sorgente
 	if isvalid(kidw_dragdrop_source) then
-		kidw_dragdrop_source.drag(end!)
-		kidw_dragdrop_source.ki_in_drag = false
-		kidw_dragdrop_source.ki_drag_scroll = false
-		kidw_dragdrop_source.dragicon = ""
-		kidw_dragdrop_source.modify("k_dragdrop_row.Expression='0' ")
-		kidw_dragdrop_source.u_dragging_label_destroy()
+		if this <> kidw_dragdrop_source then
+			kidw_dragdrop_source.event ue_dragdrop_end( )
+		end if
 	end if
-
 
 end event
 
@@ -782,14 +824,16 @@ if left(k_band,6) = "detail" then
 			end if		
 		end if		
 	end if		
+	
+	ki_mouse_down_x = 0
+	ki_mouse_down_y = 0
 
 end if	
 
-//if this.ki_attiva_DRAGDROP or this.ki_attiva_DRAGDROP_self then
 if u_if_in_dragging( ) then
 	this.event ue_dragdrop_end()
 end if
-ki_dw_name_lbuttondown = ""
+
 
 
 end event
@@ -823,17 +867,6 @@ if k_return > " " then
 else
 	return ""
 end if
-
-end event
-
-event u_dragdrop_mouse_pos();//
-
-if ki_attiva_DRAGDROP or ki_attiva_DRAGDROP_self then
-	ki_mouse_down_x = PointerX() //xpos // original coordinates of pointer x fare il drag&drop 
-	ki_mouse_down_y = PointerY() //ypos // original coordinates of pointer x fare il drag&drop  			
-end if
-
-
 
 end event
 
@@ -1114,125 +1147,6 @@ else
 end if
 
 return k_ret
-
-end function
-
-public function string u_getitemstring (datawindow adw_link, string a_colonna, long a_riga);//
-//=== Torna Valore String da una colonna di DW
-string k_return=""
-string k_tipo=""
-
-	
-	if a_riga > 0 and trim(a_colonna) > " " then
-		k_tipo = adw_link.Describe(a_colonna + ".ColType")
-		choose case lower(left(k_tipo, 3))
-			case "cha"
-				k_return = trim(adw_link.getitemstring(a_riga, a_colonna))
-			case "lon", "dec", "num", "int", "ulo"
-				k_return = string(adw_link.getitemnumber(a_riga, a_colonna))
-			case "dat"
-		    	if k_tipo = "datetime" then
-					k_return = string(adw_link.getitemdatetime(a_riga, a_colonna))
-				else
-					k_return = string(adw_link.getitemdate(a_riga, a_colonna))
-				end if
-			case "tim"
-				k_return = string(adw_link.getitemtime(a_riga, a_colonna))
-		end choose
- 		if isnull(k_return) then k_return = ""
-	end if	
-
-return k_return
-
-
-end function
-
-protected function boolean link_standard_call (datawindow adw_link, string a_nome_link, long a_riga) throws uo_exception;//
-//--- Verifica se è stato premuto un link (button o campo)
-//--- Input: a_nome_link  = nome del campo o button cliccato
-//---        a_riga = numero riga
-//---        adw_link = datawindow che può essere anche un dwc 
-//---            
-//--- Output: boolean TRUE = ok e' entrato in funzione; FALSE=non ha fatto niente
-//
-boolean k_return=false
-string k_nome_link_button = " "
-string k_protect = "", k_taborder="", k_valore=""
-int k_taborder_n = 0
-boolean k_zoom_ok = false, k_press_KeyControl
-
-
-try 
-
-	
-//--- Ho un VALORE e Ho attivato i flag x fare lo ZOOM?
-	if (ki_button_standard_attivi or ki_link_standard_attivi) then
-
-		setpointer (kkg.pointer_attesa)	
-		
-		if KeyDown(KeyControl!) then k_press_KeyControl = true
-		
-//--- se ho cliccato su un BUTTON o SIMILARE converto nel link tradizionale 
-		k_nome_link_button = kiuf_link_zoom.get_link_da_button (a_nome_link)
-		
-		if k_nome_link_button > " " then  // se è un Bottone lo riverso anche nel campo nome LINK
-			a_nome_link = trim(k_nome_link_button)
-		end if
-
-//--- valutazione se 'lanciare lo ZOOM'
-		k_zoom_ok = true
-		if k_nome_link_button > " " or k_press_KeyControl then  // se è un button allora allora ZOOM ok
-		
-		else
-
-			if kguo_g.get_flagZOOMctrl() and not k_press_KeyControl then // se richiesto il tasto CTRL ma non premuto
-				k_zoom_ok = FALSE 
-			end if
-			
-			if k_zoom_ok and not k_press_KeyControl and NOT ki_link_standard_attivi then // se NO link standard attivo allora ok
-				k_zoom_ok = FALSE 
-			end if
-			
-			if k_zoom_ok and a_riga > 0 and trim(a_nome_link) > " " then
-				k_valore = trim(u_getitemstring(adw_link, a_nome_link, a_riga))
-				if k_valore > " " then
-					if not k_press_KeyControl then
-						k_protect = adw_link.Describe(a_nome_link + ".Protect") // campo protetto
-						if k_protect = "0" then // se campo protetto ovvero diverso da ZERO allora ZOOM ok
-							k_taborder = adw_link.Describe(a_nome_link + ".TabSequence")
-							if isnumber(k_taborder) then 
-								if integer(k_taborder) > 0 then
-									k_zoom_ok = FALSE // campo di INPUT ATTIVO non faccio ZOOM altrimenti e' un casino x l'utente 
-								end if
-							end if
-						end if
-					end if
-				else
-					k_zoom_ok = FALSE // non passo perchè campo senza VALORE 25.5.2015
-				end if
-			else
-				k_zoom_ok = FALSE // non passo perchè campo senza NOME
-			end if
-
-		end if
-
-//--- Se posso 'lanciare lo ZOOM'
-		if k_zoom_ok then 
-			k_return = kiuf_link_zoom.link_standard_call_p (adw_link, a_nome_link) // attiva i tasti con il LINK
-		end if			
-
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally	
-	setpointer (kkg.pointer_default)	
-
-end try
-	
-return k_return
-
 
 end function
 
@@ -1811,15 +1725,14 @@ end if
 end subroutine
 
 private subroutine u_dragging_label_destroy ();//
-if isvalid(kidw_dragdrop_source) then
-	if kidw_dragdrop_source.ki_dragging_label_colname > " " then
-		this.modify("destroy x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname + " ")
-	end if
-end if
-if this.ki_dragging_label_colname > " " then
-	this.modify("destroy x_marker_" + this.ki_dragging_label_colname + " ")
-end if
-ki_dragging_label_created = false
+//if ki_dragging_label_created then
+	ki_dragging_label_created = false
+	if not isvalid(kidw_dragdrop_source) then return
+	if not isnull(kidw_dragdrop_source) then return
+
+	this.modify("destroy x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname + " ")
+		
+//end if
 
 end subroutine
 
@@ -1827,53 +1740,60 @@ private function string u_dragging_label_show ();//
 string k_modify
 string k_rcx
 
-if not ki_dragging_label_created then
-	
-	if ki_dragging_label_colname > " " then
-		ki_dragging_label_created = true
-	
-		ki_dragging_label_value = kgn_string.u_replace(ki_dragging_label_value, "'", "")  // rimuove il carattere APICE che può creare confusione
+if isvalid(kidw_dragdrop_source) then
+	if kidw_dragdrop_source.ki_dragging_label_colname > " " then
 		
-		k_modify = "create text(band=Foreground " &
-			+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
-			+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
-			+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
-			+ "height='" + ki_dragging_label_height + "' width='" + ki_dragging_label_width + "' " &
-			+ "name=x_marker_" + ki_dragging_label_colname+ " " &
-			+ "text='" + ki_dragging_label_value +  "' "  +  &
-			+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
-			+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
+		ki_dragging_label_value = kgn_string.u_replace(kidw_dragdrop_source.ki_dragging_label_value, "'", "")  // rimuove il carattere APICE che può creare confusione
+		
+		if not this.ki_dragging_label_created then
+		
+			this.ki_dragging_label_created = true
+		
+			k_modify = "create text(band=Foreground " &
+				+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+				+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
+				+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
+				+ "height='" + kidw_dragdrop_source.ki_dragging_label_height + "' width='" + kidw_dragdrop_source.ki_dragging_label_width + "' " &
+				+ "name=x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname+ " " &
+				+ "text='" + kidw_dragdrop_source.ki_dragging_label_value +  "' "  +  &
+				+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+				+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
+		
+		//	k_modify = "create compute(band=Foreground "  +  &
+		//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+		//		+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
+		//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
+		//		+ "height='" + a_height + "' width='" + ki_dragging_label_width + "' " &
+		//		+ "name=x_marker_" + ki_dragging_label_colname+ " " &
+		//		+ "Expression=~t'PIPPO' " & 
+		//		+ "format='[general]' " &
+		//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+		//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
+		//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
+		//		+ "height.autosize=Yes pointer='Arrow!' moveable=1 resizeable=0 " &
+		//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' height='" + a_height + "' width='" + ki_dragging_label_width &
+		//		+ "' name=x_marker_" + ki_dragging_label_colname+ " " &
+		//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
+		//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "' " &
+		//		+ "format='[general]' " &
+		//		+ "expression='" + ki_dragging_label_value +  "') "  
+		//		+ "Width.Autosize=yes " &
+				//+ "Width.AutoSize=1 Visible='1' " + &    aurosize='1' da errore!
+		else
 	
-	//	k_modify = "create compute(band=Foreground "  +  &
-	//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
-	//		+ "height.autosize=No pointer='Arrow!' moveable=1 resizeable=0 " &
-	//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' " &
-	//		+ "height='" + a_height + "' width='" + ki_dragging_label_width + "' " &
-	//		+ "name=x_marker_" + ki_dragging_label_colname+ " " &
-	//		+ "Expression=~t'PIPPO' " & 
-	//		+ "format='[general]' " &
-	//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
-	//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "') " 
-	//		+ "color='" + string(rgb(245,0,0)) + "' alignment='0' border='4' " &
-	//		+ "height.autosize=Yes pointer='Arrow!' moveable=1 resizeable=0 " &
-	//		+ "x='" + string(this.PointerX()+40) + "' y='" + string(this.PointerY()-10) + "' height='" + a_height + "' width='" + ki_dragging_label_width &
-	//		+ "' name=x_marker_" + ki_dragging_label_colname+ " " &
-	//		+ "tag='' font.face='VERDANA' font.height='-10' font.weight='400' font.family='0' font.pitch='0' font.charset='1' font.italic='0' font.strikethrough='0' " &
-	//		+ "font.underline='0' background.mode='0.8' background.color='" + string(rgb(255,255,255)) + "' " &
-	//		+ "format='[general]' " &
-	//		+ "expression='" + ki_dragging_label_value +  "') "  
-	//		+ "Width.Autosize=yes " &
-			//+ "Width.AutoSize=1 Visible='1' " + &    aurosize='1' da errore!
-	end if	
-else
-
-	k_modify = "x_marker_" + ki_dragging_label_colname + ".x='" + string(this.PointerX()+40) + "' " + "x_marker_" + ki_dragging_label_colname + ".y='" + string(this.PointerY()-10) + "' "
-
+			k_modify = "x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname + ".x='" + string(this.PointerX()+40) + "' " + "x_marker_" + kidw_dragdrop_source.ki_dragging_label_colname + ".y='" + string(this.PointerY()-10) + "' " &
+							+ "text='" + kidw_dragdrop_source.ki_dragging_label_value +  "' "  
+	
+		end if
+	
+		k_rcx = this.modify(k_modify)
+					//	kguo_exception.kist_esito.esito = kkg_esito.ko
+					//	kguo_exception.kist_esito.sqlerrtext = k_modify
+					//	kguo_exception.scrivi_log( )
+		
+	end if
+	
 end if
-
-k_rcx = this.modify(k_modify)
-
-
 return k_rcx
 
 end function
@@ -1957,10 +1877,10 @@ if (this.Object.DataWindow.Processing = kki_tipo_processing_grid or this.Object.
 	
 	//--- solo click		
 			if a_row > 0 then
-				if not this.isselected(a_row) then
+				//if not this.isselected(a_row) then
 					this.selectrow ( 0, false )
 					this.selectrow ( a_row, true )
-				end if
+				//end if
 			end if 
 		end if 
 		
@@ -1982,6 +1902,208 @@ end if
 return ki_UltRigaSel 
 end function
 
+public function long u_set_ki_lbuttondown_row ();//
+
+if this.ki_lbuttondown_row > 0 then return this.ki_lbuttondown_row
+
+if isvalid(kidw_dragdrop_source) then
+	if kidw_dragdrop_source.dataobject > " " then
+		this.ki_lbuttondown_row = kidw_dragdrop_source.ki_lbuttondown_row
+	end if
+end if
+
+
+end function
+
+public function long u_getselectedrows (long a_row);/*
+Comteggio delle righe selezionate
+  inp: row dalla qualse si vuole partire nel conteggio
+  rit: nr delle righe selezionate
+*/
+long k_return
+
+		
+	a_row = this.getselectedrow(a_row)
+	do while a_row > 0
+
+		k_return ++
+		
+		a_row = this.getselectedrow(a_row)
+	loop
+
+return k_return
+end function
+
+public function string u_getitemstring (string a_colonna, long a_riga);//
+//=== Torna Valore String da una colonna di DW
+string k_return=""
+string k_tipo=""
+
+	
+	if a_riga > 0 and trim(a_colonna) > " " then
+		k_tipo = this.Describe(a_colonna + ".ColType")
+		choose case lower(left(k_tipo, 3))
+			case "cha"
+				k_return = trim(this.getitemstring(a_riga, a_colonna))
+			case "lon", "dec", "num", "int", "ulo"
+				if dec(string(this.getitemnumber(a_riga, a_colonna), "#0.00")) > 0 then
+					k_return = string(this.getitemnumber(a_riga, a_colonna))
+				end if
+			case "dat"
+		    	if k_tipo = "datetime" then
+					if date(this.getitemdatetime(a_riga, a_colonna)) > kkg.data_no then
+						k_return = string(this.getitemdatetime(a_riga, a_colonna))
+					end if
+				else
+					if this.getitemdate(a_riga, a_colonna) > kkg.data_no then
+						k_return = string(this.getitemdate(a_riga, a_colonna))
+					end if
+				end if
+			case "tim"
+				if this.getitemtime(a_riga, a_colonna) > time(0,0,0) then
+					k_return = string(this.getitemtime(a_riga, a_colonna))
+				end if
+		end choose
+ 		if isnull(k_return) then k_return = ""
+	end if	
+
+return k_return
+
+
+end function
+
+private function string link_standard_call_if (string a_nome_link, long a_riga) throws uo_exception;/*
+ Verifica se Attivare lo ZOOM (premuto un campo di link e attivabile)
+   Inp: a_nome_link = nome del campo o button cliccato  
+        a_riga = numero riga
+   Out: OK=torna il nome del campo da linkare;  NO=vuoto
+*/
+string k_nome_link_button
+string k_taborder, k_valore
+boolean k_press_KeyControl
+
+
+
+	if a_nome_link > " " then  
+	else
+		return "" // senza NOME del campo di Link non fare nulla
+	end if
+
+//--- Ho un VALORE e Ho attivato i flag x fare lo ZOOM?
+	if not (ki_button_standard_attivi or ki_link_standard_attivi) then
+		return "" // non fare nulla
+	end if
+
+	setpointer (kkg.pointer_attesa)	
+		
+//--- se ho cliccato su un BUTTON o SIMILARE converto nel link tradizionale 
+	k_nome_link_button = kiuf_link_zoom.get_link_da_button (a_nome_link)
+	if k_nome_link_button > " " then  // se è un button allora allora ZOOM ok
+		return trim(k_nome_link_button)   // campo di LINK
+	end if
+
+	if KeyDown(KeyControl!) then k_press_KeyControl = true
+
+	if kguo_g.get_flagZOOMctrl() and not k_press_KeyControl then // se richiesto il tasto CTRL ma non premuto
+		return "" // non fare nulla
+	end if
+			
+	if not k_press_KeyControl and NOT ki_link_standard_attivi then // se NO link standard attivo allora ok
+		return "" // non fare nulla
+	end if
+			
+	if a_riga > 0 then  // se campo di dettaglio
+		k_valore = trim(u_getitemstring(a_nome_link, a_riga))
+		if k_valore > " " then
+			if not k_press_KeyControl then
+				if NOT this.u_get_protect(a_nome_link) then // campo protetto?
+					k_taborder = this.Describe(a_nome_link + ".TabSequence")
+					if isnumber(k_taborder) then 
+						if integer(k_taborder) > 0 then
+							return ""  // campo di INPUT ATTIVO non faccio ZOOM altrimenti e' un casino x l'utente 
+						end if
+					end if
+				end if
+			end if
+		else
+			return ""  // campo di INPUT ATTIVO non faccio ZOOM altrimenti e' un casino x l'utente 
+		end if
+	end if
+
+return a_nome_link
+	
+
+
+end function
+
+private function boolean link_standard_call (string a_nome_link, long a_riga) throws uo_exception;//
+//--- Verifica se è stato premuto un link (button o campo)
+//--- Input: a_nome_link  = nome del campo o button cliccato
+//---        a_riga = numero riga
+//---            
+//--- Output: boolean TRUE = ok e' entrato in funzione; FALSE=non ha fatto niente
+//
+boolean k_return=false
+string k_nome_link
+uo_d_std_1 kdw_link
+
+try 
+
+	k_nome_link = link_standard_call_if(a_nome_link, a_riga)  // Verifica ZOOM possibile
+	if k_nome_link > " " then
+
+		setpointer (kkg.pointer_attesa)	
+		
+		kdw_link = this
+		k_return = kiuf_link_zoom.link_standard_call_p (kdw_link, k_nome_link) // attiva i tasti con il LINK
+
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally	
+	setpointer (kkg.pointer_default)	
+
+end try
+	
+return k_return
+
+
+end function
+
+public function string u_get_ctrl_c_value ();/*
+  Tenta di mettere il testo del CONTRL+C nel Clipboard altrimenti torna solo il testo
+*/
+string k_val
+int k_rc
+		
+		
+//--- prima tenta il Ctrl+C diretto con il COPY (campi di edit)
+	if	this.copy() > 0 then  
+		return ""
+	end if
+
+//--- poi tenta se testo selezionato (su campi protetti ma con Mouse-selection attivo)
+	k_val = trim(this.Describe("DataWindow.Selected.Data"))
+	if k_val > " " then
+		return k_val
+	end if
+
+//--- poi tenta con il nome della colonna di prendere il valore del campo su cui è
+	if this.getrow() > 0 then
+		if trim(this.ki_clicked_colname) > " " then
+			k_val = trim(this.u_getitemstring(this.ki_clicked_colname, this.getrow()))
+			if k_val > " " then
+				return k_val
+			end if
+		end if
+	end if
+
+return ""
+
+end function
+
 on uo_d_std_1.create
 call super::create
 end on
@@ -1994,7 +2116,6 @@ event clicked;//
 string k_name
 long k_row 
 boolean k_sort
-datawindow kdw_link
 
 
 k_name = trim(dwo.Name)
@@ -2041,8 +2162,8 @@ if not k_sort then
 						row = 1
 					end if
 				end if
-				kdw_link = this
-				link_standard_call(kdw_link, k_name, row)   // lancia link standard
+				
+				link_standard_call(k_name, row)   // lancia link standard
 			catch (uo_exception kuo_exception)
 				kuo_exception.messaggio_utente()
 			end try
@@ -2148,8 +2269,6 @@ event rbuttondown;//
 end event
 
 event dberror;//
-st_esito kst_esito
-
 
 if isvalid(kiuo_exception) then
 else
@@ -2510,10 +2629,10 @@ event dragwithin;//
 string k_rcx
 
 	
-if TypeOf(source) <> datawindow! then return 0
-kidw_dragdrop_source = source
+//if TypeOf(source) <> datawindow! then return 0
+//kidw_dragdrop_source = source
 
-if u_if_in_dragging( ) then
+//if u_if_in_dragging( ) then
 	
 	k_rcx = u_dragging_label_show() 
 	
@@ -2521,17 +2640,17 @@ if u_if_in_dragging( ) then
 	
 	else
 		
-		if this = kidw_dragdrop_source then  // se dragging all'interno della stessa dw
+	//	if this = kidw_dragdrop_source then  // se dragging all'interno della stessa dw
 			ki_riga_dragwithin = row
 	
-			if ki_attiva_DRAGDROP_self then
+	//		if ki_attiva_DRAGDROP_self then
 				u_drag_scroll(row) // scroll rows to show the dragging
-			end if
-		else
-			u_drag_scroll(row) // scroll rows to show the dragging
-		end if
+	//		end if
+	//	else
+	//		u_drag_scroll(row) // scroll rows to show the dragging
+	//	end if
 	end if
-end if
+//end if
 		
 	
 
@@ -2633,7 +2752,7 @@ else
 end if
 kist_esito = kiuo_exception.inizializza(this.classname())
 
-if isvalid(parent) then 
+if isvalid(this.getparent()) then
 	kist_esito.nome_oggetto = parent.classname()
 else
 	kist_esito.nome_oggetto = classname()

@@ -1,0 +1,13 @@
+﻿$PBExportHeader$st_tab_armo_sl_pt_g3_lav.srs
+global type st_tab_armo_sl_pt_g3_lav from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_armo_sl_pt_g3_lav
+	long		id_sl_pt_g3_lav		descriptor "comment" = "piano di trattamento G3"
+	long		id_armo		descriptor "comment" = "id riga lotto"
+	decimal{2}		ciclo_target		descriptor "comment" = "ciclo"
+	integer		ngiri		descriptor "comment" = "numero giri"
+	string		descr		descriptor "comment" = "descrizione opzionale"
+	datetime		x_datins
+	string		x_utente
+end type
+

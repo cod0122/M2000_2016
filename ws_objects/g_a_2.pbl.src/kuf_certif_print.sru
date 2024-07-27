@@ -25,9 +25,11 @@ private kuf_docpath kiuf_docpath
 private kds_certif_stampa kids_certif_stampa
 private kds_certif_stampa_completa kids_certif_stampa_completa
 private kds_certif_stampa_allegati kids_certif_stampa_allegati
+
 public st_tab_certif kist_tab_certif
 public boolean ki_flag_stampa_di_test = true
 public string ki_stampante[2] 
+public boolean ki_flg_ristampa_xddt
 
 end variables
 
@@ -48,17 +50,18 @@ private function string get_nome_pdf (ref st_tab_certif ast_tab_certif) throws u
 private function any stampa_attestato_get_nome_pdf (ref st_tab_certif ast_tab_certif, boolean a_ristampa) throws uo_exception
 public function boolean stampa_digitale_esporta_1 (string a_path_pdf) throws uo_exception
 public function any get_path_doc (ref st_tab_certif ast_tab_certif, boolean a_ristampa) throws uo_exception
-public function boolean stampa (ref st_tab_certif ast_tab_certif[], boolean a_flg_ristampa_xddt) throws uo_exception
 private function st_esito set_e1_wo_f5548014 (st_tab_certif kst_tab_certif) throws uo_exception
 private function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception
 private function boolean stampa_attestato_x_con_allegati () throws uo_exception
 private function boolean stampa_attestato_x_singolo () throws uo_exception
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function st_esito stampa_tb_update (ref st_tab_certif kst_tab_certif) throws uo_exception
-private function st_esito stampa_update () throws uo_exception
 public function string get_form_di_stampa_now ()
 public function boolean set_attestato (st_tab_certif ast_tab_certif) throws uo_exception
 public function integer stampa_digitale_rimuove (string a_path_pdf) throws uo_exception
+public function integer stampa (ref st_tab_certif ast_tab_certif[]) throws uo_exception
+private function boolean stampa_update () throws uo_exception
+public function boolean u_get_flag_ristampa ()
 end prototypes
 
 public function st_esito leggi (integer k_tipo, ref st_tab_certif kst_tab_certif);//
@@ -311,81 +314,78 @@ return k_return
 
 end function
 
-private function boolean stampa_attestato_set_printer () throws uo_exception;//
-//=== 
-//====================================================================
-//=== Stampa Attestato di Trattamento
-//=== imposta le stampanti su cui fare il documento e gli allegati
-//===
-//=== Inp:     
-//=== Out: ki_stampanti[] [1]=il documento, [2]=gli allegati
-//=== Rit: TRUE stampante 1 impostata
-//=== 
-//=== 
-//====================================================================
-//
+private function boolean stampa_attestato_set_printer () throws uo_exception;
+/*
+ Stampa Attestato di Trattamento
+ qui ricava le stampanti su cui fare il documento e gli allegati
+	 Out: ki_stampanti[] [1]=il documento, [2]=gli allegati
+	 Rit: TRUE stampante 1 impostata
+*/
 boolean k_return=false
 string k_stampante
 int k_rc
-st_esito kst_esito
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
-//--- ricava la stampante-certificato solo se Stampa vera e stampante non impostata
-//			if not kiuo1_d_certif_stampa.ki_flag_ristampa and (len(trim(ki_stampante)) = 0 or isnull(ki_stampante)) then
+//--- se stampante già impostata ESCE con OK!
+	if ki_stampante[1] > " " then return true
+		
+	if not isvalid(kiuf_stampe) then kiuf_stampe = create kuf_stampe
+	if not isvalid(kiuf_base) then kiuf_base = create kuf_base
+
+//--- get della stampante 1 quella principale			
+	ki_stampante[1] = trim(mid(kiuf_base.prendi_dato_base(kiuf_base.kki_base_utenti_codice_stcert1),2)) // controlla prima la stampante personale
 	if ki_stampante[1] > " " then
 	else
-		if not isvalid(kiuf_stampe) then kiuf_stampe = create kuf_stampe
-		if not isvalid(kiuf_base) then kiuf_base = create kuf_base
-
-//--- get della stampante principale			
-		ki_stampante[1] = trim(mid(kiuf_base.prendi_dato_base(kiuf_base.kki_base_utenti_codice_stcert1),2)) // controlla prima la stampante personale
+		ki_stampante[1] = trim(mid(kiuf_base.prendi_dato_base("stamp_attestato"),2)) // get stampante da proprietà generale
+	end if
+	if ki_stampante[1] > " " then
+		k_stampante = trim(ki_stampante[1])
+		ki_stampante[1] = kiuf_stampe.get_stampante_da_nome(ki_stampante[1])
 		if ki_stampante[1] > " " then
-		else
-			ki_stampante[1] = trim(mid(kiuf_base.prendi_dato_base("stamp_attestato"),2)) // get stampante da proprietà generale
-		end if
-		if ki_stampante[1] > " " then
-			k_stampante = trim(ki_stampante[1])
-			ki_stampante[1] = kiuf_stampe.get_stampante_da_nome(ki_stampante[1])
-			if ki_stampante[1] > " " then
-			else
-				kguo_exception.inizializza( )
-				kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_insufficienti)
-				k_rc = kguo_exception.messaggio_utente( "Stampante Attestato", &
-								"Stampante '" + k_stampante + "' indicata in 'Proprietà' non è stata riconosciuta. Scegliere una stampante dal prossimo elenco")
-			end if
 		else
 			kguo_exception.inizializza( )
 			kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_insufficienti)
-			k_rc = kguo_exception.messaggio_utente( "Stampante Attestato non indicata", &
-								"Manca in 'Proprietà' il nome delle stampante principale. Scegliere temporaneamente un'unica stampante dal prossimo elenco")
+			k_rc = kguo_exception.messaggio_utente( "Stampante Attestato", &
+							"Stampante '" + k_stampante + "' indicata in 'Proprietà' non è stata riconosciuta. Scegliere una stampante dal prossimo elenco")
 		end if
-//--- se stampante non indicata o non riconosciuta la chiede
-		if ki_stampante[1] > " " then
-		else
-			if printsetup() > 0 then
-				ki_stampante[1] = PrintGetPrinter ( )
-			end if
-		end if
-		if ki_stampante[1] > " " then
-			k_return = true
-//--- get altra stampante
-			ki_stampante[2] = trim(mid(kiuf_base.prendi_dato_base(kiuf_base.kki_base_utenti_codice_stcert2),2)) // controlla prima la stampante personale
-			if ki_stampante[2] > " " then
-			else
-				ki_stampante[2] = trim(mid(kiuf_base.prendi_dato_base("stamp_attestato2"),2)) // get stampante da proprietà generale
-			end if
-			if ki_stampante[2] > " " then
-				ki_stampante[2] = kiuf_stampe.get_stampante_da_nome(ki_stampante[2])
-			else
-				ki_stampante[2] = "" // se non ancora impostata allora niente stampa!! ki_stampante[1]
-			end if
-			
-		end if			
+	else
+		
+		kguo_exception.inizializza( )
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_insufficienti)
+		k_rc = kguo_exception.messaggio_utente( "Stampante Attestato non indicata", &
+							"Manca in 'Proprietà' il nome delle stampante principale. Scegliere temporaneamente un'unica stampante dal prossimo elenco")
 	end if
+
+//--- se stampante non indicata o non riconosciuta la chiede
+	if ki_stampante[1] > " " then
+	else
+		if printsetup() > 0 then
+			ki_stampante[1] = trim(PrintGetPrinter ( ))
+		else
+			kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_interr_da_utente )
+			kguo_exception.setmessage ("Stampa Annullata dall'utente") 
+			throw kguo_exception
+		end if
+	end if
+
+	k_return = true
+
+//--- get altra stampante
+	ki_stampante[2] = trim(mid(kiuf_base.prendi_dato_base(kiuf_base.kki_base_utenti_codice_stcert2),2)) // controlla prima la stampante personale
+	if ki_stampante[2] > " " then
+	else
+		ki_stampante[2] = trim(mid(kiuf_base.prendi_dato_base("stamp_attestato2"),2)) // get stampante da proprietà generale
+	end if
+	if ki_stampante[2] > " " then
+		ki_stampante[2] = kiuf_stampe.get_stampante_da_nome(ki_stampante[2])
+	else
+		ki_stampante[2] = "" // se non ancora impostata allora niente stampa!! ki_stampante[1]
+	end if
+
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -596,7 +596,9 @@ try
 				else
 					kst_esito.sqlcode = 0
 //					kst_esito.SQLErrText = "Errore durante la stampa Allegati dell'Attestato: " + string(kist_tab_certif.num_certif) + "~n~r" 
-					kst_esito.SQLErrText = "Errore seconda STAMPANTE '" + trim(ki_stampante[2]) + "', in stampa Allegati dell'Attestato: " + string(kist_tab_certif.num_certif) // ~n~r"  
+					kst_esito.SQLErrText = "Errore seconda STAMPANTE '" + kkg.acapo &
+												+ trim(ki_stampante[2]) + kkg.acapo &
+												+ "', in stampa Allegati dell'Attestato: " + string(kist_tab_certif.num_certif) 
 					kst_esito.esito = kkg_esito.bug
 					kguo_exception.inizializza( )
 					kguo_exception.set_esito(kst_esito)
@@ -816,12 +818,11 @@ private function boolean stampa_1 (ref st_tab_certif ast_tab_certif) throws uo_e
 //---
 boolean k_return=false
 int k_item_attestato=0
-st_esito kst_esito
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	kist_tab_certif = ast_tab_certif // attestato sul quale sto lavorando
 
@@ -855,27 +856,21 @@ try
 
 	ki_flag_stampa_di_test = false
 
-	if ki_stampante[1] > " " then
+	if trim(ki_stampante[1]) > " " then
 	else
 
 		stampa_attestato_set_printer( )   // imposta le stampanti ki_stampante[]
 		
 	end if 
 	
-	if ki_stampante[1] > " " then
-		if not kids_certif_stampa.ki_flag_ristampa then
-			k_return = stampa_attestato_x_con_allegati()  		// STAMPA ATTESTATO CON ALLEGATI!!
-		else	
-			k_return = stampa_attestato_x_singolo()				// RI-STAMPA SINGOLA DELL'ATTESTATO !!
-		end if
-	
-		if k_return then
-			stampa_digitale() // EMISSIONE DIGITALE DELL'ATTESTATO
-		end if
-	else
-		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_non_eseguito )
-		kguo_exception.setmessage ("Stampa Annullata dall'utente") 
-		throw kguo_exception
+	if not kids_certif_stampa.ki_flag_ristampa then
+		k_return = stampa_attestato_x_con_allegati()  		// STAMPA ATTESTATO CON ALLEGATI!!
+	else	
+		k_return = stampa_attestato_x_singolo()				// RI-STAMPA SINGOLA DELL'ATTESTATO !!
+	end if
+
+	if k_return then
+		stampa_digitale() // EMISSIONE DIGITALE DELL'ATTESTATO
 	end if
 	
 catch (uo_exception kuo_exception)
@@ -1343,96 +1338,6 @@ end try
 			
 
 return k_return[]
-
-end function
-
-public function boolean stampa (ref st_tab_certif ast_tab_certif[], boolean a_flg_ristampa_xddt) throws uo_exception;//---
-//---  Stampa ATTESTATO/I
-//--- 
-//---	inp: 	ast_tab_certif[] array con gli attestati da stampare
-//--- 		a_flg_ristampa_xddt = true stampa da uff DDT
-//---
-boolean k_return=false
-int k_item_attestato=0, k_n_attestati_max
-string k_printer 
-st_esito kst_esito
-
-
-try
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	if not isvalid(kiuf_certif) then kiuf_certif = create kuf_certif
-
-//--- cattura la stampante di impostata
-	k_printer = PrintGetPrinter( )
-
-	ki_stampante[1] = ""
-	ki_stampante[2] = ""
-	
-	k_n_attestati_max = upperbound(ast_tab_certif[])
-	if k_n_attestati_max > 0 then	
-		kist_tab_certif = ast_tab_certif[1]
-	end if
-
-	if kist_tab_certif.num_certif > 0 then		
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessun Attestato da stampare: ~n~r" + "nessun numero attestato indicato"
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-	if not isvalid(kids_certif_stampa) then
-//--- CREA oggetto stampa-attestato GOLD/SILVER...
-		kids_certif_stampa = create kds_certif_stampa 
-	end if
-
-	for k_item_attestato = 1 to k_n_attestati_max
-		
-		if ast_tab_certif[k_item_attestato].num_certif  > 0 then
-			
-//--- STAMPA ATTESTATO			
-//			if k_item_attestato > 1 then sleep(2) //--- introduco un delayed precauzionale per evitare problemi con la generazione del PDF
-			
-			k_return = stampa_1(ast_tab_certif[k_item_attestato])
-		
-//--- se NON sono in ristampa registro definitivamente l'attestato in archivio 								
-			if k_return then
-				if kids_certif_stampa.ki_flag_ristampa then
-				else
-	
-					kst_esito = stampa_update()
-					if kst_esito.esito <> kkg_esito.ok then
-						k_return = false
-						kguo_exception.inizializza( )
-						kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ko)
-						kguo_exception.setmessage("Fallita operazione di 'Registrazione Attestato'.~n~r"	+ trim(kst_esito.sqlerrtext))
-						throw kguo_exception
-					end if
-				end if				
-//--- Imposta flag per far vedere l'attestato all'ufficio DDT					
-				if a_flg_ristampa_xddt then
-					kiuf_certif.set_flg_ristampa_xddt_on(ast_tab_certif[k_item_attestato])
-				end if
-			end if
-		end if
-		
-	end for
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-//--- ripristina la stampante di impostata
-	if trim(k_printer) > " " then
-		PrintSetPrinter(k_printer)
-	end if
-	
-end try
-		
-return k_return		
 
 end function
 
@@ -1990,79 +1895,6 @@ return kst_esito
 
 end function
 
-private function st_esito stampa_update () throws uo_exception;//
-//---------------------------------------------------------------------------------
-//--- Registra definitivamente in archivio la Stampa Attestato di Trattamento
-//--- da lanciare dopo la routine "stampa_attestato"
-//---
-//--- Par. Input: kist_tab_certif   
-//--- 
-//--- Ritorna tab. ST_ESITO, Esiti:    Vedi standard
-//--- 
-//---------------------------------------------------------------------------------
-//
-//--- 
-boolean k_rc_sr
-st_tab_certif kst_tab_certif
-st_esito kst_esito
-st_tab_meca kst_tab_meca
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if not isvalid(kiuf_certif) then kiuf_certif = create kuf_certif
-
-if if_sicurezza(kkg_flag_modalita.stampa) then
-
-	try 
-
-//--- registra la data di stampa in attestato rendendolo definitivo
-		kist_tab_certif.data_stampa = kguo_g.get_dataoggi( )  // kg_dataoggi
-		kist_tab_certif.ora_stampa = time(kguo_g.get_datetime_current( )) // ora di stampa
-		kist_tab_certif.form_di_stampa = trim(kids_certif_stampa.dataobject	) // il form di stampa definitivo	
-		kst_tab_certif = kist_tab_certif
-		kst_tab_certif.st_tab_g_0.esegui_commit = "S"
-		stampa_tb_update(kst_tab_certif)
-
-//--- Recupera il ID del Lotto di entrata
-		if kiuf_certif.get_id_meca(kst_tab_certif) > 0 then
-			if kst_tab_certif.id_meca > 0 then
-
-//--- alimenta tabella dati trattamento da Inviare a E1
-				set_e1_wo_f5548014(kst_tab_certif)
-//--- alimenta tabella dati trattamento (giri/padri) da Inviare a E1
-				set_e1_wo_f5537001(kst_tab_certif)
-				
-//--- Esegue diverse operazioni post stampa Attestato ----------------------------------------------------------------------------------------------
-				kst_tab_meca.id = kst_tab_certif.id_meca
-
-				if not isvalid(kiuf_armo_inout) then kiuf_armo_inout = create kuf_armo_inout
-				kiuf_armo_inout.update_post_stampa_attestato(kst_tab_meca) // chiude Quarantena, set Voci da Fatturare ecc....
-				
-			end if
-		end if
-
-//--- DISTATTIVA LA REGISTRAZIONE SU TAB DOCPROD ORA SOLO STAMPA!!!					Aggiunge la riga in DOCPROD x l'esportazione digitale ----------------------------------------------------------------------------------------
-//			kst_tab_certif[1].st_tab_g_0.esegui_commit = "S"
-//			aggiorna_docprod(kst_tab_certif[])
-		
-	catch (uo_exception kuo_exception1)
-		kst_esito = kuo_exception1.get_st_esito( )
-		kst_esito.sqlerrtext = "Attestato aggiornato. Ma attenzione ai seguenti avvertimenti: ~n~r" + trim(kst_esito.sqlerrtext)
-		
-	finally
-		
-	end try
-			
-//	end if
-	
-end if
-
-
-return kst_esito
-
-end function
-
 public function string get_form_di_stampa_now ();//
 //--- Get del nome del formd di stampa attuale
 //---
@@ -2193,6 +2025,150 @@ return k_return
 
 end function
 
+public function integer stampa (ref st_tab_certif ast_tab_certif[]) throws uo_exception;/*
+   Stampa ATTESTATI
+		inp: 	ast_tab_certif[] array con gli attestati da stampare
+		rit: numero attestati stampati
+*/
+int k_return
+boolean k_stampato
+int k_item_attestato=0, k_n_attestati_max
+string k_printer 
+st_esito kst_esito
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+//--- cattura la stampante impostata
+	k_printer = PrintGetPrinter( )
+
+	ki_stampante[1] = ""
+	ki_stampante[2] = ""
+	
+	k_n_attestati_max = upperbound(ast_tab_certif[])
+	if k_n_attestati_max > 0 then	
+		kist_tab_certif = ast_tab_certif[1]
+	end if
+
+	if kist_tab_certif.num_certif > 0 then		
+	else
+		kguo_exception.kist_esito.SQLErrText = "Nessun Attestato stampato, manca il Numero."
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+	end if
+
+//--- CREA oggetto di configurazione stampa-attestato come Formato, Ristampa...
+	if not isvalid(kids_certif_stampa) then kids_certif_stampa = create kds_certif_stampa 
+
+	for k_item_attestato = 1 to k_n_attestati_max
+		
+		if ast_tab_certif[k_item_attestato].num_certif = 0 then
+			continue  // passa al prossimo
+		end if
+			
+		if k_return > 0 then sleep(1) //--- introduco un delayed precauzionale per evitare problemi con la generazione del PDF
+			
+		k_stampato = stampa_1(ast_tab_certif[k_item_attestato])  // STAMPA ATTESTATO			
+		if not k_stampato then
+			continue  // passa al prossimo
+		end if
+
+//--- se NON sono in ristampa registro definitivamente l'attestato in archivio 								
+		if NOT kids_certif_stampa.ki_flag_ristampa then
+			stampa_update()
+		end if				
+
+//--- Imposta flag per far vedere l'attestato all'ufficio DDT					
+		if ki_flg_ristampa_xddt then
+			kiuf_certif.set_flg_ristampa_xddt_on(ast_tab_certif[k_item_attestato])
+		end if
+
+		k_return ++
+		
+	end for
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if trim(k_printer) > " " then
+		PrintSetPrinter(k_printer)  //--- ripristina la stampante impostata
+	end if
+	
+end try
+		
+return k_return		
+
+end function
+
+private function boolean stampa_update () throws uo_exception;/*
+ Registra definitivamente in archivio la Stampa Attestato di Trattamento
+	 da lanciare dopo la routine "stampa_attestato"
+		 Par. Input: kist_tab_certif   
+*/
+boolean k_return
+st_tab_certif kst_tab_certif
+st_tab_meca kst_tab_meca
+
+
+kguo_exception.inizializza(this.classname())
+
+if not isvalid(kiuf_certif) then kiuf_certif = create kuf_certif
+
+if_sicurezza(kkg_flag_modalita.stampa) 
+
+try 
+
+//--- registra la data di stampa in attestato rendendolo definitivo
+	kist_tab_certif.data_stampa = kguo_g.get_dataoggi( )  // kg_dataoggi
+	kist_tab_certif.ora_stampa = time(kguo_g.get_datetime_current( )) // ora di stampa
+	kist_tab_certif.form_di_stampa = trim(kids_certif_stampa.dataobject	) // il form di stampa definitivo	
+	kst_tab_certif = kist_tab_certif
+	kst_tab_certif.st_tab_g_0.esegui_commit = "S"
+	stampa_tb_update(kst_tab_certif)
+
+//--- Recupera il ID del Lotto di entrata
+	if kiuf_certif.get_id_meca(kst_tab_certif) > 0 then
+
+//--- alimenta tabella dati trattamento da Inviare a E1
+		set_e1_wo_f5548014(kst_tab_certif)
+//--- alimenta tabella dati trattamento (giri/padri) da Inviare a E1
+		set_e1_wo_f5537001(kst_tab_certif)
+		
+//--- Esegue diverse operazioni post stampa Attestato ----------------------------------------------------------------------------------------------
+		kst_tab_meca.id = kst_tab_certif.id_meca
+
+		if not isvalid(kiuf_armo_inout) then kiuf_armo_inout = create kuf_armo_inout
+		kiuf_armo_inout.update_post_stampa_attestato(kst_tab_meca) // chiude Quarantena, set Voci da Fatturare ecc....
+		
+	end if
+
+	k_return = true
+	
+//--- DISTATTIVA LA REGISTRAZIONE SU TAB DOCPROD ORA SOLO STAMPA!!!					Aggiunge la riga in DOCPROD x l'esportazione digitale ----------------------------------------------------------------------------------------
+//			kst_tab_certif[1].st_tab_g_0.esegui_commit = "S"
+//			aggiorna_docprod(kst_tab_certif[])
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento dati dopo la stampa dell'Attestato n. " + string(kist_tab_certif.num_certif) + " " &
+											+ kkg.acapo + "Errore: " + kuo_exception.get_errtext( )
+	throw kuo_exception		
+	
+finally
+	
+end try			
+
+return k_return
+
+end function
+
+public function boolean u_get_flag_ristampa ();//
+return kids_certif_stampa.ki_flag_ristampa
+
+end function
+
 on kuf_certif_print.create
 call super::create
 end on
@@ -2223,5 +2199,6 @@ event constructor;call super::constructor;//
 //kids_certif_stampa = create kds_certif_stampa
 ki_msgerroggetto = "Attestato"
 
+kiuf_certif = create kuf_certif
 end event
 

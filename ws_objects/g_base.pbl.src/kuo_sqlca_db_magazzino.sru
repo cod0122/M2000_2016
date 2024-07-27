@@ -199,75 +199,15 @@ public function st_esito db_crea_temp_table (string k_table, string k_campi, str
 //--- Ritorna st_esito : Vedi Standard
 //---   
 //---------------------------------------------------------------------------------------------------------
-string k_sql_d
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- il nome tabella in SQL SERVER inizia per # (visibilità locale) o ## (vsibilità globale)
 	if left(trim(k_table),1)  <> '#' then
 		k_table = "#" + trim(k_table) 
 	end if
 
-//--- Cancello e ricreo la temp o view
-	k_sql_d = "drop view " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
-	k_sql_d = "drop table " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
-	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") "
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Generazione Temp-Table '" &
-										  + trim(k_table) + "' non riuscita: " + trim(this.SQLErrText)
-	else
-		commit using this;
-		
-		if trim(k_select) = "" then
-			kst_esito.esito = kkg_esito.db_wrn
-			kst_esito.sqlcode = 0
-			kst_esito.sqlerrtext = "Manca la query da cui prendere i dati - tabella temporanea '" + trim(k_table) + "' non popolata subito. "
-		else
-			k_sql_d = " insert into "  + trim(k_table) + "  " + trim(k_select) 
-			EXECUTE IMMEDIATE :k_sql_d using this;
-		
-			kst_esito.sqlerrtext = "Generazione terminata correttamente "
-			if this.sqlcode = 0 then
-				commit using this;
-			else
-				if this.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-					kst_esito.sqlcode = this.sqlcode
-					kst_esito.sqlerrtext = "Anomalie durante inserimento dati nella Temp-Table '" &
-												  + trim(k_table) + "' err.:" + trim(this.SQLErrText)
-				else
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = this.sqlcode
-					kst_esito.sqlerrtext = "Inserimanto dati nella Temp-Table '" &
-												  + trim(k_table) + "' non riuscita:" + trim(this.SQLErrText)
-				end if
-				rollback using this;
-				
-			end if
-			
-		end if
-
-	end if
-	
-	if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.no_esecuzione and kst_esito.esito <> kkg_esito.db_wrn then
-		
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	end if
+	return super::db_crea_temp_table(k_table, k_campi, k_select)
 
 
-return kst_esito
 end function
 
 public function st_esito db_crea_temp_table_global (string k_table, string k_campi, string k_select) throws uo_exception;//---------------------------------------------------------------------------------------------------------
@@ -283,10 +223,6 @@ public function st_esito db_crea_temp_table_global (string k_table, string k_cam
 //---------------------------------------------------------------------------------------------------------
 st_esito kst_esito
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 
 //--- il nome tabella in SQL SERVER inizia per # (visibilità locale) o ## (vsibilità globale)
 	k_table = "##" + trim(k_table) 
@@ -326,6 +262,7 @@ public function st_esito db_crea_table (string k_table, string k_sql) throws uo_
 //--- Ritorna st_esito : Vedi Standard
 //---   
 //-----------------------------------------------------------------------------------------------------------------------------------
+int k_sqlcode
 string k_sql_d
 st_esito kst_esito
 
@@ -334,59 +271,30 @@ st_esito kst_esito
 
 //--- Cancello e ricreo view/tab
 	k_sql_d = "drop view if exists " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode = 0 then 
-		commit using this;
-	end if
+	db_sql_execute(k_sql_d, true, false)
 
-	k_sql_d = "SELECT 1 FROM sys.Tables WHERE  Name = N'" + trim(k_table) + "'"
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode = 0 then 
-	
-//	k_sql_d = "IF OBJECT_ID('" + trim(k_table) + "') IS NOT NULL " + &
-		k_sql_d = "truncate table " + trim(k_table) + "  " 
-		EXECUTE IMMEDIATE :k_sql_d using this;
-	
-//		k_sql_d = "drop table " + trim(k_table) + "  " 
-//		EXECUTE IMMEDIATE :k_sql_d using this;
-//		if this.sqlcode = 0 then 
-//			commit using this;
+//	k_sql_d = "SELECT 1 FROM sys.Tables WHERE  Name = N'" + trim(k_table) + "'"
+//	if db_sql_execute(k_sql_d, true, false) = 0 then
+//	
+////	k_sql_d = "IF OBJECT_ID('" + trim(k_table) + "') IS NOT NULL " + &
+//		k_sql_d = "truncate table " + trim(k_table) + "  " 
+//		k_sqlcode = db_sql_execute(k_sql_d, true, false)
+//		if k_sqlcode <> 0 then
+//			k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
+//			k_sqlcode = db_sql_execute(k_sql, true, false) 
 //		end if
-	else		
-		k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
-		EXECUTE IMMEDIATE :k_sql using this;
-	end if
-	
-	if this.sqlcode = 0 then 
-		commit using this;
-		kst_esito.sqlerrtext = "Generazione terminata correttamente "
-	else	
-		if this.sqlcode > 0 then
-			commit using this;
-			kst_esito.esito = kkg_esito.db_wrn
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Anomalie durante generazione Table '" &
-										  + trim(k_table) + "' err.: " + trim(this.SQLErrText)
-		else
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Generazione Table '" &
-										  + trim(k_table) + "' non riuscita: " + trim(this.SQLErrText)
-			rollback using this;
-	
-			if kst_esito.sqlcode < 0 then
-				
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-				
-			end if
-			
-		end if
+//	end if
+
+//	if k_sqlcode <> 0 then 
 		
-	end if
+		k_sql_d = "drop table if exists " + trim(k_table) + "  " 
+		k_sqlcode = db_sql_execute(k_sql_d, true, false)
 
-
+		k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
+		db_sql_execute(k_sql, true, true)
+		
+//	end if
+	
 return kst_esito
 end function
 
@@ -528,7 +436,8 @@ public function boolean if_connesso_x () throws uo_exception;//
 int k_connesso=0
 
 	
-	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 then // connessione persa
+	if kiuo_sqlca_db_0_saved.sqldbcode = 999 or kiuo_sqlca_db_0_saved.sqldbcode = 10054 &
+					or kiuo_sqlca_db_0_saved.sqldbcode = 53 then // connessione persa
 
 		return false
 

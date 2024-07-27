@@ -474,6 +474,7 @@ integer k_x, k_y, k_w, k_h, k_num_win, k_ctr, k_n_controls
 string k_WindowState, k_section, k_rcx, k_classname
 object  k_control_typeof
 boolean k_visible, k_enabled 
+ClassDefinition kcd_ancestor
 st_profilestring_ini kst_profilestring_ini
 datawindow kdw_1
 SingleLineEdit kSingleLineEdit_1
@@ -482,6 +483,7 @@ CommandButton kCommandButton_1
 Treeview kTreeview_1
 ListView kListView_1
 w_super kw_super
+uo_d_std_1 kuo_d_std_1
 
 
 //--- numero di win aperte con lo stesso nome
@@ -514,12 +516,25 @@ w_super kw_super
 				choose case k_control_typeof
 					case datawindow!
 						kdw_1 = kw_super.control[k_ctr]
+
+						//--- verifica se non mettere VISIBLE dettato da UO_D_STD_1
+						kcd_ancestor = kdw_1.classdefinition
+						do
+							if isnull(kcd_ancestor.ancestor) THEN EXIT
+							kcd_ancestor = kcd_ancestor.ancestor
+						loop while kcd_ancestor.Name <> 'uo_d_std_1'
+						if isnull(kcd_ancestor.ancestor) THEN
+							k_visible = kdw_1.visible    // prende il VISIBLE dallo stesso dw
+						else
+							kuo_d_std_1 = kdw_1
+							k_visible = kuo_d_std_1.ki_dw_visibile_in_open_window // prende il VISIBLE dal flag personal.
+						end if
+						
 						k_x = kdw_1.x
 						k_y = kdw_1.y
 						k_w = kdw_1.width
 						k_h = kdw_1.height
 						k_enabled = kdw_1.enabled
-						k_visible = kdw_1.visible
 						k_classname = trim(kdw_1.classname()) 
 					case SingleLineEdit!
 						kSingleLineEdit_1 = kw_super.control[k_ctr]
@@ -944,6 +959,7 @@ string k_section, k_rcx, k_classname
 int k_ctr, k_n_ctrl
 long k_x, k_y, k_w, k_h
 boolean k_visible
+ClassDefinition  kcd_ancestor
 windowobject kwindowobject_1
 datawindow kdw_1
 SingleLineEdit kSingleLineEdit_1
@@ -953,6 +969,7 @@ TreeView kTreeView_1
 ListView kListView_1
 st_profilestring_ini kst_profilestring_ini
 w_super kw_super
+uo_d_std_1 kuo_d_std_1
 //
 //--- get proprieta' della window
 //	kuf1_menu_window = create kuf_menu_window
@@ -1050,7 +1067,21 @@ w_super kw_super
 						kdw_1.y = k_y
 						kdw_1.width = k_w 
 						kdw_1.height = k_h
+
+						//--- verifica se non mettere VISIBLE dettato da UO_D_STD_1
+						kcd_ancestor = kdw_1.classdefinition
+						do
+							if isnull(kcd_ancestor.ancestor) THEN EXIT
+							kcd_ancestor = kcd_ancestor.ancestor
+						loop while kcd_ancestor.Name <> 'uo_d_std_1'
+						if isnull(kcd_ancestor.ancestor) THEN
+							 // mantiene il VISIBLE ripristinato
+						else
+							kuo_d_std_1 = kdw_1
+							k_visible = kuo_d_std_1.ki_dw_visibile_in_open_window // prende il VISIBLE dal flag personal.
+						end if
 						kdw_1.visible = k_visible
+						
 					case SingleLineEdit!
 						kSingleLineEdit_1 = kw_super.control[k_ctr]
 						kSingleLineEdit_1.x = k_x 

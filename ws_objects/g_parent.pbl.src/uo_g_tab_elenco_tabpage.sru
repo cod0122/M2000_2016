@@ -46,7 +46,6 @@ public function uo_d_std_1 get_dw_sel ()
 public function datastore get_ds_elenco_orig ()
 public function datastore get_ds_elenco ()
 public function string inizializza () throws uo_exception
-public subroutine leggi_liste ()
 public subroutine mostra_elenco_selezionati ()
 public subroutine u_esegui_funzione (string a_flag_modalita)
 private subroutine attiva_drag_drop (uo_d_std_1 adw_1)
@@ -57,6 +56,7 @@ public subroutine set_ki_conferma (boolean a_conferma)
 public subroutine u_resize (long a_width, long a_height)
 private function long u_set_kids_elenco () throws uo_exception
 private subroutine u_dw_1_settransobject ()
+public subroutine leggi_liste () throws uo_exception
 end prototypes
 
 event resize(long a_w, long a_h);//
@@ -248,7 +248,7 @@ uo_datastore_0 kds_0
 			
 	//--- Inabilita campi alla modifica 
 			kiuf_utility.u_dw_toglie_ddw(1, dw_1)
-			kiuf_utility.u_proteggi_dw("1", 0, dw_1)
+			dw_1.u_proteggi_dw("1", 0)
 	
 	//--- attiva i LINK standard
 			dw_1.event u_personalizza_dw ()
@@ -279,29 +279,6 @@ return k_return
 
 
 end function
-
-public subroutine leggi_liste ();//
-int k_rc
-long k_row
-
-	u_dw_1_settransobject()
-
-	if dw_1.rowcount( ) > 0 then
-		dw_1.reset()
-		k_row = kids_elenco_orig.getrow( )
-		if k_row > 0 then
-		else
-			k_row = 1
-		end if
-		k_rc = kids_elenco_orig.reselectrow(k_row)
-	end if
-	k_rc = kids_elenco_orig.rowscopy(1, kids_elenco_orig.rowcount(), primary!, dw_1,1,primary!)
-
-	dw_sel.visible = false
-	dw_sel.reset()
-
-
-end subroutine
 
 public subroutine mostra_elenco_selezionati ();//
 
@@ -455,7 +432,7 @@ ki_conferma = a_conferma
 end subroutine
 
 public subroutine u_resize (long a_width, long a_height);//
-//	constant int kk_barra_width = 0 //1
+	constant int kk_barra_width = 120 //1
 //	constant int kk_barra_height = 0 //100
 
 //--- Dimensiona dw nel tab
@@ -477,13 +454,13 @@ private function long u_set_kids_elenco () throws uo_exception;/*
  Rit: num righe in kids_elenco
 */
 integer k_rc
+string k_modify, k_rcx
 datastore kds_1
 uo_ds_std_1 kds_d_std_1
-uo_datastore_0 kds_0
 
 
 	SetPointer(kkg.pointer_attesa)
-	kguo_exception.inizializza(this.classname)
+	kguo_exception.inizializza(this.classname())
 
 	if isvalid(kids_elenco) then 
 		destroy kids_elenco 
@@ -499,35 +476,36 @@ uo_datastore_0 kds_0
 			case "datastore"
 				kds_1 = kist_open_w.key12_any
 				kids_elenco.dataobject = kds_1.dataobject
-				k_rc = kds_1.RowsCopy(1, kds_1.RowCount(), Primary!, kids_elenco, 1, Primary!)
-			case "uo_ds_std_1"
+				kiuf_utility.u_rowscopy_ds_to_ds(kds_1, kids_elenco)
+			case "uo_ds_std_1" &
+			    ,"uo_datastore_0"
 				kds_d_std_1 = kist_open_w.key12_any
 				kids_elenco.dataobject = kds_d_std_1.dataobject
-				k_rc = kds_d_std_1.RowsCopy(1, kds_d_std_1.RowCount(), Primary!, kids_elenco, 1, Primary!)
-			case "uo_datastore_0"
-				kds_0 = kist_open_w.key12_any
-				kids_elenco.dataobject = kds_0.dataobject
-				k_rc = kds_0.RowsCopy(1, kds_0.RowCount(), Primary!, kids_elenco, 1, Primary!)
+				kiuf_utility.u_rowscopy_ds_to_ds(kds_d_std_1, kids_elenco)
 			case else
 				kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
-				kguo_exception.kist_esito.sqlerrtext = "ZOOM: dati assenti (oggetto datastore non riconosciuto '" + trim(kist_open_w.key2) + "' di tipo '" + trim(ClassName(kist_open_w.key12_any)) + "')"
+				kguo_exception.kist_esito.sqlerrtext = "ZOOM: tipi dati non riconosciuti " + kkg.acapo &
+								 + "Nome oggetto non riconosciuto '" + trim(kist_open_w.key2) + "' di tipo '" + trim(ClassName(kist_open_w.key12_any)) + "' " &
+								 + kkg.acapo + " funzione: 'u_set_kids_elenco' "
 				throw kguo_exception
 		end choose
 
-	else
+	else 
 		if isvalid(kist_open_w.key11_ds) then
 			kids_elenco.dataobject = kist_open_w.key11_ds.dataobject
-			k_rc = kist_open_w.key11_ds.RowsCopy(1, kist_open_w.key11_ds.RowCount(), Primary!, kids_elenco, 1, Primary!)
+			kiuf_utility.u_rowscopy_ds_to_ds(kist_open_w.key11_ds, kids_elenco)
 		else
 			kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
-			kguo_exception.kist_esito.sqlerrtext = "ZOOM: dati assenti (oggetto datastore non riconosciuto '" + trim(kist_open_w.key2) + "')"
+			kguo_exception.kist_esito.sqlerrtext = "ZOOM: dati non validi, nome oggetto '" + trim(kist_open_w.key2) + "') " &
+								 + kkg.acapo + " funzione: 'u_set_kids_elenco' "
 			throw kguo_exception
 		end if
 
 	end if
 
 	kids_elenco_orig.dataobject = kids_elenco.dataobject
-	k_rc = kids_elenco.rowscopy(1, kids_elenco.rowcount(), primary!,kids_elenco_orig,1,primary!)
+	kiuf_utility.u_rowscopy_ds_to_ds(kids_elenco, kids_elenco_orig)
+
 
 return kids_elenco.rowcount()
 
@@ -553,6 +531,29 @@ private subroutine u_dw_1_settransobject ();//
 			dw_1.settransobject (kguo_sqlca_db_magazzino)
 	end choose
 
+
+end subroutine
+
+public subroutine leggi_liste () throws uo_exception;//
+int k_rc
+long k_row
+string k_modify, k_rcx
+
+	u_dw_1_settransobject()
+
+	if dw_1.rowcount( ) > 0 then
+		dw_1.reset()
+		k_row = kids_elenco_orig.getrow( )
+		if k_row > 0 then
+		else
+			k_row = 1
+		end if
+		k_rc = kids_elenco_orig.reselectrow(k_row)
+	end if
+	kiuf_utility.u_rowscopy_ds_to_dw(kids_elenco_orig, dw_1)
+
+	dw_sel.visible = false
+	dw_sel.reset()
 
 end subroutine
 

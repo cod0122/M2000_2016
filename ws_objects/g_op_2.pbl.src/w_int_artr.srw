@@ -27,6 +27,7 @@ protected kuf_int_artr kiuf_int_artr
 protected kuf_utility kiuf_utility
 protected kuf_report_pilota kiuf_report_pilota
 protected kuf_pilota_previsioni kiuf_pilota_previsioni
+protected kuf_pilota_previsioni_g3 kiuf_pilota_previsioni_g3
 
 ////--- variabile contenente la scelta del REPORT
 //protected int ki_scelta_report_generico = 0
@@ -465,8 +466,11 @@ kpointer = SetPointer(HourGlass!)
 
 
 //order by armo.data_int desc, armo.num_int desc
-	 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	try 
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try	
 
 	destroy kuf1_utility
 	
@@ -1147,7 +1151,9 @@ string k_scelta, k_codice_prec
 long k_righe
 datastore kds_1
 kuf_utility kuf1_utility
-	
+kuf_impianto kuf1_impianto
+
+
 try
 
 	k_scelta = trim(ki_st_open_w.flag_modalita)
@@ -1175,15 +1181,25 @@ try
 		setpointer(kkg.pointer_attesa)
 		kdw_1.visible = false
 		
-		if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
-
-		k_righe = kiuf_pilota_previsioni.get_ds_barcode_queue_prev( ) 
+		if tab_1.tabpage_1.dw_1.getitemnumber(1, "impianto") = kuf1_impianto.kki_impiantog3 then
+			if not isvalid(kiuf_pilota_previsioni_g3) then kiuf_pilota_previsioni_g3 = create kuf_pilota_previsioni_g3
+	
+			k_righe = kiuf_pilota_previsioni_g3.crea_temptable_pilota_pallet_workqueue( ) 
+			kdw_1.dataobject = "d_report_2_pilota_queue_table_g3"
+			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue_g3" )
+			
+		else		
+			if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
+	
+			k_righe = kiuf_pilota_previsioni.crea_temptable_pilota_pallet_workqueue( ) 
+			kdw_1.dataobject = "d_report_2_pilota_queue_table"
+			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue" )
+		end if		
+		
 		if k_righe > 0 then
 		
-			kdw_1.dataobject = "d_report_2_pilota_queue_table"
 			kdw_1.visible = true
 			
-			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue" )
 			kdw_1.settransobject(kguo_sqlca_db_magazzino)
 		
 			k_righe = kdw_1.retrieve()
@@ -1330,7 +1346,7 @@ private function long report_3_inizializza (uo_d_std_1 kdw_1);//
 string k_scelta, k_codice_prec
 long k_righe=0, k_rc
 date k_data
-//datawindowchild kdwc_barcode
+kuf_impianto kuf1_impianto
 kuf_utility kuf1_utility
 datastore kds_1 
 
@@ -1352,6 +1368,7 @@ datastore kds_1
 	kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	destroy kuf1_utility
 
+	
 	if trim(k_codice_prec) <> trim(kdw_1.tag) then
 		u_set_tabpage_picture(true)
 	else
@@ -1361,19 +1378,31 @@ datastore kds_1
  
 	if kdw_1.rowcount() = 0 or trim(k_codice_prec) =  "" then //<> k_codice_prec then
 
-		if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
+		if tab_1.tabpage_1.dw_1.getitemnumber(1, "impianto") = kuf1_impianto.kki_impiantog3 then
+			if not isvalid(kiuf_pilota_previsioni_g3) then kiuf_pilota_previsioni_g3 = create kuf_pilota_previsioni_g3
+	
+			k_righe = kiuf_pilota_previsioni_g3.crea_temptable_pilota_pallet_in_lav( ) 
+			kdw_1.dataobject = "d_report_3_pilota_pallet_in_lav_g3"
+			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue_g3" )
+			
+		else		
+			if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
+	
+			k_righe = kiuf_pilota_previsioni.crea_temptable_pilota_pallet_in_lav( ) 
+			kdw_1.dataobject = "d_report_3_pilota_pallet_in_lav"
+			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue" )
+		end if		
 		
-		k_righe = kiuf_pilota_previsioni.get_ds_barcode_in_lav_prev( ) 
 		if k_righe > 0 then
 		
-			kdw_1.dataobject = "d_report_3_pilota_pallet_in_lav" // kds_1.dataobject //  
 			kdw_1.visible = true
 			
-			kguf_data_base.u_set_ds_change_name_tab(kdw_1, "vx_MAST_pilota_pallet_workqueue")
 			kdw_1.settransobject(kguo_sqlca_db_magazzino)
-
+		
 			k_righe = kdw_1.retrieve()
+			
 		end if
+		
 		
 	end if
 
@@ -1443,24 +1472,16 @@ end subroutine
 
 private function long report_4_inizializza (uo_d_std_1 kdw_1);//
 //======================================================================
-//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//--- REPORT PROGRAMMAZIONE PILOTA
 //======================================================================
 //
-//--- REPORT PROGRAMMAZIONE PILOTA
-//
 string k_scelta, k_codice_prec
-string k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
-boolean k_errore=false
 long k_righe=0, k_ctr, k_rc, k_riga=0, k_colli=0, k_colli_tr=0
-date k_data
-datawindowchild kdwc_barcode
-//datawindowchild kdwc_cliente, kdwc_cliente_2, kdwc_cliente_3
+kuf_impianto kuf1_impianto
 kuf_utility kuf1_utility
-kuf_base kuf1_base
 st_tab_barcode kst_tab_barcode
 st_tab_meca kst_tab_meca, kst_tab_meca_app
 st_tab_clienti kst_tab_clienti
-
 	
 	try
 	
@@ -1478,6 +1499,7 @@ st_tab_clienti kst_tab_clienti
 	kuf1_utility = create kuf_utility
 	kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	destroy kuf1_utility
+	
 
 	if trim(k_codice_prec) <> trim(kdw_1.tag) then
 		u_set_tabpage_picture(true)
@@ -1489,10 +1511,15 @@ st_tab_clienti kst_tab_clienti
 	if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
 
 		kdw_1.visible = true
-//		kguo_sqlca_db_pilota.db_connetti()
-		kdw_1.dataobject = "d_report_4_pilota_pallet_trattati" 
-//		k_rc = kdw_1.settransobject(kguo_sqlca_db_pilota)
-		k_rc = kdw_1.settrans(kguo_sqlca_db_pilota)  // conn/disconn in automatico ad ogni operaz
+
+
+		if tab_1.tabpage_1.dw_1.getitemnumber(1, "impianto") = kuf1_impianto.kki_impiantog3 then
+			kdw_1.dataobject = "d_report_4_pilota_pallet_trattati_g3" 
+			k_rc = kdw_1.settrans(kguo_sqlca_db_pilota_g3)  // conn/disconn in automatico ad ogni operaz
+		else		
+			kdw_1.dataobject = "d_report_4_pilota_pallet_trattati" 
+			k_rc = kdw_1.settrans(kguo_sqlca_db_pilota)  // conn/disconn in automatico ad ogni operaz
+		end if		
 
 		k_righe = kdw_1.retrieve(date(0))
 
@@ -1505,12 +1532,11 @@ st_tab_clienti kst_tab_clienti
 					:kst_tab_meca.id
 				from barcode
 				where barcode.barcode = :kst_tab_barcode.barcode 
-				using sqlca;
+				using kguo_sqlca_db_magazzino ;
 
 			if kst_tab_meca.id <> kst_tab_meca_app.id then
 				kst_tab_meca_app.id = kst_tab_meca.id
-			
-			
+						
 				select distinct
 						meca.clie_2
 						,meca.id
@@ -1534,20 +1560,20 @@ st_tab_clienti kst_tab_clienti
 					 inner join clienti on
 						 meca.clie_2 = clienti.codice 
 					where barcode.barcode = :kst_tab_barcode.barcode 
-					using sqlca;
+					using kguo_sqlca_db_magazzino;
 		
-				if sqlca.sqlcode = 0 then
+				if kguo_sqlca_db_magazzino.sqlcode = 0 then
 					select count(*)
 						into :k_colli
 						from barcode
 						where barcode.id_meca = :kst_tab_meca.id
-						using sqlca;
+						using kguo_sqlca_db_magazzino;
 					if isnull(k_colli) then k_colli = 0
 					select count(*)
 						into :k_colli_tr
 						from barcode
 						where barcode.id_meca = :kst_tab_meca.id and barcode.data_lav_fin > convert(date,'01.01.1899')
-						using sqlca;
+						using kguo_sqlca_db_magazzino;
 					if isnull(k_colli_tr) then k_colli_tr = 0
 				end if
 			end if
@@ -2900,6 +2926,7 @@ try
 				kdw_1.event u_personalizza_dw() //--- aggiunge i link standard
 
 				kuf1_report_merce_da_sped.kids_report_merce_da_sped.rowscopy( 1, k_righe, primary!, kdw_1, 1, primary!)
+
 				kdw_1.scrolltorow( kdw_1.rowcount( ))
 				
 			else
@@ -6161,7 +6188,11 @@ select min(id_meca), max(id_meca)
 	k_sql += &
 			" group by  armo.id_armo "
 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	try 
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try	
 	
 //=== Riprist. il vecchio puntatore : 
 SetPointer(kpointer)
@@ -6345,8 +6376,12 @@ kpointer = SetPointer(HourGlass!)
 	k_sql += &
 			" group by  armo.id_armo, armo.id_meca "
 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-//   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	try 
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+ //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try	
 	
 //=== Riprist. il vecchio puntatore : 
 SetPointer(kpointer)
@@ -6892,9 +6927,9 @@ try
 	 + " ( id_armo, colli_spediti ) AS   " 
 	 
 	k_sql += &
-		+ " SELECT  armo.id_armo,  sum(arsp.colli)  FROM " &
-		+ " meca  " 
-		k_sql += &
+			+ " SELECT  armo.id_armo,  sum(arsp.colli)  FROM " &
+			+ " meca  " 
+	k_sql += &
 			+ " inner JOIN armo " &
 			+ " ON meca.id = armo.id_meca " &
 			+ " left outer JOIN arsp " &
@@ -6904,16 +6939,15 @@ try
 			+ " meca.data_int between '" + string(k_data_int_da) + "' and '" + string(k_data_int_a) + "' "  &
 		   + " and meca.data_ent between '"  + k_data_ent_dax + "' and '" + k_data_ent_ax + "'  "     &
 			+ " and (meca.aperto <> '" + string(kuf1_armo.kki_meca_aperto_annullato ) + "') "
-		if ki_st_int_artr.no_dose = 1 then
-			k_sql += &
-				 " and armo.dose > 0 " 
-		end if
-
+	if ki_st_int_artr.no_dose = 1 then
 		k_sql += &
-	 			" group by armo.id_armo " 
+			 " and armo.dose > 0 " 
+	end if
+
+	k_sql += " group by armo.id_armo " 
 			
 	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-
+ //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 	
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -7280,9 +7314,9 @@ kuf_utility kuf1_utility
 	 + " ( id_armo, colli_spediti ) AS   " 
 	 
 	k_sql += &
-		+ " SELECT  armo.id_armo,  sum(arsp.colli)  FROM " &
-		+ " certif  " 
-		k_sql += &
+			+ " SELECT  armo.id_armo,  sum(arsp.colli)  FROM " &
+			+ " certif  " 
+	k_sql += &
 			+ " inner JOIN meca " &
 			+ " ON certif.id_meca = meca.id " &
 			+ " inner JOIN armo " &
@@ -7292,18 +7326,22 @@ kuf_utility kuf1_utility
 			+ " and (arsp.data_bolla_out <= '" + string(ki_st_int_artr.data_a) + "' or arsp.data_bolla_out is null)" &
 			+ " WHERE  " &
 			+ " certif.data between '" + string(relativedate(ki_st_int_artr.data_a, -770)) + "' and '" + string(ki_st_int_artr.data_a) + "' "  
-		if ki_st_int_artr.clie_3 > 0 then
-			k_sql += " and meca.clie_3 = " + string(ki_st_int_artr.clie_3)
-		end if
+	if ki_st_int_artr.clie_3 > 0 then
+		k_sql += " and meca.clie_3 = " + string(ki_st_int_artr.clie_3)
+	end if
 //		if ki_st_int_artr.no_dose = 1 then
 //			k_sql += &
 //				 " and armo.dose > 0 " 
 //		end if
 
-		k_sql += &
-	 			" group by armo.id_armo " 
+	k_sql += " group by armo.id_armo " 
 			
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	try 
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+ //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try	
 
 end subroutine
 
@@ -7509,11 +7547,12 @@ pointer kpointer  // Declares a pointer variable
 			+ " group by id_meca " &
 			+ " having (sum(tab1.colli_2) - sum(colli_arsp)) > 0 " &
  
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-//   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-
-	
-
+	try 
+		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+ //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try	
 
 end subroutine
 

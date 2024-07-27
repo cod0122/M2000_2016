@@ -43,7 +43,6 @@ constant string KK_st_uo_exception_tipo_LOGIN=kkg_esito.LOGIN //Info di Entrata/
 end variables
 
 forward prototypes
-public subroutine messaggio_utente ()
 public function st_esito get_st_esito ()
 public function string get_tipo ()
 public subroutine set_nome_oggetto (string k_nome_oggetto)
@@ -71,102 +70,14 @@ private subroutine u_set_ki_from_st_esito (st_esito ast_esito)
 public function string get_errtext (ref uo_d_std_1 adw_1)
 private subroutine u_set_uo_path ()
 public function integer messaggio_utente (string a_titolo, string a_msg)
-public function st_esito set_st_esito_err_db (transaction asqlca, string a_sqlerrtext_add_init)
+public subroutine u_write_x_debug (string a_classname, string a_esito_txt)
+public subroutine messaggio_utente (string a_titolo)
+public function integer messaggio_utente ()
+public function st_esito set_st_esito_err_db (ref transaction asqlca, string a_sqlerrtext_add_init)
+public function st_esito set_st_esito_err_ds (ref uo_ds_std_1 ads_1, string a_sqlerrtext_add_init)
+public function st_esito set_st_esito_err_dw (ref uo_d_std_0 adw_1, string a_sqlerrtext_add_init)
+private function st_esito set_st_esito_err (string a_sqlerrtext_add_init)
 end prototypes
-
-public subroutine messaggio_utente ();//---
-//--- Espone messaggio di errore all'utente
-//---
-string k_msg, k_titolo
-st_esito kst_esito
-
-
-ki_st_uo_exception.tipo = get_tipo() 
-
-
-if trim(getmessage()) > " " then
-else
-	kst_esito = get_st_esito() 
-	if trim(kst_esito.sqlerrtext) > " " then
-	else
-		kst_esito.sqlerrtext = "Programma in anomalia."
-	end if
-	if kst_esito.sqlcode <> 0 then
-		kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + " ~r~nCodice: " + string(kst_esito.sqlcode)
-	end if
-	if trim(kst_esito.nome_oggetto) > " " then
-		kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + " ~r~nOggetto:  " + trim(kst_esito.nome_oggetto)
-	end if
-	setmessage(trim(kst_esito.sqlerrtext))
-end if
-
-//--- imposta il TITOLO
-if ki_titolo > " " then
-	k_titolo = ki_titolo
-else
-	choose case ki_st_uo_exception.tipo
-		case KK_st_uo_exception_tipo_generico 
-			k_titolo = "Operazione non eseguita"
-		case KK_st_uo_exception_tipo_non_eseguito
-			k_titolo = "Operazione non eseguita"
-		case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
-			k_titolo = "Dati Anomali"
-		case KK_st_uo_exception_tipo_dati_utente &
-			, KK_st_uo_exception_tipo_noAUT
-			k_titolo = "Utente non Autorizzato"
-		case KK_st_uo_exception_tipo_db_ko
-			k_titolo = "Operazione su DB Fallita"
-		case KK_st_uo_exception_tipo_ko
-			k_titolo = "Esecuzione Fallita"
-		case KK_st_uo_exception_tipo_not_fnd
-			k_titolo = "Dati non Trovati"
-		case KK_st_uo_exception_tipo_internal_bug
-			k_titolo = "Errore Interno al Programma"
-		case KK_st_uo_exception_tipo_allerta
-			k_titolo = "Messaggio di ALLERTA"
-		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
-			k_titolo = "Dati Insufficienti"
-		case KK_st_uo_exception_tipo_OK
-			k_titolo = "Operazione Corretta"
-		case else
-			k_titolo = "Operazione Interrotta"
-	end choose
-end if
-//~n~r~n~r
-//--- Espone il msg all'utente
-choose case ki_st_uo_exception.tipo
-	case KK_st_uo_exception_tipo_generico
-		messaggio_utente (k_titolo,  getmessage())
-	case KK_st_uo_exception_tipo_non_eseguito
-		messaggio_utente (k_titolo,  getmessage())
-	case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_dati_utente , KK_st_uo_exception_tipo_noAUT
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_db_ko
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_ko
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_not_fnd
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_internal_bug
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_allerta
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_OK
-		messaggio_utente (k_titolo,  trim(getmessage()))
-	case else
-		k_msg = getmessage()
-		if LenA(trim(k_msg)) > 0 then 
-			messaggio_utente (k_titolo,k_msg)
-		else
-			messaggio_utente (k_titolo, "Esecuzione anomala la funzione sara' terminata")
-		end if
-end choose
-
-end subroutine
 
 public function st_esito get_st_esito ();//
 //---
@@ -194,14 +105,30 @@ return kist_esito
 
 end function
 
-public function string get_tipo ();//
-//---
-//--- Ritorna il tipo di errore
-//---
+public function string get_tipo ();/*
+ Ritorna il tipo di errore
+*/
 if trim(ki_st_uo_exception.tipo) > " " then
 else
-	ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_generico
+
+	//--- prima lo piazza uguale poi decide puntuale
+	ki_st_uo_exception.tipo = kist_esito.esito
+	if kist_esito.esito = kkg_esito.ok then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_OK 
+	if kist_esito.esito = kkg_esito.DB_KO then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_db_ko 
+	if kist_esito.esito = kkg_esito.KO then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_ko
+	if kist_esito.esito = kkg_esito.NOT_FND then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_not_fnd 
+	if kist_esito.esito = kkg_esito.NO_AUT then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_dati_utente 
+	if kist_esito.esito = kkg_esito.DB_WRN then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_allerta 
+	if kist_esito.esito = kkg_esito.BUG then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_internal_bug 
+	if kist_esito.esito = kkg_esito.NO_ESECUZIONE then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_interr_da_utente 
+	if kist_esito.esito = kkg_esito.ERR_FORMALE then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_dati_insufficienti 
+	if kist_esito.esito = kkg_esito.DATI_INSUFF then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_dati_insufficienti 
+	if kist_esito.esito = kkg_esito.ERR_LOGICO then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_dati_anomali 
+	if kist_esito.esito = kkg_esito.DATI_WRN then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_dati_wrn 
+	if kist_esito.esito = kkg_esito.TRACE then ki_st_uo_exception.tipo = KK_st_uo_exception_tipo_TRACE 
+
 end if
+
 return trim(ki_st_uo_exception.tipo)
 
 end function
@@ -990,7 +917,7 @@ try
 		k_record = kpbdom_doc.SaveDocumentIntoString() 
 		k_record = mid(k_record, 4, len(k_record) - 8)  // salta il tag iniziale <x> e finale </x>
 
-		k_bytes = filewriteex(k_file, k_record) //scrivo la data dell'errore
+		k_bytes = filewriteex(k_file, k_record) //scrivo i dati dell'errore
 		k_return = "W"
 
 	end if
@@ -1212,7 +1139,137 @@ return k_return
 
 end function
 
-public function st_esito set_st_esito_err_db (transaction asqlca, string a_sqlerrtext_add_init);/*
+public subroutine u_write_x_debug (string a_classname, string a_esito_txt);/*
+ USATO per il DEBUG
+	 Scrive su File di LOG UTENTE 
+ Input: stringa da scrivere
+*/
+
+inizializza(a_classname)
+kist_esito.SQLErrText = "DEBUG: " + trim(a_esito_txt)
+
+u_write_error_touser()
+
+
+
+
+end subroutine
+
+public subroutine messaggio_utente (string a_titolo);/*
+  Espone messaggio a Video
+  inp: il titolo
+*/
+
+if trim(a_titolo) > " " then
+	ki_titolo = a_titolo
+else
+	ki_titolo = ""
+end if
+
+messaggio_utente()
+end subroutine
+
+public function integer messaggio_utente ();//---
+//--- Espone messaggio di errore all'utente
+//---
+int k_return
+string k_msg, k_titolo
+st_esito kst_esito
+
+
+ki_st_uo_exception.tipo = get_tipo() 
+
+
+if trim(getmessage()) > " " then
+else
+	kst_esito = get_st_esito() 
+	if trim(kst_esito.sqlerrtext) > " " then
+	else
+		kst_esito.sqlerrtext = "Programma in anomalia."
+	end if
+	if kst_esito.sqlcode <> 0 then
+		kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + " " + kkg.acapo + "Codice: " + string(kst_esito.sqlcode)
+	end if
+	if trim(kst_esito.nome_oggetto) > " " then
+		kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + " " + kkg.acapo + "Oggetto:  " + trim(kst_esito.nome_oggetto)
+	end if
+	setmessage(trim(kst_esito.sqlerrtext))
+end if
+
+//--- imposta il TITOLO
+if ki_titolo > " " then
+	k_titolo = ki_titolo
+else
+	choose case ki_st_uo_exception.tipo
+		case KK_st_uo_exception_tipo_generico 
+			k_titolo = "Operazione non eseguita"
+		case KK_st_uo_exception_tipo_non_eseguito
+			k_titolo = "Operazione non eseguita"
+		case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
+			k_titolo = "Dati Anomali"
+		case KK_st_uo_exception_tipo_dati_utente &
+			, KK_st_uo_exception_tipo_noAUT
+			k_titolo = "Accesso non Autorizzato"
+		case KK_st_uo_exception_tipo_db_ko
+			k_titolo = "Operazione su DB Fallita"
+		case KK_st_uo_exception_tipo_ko
+			k_titolo = "Esecuzione Fallita"
+		case KK_st_uo_exception_tipo_not_fnd
+			k_titolo = "Dati non Trovati"
+		case KK_st_uo_exception_tipo_internal_bug
+			k_titolo = "Errore Interno al Programma"
+		case KK_st_uo_exception_tipo_allerta
+			k_titolo = "Messaggio di ALLERTA"
+		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
+			k_titolo = "Dati Insufficienti"
+		case KK_st_uo_exception_tipo_OK
+			k_titolo = "Operazione Corretta"
+		case KK_st_uo_exception_tipo_SINO
+			k_titolo = "Esecuzione in Attesa"
+		case else
+			k_titolo = "Operazione Interrotta"
+	end choose
+end if
+
+//--- Espone il msg all'utente
+choose case ki_st_uo_exception.tipo
+	case KK_st_uo_exception_tipo_generico
+		messaggio_utente (k_titolo,  getmessage())
+	case KK_st_uo_exception_tipo_non_eseguito
+		messaggio_utente (k_titolo,  getmessage())
+	case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_dati_utente , KK_st_uo_exception_tipo_noAUT
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_db_ko
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_ko
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_not_fnd
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_internal_bug
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_allerta
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
+		messaggio_utente (k_titolo, getmessage())
+	case KK_st_uo_exception_tipo_OK
+		messaggio_utente (k_titolo, trim(getmessage()))
+	case KK_st_uo_exception_tipo_SINO
+		k_return = messaggio_utente (k_titolo, trim(getmessage()))
+	case else
+		k_msg = getmessage()
+		if LenA(trim(k_msg)) > 0 then 
+			messaggio_utente (k_titolo,k_msg)
+		else
+			messaggio_utente (k_titolo, "Esecuzione anomala la funzione sara' terminata")
+		end if
+end choose
+
+return k_return
+end function
+
+public function st_esito set_st_esito_err_db (ref transaction asqlca, string a_sqlerrtext_add_init);/*
   imposta valori standard per errore da DB 
 */
 string k_sqlerrtext
@@ -1240,6 +1297,75 @@ else
 		kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ok
 	end if
 		
+end if
+
+return kist_esito
+
+end function
+
+public function st_esito set_st_esito_err_ds (ref uo_ds_std_1 ads_1, string a_sqlerrtext_add_init);/*
+  imposta valori standard per errore da DB quando l'eccezione è da DATASTORE (uo_ds_std_1)
+*/
+st_esito kst_esito
+
+
+if not isvalid(ads_1) then 
+	kist_esito = kst_esito
+	kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+else	
+	kist_esito = ads_1.kist_esito
+	kist_esito.sqlerrtext = string(ads_1.kist_esito.sqlcode) + " " &
+								+ trim(ads_1.kist_esito.sqlerrtext) + " (" + trim(ads_1.dataobject) + ")"
+end if
+
+set_st_esito_err(a_sqlerrtext_add_init)
+
+return kist_esito
+
+end function
+
+public function st_esito set_st_esito_err_dw (ref uo_d_std_0 adw_1, string a_sqlerrtext_add_init);/*
+  imposta valori standard per errore da DB quando l'eccezione è da DATAWINDOW (uo_d_std_0)
+*/
+st_esito kst_esito
+
+
+if not isvalid(adw_1) then 
+	kist_esito = kst_esito
+	kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+else	
+	kist_esito = adw_1.kist_esito
+	kist_esito.sqlerrtext = string(adw_1.kist_esito.sqlcode) + " " &
+								+ trim(adw_1.kist_esito.sqlerrtext) + " (" + trim(adw_1.dataobject) + ")"
+end if
+
+set_st_esito_err(a_sqlerrtext_add_init)
+
+return kist_esito
+
+
+end function
+
+private function st_esito set_st_esito_err (string a_sqlerrtext_add_init);/*
+  imposta valori standard per errore da DB 
+*/
+string k_sqlerrtext
+
+if a_sqlerrtext_add_init > " " then
+	a_sqlerrtext_add_init = trim(a_sqlerrtext_add_init) + " " + kkg.acapo
+else
+	a_sqlerrtext_add_init = ""
+end if
+
+kist_esito.sqlerrtext = a_sqlerrtext_add_init + " " + kist_esito.sqlerrtext
+if kist_esito.esito <> kguo_exception.kk_st_uo_exception_tipo_ok and kist_esito.esito = "" then
+	if kist_esito.sqlcode > 0 then
+		kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_wrn
+	elseif kist_esito.sqlcode < 0 then
+		kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_db_ko
+	else
+		kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ok
+	end if
 end if
 
 return kist_esito

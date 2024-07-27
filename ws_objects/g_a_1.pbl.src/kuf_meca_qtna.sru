@@ -1483,7 +1483,7 @@ kst_esito.nome_oggetto = this.classname()
 
 choose case a_campo_link
 
-	case "b_qtna_note"
+	case "qtna_note"
 		kst_tab_meca_qtna.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
 		if kst_tab_meca_qtna.id_meca > 0 then
 			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_meca_qtna )

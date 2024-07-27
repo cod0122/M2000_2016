@@ -489,18 +489,18 @@ try
 		
 		else
 			kguo_exception.inizializza( )
-			kguo_exception.messaggio_utente( "Accesso non Autorizzato", "La funzione richiesta (" + k_id_programma_open + ") non e' stata Autorizzata")
+			kguo_exception.messaggio_utente( "Accesso non Autorizzato", "La funzione richiesta (" + k_id_programma_open + ") non è stata Autorizzata")
 		end if
 	else
 		kguo_exception.inizializza( )
-		kguo_exception.messaggio_utente("Operazione Interrotta", "La funzione richiesta (" + k_id_programma_open + ") non e' stata Abilitata")
+		kguo_exception.messaggio_utente("Operazione Interrotta", "La funzione richiesta (" + k_id_programma_open + ") non è stata caricata in tabella.")
 	
 	end if
 
 
 catch (uo_exception kuo3_exception)
 		kst_esito = kuo3_exception.get_st_esito()
-		kuo3_exception.messaggio_utente("Operazione Interrotta", "Non è stato possibile aprire l'operazione di '" + k_id_programma_open + "'. ~n~r" + trim(kst_esito.sqlerrtext ) )
+		kuo3_exception.messaggio_utente("Operazione Interrotta", "Non è stato possibile aprire l'operazione di '" + k_id_programma_open + "'. " + kkg.acapo  + trim(kst_esito.sqlerrtext ) )
 	
 	
 finally

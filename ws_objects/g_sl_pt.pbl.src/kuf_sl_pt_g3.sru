@@ -26,6 +26,9 @@ public function boolean link_call (ref datawindow adw_link, string a_campo_link)
 public function boolean if_delete (long a_id_sl_pt_g3, ref string o_msg) throws uo_exception
 public function long get_id_sl_pt_g3_last () throws uo_exception
 public function long tb_update (st_tab_g_0 ast_tab_g_0, ref uo_ds_std_1 ads_inp) throws uo_exception
+public function long get_g3_lav_ngiri_altri (ref st_tab_sl_pt_g3_lav ast_tab_sl_pt_g3_lav) throws uo_exception
+public function long get_id_sl_pt_g3_lav_x_dati_lav (st_tab_sl_pt_g3_lav ast_tab_sl_pt_g3_lav) throws uo_exception
+public function long get_id_sl_pt_g3_x_cod_sl_pt (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception
 end prototypes
 
 public function boolean tb_delete (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception;/*
@@ -279,7 +282,6 @@ public function long get_id_sl_pt_g3_last () throws uo_exception;/*
     inp: 
     Out:
     Rit: ID
-
 */
 long k_id
 
@@ -292,7 +294,7 @@ long k_id
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura ultimo ID caricato in tabella Pianti di Trattamento G3. ")
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura ultimo ID caricato in tabella Piani di Trattamento G3. ")
 		throw kguo_exception
 	end if
 	
@@ -373,6 +375,10 @@ try
 		kds_1.setitem(k_row,"dosetgmaxfattcorr", ads_inp.getitemnumber(1,"g3_dosetgmaxfattcorr"))
 		kds_1.setitem(k_row,"dosetgmintcalc", ads_inp.getitemstring(1,"g3_dosetgmintcalc"))
 		kds_1.setitem(k_row,"dosetgmaxtcalc", ads_inp.getitemstring(1,"g3_dosetgmaxtcalc"))
+		kds_1.setitem(k_row,"dosetgminfattcorr_max", ads_inp.getitemnumber(1,"g3_dosetgminfattcorr_max"))
+		kds_1.setitem(k_row,"dosetgmaxfattcorr_max", ads_inp.getitemnumber(1,"g3_dosetgmaxfattcorr_max"))
+		kds_1.setitem(k_row,"dosetgmintcalc_max", ads_inp.getitemstring(1,"g3_dosetgmintcalc_max"))
+		kds_1.setitem(k_row,"dosetgmaxtcalc_max", ads_inp.getitemstring(1,"g3_dosetgmaxtcalc_max"))
 		kds_1.setitem(k_row,"unitwork", ads_inp.getitemnumber(1,"g3_unitwork"))
 		kds_1.setitem(k_row,"savedosimeter", ads_inp.getitemnumber(1,"g3_savedosimeter"))
 		kds_1.setitem(k_row,"densita", ads_inp.getitemnumber(1,"g3_densita"))
@@ -405,9 +411,8 @@ try
 				k_return = kds_1.getitemnumber(1,"id_sl_pt_g3")
 				
 			else
-				kguo_exception.set_esito(kds_1.kist_esito)
-				kguo_exception.kist_esito.sqlerrtext ="Errore in Aggiornamento Piano di Trattamento G3 '" + trim(ads_inp.getitemstring(1,"g3_cod_sl_pt")) +"'." + kkg.acapo + kds_1.kist_esito.sqlerrtext
-				kguo_exception.messaggio_utente( )
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.set_st_esito_err_ds(kds_1, "Errore in Aggiornamento Piano di Trattamento G3 '" + trim(ads_inp.getitemstring(1,"g3_cod_sl_pt")) + ". ")
 				throw kguo_exception
 			end if
 			
@@ -426,6 +431,120 @@ finally
 end try
 	
 return k_return
+end function
+
+public function long get_g3_lav_ngiri_altri (ref st_tab_sl_pt_g3_lav ast_tab_sl_pt_g3_lav) throws uo_exception;/*
+    Torna dati del Trattamento
+    inp: st_tab_sl_pt_g3_lav.id_sl_pt_g3_lav
+    Out:st_tab_sl_pt_g3_lav dati di trattamento
+    Rit: ngiri
+*/
+long k_id
+
+
+	kguo_exception.inizializza(this.classname())
+
+	select isnull(ngiri, 0),
+	 		 isnull(g3npass, 0),
+			 isnull(ciclo_min, 0), 
+			 isnull(ciclo_max, 0),
+			 isnull(ciclo_target, 0)
+		 into :ast_tab_sl_pt_g3_lav.ngiri
+		     ,:ast_tab_sl_pt_g3_lav.g3npass
+			  ,:ast_tab_sl_pt_g3_lav.ciclo_min
+			  ,:ast_tab_sl_pt_g3_lav.ciclo_max		
+			  ,:ast_tab_sl_pt_g3_lav.ciclo_target
+		from sl_pt_g3_lav
+		where sl_pt_g3_lav.id_sl_pt_g3_lav = :ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura dati Lavorazione in tabella Piani di Trattamento G3 (sl_pt_g3_lav). Id " + string(ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav))
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_id = ast_tab_sl_pt_g3_lav.ngiri
+	end if
+	
+return k_id
+
+
+end function
+
+public function long get_id_sl_pt_g3_lav_x_dati_lav (st_tab_sl_pt_g3_lav ast_tab_sl_pt_g3_lav) throws uo_exception;/*
+    Torna id_sl_pt_g3_lav attivo
+    inp: st_tab_sl_pt_g3_lav.id_sl_pt_g3, g3npass, ngiri, ciclo_target (ciclo compreso tra min e max)
+    Out:
+    Rit: ID
+*/
+
+
+	kguo_exception.inizializza(this.classname())
+
+	select id_sl_pt_g3_lav
+	   into :ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav
+	   from sl_pt_g3_lav 
+		where sl_pt_g3_lav.id_sl_pt_g3 = :ast_tab_sl_pt_g3_lav.id_sl_pt_g3 
+	     and sl_pt_g3_lav.g3npass = :ast_tab_sl_pt_g3_lav.g3npass
+		  and sl_pt_g3_lav.ngiri = :ast_tab_sl_pt_g3_lav.ngiri
+		  and sl_pt_g3_lav.g3status = '5' 
+ 		  and :ast_tab_sl_pt_g3_lav.ciclo_target between sl_pt_g3_lav.ciclo_min and sl_pt_g3_lav.ciclo_max
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in Lettura ID del Piani di Trattamento G3 da dati di " &
+						+ kkg.acapo + "N.pass. " + string(ast_tab_sl_pt_g3_lav.g3npass) & 
+						+ ", N.Giri " + string(ast_tab_sl_pt_g3_lav.g3npass) & 
+						+ ", Ciclo " + string(ast_tab_sl_pt_g3_lav.ciclo_target) & 
+						+ ", id G3 "  + string(ast_tab_sl_pt_g3_lav.id_sl_pt_g3) + ".")
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode > 0 then
+		ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav = 0
+	else
+		if isnull(ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav) then ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav = 0
+	end if
+	
+return ast_tab_sl_pt_g3_lav.id_sl_pt_g3_lav
+
+
+end function
+
+public function long get_id_sl_pt_g3_x_cod_sl_pt (st_tab_sl_pt_g3 ast_tab_sl_pt_g3) throws uo_exception;/*
+    Torna id_sl_pt_g3
+    inp: st_tab_sl_pt_g3.cod_sl_pt
+    Out:
+    Rit: ID
+*/
+
+
+	kguo_exception.inizializza(this.classname())
+
+	select id_sl_pt_g3
+	   into :ast_tab_sl_pt_g3.id_sl_pt_g3
+	   from sl_pt_g3 
+		where sl_pt_g3.cod_sl_pt = :ast_tab_sl_pt_g3.cod_sl_pt 
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in Lettura ID del Piani di Trattamento G3 dal Codice " &
+						+ string(ast_tab_sl_pt_g3.cod_sl_pt)+ ".")
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode > 0 then
+		ast_tab_sl_pt_g3.id_sl_pt_g3 = 0
+	else
+		if isnull(ast_tab_sl_pt_g3.id_sl_pt_g3) then ast_tab_sl_pt_g3.id_sl_pt_g3 = 0
+	end if
+	
+return ast_tab_sl_pt_g3.id_sl_pt_g3
+
+
 end function
 
 on kuf_sl_pt_g3.create

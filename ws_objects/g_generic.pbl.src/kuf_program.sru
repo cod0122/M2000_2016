@@ -143,7 +143,7 @@ public function boolean u_update_dev_version (boolean a_update_ask);//
 //
 boolean k_return
 boolean k_db_connesso
-string k_base, k_path_centrale
+string k_base, k_path_centrale, k_app
 int k_aggiorna
 kuf_base kuf1_base
 st_profilestring_ini kst_profilestring_ini
@@ -247,7 +247,8 @@ try
 		end if
 
 		if k_path_centrale > " " then
-			if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2022r2" + KKG.PATH_SEP + "g_upd_ver.exe", normal!) = 1 then
+			k_app = "g_upd_ver.exe " + trim(kguo_path.get_procedura())
+			if run (trim(kst_profilestring_ini.valore) + KKG.PATH_SEP + "xWxp" + KKG.PATH_SEP + "r2023r3" + KKG.PATH_SEP + k_app, normal!) = 1 then
 				k_return = true
 			end if
 		end if

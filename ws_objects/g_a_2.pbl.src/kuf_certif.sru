@@ -33,7 +33,6 @@ public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, 
 public function integer u_tree_riempi_treeview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function integer u_tree_riempi_treeview_x_mese (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_certif kst_tab_certif)
-public function st_esito get_num_certif (ref st_tab_certif kst_tab_certif)
 public function st_esito get_ultimo_doc_ins (ref st_tab_certif kst_tab_certif)
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 public function boolean get_form_di_stampa (ref st_tab_certif kst_tab_certif) throws uo_exception
@@ -41,11 +40,9 @@ public function boolean set_id_docprod (st_tab_certif kst_tab_certif) throws uo_
 public function st_esito get_id (ref st_tab_certif kst_tab_certif)
 public function boolean if_esiste (readonly st_tab_certif kst_tab_certif) throws uo_exception
 public function boolean if_crea_certif (st_tab_certif kst_tab_certif) throws uo_exception
-public function boolean if_stampato (readonly st_tab_certif kst_tab_certif) throws uo_exception
 public function st_esito tb_delete (st_tab_certif kst_tab_certif) throws uo_exception
 public function long get_id_da_nome (string a_nome_file)
 public function long get_num_certif_da_nome (string a_nome_file)
-public function date get_data_stampa (ref st_tab_certif kst_tab_certif) throws uo_exception
 public function long get_id_meca (ref st_tab_certif kst_tab_certif) throws uo_exception
 public function integer u_tree_riempi_treeview_x_giorno (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function boolean set_flg_ristampa_xddt (st_tab_certif kst_tab_certif) throws uo_exception
@@ -63,6 +60,11 @@ private subroutine crea_certif_set_note (ref st_tab_certif kst_tab_certif) throw
 private subroutine crea_certif_update (ref st_tab_certif kst_tab_certif) throws uo_exception
 public subroutine crea_certif_set_st_tab_certif (ref st_tab_certif kst_tab_certif) throws uo_exception
 public function long get_id_meca_da_id (ref st_tab_certif kst_tab_certif) throws uo_exception
+public function long get_num_certif (ref st_tab_certif kst_tab_certif) throws uo_exception
+public function boolean if_stampato (readonly st_tab_certif ast_tab_certif) throws uo_exception
+public function date get_data_stampa (ref st_tab_certif ast_tab_certif) throws uo_exception
+private subroutine crea_certif_verifica_dosi (ref st_tab_certif ast_tab_certif, ref kuf_meca_dosim auf1_meca_dosim, readonly st_tab_armo ast_tab_armo) throws uo_exception
+private subroutine crea_certif_get_dati_x_st (ref st_tab_certif ast_tab_certif, ref st_tab_meca ast_tab_meca, ref st_tab_armo ast_tab_armo) throws uo_exception
 end prototypes
 
 public subroutine if_isnull (ref st_tab_certif kst_tab_certif);//---
@@ -432,6 +434,7 @@ st_esito kst_esito
 			  ,x_utente = :kst_tab_certif.x_utente
 			  ,dose_min = :kst_tab_certif.dose_min
 			  ,dose_max = :kst_tab_certif.dose_max
+			  ,impianto = :kst_tab_certif.impianto
 			where id = :kst_tab_certif.id
 		using sqlca;
 
@@ -508,6 +511,7 @@ st_esito kst_esito
 			  ,st_data_fin
 			  ,st_dati_bolla_in
 			  ,form_di_stampa
+			  ,impianto
 			  ,x_datins
 			  ,x_utente
 			  )   
@@ -532,6 +536,7 @@ st_esito kst_esito
 			  ,:kst_tab_certif.st_data_fin
 			  ,:kst_tab_certif.st_dati_bolla_in
 			  ,:kst_tab_certif.form_di_stampa
+			  ,:kst_tab_certif.impianto
 			  ,:kst_tab_certif.x_datins 
 			  ,:kst_tab_certif.x_utente
 			  )   
@@ -1237,18 +1242,12 @@ st_tab_memo kst_tab_memo
 				
 			case kuf1_treeview.kist_treeview_oggetto.certif_st_dett &
 					,kuf1_treeview.kist_treeview_oggetto.certif_uff_ddt_dett 
-//				k_query_where = " where " 
 				if k_data_da  <> k_data_a then
 					k_nr_righe = kids_certif_tree_stampati_xdata.retrieve(0, k_data_da, k_data_a)
-//					k_query_where = k_query_where &
-//					+ " (certif.data >= ? and certif.data < ?) " &
-//					+ "  "
 				else
 					k_nr_righe = kids_certif_tree_stampati_xdata.retrieve(0, k_data_da, k_data_da)
-//					k_query_where = k_query_where &
-//					+ " (certif.data = ?) " 
 				end if
-				//--- in questo caso filtro solo gli attestati non stampati da UFF. SPEDIZIONI
+//--- in questo caso filtro solo gli attestati non stampati da UFF. SPEDIZIONI
 				if k_nr_righe > 0 then
 					if k_tipo_oggetto = kuf1_treeview.kist_treeview_oggetto.certif_uff_ddt_dett then
 						kids_certif_tree_stampati_xdata.setfilter("flg_ristampa_xddt = 0")
@@ -1341,7 +1340,6 @@ st_tab_memo kst_tab_memo
 										  + "   " &
 										  + string(kst_tab_clienti.rag_soc_11, "@@@@@@@@@@") + ")"
 
-
 //--- riempo dati tabella dell'item
 				kst_treeview_data.struttura = kst_treeview_data_any
 				kst_treeview_data.oggetto = k_tipo_oggetto_figlio 
@@ -1362,7 +1360,6 @@ st_tab_memo kst_tab_memo
 				ktvi_treeviewitem.data = kst_treeview_data
 
 				kuf1_treeview.kitv_tv1.setitem(k_handle_item, ktvi_treeviewitem)
-
 
 //--- troppi record lista interrotta
 				k_conta_rec++
@@ -1775,58 +1772,6 @@ return kst_esito
 
 end function
 
-public function st_esito get_num_certif (ref st_tab_certif kst_tab_certif);//
-//====================================================================
-//=== 
-//=== Torna il Numero del Certificato da ID_MECA
-//=== 
-//=== 
-//--- Input: st_tab_certif.id_meca
-//---
-//--- Ritorna tab. ST_ESITO, Esiti:   Vedi standard
-//---
-//====================================================================
-//
-string k_return = "0 "
-st_esito kst_esito
-
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//--- x numero certificato			
-	SELECT
-				certif.num_certif
-				into
-		         :kst_tab_certif.num_certif  
-			 FROM certif  
-			 where 
-						(id_meca  = :kst_tab_certif.id_meca)					     
-				 using sqlca;
-		
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.Attestati CERTIF (id lotto=" &
-						 + string(kst_tab_certif.id_meca) + " " &
-						 + "~n~rErrore: " + trim(SQLCA.SQLErrText)
-									 
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else	
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
-	
-
-return kst_esito
-
-
-end function
-
 public function st_esito get_ultimo_doc_ins (ref st_tab_certif kst_tab_certif);//
 //====================================================================
 //=== Torna l'ultimo ATTESTATO caricato (Numero e Data) della Anagrafica impostata
@@ -1925,7 +1870,7 @@ choose case a_campo_link
 		end if
 
 
-	case "b_certif_lotto"
+	case "certif_lotto"
 		kst_tab_certif.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
 		if kst_tab_certif.id_meca > 0 then
 			get_num_certif (kst_tab_certif)   //  piglia il NUMERO CERTIFICATO
@@ -1942,15 +1887,14 @@ choose case a_campo_link
 			k_return = false
 		end if
  
-	case "b_certif_stampa"
+	case "certif_stampa"
 		kst_tab_certif.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
 		if kst_tab_certif.id_meca > 0 then
 			get_num_certif (kst_tab_certif)   //  piglia il NUMERO CERTIFICATO
 			if kst_tab_certif.num_certif > 0 then
 				kst1_tab_certif[1] = kst_tab_certif
 				kiuf_certif_print = create kuf_certif_print
-				if NOT kiuf_certif_print.stampa(kst1_tab_certif[], false) then  // STAMPA!!!
-				end if
+				kiuf_certif_print.stampa(kst1_tab_certif[])  // STAMPA!!!
 			end if
 		else
 			k_return = true
@@ -1958,7 +1902,7 @@ choose case a_campo_link
 
 end choose
 
-if k_return and  a_campo_link <> "b_certif_stampa" then
+if k_return and  a_campo_link <> "certif_stampa" then
 
 	if kdsi_elenco_output.rowcount() > 0 then
 	
@@ -2324,57 +2268,6 @@ return k_return
 
 end function
 
-public function boolean if_stampato (readonly st_tab_certif kst_tab_certif) throws uo_exception;//
-//----------------------------------------------------------------------------------------------------------------
-//--- 
-//--- Controlla se Attestato stampato da id
-//--- 
-//--- 
-//--- Inp: st_tab_certif.id
-//--- Out: TRUE = stampato definitivamente
-//---
-//--- lancia exception
-//---
-//----------------------------------------------------------------------------------------------------------------
-//
-boolean k_return = false
-long k_trovato=0
-st_esito kst_esito
-
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-
-//--- x ID certificato			
-	SELECT count(*)
-			into :k_trovato
-			 FROM certif  
-			 where  id  = :kst_tab_certif.id and data_stampa > '01.01.1990'
-			 using kguo_sqlca_db_magazzino;
-		
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore durante lettura Attestato (certif) id = " + string(kst_tab_certif.id) + " " &
-						 + "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-									 
-		kst_esito.esito = KKG_ESITO.db_ko
-		
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	else
-		if k_trovato > 0 then k_return = true
-	end if
-	
-
-return k_return
-
-
-
-end function
-
 public function st_esito tb_delete (st_tab_certif kst_tab_certif) throws uo_exception;//
 //====================================================================
 //=== Cancella il rek dalla tabella ATTESTATI
@@ -2608,73 +2501,6 @@ int k_ctr_num, k_ctr_end
 	end if
 	
 return k_return
-
-end function
-
-public function date get_data_stampa (ref st_tab_certif kst_tab_certif) throws uo_exception;//
-//---------------------------------------------------------------------------------------------------------------------------
-//--- 
-//--- Torna DATA e ORA di STAMPA del Certificato
-//--- 
-//--- 
-//--- Input: st_tab_certif.num_certif
-//--- Out: st_tab_certif.data_stampa, ora_stampa
-//--- Ritorna: data stampa
-//---
-//--- Lancia EXCEPTION
-//---
-//---------------------------------------------------------------------------------------------------------------------------
-date k_return 
-st_esito kst_esito
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = " "
-kst_esito.nome_oggetto = this.classname()
-
-
-//--- x numero certificato			
-	SELECT
-				certif.data_stampa
-				,certif.ora_stampa
-			into
-		         :kst_tab_certif.data_stampa  
-				,:kst_tab_certif.ora_stampa
-			FROM certif  
-			where 
-			    num_certif  = :kst_tab_certif.num_certif
-				 using  kguo_sqlca_db_magazzino ;
-		
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-	else
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in ricerca Data Stampa Attestato in Tab. (CERTIF) numero = " &
-							 + string(kst_tab_certif.num_certif) + " " &
-							 + "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-										 
-			kst_esito.esito = KKG_ESITO.db_ko
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if		
-	end if
-	
-	if kst_tab_certif.data > date(0) then
-		k_return = kst_tab_certif.data
-	else
-		k_return = date(0)
-	end if
-	if kst_tab_certif.data > date(0) then
-		k_return = kst_tab_certif.data
-	else
-		k_return = date(0)
-	end if
-	
-
-return k_return
-
 
 end function
 
@@ -3882,7 +3708,6 @@ public subroutine crea_certif_set_st_tab_certif (ref st_tab_certif kst_tab_certi
 //====================================================================
 //
 boolean k_cursor_CURS_CERT_1_1 = false
-boolean k_cursor_CURS_CERT_1_2 = false
 boolean k_cursor_crea_certif_amo = false	
 boolean k_maxfattcorr_attivo = false
 int k_len_max
@@ -3894,53 +3719,49 @@ st_tab_certif kst_tab_certif_1
 st_tab_meca_dosim kst_tab_meca_dosim
 st_tab_sl_pt kst_tab_sl_pt_MIN, kst_tab_sl_pt_MAX
 kuf_meca_dosim kuf1_meca_dosim
-kuf_sl_pt kuf1_sl_pt
+//kuf_sl_pt kuf1_sl_pt
 constant string kk_descr_operazione = "durante la generazione dell'Attestato" //~n~r"
 
 
 try
 
-
 //--- inizializza aree
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = kst_tab_certif.st_tab_g_0 
+	kguo_exception.inizializza(this.classname())
+	kguo_exception.kist_esito.st_tab_g_0 = kst_tab_certif.st_tab_g_0 
 
 	if kst_tab_certif.NUM_CERTIF > 0 then
 	else
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.SQLErrText = "Manca il numero Attestato " + kk_descr_operazione + ". Operazione interrotta."
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Manca il numero Attestato " + kk_descr_operazione + ". Operazione interrotta."
 		throw kguo_exception
 	end if
 
 	kuf1_meca_dosim = create kuf_meca_dosim
-	kuf1_sl_pt = create kuf_sl_pt
+	//kuf1_sl_pt = create kuf_sl_pt
 	//kuf1_wm_pklist_testa = create kuf_wm_pklist_testa
 	
 //--- se tutto ok, proseguo
 	declare CURS_CERT_1_1 cursor for
-			 select  ARTR.NUM_CERTIF,
-						MECA.NUM_INT,
-						MECA.DATA_INT,
-						min(ARTR.DATA_IN),
-						max(ARTR.DATA_FIN),
-						sum(ARTR.COLLI),
-						MECA.ID,
-						MECA.NUM_BOLLA_IN,
-						MECA.DATA_BOLLA_IN,
-						MECA.CLIE_1,
-						MECA.CLIE_2,
-						MECA.CLIE_3,
-						MECA.CONTRATTO, 
-					  cert_forza_stampa
-					   ,MECA.id_wm_pklist
-				from artr inner join armo on
-					  artr.id_armo = armo.id_armo
-							  inner join MECA on
-						ARMO.id_meca = MECA.id  
-				 where
-						ARTR.num_certif = :kst_tab_certif.num_certif 
+		  select ARTR.NUM_CERTIF,
+				   MECA.NUM_INT,
+				   MECA.DATA_INT,
+					trim(MAX(armo.cod_sl_pt)),
+					min(ARTR.DATA_IN),
+					max(ARTR.DATA_FIN),
+					sum(ARTR.COLLI),
+					max(isnull(ARTR.impianto,2)),
+					MECA.ID,
+					MECA.NUM_BOLLA_IN,
+					MECA.DATA_BOLLA_IN,
+					MECA.CLIE_1,
+					MECA.CLIE_2,
+					MECA.CLIE_3,
+					MECA.CONTRATTO, 
+					cert_forza_stampa
+					,MECA.id_wm_pklist
+				from artr inner join armo on artr.id_armo = armo.id_armo
+							 inner join MECA on ARMO.id_meca = MECA.id  
+				where ARTR.num_certif = :kst_tab_certif.num_certif 
 				group by
 						ARTR.NUM_CERTIF,
 						MECA.NUM_INT,
@@ -3954,17 +3775,13 @@ try
 						MECA.CONTRATTO, 
 						cert_forza_stampa
 					   ,MECA.id_wm_pklist
-				using sqlca; 
+				using kguo_sqlca_db_magazzino; 
 	
 	open CURS_CERT_1_1;
 
-	if sqlca.sqlcode <> 0 then 
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura dati di Lavorazione Lotto " + kk_descr_operazione + ".~n~r" &
-										+ "(" + trim(SQLCA.SQLErrText) + ")"
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then 
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in accesso ai dati di Lavorazione Lotto " + kk_descr_operazione + ". N. attestato " + string(kst_tab_certif.num_certif))
 		throw kguo_exception
 	end if
 
@@ -3974,9 +3791,11 @@ try
 	fetch CURS_CERT_1_1    into :kst_tab_certif.NUM_CERTIF,
 										 :kst_tab_meca.NUM_INT,
 										 :kst_tab_meca.DATA_INT,
+										 :kst_tab_armo.cod_sl_pt,
 										 :kst_tab_certif.lav_data_ini,
 										 :kst_tab_certif.lav_data_fin,
 										 :kst_tab_certif.colli,
+										 :kst_tab_certif.impianto,
 										 :kst_tab_certif.id_meca,
 										 :kst_tab_meca.NUM_BOLLA_IN,
 										 :kst_tab_meca.DATA_BOLLA_IN,
@@ -3987,22 +3806,9 @@ try
 										 :kst_tab_meca.cert_forza_stampa
 										 ,:kst_tab_meca.id_wm_pklist;
 
-	
-	if sqlca.sqlcode <> 0 then						 
-		close CURS_CERT_1_1;
-		if sqlca.sqlcode = 100 then						 
-			kst_esito.esito = kkg_esito.not_fnd
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "non trovati dati di Lavorazione Lotto " + kk_descr_operazione + ".~n~r" &
-									+ "(" + trim(SQLCA.SQLErrText) + ")"
-		else
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "errore in lettura dati di Lavorazione Lotto " + kk_descr_operazione + ".~n~r" &
-									+ "(" + trim(SQLCA.SQLErrText) + ")"
-		end if					
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+	if kguo_sqlca_db_magazzino.sqlcode <> 0 then						 
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura dati di Lavorazione Lotto " + kk_descr_operazione + ". N. attestato " + string(kst_tab_certif.num_certif))
 		throw kguo_exception
 	end if
 			
@@ -4010,36 +3816,34 @@ try
 	declare crea_certif_amo cursor for
 			select distinct armo.dose
 					from artr inner join armo on
-							  artr.id_armo = armo.id_armo
+						  artr.id_armo = armo.id_armo
 					where 
 							ARTR.num_certif = :kst_tab_certif.num_certif   
-					using sqlca; 
+					using kguo_sqlca_db_magazzino; 
 
 	open crea_certif_amo;
-	if sqlca.sqlcode <> 0 then		
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in apertura tabella dati riga di Lavorazione Lotto " + kk_descr_operazione + ".~n~r" &
-										+ "(" + trim(SQLCA.SQLErrText) + ")"
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+	if kguo_sqlca_db_magazzino.sqlcode <> 0 then		
+		
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in accesso dati riga di Entrata Lotto " + kk_descr_operazione + ". N. attestato " + string(kst_tab_certif.num_certif))
 		throw kguo_exception
+
 	end if		
+	
 	k_cursor_crea_certif_amo = true	
 	fetch crea_certif_amo into :kst_tab_certif.dose;
-	if sqlca.sqlcode = 0 then						 
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then						 
 		if kst_tab_meca.cert_forza_stampa <> '1' then 
 			fetch crea_certif_amo into :kst_tab_armo.dose;
-//--- situazione ambigua, + dosi presenti, non so quale dose pigliare						
-			if sqlca.sqlcode = 0 then						 
-				kst_esito.esito = kkg_esito.bug
-				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = &
-					"attenzione " + kk_descr_operazione + " poichè contiene Pianificazioni per DOSI diverse,~n~r" &
-					+ "per la generazione eseguire prima la funzione di 'Forza Stampa Attestato'.~n~r" &
 
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+//--- situazione ambigua, + dosi presenti, non so quale dose pigliare						
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then	
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Attenzione operazione bloccata " + kk_descr_operazione + ". " &
+							+ kkg.acapo + "L'attestato " + string(kst_tab_certif.num_certif) &
+							+ " contiene Pianificazioni per DOSI diverse. " &
+							+ kkg.acapo + "Prima di proseguire è necessario fare il 'Forza Stampa Attestato'.")
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_internal_bug
 				throw kguo_exception
 			end if
 		end if
@@ -4048,121 +3852,100 @@ try
 //--- Get delle NOTE 
 	crea_certif_set_note(kst_tab_certif)
 
-//--- get del codice PT
-	select MAX(armo.cod_sl_pt)
-			into :kst_tab_armo.cod_sl_pt
-			 from artr inner join armo on
-								artr.id_armo = armo.id_armo 
-			 where
-					ARTR.num_certif    = :kst_tab_certif.num_certif 
-			using kguo_sqlca_db_magazzino;
-			
-	if sqlca.sqlcode <> 0 then						 
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-			"Errore in lettura codice PT utilizzato " + kk_descr_operazione + ". " &
-			+ "~n~r" &
-			+ "(" + trim(SQLCA.SQLErrText) + ")"
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
+//--- Get dei flag che indicano alcuni dati mettere in stampa 
+	crea_certif_get_dati_x_st(kst_tab_certif, kst_tab_meca, kst_tab_armo)
 
-//--- Leggo Dati Contratto Capitolato Fornitura
-	if isnull(kst_tab_meca.CONTRATTO) or kst_tab_meca.CONTRATTO = 0 then
-		kst_tab_meca.CONTRATTO = 0
-	end if
-	kst_tab_certif.ST_DOSE_MIN = "N"
-	kst_tab_certif.ST_DOSE_MAX = "N"
-	kst_tab_certif.ST_DATA_INI = "N"
-	kst_tab_certif.ST_DATA_FIN = "N"
-	kst_tab_certif.ST_DATI_BOLLA_IN = "N"
-	kst_tab_certif.DOSE_MIN = 0.00
-	kst_tab_certif.DOSE_MAX = 0.00
-
-	if trim(kst_tab_armo.cod_sl_pt) > " " then
-		select  distinct
-						  sl_pt.CERT_ST_DOSE_MIN
-						 ,sl_pt.CERT_ST_DOSE_MAX
-						 ,sl_pt.CERT_ST_DATA_INI
-						 ,sl_pt.CERT_ST_DATA_FIN
-						 into
-							:kst_tab_certif.ST_DOSE_MIN 
-							,:kst_tab_certif.ST_DOSE_MAX 
-							,:kst_tab_certif.ST_DATA_INI 
-							,:kst_tab_certif.ST_DATA_FIN 
-						from sl_pt
-						 where
-							sl_pt.cod_sl_pt = :kst_tab_armo.cod_sl_pt 
-						using kguo_sqlca_db_magazzino;
-	end if
-	if kst_tab_meca.CONTRATTO > 0 then
-		select distinct 
-						 CONTRATTI.CERT_ST_DATI_BOLLA_IN
-						 into
-							:kst_tab_certif.ST_DATI_BOLLA_IN 
-						from CONTRATTI
-						 where
-							CONTRATTI.CODICE = :kst_tab_meca.CONTRATTO 
-						using kguo_sqlca_db_magazzino;
-	end if
-	if sqlca.sqlcode <> 0 then						 
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-			"errore in lettura indicazioni dei dati da esporre " + kk_descr_operazione + "." &
-			+ "~n~r" &
-			+ "(" + trim(SQLCA.SQLErrText) + ")"
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
+//--- Verifica dose MIN-MAX 
+	crea_certif_verifica_dosi(kst_tab_certif, kuf1_meca_dosim, kst_tab_armo)
 	
-//--- Dose MINIMA letta (corretto con eventuale fattore di correlazione)
-	kst_tab_sl_pt_MIN.cod_sl_pt = kst_tab_armo.cod_sl_pt
-	kuf1_sl_pt.get_dosetgminfattcorr_ifattivo(kst_tab_sl_pt_MIN)    // get fattore correzione x il minimo
-	kst_tab_meca_dosim.id_meca = kst_tab_certif.id_meca
-	kuf1_meca_dosim.get_dosim_dose_min(kst_tab_meca_dosim) // get dose minima del lotto
-	kst_tab_certif.DOSE_MIN = kst_tab_meca_dosim.dosim_dose * kst_tab_sl_pt_MIN.dosetgminfattcorr 
-	kst_tab_certif.DOSE_MIN = Round(kst_tab_certif.DOSE_MIN, 1) // arrotonda a 1 decimale come standard E1
-	
-//--- Dose MASSIMA letta (corretto con eventuale fattore di correlazione)
-	kst_tab_sl_pt_MAX.cod_sl_pt = kst_tab_armo.cod_sl_pt
-	k_maxfattcorr_attivo = kuf1_sl_pt.get_dosetgmaxfattcorr_ifattivo(kst_tab_sl_pt_MAX)  // get fattore correzione x il massimo
-//19-07-2016 su richiesta di REZIO set DOSE MINIMA al posto della MASSIMA se il FATTORE di CORRELAZIONE MAX è > zero!!!!!!!
-	kst_tab_meca_dosim.id_meca = kst_tab_certif.id_meca
-	//if kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 1.00 or kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 0.00 then
-	if not k_maxfattcorr_attivo or kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 0.00 then
-		kuf1_meca_dosim.get_dosim_dose_max(kst_tab_meca_dosim)  // get dose max (tra le massime inserite) del lotto
-		kst_tab_certif.DOSE_MAX = kst_tab_meca_dosim.dosim_dose
-	else
-		kuf1_meca_dosim.get_dosim_dosemax_min(kst_tab_meca_dosim)  // get dose max (tra le minime inserite) del lotto  10-4-2017
-//		kuf1_meca_dosim.get_dosim_dose_min(kst_tab_meca_dosim) // get dose minima del lotto  19-07-2016
-		kst_tab_certif.DOSE_MAX = kst_tab_meca_dosim.dosim_dose * kst_tab_sl_pt_MAX.dosetgmaxfattcorr 
-	end if
-	kst_tab_certif.DOSE_MAX = Round(kst_tab_certif.DOSE_MAX, 1) // arrotonda a 1 decimale come standard E1
-										
-//--- Acchiappo dose minima e max dal SL-PT se necessario
-	if kst_tab_certif.DOSE_MIN > 0 and kst_tab_certif.DOSE_MAX > 0 then
-	else
-		select (SL_PT.DOSE_MIN), (SL_PT.DOSE_MAX)
-				into :kst_tab_sl_pt_MIN.dose, :kst_tab_sl_pt_MAX.dose	
-				 from sl_pt
-				 where sl_pt .cod_sl_pt = :kst_tab_armo.cod_sl_pt
-				using kguo_sqlca_db_magazzino;	
-
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			kst_tab_sl_pt_MIN.DOSE = 0.00
-			kst_tab_sl_pt_MAX.DOSE = 0.00
-		end if
-		if kst_tab_sl_pt_MIN.DOSE > 0 and kst_tab_certif.DOSE_MIN = 0.00 then
-			kst_tab_certif.DOSE_MIN = kst_tab_sl_pt_MIN.DOSE 
-		end if
-		if kst_tab_sl_pt_MAX.DOSE > 0 and kst_tab_certif.DOSE_MAX = 0.00 then
-			kst_tab_certif.DOSE_MAX = kst_tab_sl_pt_MAX.DOSE 
-		end if
-	end if  
+////--- Leggo Dati Contratto Capitolato Fornitura
+//	if isnull(kst_tab_meca.CONTRATTO) or kst_tab_meca.CONTRATTO = 0 then
+//		kst_tab_meca.CONTRATTO = 0
+//	end if
+//	kst_tab_certif.ST_DOSE_MIN = "N"
+//	kst_tab_certif.ST_DOSE_MAX = "N"
+//	kst_tab_certif.ST_DATA_INI = "N"
+//	kst_tab_certif.ST_DATA_FIN = "N"
+//	kst_tab_certif.ST_DATI_BOLLA_IN = "N"
+//	kst_tab_certif.DOSE_MIN = 0.00
+//	kst_tab_certif.DOSE_MAX = 0.00
+//
+//	if trim(kst_tab_armo.cod_sl_pt) > " " then
+//		select  distinct
+//						  sl_pt.CERT_ST_DOSE_MIN
+//						 ,sl_pt.CERT_ST_DOSE_MAX
+//						 ,sl_pt.CERT_ST_DATA_INI
+//						 ,sl_pt.CERT_ST_DATA_FIN
+//						 into
+//							:kst_tab_certif.ST_DOSE_MIN 
+//							,:kst_tab_certif.ST_DOSE_MAX 
+//							,:kst_tab_certif.ST_DATA_INI 
+//							,:kst_tab_certif.ST_DATA_FIN 
+//						from sl_pt
+//						 where
+//							sl_pt.cod_sl_pt = :kst_tab_armo.cod_sl_pt 
+//						using kguo_sqlca_db_magazzino;
+//	end if
+//	if kst_tab_meca.CONTRATTO > 0 then
+//		select distinct 
+//						 CONTRATTI.CERT_ST_DATI_BOLLA_IN
+//						 into
+//							:kst_tab_certif.ST_DATI_BOLLA_IN 
+//						from CONTRATTI
+//						 where
+//							CONTRATTI.CODICE = :kst_tab_meca.CONTRATTO 
+//						using kguo_sqlca_db_magazzino;
+//	end if
+//	if kguo_sqlca_db_magazzino.sqlcode <> 0 then		
+//		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+//						"Errore in lettura delle Indicazioni dei Dati da Esporre " + kk_descr_operazione + ". N. attestato " + string(kst_tab_certif.num_certif))
+//		throw kguo_exception
+//	end if
+//	
+////--- Dose MINIMA letta (corretto con eventuale fattore di correzione)
+//	kst_tab_sl_pt_MIN.cod_sl_pt = kst_tab_armo.cod_sl_pt
+//	kuf1_sl_pt.get_dosetgminfattcorr_ifattivo(kst_tab_sl_pt_MIN)    // get fattore correzione x il minimo
+//	kst_tab_meca_dosim.id_meca = kst_tab_certif.id_meca
+//	kuf1_meca_dosim.get_dosim_dose_min(kst_tab_meca_dosim) // get dose minima del lotto
+//	kst_tab_certif.DOSE_MIN = kst_tab_meca_dosim.dosim_dose * kst_tab_sl_pt_MIN.dosetgminfattcorr 
+//	kst_tab_certif.DOSE_MIN = Round(kst_tab_certif.DOSE_MIN, 1) // arrotonda a 1 decimale come standard E1
+//	
+////--- Dose MASSIMA letta (corretto con eventuale fattore di correzione)
+//	kst_tab_sl_pt_MAX.cod_sl_pt = kst_tab_armo.cod_sl_pt
+//	k_maxfattcorr_attivo = kuf1_sl_pt.get_dosetgmaxfattcorr_ifattivo(kst_tab_sl_pt_MAX)  // get fattore correzione x il massimo
+////19-07-2016 su richiesta di REZIO set DOSE MINIMA al posto della MASSIMA se il FATTORE di CORREZIONE MAX è > zero!!!!!!!
+//	kst_tab_meca_dosim.id_meca = kst_tab_certif.id_meca
+//	//if kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 1.00 or kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 0.00 then
+//	if not k_maxfattcorr_attivo or kst_tab_sl_pt_MAX.dosetgmaxfattcorr = 0.00 then
+//		kuf1_meca_dosim.get_dosim_dose_max(kst_tab_meca_dosim)  // get dose max (tra le massime inserite) del lotto
+//		kst_tab_certif.DOSE_MAX = kst_tab_meca_dosim.dosim_dose
+//	else
+//		kuf1_meca_dosim.get_dosim_dosemax_min(kst_tab_meca_dosim)  // get dose max (tra le minime inserite) del lotto  10-4-2017
+////		kuf1_meca_dosim.get_dosim_dose_min(kst_tab_meca_dosim) // get dose minima del lotto  19-07-2016
+//		kst_tab_certif.DOSE_MAX = kst_tab_meca_dosim.dosim_dose * kst_tab_sl_pt_MAX.dosetgmaxfattcorr 
+//	end if
+//	kst_tab_certif.DOSE_MAX = Round(kst_tab_certif.DOSE_MAX, 1) // arrotonda a 1 decimale come standard E1
+//										
+////--- Acchiappo dose minima e max dal SL-PT se necessario
+//	if kst_tab_certif.DOSE_MIN > 0 and kst_tab_certif.DOSE_MAX > 0 then
+//	else
+//		select (SL_PT.DOSE_MIN), (SL_PT.DOSE_MAX)
+//				into :kst_tab_sl_pt_MIN.dose, :kst_tab_sl_pt_MAX.dose	
+//				 from sl_pt
+//				 where sl_pt .cod_sl_pt = :kst_tab_armo.cod_sl_pt
+//				using kguo_sqlca_db_magazzino;	
+//
+//		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+//			kst_tab_sl_pt_MIN.DOSE = 0.00
+//			kst_tab_sl_pt_MAX.DOSE = 0.00
+//		end if
+//		if kst_tab_sl_pt_MIN.DOSE > 0 and kst_tab_certif.DOSE_MIN = 0.00 then
+//			kst_tab_certif.DOSE_MIN = kst_tab_sl_pt_MIN.DOSE 
+//		end if
+//		if kst_tab_sl_pt_MAX.DOSE > 0 and kst_tab_certif.DOSE_MAX = 0.00 then
+//			kst_tab_certif.DOSE_MAX = kst_tab_sl_pt_MAX.DOSE 
+//		end if
+//	end if  
 	
 //--- Get della data del CERTIFICATO da stampare
 	kst_tab_meca_dosim.id_meca = kst_tab_certif.id_meca
@@ -4177,10 +3960,11 @@ try
 
 
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	kst_esito.sqlerrtext = "Preparazione dati Attestato n. " + string(kst_tab_certif.num_certif) + ": " + kst_esito.sqlerrtext
-	kGuf_data_base.errori_scrivi_esito("W", kst_esito) 
-	kuo_exception.set_esito(kst_esito)
+//	kst_esito = kuo_exception.get_st_esito()
+//	kst_esito.sqlerrtext = "Preparazione dati Attestato n. " + string(kst_tab_certif.num_certif) + ": " + kst_esito.sqlerrtext
+//	kGuf_data_base.errori_scrivi_esito("W", kst_esito) 
+//	kuo_exception.set_esito(kst_esito)
+	kuo_exception.scrivi_log()
 	throw kuo_exception
 
 finally
@@ -4192,7 +3976,7 @@ finally
 	end if
 
 	if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
-	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
+	//if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
 
 end try 
 
@@ -4257,6 +4041,301 @@ return k_return
 
 
 end function
+
+public function long get_num_certif (ref st_tab_certif kst_tab_certif) throws uo_exception;/*
+  Torna il Numero del Certificato da ID_MECA
+  Inp: st_tab_certif.id_meca
+  Rit: numero attestato
+*/
+long k_return 
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+//--- x numero certificato			
+	SELECT certif.num_certif
+		into :kst_tab_certif.num_certif  
+		FROM certif  
+		where id_meca  = :kst_tab_certif.id_meca
+		using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura del Numero Attestato per Id Lotto " + string(kst_tab_certif.id_meca))
+		throw kguo_exception
+	end if
+
+	if kst_tab_certif.num_certif > 0 then
+		k_return = kst_tab_certif.num_certif
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_certif.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_certif.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return 
+
+
+end function
+
+public function boolean if_stampato (readonly st_tab_certif ast_tab_certif) throws uo_exception;/*
+ Controlla se Attestato stampato da id
+	 Inp: st_tab_certif.id
+	 Out: TRUE = stampato definitivamente
+*/
+boolean k_return 
+st_tab_certif kst_tab_certif
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_certif = ast_tab_certif
+	if this.get_data_stampa(kst_tab_certif) > kkg.data_no then
+		k_return = true
+	end if
+
+return k_return
+
+
+
+end function
+
+public function date get_data_stampa (ref st_tab_certif ast_tab_certif) throws uo_exception;/*
+ Torna DATA e ORA di STAMPA del Certificato
+	 Inp: st_tab_certif.num_certif
+	 Out: st_tab_certif.data_stampa, ora_stampa
+	 Rit: data stampa
+*/
+date k_return 
+
+
+	kguo_exception.inizializza(this.classname())
+
+//--- x numero certificato			
+	SELECT
+				certif.data_stampa
+				,certif.ora_stampa
+			into
+		       :ast_tab_certif.data_stampa  
+				,:ast_tab_certif.ora_stampa
+			FROM certif  
+			where 
+			    num_certif  = :ast_tab_certif.num_certif
+				 using  kguo_sqlca_db_magazzino ;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Errore in ricerca Data Stampa Attestato n. " + string(ast_tab_certif.num_certif))		
+			throw kguo_exception
+	end if			
+	
+	if ast_tab_certif.data > date(0) then
+		k_return = ast_tab_certif.data
+	else
+		k_return = date(0)
+	end if
+	if ast_tab_certif.data > date(0) then
+		k_return = ast_tab_certif.data
+	else
+		k_return = date(0)
+	end if
+	
+
+return k_return
+
+
+end function
+
+private subroutine crea_certif_verifica_dosi (ref st_tab_certif ast_tab_certif, ref kuf_meca_dosim auf1_meca_dosim, readonly st_tab_armo ast_tab_armo) throws uo_exception;/*
+  Generazione Attestato: Verifica DOSE Minima-Massima come indicato nel PT
+ 		Inp: st_tab_certif il Numero di certificato
+		     ...
+  		Out: st_tab_certif con l'area valorizzata
+*/
+boolean k_minMINfattcorr_attivo
+boolean k_maxMINfattcorr_attivo
+boolean k_minMAXfattcorr_attivo
+boolean k_maxMAXfattcorr_attivo
+st_tab_meca_dosim kst_tab_meca_dosim
+st_tab_certif kst_tab_certif_MAX
+st_tab_sl_pt kst_tab_sl_pt
+kuf_sl_pt kuf1_sl_pt
+constant string kk_descr_operazione = "durante la generazione dell'Attestato" //~n~r"
+
+
+try
+	kuf1_sl_pt = create kuf_sl_pt
+
+	ast_tab_certif.DOSE_MIN = 0.00
+	ast_tab_certif.DOSE_MAX = 0.00
+	kst_tab_certif_MAX.DOSE_MIN = 0.00
+	kst_tab_certif_MAX.DOSE_MAX = 0.00
+
+	kst_tab_meca_dosim.id_meca = ast_tab_certif.id_meca
+	
+//--- Dose MINIMA letta tra i Minimi (corretto con eventuale fattore di correzione)
+	kst_tab_sl_pt.impianto = ast_tab_certif.impianto
+	kst_tab_sl_pt.cod_sl_pt = ast_tab_armo.cod_sl_pt
+	k_minMINfattcorr_attivo = kuf1_sl_pt.get_dosetgminfattcorr_ifattivo(kst_tab_sl_pt)    // get fattore correzione x il minimo tra i Minimi
+//--- Dose MASSIMA letta tra i Minimi (corretto con eventuale fattore di correzione)
+	kst_tab_sl_pt.impianto = ast_tab_certif.impianto
+	kst_tab_sl_pt.cod_sl_pt = ast_tab_armo.cod_sl_pt
+	k_maxMINfattcorr_attivo = kuf1_sl_pt.get_dosetgmaxfattcorr_ifattivo(kst_tab_sl_pt)  // get fattore correzione x il Massimo tra i Minimi
+//--- Dose MINIMA letta tra i Massimi (corretto con eventuale fattore di correzione)
+	kst_tab_sl_pt.impianto = ast_tab_certif.impianto
+	kst_tab_sl_pt.cod_sl_pt = ast_tab_armo.cod_sl_pt
+	k_minMAXfattcorr_attivo = kuf1_sl_pt.get_dosetgminfattcorr_MAX_ifattivo(kst_tab_sl_pt) 	   // get fattore correzione x il minimo tra i Massimi
+//--- Dose MASSIMA letta tra i Massimi (corretto con eventuale fattore di correzione)
+	kst_tab_sl_pt.impianto = ast_tab_certif.impianto
+	kst_tab_sl_pt.cod_sl_pt = ast_tab_armo.cod_sl_pt
+	k_maxMAXfattcorr_attivo = kuf1_sl_pt.get_dosetgmaxfattcorr_MAX_ifattivo(kst_tab_sl_pt) 		 // get fattore correzione x il Massimo tra il Massimo
+
+//--- get delle DOSI caricare nei DOSIMETRI
+	auf1_meca_dosim.get_dosim_dose_min(kst_tab_meca_dosim) 			  // get dose minima del lotto tra le Minime
+	ast_tab_certif.DOSE_MIN = kst_tab_meca_dosim.dosim_dose
+
+	auf1_meca_dosim.get_dosim_dose_max(kst_tab_meca_dosim) 			  // get dose massima del lotto tra le Minime
+	ast_tab_certif.DOSE_MAX = kst_tab_meca_dosim.dosim_dose
+
+	auf1_meca_dosim.get_dosim_dose_min_MAX(kst_tab_meca_dosim) 		  // get dose minima del lotto tra le Massime
+	kst_tab_certif_MAX.DOSE_MIN = kst_tab_meca_dosim.dosim_dose 
+
+	auf1_meca_dosim.get_dosim_dose_max_MAX(kst_tab_meca_dosim) 		 // get dose massima del lotto tra le Massime
+	kst_tab_certif_MAX.DOSE_MAX = kst_tab_meca_dosim.dosim_dose
+
+//--- Acchiappo dose minima e max dal PIANO 
+	kuf1_sl_pt.get_dose_min_max(kst_tab_sl_pt)    
+
+//--- Imposta la DOSE MINIMA su Attestato
+	choose case true 
+		case k_minMINfattcorr_attivo and ast_tab_certif.DOSE_MIN > 0
+			ast_tab_certif.DOSE_MIN = Round(ast_tab_certif.DOSE_MIN * kst_tab_sl_pt.dosetgminfattcorr, 1) 
+		case ast_tab_certif.DOSE_MIN > 0
+			ast_tab_certif.DOSE_MIN = Round(ast_tab_certif.DOSE_MIN, 1) 
+		case else
+			if k_minMAXfattcorr_attivo and kst_tab_certif_MAX.DOSE_MIN > 0 then
+				ast_tab_certif.DOSE_MIN = Round(kst_tab_certif_MAX.DOSE_MIN * kst_tab_sl_pt.dosetgminfattcorr_MAX, 1) 
+			end if
+	end choose
+
+//--- Imposta la DOSE MASSIMA su Attestato
+	choose case true
+		case k_maxMAXfattcorr_attivo and kst_tab_certif_MAX.DOSE_MAX > 0
+			ast_tab_certif.DOSE_MAX = Round(kst_tab_certif_MAX.DOSE_MAX * kst_tab_sl_pt.dosetgmaxfattcorr_MAX, 1) 
+		case kst_tab_certif_MAX.DOSE_MAX > 0
+			ast_tab_certif.DOSE_MAX = Round(kst_tab_certif_MAX.DOSE_MAX, 1) 
+		case else
+			if k_maxMINfattcorr_attivo then
+				if ast_tab_certif.DOSE_MAX > 0 then
+					ast_tab_certif.DOSE_MAX = Round(ast_tab_certif.DOSE_MAX * kst_tab_sl_pt.dosetgmaxfattcorr, 1) 
+				end if
+			else
+				ast_tab_certif.DOSE_MAX = Round(kst_tab_sl_pt.dose_max, 1) 
+			end if
+	end choose
+										
+//--- Se ancota tutto a zero metto dose minima e max dal SL-PT 
+	if ast_tab_certif.DOSE_MIN > 0 and ast_tab_certif.DOSE_MAX > 0 then
+	else
+		if kst_tab_sl_pt.dose_min > 0 and ast_tab_certif.DOSE_MIN = 0.00 then
+			ast_tab_certif.DOSE_MIN = kst_tab_sl_pt.dose_min
+		end if
+		if kst_tab_sl_pt.dose_max > 0 and ast_tab_certif.DOSE_MAX = 0.00 then
+			ast_tab_certif.DOSE_MAX = kst_tab_sl_pt.dose_max 
+		end if
+	end if  
+	
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_sl_pt) then destroy kuf1_sl_pt
+
+end try 
+
+
+
+
+end subroutine
+
+private subroutine crea_certif_get_dati_x_st (ref st_tab_certif ast_tab_certif, ref st_tab_meca ast_tab_meca, ref st_tab_armo ast_tab_armo) throws uo_exception;/*
+  Generazione Attestato: recupera i dati da metetre in stampa
+ 		Inp: st_tab_certif il Numero di certificato
+		     st_tab_meca.CONTRATTO
+			  st_tab_armo.cod_sl_pt
+  		Out: st_tab_certif con l'area valorizzata con i dati ST_....
+*/
+constant string kk_descr_operazione = "durante la generazione dell'Attestato" //~n~r"
+
+
+try
+
+//--- Leggo Indicazione Dati PT e Contratto da mettere in Stampa
+
+	if trim(ast_tab_armo.cod_sl_pt) > " " then
+		select  distinct
+						  isnull(sl_pt.CERT_ST_DOSE_MIN, 'N')
+						 ,isnull(sl_pt.CERT_ST_DOSE_MAX, 'N')
+						 ,isnull(sl_pt.CERT_ST_DATA_INI, 'N')
+						 ,isnull(sl_pt.CERT_ST_DATA_FIN, 'N')
+						 into
+							:ast_tab_certif.ST_DOSE_MIN 
+							,:ast_tab_certif.ST_DOSE_MAX 
+							,:ast_tab_certif.ST_DATA_INI 
+							,:ast_tab_certif.ST_DATA_FIN 
+						from sl_pt
+						 where
+							sl_pt.cod_sl_pt = :ast_tab_armo.cod_sl_pt 
+						using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_certif.ST_DOSE_MIN = "N"
+		ast_tab_certif.ST_DOSE_MAX = "N"
+		ast_tab_certif.ST_DATA_INI = "N"
+		ast_tab_certif.ST_DATA_FIN = "N"
+	end if
+
+	if ast_tab_meca.CONTRATTO > 0 then
+		select distinct 
+			 isnull(CONTRATTI.CERT_ST_DATI_BOLLA_IN, 'N')
+			 into
+					:ast_tab_certif.ST_DATI_BOLLA_IN 
+			from CONTRATTI
+			 where
+					CONTRATTI.CODICE = :ast_tab_meca.CONTRATTO 
+		using kguo_sqlca_db_magazzino;
+	else
+		ast_tab_certif.ST_DATI_BOLLA_IN = "N"
+		ast_tab_meca.CONTRATTO = 0
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode <> 0 then		
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in lettura delle Indicazioni dei Dati da Esporre " + kk_descr_operazione + ". N. attestato " + string(ast_tab_certif.num_certif))
+		throw kguo_exception
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+
+end try 
+
+
+
+
+end subroutine
 
 on kuf_certif.create
 call super::create

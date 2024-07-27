@@ -5,6 +5,8 @@ end type
 end forward
 
 global type w_meca_autorizza from w_g_tab0
+integer width = 2039
+integer height = 2180
 string title = "_"
 boolean ki_reset_dopo_save_ok = false
 boolean ki_consenti_modifica = false
@@ -922,6 +924,9 @@ type cb_inserisci from w_g_tab0`cb_inserisci within w_meca_autorizza
 end type
 
 type dw_dett_0 from w_g_tab0`dw_dett_0 within w_meca_autorizza
+integer x = 0
+integer y = 876
+integer height = 1140
 boolean enabled = true
 string dataobject = "d_meca_1_autorizza"
 boolean hsplitscroll = false

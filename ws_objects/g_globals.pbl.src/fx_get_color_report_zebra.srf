@@ -1,0 +1,40 @@
+﻿$PBExportHeader$fx_get_color_report_zebra.srf
+global type fx_get_color_report_zebra from function_object
+end type
+
+forward prototypes
+global function long fx_get_color_report_zebra (long a_row)
+end prototypes
+
+global function long fx_get_color_report_zebra (long a_row);/*
+ Torna il colore per il tipo di ogetto indicato
+   ad esempio metti nel background delle colonne: fx_get_color_report_zebra(getrow())
+*/
+
+if isvalid(kguo_g) and a_row > 0 then
+
+	if kguo_g.theme_dark then
+		
+		if mod(a_row, 2) = 0 then
+			return kkg_colore.GRIGIO_CHIARO
+		else
+			return -1
+		end if
+
+	else
+
+		if mod(a_row, 2) = 0 then
+			return kkg_colore.GRIGIO_CHIARO
+		else
+			return kkg_colore.BIANCO
+		end if
+	
+	end if
+end if
+
+return -1 // se non trova nulla torna TRASPARENTE
+
+
+
+end function
+

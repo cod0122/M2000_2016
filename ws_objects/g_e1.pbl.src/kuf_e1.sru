@@ -12,10 +12,14 @@ type variables
 string kki_tcicli_mmcu_FILA1 		//Fila 1 da E1 definito come IRRADIATOR A
 string kki_tcicli_mmcu_FILA2 		//Fila 2 da E1 definito come IRRADIATOR B
 string kki_tcicli_mmcu_MISTO 	//File Miste da E1 definito come IRRADIATOR C
+string kki_tcicli_mmcu_4PASS 	//Gamma 3, modalità 4 PASS da E1 definito come IRRADIATOR D
+string kki_tcicli_mmcu_2PASS 	//Gamma 3, modalità 2 PASS da E1 definito come IRRADIATOR E
 
 constant string kk1_lane_fila1 = "A"
 constant string kk1_lane_fila2 = "B"
 constant string kk1_lane_filaMixed = "C"
+constant string kk1_lane_4PASS = "D"
+constant string kk1_lane_2PASS = "E"
 
 end variables
 
@@ -179,7 +183,7 @@ kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
 
 choose case a_campo_link
 
-	case "b_asn", "e1doco", "e1rorn"
+	case "asn", "e1doco", "e1rorn"
 		if ads_link.getrow() > 0 then
 			kst_e1_anteprima.apid = string(ads_link.getitemnumber(ads_link.getrow(), "id_meca"))
 			kst_e1_anteprima.doco = ads_link.getitemnumber(ads_link.getrow(), "e1doco")
@@ -199,7 +203,7 @@ choose case a_campo_link
 			k_return = false
 		end if
 
-	case "b_e1doco_lav"
+	case "e1doco_lav"
 		if ads_link.getrow() > 0 then
 			kst_e1_anteprima.doco = ads_link.getitemnumber(ads_link.getrow(), "e1doco")
 			if isnull(kst_e1_anteprima.doco) then kst_e1_anteprima.doco = 0
@@ -215,7 +219,7 @@ choose case a_campo_link
 			k_return = false
 		end if
 
-	case "b_e1apid_dett"
+	case "e1apid_dett"
 		if ads_link.getrow() > 0 then
 			kst_e1_anteprima.apid = ads_link.getitemstring(ads_link.getrow(), "ehapid")
 			if isnull(kst_e1_anteprima.apid) then kst_e1_anteprima.apid = ""
@@ -255,13 +259,13 @@ if k_return then
 			
 			choose case a_campo_link
 						
-			case "b_asn", "e1doco", "e1rorn"
+			case "asn", "e1doco", "e1rorn"
 				kst_esito = anteprima ( kdsi_elenco_output, kst_e1_anteprima )
 			
-			case "b_e1doco_lav"
+			case "e1doco_lav"
 				kst_esito = anteprima_lav ( kdsi_elenco_output, kst_e1_anteprima )
 			
-			case "b_e1apid_dett"
+			case "e1apid_dett"
 				kst_esito = anteprima_apid ( kdsi_elenco_output, kst_e1_anteprima )
 				
 			end choose
@@ -581,6 +585,9 @@ event constructor;call super::constructor;//
 kki_tcicli_mmcu_FILA1 = trim(kguo_g.E1MCU) + "02" //Fila 1 da E1 definito come IRRADIATOR A
 kki_tcicli_mmcu_FILA2 = trim(kguo_g.E1MCU) + "05"//Fila 2 da E1 definito come IRRADIATOR B
 kki_tcicli_mmcu_MISTO = trim(kguo_g.E1MCU) + "06" //File Miste da E1 definito come IRRADIATOR C
+kki_tcicli_mmcu_4PASS = trim(kguo_g.E1MCU) + "07" //Gamma 3, modalità 4 PASS da E1 definito come IRRADIATOR D
+kki_tcicli_mmcu_2PASS = trim(kguo_g.E1MCU) + "08" //Gamma 3, modalità 2 PASS da E1 definito come IRRADIATOR E
+
 
 end event
 

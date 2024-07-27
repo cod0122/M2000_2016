@@ -45,16 +45,16 @@ choose case a_button
 //		k_return = "barcode_figli"
 		
 	case "b_barcode" 
-		k_return = "b_barcode_lotto"
+		k_return = "barcode_lotto"
 
 	case "b_armo"
 		k_return = "id_armo"
 
 	case "b_arsp" 
-		k_return = "b_arsp_lotto"
+		k_return = "arsp_lotto"
 		
 	case "b_arfa" 
-		k_return = "b_arfa_lotto"
+		k_return = "arfa_lotto"
 		
 	case "b_fatt"
 		k_return = "num_fatt"
@@ -63,7 +63,7 @@ choose case a_button
 //		k_return = "b_fatt_righe"
 		
 	case "b_certif" 
-		k_return = "b_certif_lotto"
+		k_return = "certif_lotto"
 		
 	case "b_cliente" 
 		k_return = "id_cliente" 
@@ -126,27 +126,29 @@ choose case a_button
 //	case "b_flg_dosimetro"  
 //		k_return = "flg_dosimetro"
 
-	case "b_ric_lotto", "b_cap_l",  "b_nazioni_l",  "b_clie_settori",  "b_clie_classi", "b_contab", "b_cliente_mkt", "b_cliente_web", "b_armo_prezzi" & 
-		, "b_arsp_sped", "b_m_r_f", "b_elenco_clienti_del_contatto", "b_wm_pklist_righe", "b_docprod", "b_listino_link_pregruppi", "b_listino_pregruppi"&
-		, "b_contratti", "b_contratti_l" &
-		, "b_meca_causali_l", "b_art_l", "p_memo", "p_memo_link", "b_clienti","p_clienti_memo_elenco", "p_meca_memo_elenco"&
-		, "p_id_memo", "p_id_memo_no" &
-		, "b_arfalistaxcontr", "b_qtna_note" &
-		, "b_barcode_dosim_l", "b_meca_dosim_barcode_l", "b_dosim_lotto_dosim_l" &
-		, "b_asn", "b_e1doco_lav", "b_e1apid_dett", "b_certif_stampa", "b_contratto_doc_dettaglio" &
-		, "p_memo_alarm_certif" &
-		, "p_memo_alarm_ddt" &
-		, "cb_clienti_cntdep_l" &
-		, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
-		, "b_email_rubrica" &
-	   , "b_asdrackbarcode", "b_asdrackbarcode_1" &
-		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print" 
-		k_return = a_button
+//	case "b_ric_lotto", "b_cap_l",  "b_nazioni_l",  "b_clie_settori",  "b_clie_classi", "b_contab", "b_cliente_mkt", "b_cliente_web", "b_armo_prezzi" & 
+//		, "b_arsp_sped", "b_m_r_f", "b_elenco_clienti_del_contatto", "b_wm_pklist_righe", "b_docprod", "b_listino_link_pregruppi", "b_listino_pregruppi"&
+//		, "b_contratti", "b_contratti_l" &
+//		, "b_meca_causali_l", "b_art_l", "p_memo", "p_memo_link", "b_clienti","p_clienti_memo_elenco", "p_meca_memo_elenco"&
+//		, "p_id_memo", "p_id_memo_no" &
+//		, "b_arfalistaxcontr", "b_qtna_note" &
+//		, "b_barcode_dosim_l", "b_meca_dosim_barcode_l", "b_dosim_lotto_dosim_l" &
+//		, "b_asn", "b_e1doco_lav", "b_e1apid_dett", "b_certif_stampa", "b_contratto_doc_dettaglio" &
+//		, "p_memo_alarm_certif" &
+//		, "p_memo_alarm_ddt" &
+//		, "b_clienti_cntdep_l" &
+//		, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
+//		, "b_email_rubrica" &
+//	   , "b_asdrackbarcode", "b_asdrackbarcode_1" &
+//		, "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "b_campionecolli_print" 
+//		k_return = a_button
 		
 		
 	case else
 		if left(a_button,2) = "b_" then
 			k_return = mid(a_button,3)
+		elseif left(a_button,2) = "p_" then
+			k_return = trim(a_button)
 		else
 			k_return = ""
 		end if
@@ -228,13 +230,14 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"path_centrale" &
 					,"dir_fatt" &
 					,"path_file_pilota" &
-					,"clie_1_l" , "clie_2_l", "clie_3_l" &
+					,"b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
 					,"sr_settore_utenti_l", "sr_settore", "id_sr_utente", "id_utenti" &
 					,"n_ptask", "n_ptask_x", "id_ptask" &
 					,"b_asdslpt_l", "p_add_asdtype"  &
 					,"id_asddevice" &
 					,"b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto" & 
-					,"k_hyperlink", "url"
+					,"k_hyperlink", "url" &
+					,"programmi_richieste_id_programma"
 					
 					
 //--- se e' del tipo grid o tabular link sul valore alrimenti sul testo		
@@ -352,6 +355,11 @@ datastore kdsi_elenco_output   //ds da passare alla windows di elenco
 
 if NOT isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore //destroy kdsi_elenco_output
 
+if left(a_nome_link, 2) = "b_" then // se è in 'pulsante' allora getta via il prefisso 'b_'
+	a_nome_link = trim(mid(a_nome_link, 2))
+else
+	a_nome_link = trim(a_nome_link)
+end if
 k_len = get_len_nome(a_nome_link)
 k_nome_link = mid(a_nome_link, 1, k_len)
 
@@ -359,28 +367,29 @@ choose case k_nome_link
 		
 	case "barcode", "barcode_t", "barcode_lav" &
 		,"barcode_figli", "barcode_figli_t" &
-		,"b_barcode_lotto" &
+		,"barcode_lotto" &
 		,"grp"
 		kuf1_parent = create using "kuf_barcode_tree"
 		
-	case "num_int", "num_int_t", "id_meca", "b_armo", "id_armo", "id_meca_righe", "b_armo_prezzi", "id_armo_prezzo", "p_meca_memo_elenco" &
-			, "b_armo_prezzi_xstato", "meca_id", "lotto_id" &
+	case "num_int", "num_int_t", "id_meca", "armo", "id_armo", "id_meca_righe", "armo_prezzi", "id_armo_prezzo", "p_meca_memo_elenco" &
+			, "armo_prezzi_xstato", "meca_id", "lotto_id" &
 			, "meca_1_print"
 		kuf1_parent = create using "kuf_armo_tree"
 
-	case "b_qtna_note"
+	case "qtna_note"
 		kuf1_parent = create using "kuf_meca_qtna"
 		
-	case "b_arfa_lotto", "num_fatt", "b_fatt_righe", "b_arfalistaxcontr"
+	case "arfa_lotto", "num_fatt", "fatt_righe", "arfalistaxcontr"
 		kuf1_parent = create using "kuf_fatt"
 
-	case "b_arsp_lotto", "b_arsp_sped", "num_bolla_out", "num_bolla_out_1", "arsp_insped", "id_sped"
+	case "arsp_lotto", "arsp_sped", "num_bolla_out", "num_bolla_out_1", "arsp_insped", "id_sped"
 		kuf1_parent = create using "kuf_sped"
 		
-	case "clie", "cod_cli", "id_cliente", "id_cliente_1", "id_cliente_link", "b_cliente_mkt", "b_cliente_web", "b_m_r_f", "id_contatto", "b_elenco_clienti_del_contatto" &    
-			,"email", "sito_web", "b_clienti", "p_clienti_memo_elenco" &
-			, "b_clie_1_l" , "b_clie_2_l", "b_clie_3_l" &
-			, "clie_1_l" , "clie_2_l", "clie_3_l" 
+	case "clie", "cod_cli", "id_cliente", "id_cliente_1", "id_cliente_link" &
+			, "cliente_mkt", "cliente_web", "m_r_f", "id_contatto", "elenco_clienti_del_contatto" &
+			, "email", "sito_web" &
+			, "clienti", "p_clienti_memo_elenco" &
+			, "clie_1_l", "clie_2_l", "clie_3_l" 
 		kuf1_parent = create using "kuf_clienti"
 		
 	case "id_contratto_rd" 
@@ -389,12 +398,12 @@ choose case k_nome_link
 	case "id_contratto_co" 
 		kuf1_parent = create using "kuf_contratti_co"
 		
-	case "id_contratto_doc", "b_contratto_doc_dettaglio" 
+	case "id_contratto_doc", "contratto_doc_dettaglio" 
 		kuf1_parent = create using "kuf_contratti_doc"
 		
 	case "num_certif"  &
-			,"b_certif_lotto" &
-			,"b_certif_stampa"
+			,"certif_lotto" &
+			,"certif_stampa"
 		kuf1_parent = create using "kuf_certif"
 		
 	case "cod_sl_pt", "sl_pt", "sl_pt_dosimpos", "sl_pt_dosimpos_g3"
@@ -408,16 +417,18 @@ choose case k_nome_link
 			,"listino_id_parent"
 		kuf1_parent = create using "kuf_listino"
 
-	case "b_listino_link_pregruppi" 
+	case "listino_link_pregruppi" 
 		kuf1_parent = create using "kuf_listino_link_pregruppi"
 
-	case "b_listino_pregruppi", "id_listino_pregruppo" 
+	case "listino_pregruppi", "id_listino_pregruppo" 
 		kuf1_parent = create using "kuf_listino_pregruppo"
 
-	case "contratto", "mc_co", "contratti_codice",  "sc_cf", "cf", "b_contratti", "b_contratti_l", "id_contratto"
+	case "contratto", "mc_co", "contratti_codice",  "sc_cf", "cf" &
+		, "contratti", "contratti_l" &
+		, "id_contratto"
 		kuf1_parent = create using "kuf_contratti"
 
-	case "art", "cod_art", "b_art_l"
+	case "art", "cod_art", "art_l"
 		kuf1_parent = create using "kuf_prodotti"
 
 	case "x_utente" &
@@ -429,19 +440,19 @@ choose case k_nome_link
 		, "id_sr_utente", "id_utenti" 
 		kuf1_parent = create using "kuf_sr_sicurezza"
 
-	case "id_ric", "b_ric_lotto" 
+	case "id_ric", "ric_lotto" 
 		kuf1_parent = create using "kuf_ricevute"
 		
-	case "b_contab" 
+	case "contab" 
 		kuf1_parent = create using "kuf_prof"
 
-	case "id_wm_pklist", "b_wm_pklist_righe", "id_wm_pklist_riga", "id_wm_pklist_padre", "idpkl"
+	case "id_wm_pklist", "wm_pklist_righe", "id_wm_pklist_riga", "id_wm_pklist_padre", "idpkl"
 		kuf1_parent = create using "kuf_wm_pklist"
 
 	case "esito_operazioni_ts_operazione" 
 		kuf1_parent = create using "kuf_esito_operazioni"
 
-	case "id_docprod", "b_docprod", "id_docprod_file" 
+	case "id_docprod", "docprod", "id_docprod_file" 
 		kuf1_parent = create using "kuf_docprod"
 
 	case "p_memo", "id_memo", "p_id_memo_no", "p_id_memo", "p_memo_x"
@@ -456,15 +467,16 @@ choose case k_nome_link
 	case "p_memo_link", "id_memo_link"
 		kuf1_parent = create using "kuf_memo_link"
 		
-	case "b_barcode_dosim_l", "b_meca_dosim_barcode_l", "meca_dosim_barcode" &
-			, "b_meca_dosim_barcode", "flg_dosimetro" 
+	case "barcode_dosim_l", "meca_dosim_barcode_l" &
+			, "meca_dosim_barcode" &
+			, "flg_dosimetro" 
 		kuf1_parent = create using "kuf_meca_dosim"
 
-	case "b_cap_l", "b_clie_settori", "b_clie_classi", "b_nazioni_l", "gruppo", "id_clie_settore" &
-			,"b_meca_causali_l", "b_dosim_lotto_dosim_l" 
+	case "cap_l", "clie_settori", "clie_classi", "nazioni_l", "gruppo", "id_clie_settore" &
+			,"meca_causali_l", "dosim_lotto_dosim_l" 
 		kuf1_parent = create using "kuf_ausiliari"
 
-	case "b_asn", "e1doco", "e1rorn", "b_e1doco_lav", "b_e1apid_dett"
+	case "asn", "e1doco", "e1rorn", "e1doco_lav", "e1apid_dett"
 		kuf1_parent = create using "kuf_e1"
 		
 	case "packinglistcode"
@@ -473,7 +485,7 @@ choose case k_nome_link
 	case "meca_reportpilota_id_meca"
 		kuf1_parent = create using "kuf_meca_reportpilota"
 		
-	case "cb_clienti_cntdep_l"
+	case "clienti_cntdep_l"
 		kuf1_parent = create using "kuf_clienti_cntdep"
 		
 	case "sv_eventi_sked"
@@ -496,21 +508,24 @@ choose case k_nome_link
 	case "meca_ddt_in_view_all", "meca_ddt_in_add"
 		kuf1_parent = create using "kuf_meca_ddt_in"
 		
-	case "b_email_rubrica"
+	case "email_rubrica"
 		kuf1_parent = create using "kuf_email_invio"
 		
 	case "n_ptask", "n_ptask_x", "id_ptask"
 		kuf1_parent = create using "kuf_ptasks"
 		
-	case "b_asdrackbarcode", "b_asdrackbarcode_1" &
+	case "asdrackbarcode", "asdrackbarcode_1" &
 	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode"
 		kuf1_parent = create using "kuf_asd_zoom"
 		
-	case "b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto", "b_campionecolli_print"
+	case "armo_colli_campioni_barcode_lav", "armo_colli_campioni", "campionecolli_lotto", "campionecolli_print"
 		kuf1_parent = create using "kuf_armo_campioni"
 		
 	case "k_hyperlink", "url_cust_packing_in", "url"
 		kuf1_parent = create using "kuf_webbrowser"
+		
+	case "programmi_richieste_id_programma"
+		kuf1_parent = create using "kuf_plav_programmi"
 
 	case else
 		k_return = false

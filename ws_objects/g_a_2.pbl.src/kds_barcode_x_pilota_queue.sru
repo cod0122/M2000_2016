@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kds_barcode_x_pilota_queue.sru
 forward
-global type kds_barcode_x_pilota_queue from kds_db_magazzino
+global type kds_barcode_x_pilota_queue from ds_db_magazzino_parent
 end type
 end forward
 
-global type kds_barcode_x_pilota_queue from kds_db_magazzino
+global type kds_barcode_x_pilota_queue from ds_db_magazzino_parent
 string dataobject = "ds_barcode_x_pilota_queue"
 end type
 global kds_barcode_x_pilota_queue kds_barcode_x_pilota_queue
@@ -28,14 +28,9 @@ int k_rc, k_idx, k_idx_max, k_idx_20, k_riga_find, k_riga, k_righe, k_ctr, k_ctr
 st_tab_e1_asn kst_tab_e1_asn
 st_esito kst_esito
 
-try
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-	this.db_connetti( )
-	
+try 
+	kst_esito = kguo_exception.inizializza(this.classname())
+
 	k_idx_max = upperbound(ast_tab_barcode)
 
 	for k_idx = 1 to k_idx_max step 999

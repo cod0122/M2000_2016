@@ -560,6 +560,7 @@ type st_duplica from w_g_tab0`st_duplica within w_pl_barcode_l
 end type
 
 type dw_data from uo_d_std_1 within w_pl_barcode_l
+event u_button_ok ( )
 integer x = 1216
 integer y = 444
 integer width = 827
@@ -574,7 +575,17 @@ boolean controlmenu = true
 string icon = "Information!"
 boolean hsplitscroll = false
 boolean livescroll = false
+boolean ki_dw_visibile_in_open_window = false
 end type
+
+event u_button_ok();//
+	
+	this.visible = false
+	this.accepttext( )
+	ki_data_ini  = this.getitemdate( 1, "kdata")
+	inizializza()
+
+end event
 
 event buttonclicked;call super::buttonclicked;//
 st_stampe kst_stampe
@@ -587,11 +598,7 @@ oldpointer = SetPointer(HourGlass!)
 
 if dwo.name = "b_ok" then
 	
-	
-	this.visible = false
-	
-	ki_data_ini  = this.getitemdate( 1, "kdata")
-	inizializza()
+	this.event u_button_ok()
 
 else
 	if dwo.name = "b_annulla" then
@@ -621,5 +628,10 @@ int k_rc
 	k_rc = this.setitem(1, "kdata", ki_data_ini)
 	this.visible = true
 	this.setfocus()
+end event
+
+event u_pigiato_enter;//
+	this.event u_button_ok()
+
 end event
 

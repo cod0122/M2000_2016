@@ -16,9 +16,16 @@ global type st_stat_invent from structure
 	string		data_estrazione_stat
 	integer		gruppo_flag
 	string		flag_fatturati		descriptor "comment" = "spazio o T=tutti;S=fatturati;N=non fatturati"
-	boolean		flag_trattati		descriptor "comment" = "true=estrae trattati;false=estrae non trattati"
+	string		flag_trattati		descriptor "comment" = "A=Estrae tutto;T=estrae trattati;N=estrae non trattati"
 	boolean		flag_check_spediti		descriptor "comment" = "true=estrae controlando anche le spedizioni; false=scarta la tabella delle spedizioni"
 	boolean		flag_lotto_chiuso		descriptor "comment" = "true=esclude dal conteggio i Lotti CHIUSI"
 	integer		stat_tab		descriptor "comment" = "numero del tab (o del report x distinguere il nome della view)"
+	integer		out_colli_2		descriptor "comment" = "colli entrati"
+	integer		out_colli_lav		descriptor "comment" = "colli trattati"
+	integer		out_colli_trattati_da_sped		descriptor "comment" = "colli da sped trattati"
+	integer		out_colli_da_non_trattare		descriptor "comment" = "colli da non trattare"
+	integer		out_colli_sped		descriptor "comment" = "colli spediti"
+	decimal{2}		out_m_cubi		descriptor "comment" = "m.cubi entrati"
+	decimal{2}		out_pedane		descriptor "comment" = "pedane entrate"
 end type
 

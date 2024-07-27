@@ -1063,7 +1063,7 @@ try
 	kst_tab_meca_dosim.dosim_rapp_a_s = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "dosim_rapp_a_s")
 	kst_tab_meca_dosim.dosim_flg_tipo_dose = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "dosim_flg_tipo_dose")
 
-	kst_tab_meca_dosim = kiuf_meca_dosim.get_st_tab_meca_dosim(kst_tab_meca_dosim)
+	kst_tab_meca_dosim = kiuf_meca_dosim.convalida_dosimetrica(kst_tab_meca_dosim)
 
 //	tab_1.tabpage_1.dw_1.setitem(k_riga, "data_int", kst_tab_meca_dosim.data_int)
 	tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kst_tab_meca_dosim.err_lav_ok)

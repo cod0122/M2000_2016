@@ -45,7 +45,6 @@ public subroutine stampa_etichetta_riferimento_autorizza ()
 public subroutine stampa_etichetta_riferimento_close ()
 public subroutine u_set_font_default ()
 public function integer stampa_etichetta_riferimento (string k_barcode, long k_id_meca)
-public function integer stampa_etichetta_riferimento_ristampa (string k_barcode, long k_id_meca)
 private subroutine stampa_testo_verticale (string a_testo_verticale, integer a_inizio_riga, integer a_inizio_col, integer a_col_riga, integer a_col_col)
 private function boolean stampa_etichetta_dosimetro (st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
 private subroutine stampa_barcode (string k_barcode, longlong k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb)
@@ -67,6 +66,8 @@ public function boolean stampa_etichetta_riferimento_avv_rev2 (ref ds_barcode_pr
 public function integer stampa_etichetta_riferimento_rev4 (ref ds_barcode_print_label ads_barcode_print_label, st_barcode_stampa ast_barcode_stampa)
 private function boolean stampa_etichetta_dosimetro_rev2 (st_tab_meca_dosim kst_tab_meca_dosim, st_tab_barcode kst_tab_barcode_padre, st_tab_base kst_tab_base, st_tab_sl_pt kst_tab_sl_pt, ref st_barcode_stampa kst_barcode_stampa, st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos, ref uo_ds_std_1 ads_meca_dosim_barcode_prg)
 private function integer u_get_idx_ds_barcode_print_label (string a_dataobject_x_label, long a_id_meca)
+private subroutine u_create_report_barcode_et ()
+public function integer stampa_etichetta_riferimento_dastampare (string k_barcode, long k_id_meca) throws uo_exception
 end prototypes
 
 private subroutine stampa_barcode_f (string k_barcode, long k_id_print, integer k_coord_x, integer k_coord_y, integer k_altezza_cb, integer k_id_font);//
@@ -196,10 +197,11 @@ int k, k_ds_idx
 	if ki_id_print_etichette > 0 then   // se streamer stampa Aperto...
 
 //--- In stampa i DS
-		k_ds_idx = upperbound(kids_barcode_print_label[])
-		for k = 1 to k_ds_idx
-			PrintDataWindow(ki_id_print_etichette, kids_barcode_print_label[k])
-		next
+		u_create_report_barcode_et()
+	//		k_ds_idx = upperbound(kids_barcode_print_label[])
+	//		for k = 1 to k_ds_idx
+	//			PrintDataWindow(ki_id_print_etichette, kids_barcode_print_label[k])
+	//		next
 
 		if PrintClose(ki_id_print_etichette) > 0 then
 			ki_id_print_etichette = 0
@@ -300,6 +302,7 @@ int k_num_colonne = 0
 //string k_consegna_data_cript
 pointer kpointer  // Declares a pointer variable
 kuf_barcode kuf1_barcode
+kuf_impianto kuf1_impianto
 st_tab_barcode kst_tab_barcode
 st_tab_meca kst_tab_meca
 st_tab_clienti kst_tab_clienti
@@ -307,11 +310,12 @@ st_tab_sl_pt kst_tab_sl_pt
 st_tab_armo kst_tab_armo
 st_tab_pl_barcode kst_tab_pl_barcode
 st_tab_contratti kst_tab_contratti
-st_tab_prodotti kst_tab_prodotti
+//st_tab_prodotti kst_tab_prodotti
 st_tab_base kst_tab_base
 st_barcode_stampa kst_barcode_stampa
 st_esito kst_esito
 uo_ds_std_1 kds_meca_dosim_barcode_prg
+datastore kds_dd_sl_pt_tipo
 
 
 SetPointer(HourGlass!)
@@ -324,63 +328,38 @@ declare kc_listview cursor for
 			barcode.flg_dosimetro,
 			barcode.data,
 			barcode.pl_barcode,
-         barcode.num_int,   
-         barcode.data_int,   
-         meca.data_ent,   
          barcode.data_stampa,
 			barcode.data_lav_ini,
 			barcode.data_lav_fin,
 			barcode.data_lav_ok,
 			barcode.data_sosp,
-			barcode.impianto,
-         meca.clie_2, 
-         meca.clie_3, 
-			meca.num_bolla_in,
-			meca.data_bolla_in,
-			meca.area_mag,
-			meca.consegna_data,
-			meca.contratto,
-			meca.e1doco,
-			meca.e1rorn,
-			meca.num_bolla_in,
-			meca.data_bolla_in,
-			contratti.mc_co,
-			contratti.sc_cf,
-			contratti.descr,
-			contratti.et_bcode_st_dt_rif,
-         c2.rag_soc_10,
-         c3.rag_soc_10,
 			armo.dose,
 			armo.larg_2,
 			armo.lung_2,
 			armo.alt_2,
 			armo.peso_kg,
-			armo.magazzino,
-			sl_pt.cod_sl_pt,
-			sl_pt.descr,
-			sl_pt.dosim_et_descr,
-			prodotti.normative
-    FROM ((((((barcode LEFT OUTER JOIN meca ON 
-	       barcode.id_meca = meca.id)
-			 LEFT OUTER JOIN clienti c2 ON 
-			 meca.clie_2 = c2.codice)
-			 LEFT OUTER JOIN clienti c3 ON 
-			 meca.clie_3 = c3.codice)
-			 LEFT OUTER JOIN contratti ON 
-			 meca.contratto = contratti.codice)
+			armo.magazzino
+    FROM barcode 
 			 LEFT OUTER JOIN armo ON 
-			 barcode.id_armo = armo.id_armo)
-			 LEFT OUTER JOIN sl_pt ON 
-			 armo.cod_sl_pt = sl_pt.cod_sl_pt
-			 LEFT OUTER JOIN prodotti ON 
-			 armo.art = prodotti.codice)
+			 barcode.id_armo = armo.id_armo
     WHERE 
 	       barcode.id_meca = :k_id_meca
 			 and barcode.barcode like :k_barcode
 	 order by
 		 barcode.barcode;
 
+//			sl_pt.cod_sl_pt,
+//			sl_pt.descr,
+//			sl_pt.dosim_et_descr,
+//			prodotti.normative
+//
+//			 LEFT OUTER JOIN sl_pt ON 
+//			 armo.cod_sl_pt = sl_pt.cod_sl_pt
+//			 LEFT OUTER JOIN prodotti ON 
+//			 armo.art = prodotti.codice)
+
 //	       barcode.num_int = meca.num_int and barcode.data_int = meca.data_int)
+
 
 	declare kc_barcode_conta cursor  for
 		SELECT barcode.barcode 
@@ -418,37 +397,141 @@ try
 		end if
 		
 		k_dataoggi = kguo_g.get_dataoggi( )
+
+//---- get dati LOTTO
+		SELECT 
+					meca.num_int,   
+					meca.data_int,   
+					meca.data_ent,   
+					meca.impianto,
+					meca.clie_2, 
+					meca.clie_3, 
+					meca.num_bolla_in,
+					meca.data_bolla_in,
+					meca.area_mag,
+					meca.consegna_data,
+					meca.contratto,
+					meca.e1doco,
+					meca.e1rorn,
+					meca.num_bolla_in,
+					meca.data_bolla_in,
+					contratti.mc_co,
+					contratti.sc_cf,
+					contratti.descr,
+					contratti.et_bcode_st_dt_rif,
+					c2.rag_soc_10,
+					c3.rag_soc_10
+				into
+					 :kst_tab_barcode.num_int   
+					 ,:kst_tab_barcode.data_int   
+					 ,:kst_tab_meca.data_ent  
+					 ,:kst_tab_meca.impianto
+					 ,:kst_tab_meca.clie_2  
+					 ,:kst_tab_meca.clie_3  
+					 ,:kst_tab_meca.num_bolla_in 
+					 ,:kst_tab_meca.data_bolla_in 
+					 ,:kst_tab_meca.area_mag
+					 ,:kst_tab_meca.consegna_data
+					 ,:kst_tab_contratti.codice
+					 ,:kst_tab_meca.e1doco
+					 ,:kst_tab_meca.e1rorn
+					 ,:kst_tab_meca.num_bolla_in
+					 ,:kst_tab_meca.data_bolla_in
+					 ,:kst_tab_contratti.mc_co
+					 ,:kst_tab_contratti.sc_cf
+					 ,:kst_tab_contratti.descr
+					 ,:kst_tab_contratti.et_bcode_st_dt_rif
+					 ,:kst_tab_clienti.rag_soc_10 
+					 ,:kst_tab_clienti.rag_soc_20 
+			 FROM meca
+					 LEFT OUTER JOIN clienti c2 ON 
+						 meca.clie_2 = c2.codice
+					 LEFT OUTER JOIN clienti c3 ON 
+						 meca.clie_3 = c3.codice
+					 LEFT OUTER JOIN contratti ON 
+						meca.contratto = contratti.codice
+			 WHERE 
+					 meca.id = :k_id_meca
+					using kguo_sqlca_db_magazzino;		 
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then  
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura Lotto per stampa barcode. Id Lotto " + string(k_id_meca))
+			throw kguo_exception
+		end if
+			
+//--- get dati SL_PT
+		if kst_tab_meca.impianto = kuf1_impianto.kki_impiantog3 then
+			select top(1)
+				sl_pt.cod_sl_pt,
+				sl_pt.descr,
+				sl_pt_g3.dosim_et_descr,
+				sl_pt.tipo
+			  into :kst_tab_sl_pt.cod_sl_pt 
+					 ,:kst_tab_sl_pt.descr 
+					 ,:kst_tab_sl_pt.dosim_et_descr 
+					 ,:kst_tab_sl_pt.tipo
+				from sl_pt inner JOIN sl_pt_g3 on
+						sl_pt.cod_sl_pt = sl_pt_g3.cod_sl_pt
+							  inner join armo ON 
+						armo.cod_sl_pt = sl_pt.cod_sl_pt
+							  inner JOIN barcode ON 
+						barcode.id_armo = armo.id_armo
+				where 	
+					 barcode.id_meca = :k_id_meca
+				using kguo_sqlca_db_magazzino;
+		else
+			select top(1)
+				sl_pt.cod_sl_pt,
+				sl_pt.descr,
+				sl_pt.dosim_et_descr,
+				sl_pt.tipo
+			  into :kst_tab_sl_pt.cod_sl_pt 
+					 ,:kst_tab_sl_pt.descr 
+					 ,:kst_tab_sl_pt.dosim_et_descr 
+					 ,:kst_tab_sl_pt.tipo
+				from sl_pt inner JOIN armo ON 
+					armo.cod_sl_pt = sl_pt.cod_sl_pt
+							  inner JOIN barcode ON 
+					barcode.id_armo = armo.id_armo
+				where 	
+					 barcode.id_meca = :k_id_meca
+				using kguo_sqlca_db_magazzino;
+		end if
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then  
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Lettura Piano di Trattamento per stampa barcode. Id Lotto " + string(k_id_meca))
+			throw kguo_exception
+		end if
+
+//--- get descrizione TIPO sl_pt
+		if kst_tab_sl_pt.tipo > " " then
+			kds_dd_sl_pt_tipo = create datastore
+			kds_dd_sl_pt_tipo.dataobject = "dd_sl_pt_tipo"
+			k_rc = kds_dd_sl_pt_tipo.find( "tipo = '" + trim(kst_tab_sl_pt.tipo) + "'", 1, kds_dd_sl_pt_tipo.rowcount())
+			if k_rc > 0 then
+				kst_barcode_stampa.sl_pt_tipo_descr = trim(kds_dd_sl_pt_tipo.getitemstring(k_rc, "descr"))
+			end if
+		end if
 	
-	
+//--- Conteggio barcode stampati	
 		SELECT count(*)
-			into :k_barcode_gia_stampati  
-		 FROM barcode 
-		 WHERE 
-				 barcode.id_meca = :k_id_meca
-				 and barcode.data_stampa > convert(date,'01.01.1899') 
-				 and (barcode = :k_barcode  or :k_barcode = ' ')
- 		   using kguo_sqlca_db_magazzino;
+				into :k_barcode_gia_stampati  
+			 FROM barcode 
+			 WHERE 
+					 barcode.id_meca = :k_id_meca
+					 and barcode.data_stampa > convert(date,'01.01.1899') 
+					 and (barcode = :k_barcode  or :k_barcode = ' ')
+				using kguo_sqlca_db_magazzino;
 		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 			k_barcode_gia_stampati = 0
 		end if
 	
 //--- conto il numero totale di barcode da esporre in etichetta	
 		SELECT count(*)
-			into :k_barcode_tot_lotto  
-		 FROM barcode 
-		 WHERE 
-				 barcode.id_meca = :k_id_meca 
-		 using kguo_sqlca_db_magazzino;
+				into :k_barcode_tot_lotto  
+			 FROM barcode 
+			 WHERE 
+					 barcode.id_meca = :k_id_meca 
+			 using kguo_sqlca_db_magazzino;
 
-//--- conta il numero tot di dosimetri
-//		try
-//			kst_tab_barcode.id_meca = k_id_meca
-//			k_tot_dosimetri = kuf1_barcode.get_conta_dosimetri(kst_tab_barcode)
-//		catch (uo_exception kuo_exception)
-//			k_tot_dosimetri = 0
-//			kuo_exception.messaggio_utente()
-//		end try
-		
 //--- Stampa dell'intero riferimento ?
 		k_barcode = trim(k_barcode)
 		if LenA(k_barcode) = 0  then
@@ -513,6 +596,8 @@ try
 //					
 //				end for
 							
+				//????? kds_dd_sl_pt_tipo.retrieve( )
+							
 				if trim(kst_tab_base.barcode_modulo) = barcode_modulo_etich_2019 then
 //--- Imposta i FONT di default
 					u_set_font_default( )
@@ -530,43 +615,23 @@ try
 						 ,:kst_tab_barcode.flg_dosimetro
 						 ,:kst_tab_barcode.data
 						 ,:kst_tab_barcode.pl_barcode 
-						 ,:kst_tab_barcode.num_int   
-						 ,:kst_tab_barcode.data_int   
-					    ,:kst_tab_meca.data_ent  
 						 ,:kst_tab_barcode.data_stampa   
 						 ,:kst_tab_barcode.data_lav_ini 
 						 ,:kst_tab_barcode.data_lav_fin 
 						 ,:kst_tab_barcode.data_lav_ok 
 						 ,:kst_tab_barcode.data_sosp 
-						 ,:kst_tab_barcode.impianto
-						 ,:kst_tab_meca.clie_2  
-						 ,:kst_tab_meca.clie_3  
-						 ,:kst_tab_meca.num_bolla_in 
-						 ,:kst_tab_meca.data_bolla_in 
-						 ,:kst_tab_meca.area_mag
- 						 ,:kst_tab_meca.consegna_data
-						 ,:kst_tab_contratti.codice
- 						 ,:kst_tab_meca.e1doco
- 						 ,:kst_tab_meca.e1rorn
- 						 ,:kst_tab_meca.num_bolla_in
- 						 ,:kst_tab_meca.data_bolla_in
-						 ,:kst_tab_contratti.mc_co
-						 ,:kst_tab_contratti.sc_cf
-						 ,:kst_tab_contratti.descr
- 						 ,:kst_tab_contratti.et_bcode_st_dt_rif
-						 ,:kst_tab_clienti.rag_soc_10 
-						 ,:kst_tab_clienti.rag_soc_20 
 						 ,:kst_tab_armo.dose 
 						 ,:kst_tab_armo.larg_2
 						 ,:kst_tab_armo.lung_2
 						 ,:kst_tab_armo.alt_2
 						 ,:kst_tab_armo.peso_kg
 						 ,:kst_tab_armo.magazzino
-						 ,:kst_tab_sl_pt.cod_sl_pt 
-						 ,:kst_tab_sl_pt.descr 
-						 ,:kst_tab_sl_pt.dosim_et_descr 
-						 ,:kst_tab_prodotti.normative
 						  ;
+//						 ,:kst_tab_sl_pt.cod_sl_pt 
+//						 ,:kst_tab_sl_pt.descr 
+//						 ,:kst_tab_sl_pt.dosim_et_descr 
+//						 ,:kst_tab_prodotti.normative
+//						  ;
 		
 				if isnull(kist_tab_barcode_stampa_save.num_int) then kist_tab_barcode_stampa_save.num_int = 0
 
@@ -620,7 +685,7 @@ try
 					kst_barcode_stampa.mc_co	= kst_tab_contratti.mc_co	
 					kst_barcode_stampa.sc_cf = kst_tab_contratti.sc_cf	
 					kst_barcode_stampa.et_bcode_st_dt_rif	= kst_tab_contratti.et_bcode_st_dt_rif
-					kst_barcode_stampa.normative = trim(kst_tab_prodotti.normative)	
+					kst_barcode_stampa.normative = "" //trim(kst_tab_prodotti.normative)	
 					kst_barcode_stampa.alt_2 = kst_tab_armo.alt_2	
 					kst_barcode_stampa.magazzino = kst_tab_armo.magazzino	
 					kst_barcode_stampa.id_meca = kst_tab_barcode.id_meca	
@@ -628,9 +693,9 @@ try
 					kst_barcode_stampa.e1rorn = kst_tab_meca.e1rorn
 					kst_barcode_stampa.num_bolla_in = kst_tab_meca.num_bolla_in
 					kst_barcode_stampa.data_bolla_in = kst_tab_meca.data_bolla_in
-					kst_barcode_stampa.impianto = kst_tab_barcode.impianto
+					kst_barcode_stampa.impianto = kst_tab_meca.impianto
 						
-//--- STAMPA SU ETICHETTATRICE
+//--- STAMPA ETICHETTE
 					if trim(kst_tab_base.barcode_modulo) = barcode_modulo_etich_2019 then
 						
 						stampa_etichetta_riferimento_r3_2019may(kst_barcode_stampa)  // rev.3 del 29MAY2019
@@ -640,15 +705,8 @@ try
 						k_ds_idx = u_get_idx_ds_barcode_print_label("d_barcode_et_rev_4_gen24", k_id_meca)  // recupera il n.array del ds 
 						kids_barcode_print_label[k_ds_idx].insertrow(0)
 						stampa_etichetta_riferimento_rev4(kids_barcode_print_label[k_ds_idx],kst_barcode_stampa)  // rev.4 del GEN2024
-
-//--- ACCROCCHIO: evita pagina bianca (Newspaper=2 nel DS) e duplica quella PARI altrimenti non stampa 
-						if mod((kids_barcode_print_label[k_ds_idx].rowcount()), 2) = 0 then 
-							kids_barcode_print_label[k_ds_idx].rowscopy(kids_barcode_print_label[k_ds_idx].rowcount(), kids_barcode_print_label[k_ds_idx].rowcount(), primary!, kids_barcode_print_label[k_ds_idx], kids_barcode_print_label[k_ds_idx].rowcount() + 1, primary!)
-						end if
 						
 						ki_num_etichetta_in_pag = 1
-
-						
 					end if
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -686,43 +744,57 @@ try
 						 ,:kst_tab_barcode.flg_dosimetro
 						 ,:kst_tab_barcode.data
 						 ,:kst_tab_barcode.pl_barcode 
-						 ,:kst_tab_barcode.num_int   
-						 ,:kst_tab_barcode.data_int   
-					    ,:kst_tab_meca.data_ent
 						 ,:kst_tab_barcode.data_stampa   
 						 ,:kst_tab_barcode.data_lav_ini 
 						 ,:kst_tab_barcode.data_lav_fin 
 						 ,:kst_tab_barcode.data_lav_ok 
 						 ,:kst_tab_barcode.data_sosp 
-						 ,:kst_tab_barcode.impianto
-						 ,:kst_tab_meca.clie_2  
-						 ,:kst_tab_meca.clie_3  
-						 ,:kst_tab_meca.num_bolla_in 
-						 ,:kst_tab_meca.data_bolla_in 
-						 ,:kst_tab_meca.area_mag
- 						 ,:kst_tab_meca.consegna_data
-						 ,:kst_tab_contratti.codice
- 						 ,:kst_tab_meca.e1doco
- 						 ,:kst_tab_meca.e1rorn
- 						 ,:kst_tab_meca.num_bolla_in
- 						 ,:kst_tab_meca.data_bolla_in
-						 ,:kst_tab_contratti.mc_co
-						 ,:kst_tab_contratti.sc_cf
-						 ,:kst_tab_contratti.descr
- 						 ,:kst_tab_contratti.et_bcode_st_dt_rif
-						 ,:kst_tab_clienti.rag_soc_10 
-						 ,:kst_tab_clienti.rag_soc_20 
 						 ,:kst_tab_armo.dose 
 						 ,:kst_tab_armo.larg_2
 						 ,:kst_tab_armo.lung_2
 						 ,:kst_tab_armo.alt_2
 						 ,:kst_tab_armo.peso_kg
 						 ,:kst_tab_armo.magazzino
-						 ,:kst_tab_sl_pt.cod_sl_pt 
-						 ,:kst_tab_sl_pt.descr 
-						 ,:kst_tab_sl_pt.dosim_et_descr 
-						 ,:kst_tab_prodotti.normative
-						  ;				
+							;
+//						  :kst_tab_barcode.id_meca
+//						 ,:kst_tab_barcode.barcode
+//						 ,:kst_tab_barcode.barcode_lav
+//						 ,:kst_tab_barcode.flg_dosimetro
+//						 ,:kst_tab_barcode.data
+//						 ,:kst_tab_barcode.pl_barcode 
+//						 ,:kst_tab_barcode.num_int   
+//						 ,:kst_tab_barcode.data_int   
+//					    ,:kst_tab_meca.data_ent
+//						 ,:kst_tab_barcode.data_stampa   
+//						 ,:kst_tab_barcode.data_lav_ini 
+//						 ,:kst_tab_barcode.data_lav_fin 
+//						 ,:kst_tab_barcode.data_lav_ok 
+//						 ,:kst_tab_barcode.data_sosp 
+//						 ,:kst_tab_barcode.impianto
+//						 ,:kst_tab_meca.clie_2  
+//						 ,:kst_tab_meca.clie_3  
+//						 ,:kst_tab_meca.num_bolla_in 
+//						 ,:kst_tab_meca.data_bolla_in 
+//						 ,:kst_tab_meca.area_mag
+// 						 ,:kst_tab_meca.consegna_data
+//						 ,:kst_tab_contratti.codice
+// 						 ,:kst_tab_meca.e1doco
+// 						 ,:kst_tab_meca.e1rorn
+// 						 ,:kst_tab_meca.num_bolla_in
+// 						 ,:kst_tab_meca.data_bolla_in
+//						 ,:kst_tab_contratti.mc_co
+//						 ,:kst_tab_contratti.sc_cf
+//						 ,:kst_tab_contratti.descr
+// 						 ,:kst_tab_contratti.et_bcode_st_dt_rif
+//						 ,:kst_tab_clienti.rag_soc_10 
+//						 ,:kst_tab_clienti.rag_soc_20 
+//						 ,:kst_tab_armo.dose 
+//						 ,:kst_tab_armo.larg_2
+//						 ,:kst_tab_armo.lung_2
+//						 ,:kst_tab_armo.alt_2
+//						 ,:kst_tab_armo.peso_kg
+//						 ,:kst_tab_armo.magazzino
+//						 ;
 
 				loop
 
@@ -767,67 +839,13 @@ finally
 		kguo_sqlca_db_magazzino.db_commit( )
 	end if
 	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	if isvalid(kds_dd_sl_pt_tipo) then destroy kds_dd_sl_pt_tipo	
 
 	SetPointer(kpointer)
 	
 end try
 
 return k_etichette_stampate
-
-
-
-end function
-
-public function integer stampa_etichetta_riferimento_ristampa (string k_barcode, long k_id_meca);//
-// stampa dell'etichetta: controllo se sono in ristampa o e' la prima volta
-// return:  Numero dei BARCODE ancora da stampare 0=tutti ristampati, NEGATIVO = ERRORE SQL (sqlcode)
-//
-int k_rc=0
-int k_barcode_da_stampare=0
-pointer kpointer  // Declares a pointer variable
-date k_data_no
-st_esito kst_esito 
-
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-
-	k_data_no = date(kkg.data_no)
-
-//=== Puntatore Cursore da attesa.....
-	kpointer = SetPointer(HourGlass!)
-	
-	SELECT count(*)
-		into :k_barcode_da_stampare  
-	 FROM barcode 
-	 WHERE 
-			 barcode.id_meca = :k_id_meca 
-			 and (barcode.data_stampa <= :k_data_no or barcode.data_stampa is null)
-			 and (barcode = :k_barcode  or :k_barcode = ' ')
-			 using kguo_sqlca_db_magazzino;
-
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		if kguo_sqlca_db_magazzino.sqlcode > 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Tab.Barcode: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			end if
-			k_barcode_da_stampare=-kguo_sqlca_db_magazzino.sqlcode
-		else
-			k_barcode_da_stampare=kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.esito = kkg_esito.db_ko
-		end if
-	else
-		kst_esito.esito = kkg_esito.ok
-	end if
-
-	SetPointer(kpointer)
-	
-
-	return k_barcode_da_stampare
 
 
 
@@ -873,8 +891,8 @@ boolean k_return=false
 int k_rc=0, k_nr_bcode=0, k_ind, k_nr_dosimpos, k_riga
 int k_ds_idx
 kuf_meca_dosim kuf1_meca_dosim
-kuf_armo kuf1_armo
-st_tab_meca kst_tab_meca
+//kuf_armo kuf1_armo
+//st_tab_meca kst_tab_meca
 st_tab_meca_dosim kst_tab_meca_dosim[]
 st_esito kst_esito
 uo_ds_std_1 kds_sl_pt_dosimpos_l
@@ -898,15 +916,15 @@ st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
 		kdd_flg_tipo_dose.retrieve( )
 		
 //--- Genera il barcode di dosimetria da stampare 
-		kst_tab_meca_dosim[1].id_meca = kst_tab_barcode_padre.id_meca
+		kst_tab_meca_dosim[1].id_meca = kst_barcode_stampa.id_meca
 		kst_tab_meca_dosim[1].barcode_lav = kst_tab_barcode_padre.barcode
 		k_nr_bcode = kuf1_meca_dosim.get_barcode(kst_tab_meca_dosim[])   // piglia il n. dosimtri da stampare
 
 		if k_nr_bcode > 0 then
-			kst_tab_meca.id = kst_tab_barcode_padre.id_meca
-			kuf1_armo = create kuf_armo
-			kst_tab_meca.impianto = kuf1_armo.get_impianto(kst_tab_meca)
-			k_nr_dosimpos = kds_sl_pt_dosimpos_l.retrieve(kst_tab_sl_pt.cod_sl_pt, kst_tab_meca.impianto)   // recupera le descrizioni 
+//			kst_tab_meca.id = kst_barcode_stampa.id_meca
+//			kuf1_armo = create kuf_armo
+//			kst_tab_meca.impianto = kuf1_armo.get_impianto(kst_tab_meca)
+			k_nr_dosimpos = kds_sl_pt_dosimpos_l.retrieve(kst_tab_sl_pt.cod_sl_pt, kst_barcode_stampa.impianto)   // recupera le descrizioni 
 		end if
 
 //--- Stampa un tot di numero dosimetri per barcode		
@@ -937,7 +955,7 @@ st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
 				kst_barcode_stampa.dosimpos_codice = trim(kds_sl_pt_dosimpos_l. getitemstring( k_ind, "dosimpos_codice"))  // codice posizione dosimetro
 				if kst_barcode_stampa.dosimpos_codice > " " then
 				else
-					kst_tab_sl_pt.dosim_et_descr = "00"
+					kst_barcode_stampa.dosimpos_codice = "00"
 				end if
 
 //--- 19-4-2018 REZIO: le note in stampa devono essere sia quelle su SL-PT in orizzontale che quelle su DOSIMPOS in verticale!!				
@@ -968,10 +986,6 @@ st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
 				stampa_etichetta_dosimetro_rev3(kids_barcode_print_label[k_ds_idx] &
 														 ,kst_tab_meca_dosim[k_ind], kst_tab_barcode_padre, kst_tab_base, kst_tab_sl_pt &
 														 ,kst_barcode_stampa, kst_tab_sl_pt_dosimpos, ads_meca_dosim_barcode_prg)
-//--- ACCROCCHIO: evita pagina bianca (Newspaper=2 nel DS) e duplica quella PARI altrimenti non stampa 
-				if mod((kids_barcode_print_label[k_ds_idx].rowcount()), 2) = 0 then 
-					kids_barcode_print_label[k_ds_idx].rowscopy(kids_barcode_print_label[k_ds_idx].rowcount(), kids_barcode_print_label[k_ds_idx].rowcount(), primary!, kids_barcode_print_label[k_ds_idx], kids_barcode_print_label[k_ds_idx].rowcount() + 1, primary!)
-				end if
 						
 			end if
 		next
@@ -985,7 +999,7 @@ st_tab_sl_pt_dosimpos kst_tab_sl_pt_dosimpos
 		if isvalid(kuf1_meca_dosim) then destroy kuf1_meca_dosim
 		if isvalid(kds_sl_pt_dosimpos_l) then destroy kds_sl_pt_dosimpos_l
 		if isvalid(kdd_flg_tipo_dose) then destroy kdd_flg_tipo_dose
-		if isvalid(kuf1_armo) then destroy kuf1_armo
+//		if isvalid(kuf1_armo) then destroy kuf1_armo
 
 	end try
 	
@@ -2828,7 +2842,7 @@ string k_note
 	ads_barcode_print_label.object.sc_cf[k_row] = trim(ast_barcode_stampa.sc_cf)
 
 //--- Impianto di Trattamento G2/G3	
-	if Len(trim(ast_barcode_stampa.area_mag)) > 0 then
+	if ast_barcode_stampa.impianto > 0 then
 		if ast_barcode_stampa.impianto = 3 then
 			ads_barcode_print_label.object.impianto_descr[k_row] = "Gamma 3"
 		else
@@ -2918,7 +2932,7 @@ kuf_armo kuf1_armo
 	ads_barcode_print_label.object.e1rorn[k_row] = ast_barcode_stampa.e1rorn
 
 //--- Impianto di Trattamento G2/G3	
-	if Len(trim(ast_barcode_stampa.area_mag)) > 0 then
+	if ast_barcode_stampa.impianto > 0 then
 		if ast_barcode_stampa.impianto = 3 then
 			ads_barcode_print_label.object.impianto_descr[k_row] = "Gamma 3"
 		else
@@ -2929,7 +2943,7 @@ kuf_armo kuf1_armo
 	end if
 		
 //--- Sezione CONTRATTI
-	if Len(trim(ast_barcode_stampa.mc_co)) > 0 then
+	if trim(ast_barcode_stampa.mc_co) > " " then
 		ads_barcode_print_label.object.mc_co[k_row] = trim(ast_barcode_stampa.mc_co)
 	else
 		ads_barcode_print_label.object.mc_co[k_row] = ""
@@ -2941,7 +2955,7 @@ kuf_armo kuf1_armo
 	end if
 	
 //--- UBICAZIONE	
-	if Len(trim(ast_barcode_stampa.area_mag)) > 0 then
+	if trim(ast_barcode_stampa.area_mag) > " " then
 		ads_barcode_print_label.object.area_mag[k_row] = trim(ast_barcode_stampa.area_mag)
 	else
 		ads_barcode_print_label.object.area_mag[k_row] = ""
@@ -2951,7 +2965,7 @@ kuf_armo kuf1_armo
 //	if LenA(trim(ast_barcode_stampa.normative)) > 0 then
 //		ads_barcode_print_label.object.normative[k_row] = trim(ast_barcode_stampa.normative)
 //	else
-		ads_barcode_print_label.object.pt_tipo[k_row] = ""
+		ads_barcode_print_label.object.pt_tipo[k_row] = trim(ast_barcode_stampa.sl_pt_tipo_descr)
 //	end if
 //--- Altezza Pallet...
 	if ast_barcode_stampa.alt_2 > 100 then
@@ -3260,6 +3274,103 @@ string k_dataobject
 	end if
 
 return k_ds_idx
+end function
+
+private subroutine u_create_report_barcode_et ();/*
+  Gennera il composite report delle etichette da stampare
+*/
+int k_dw_n, k_y, k_ds_idx
+string k_rc
+int k_rcn
+string k_modify
+datastore kds_barcode_et_0
+datawindowchild kdwc_1
+
+
+	kds_barcode_et_0 = create datastore
+	kds_barcode_et_0.dataobject = 'd_barcode_et_0'
+
+//--- Genera il Composite
+	k_ds_idx = upperbound(kids_barcode_print_label[])
+	
+	if k_ds_idx = 0 then return  // NON C'E' NULLA ESCE!!!
+	
+	for k_dw_n = 1 to k_ds_idx
+		k_modify = "create report(band=detail dataobject='" + kids_barcode_print_label[k_dw_n].dataobject  &
+			+ "' x='0' y='"+ string(k_y) +"' height='100' width='5895' border='0' enabled='0' tooltip.backcolor='134217752' tooltip.delay.initial='0' tooltip.delay.visible='32000' tooltip.enabled='0' tooltip.hasclosebutton='0' tooltip.icon='0' tooltip.isbubble='0' tooltip.maxwidth='0' tooltip.textcolor='134217751' tooltip.transparency='0'  height.autosize=yes criteria='' " &
+			+ " newpage = yes trail_footer = yes " &
+			+ " name=dw_" + string(k_dw_n) + " visible='1'  slideup=directlyabove )"
+		k_rc = kds_barcode_et_0.modify(k_modify)
+		k_y += 100
+	next
+
+	if k_rc > " " then
+	else
+		
+	//--- Popola i DW
+		for k_dw_n = 1 to k_ds_idx
+			kds_barcode_et_0.getchild("dw_" + string(k_dw_n), kdwc_1)
+			k_rcn = kids_barcode_print_label[k_dw_n].rowscopy(1, kids_barcode_print_label[k_dw_n].rowcount(), primary!, kdwc_1, 1, primary!) 			
+			k_rcn = kdwc_1.rowcount( )
+			kdwc_1.groupcalc( )
+		next
+		kds_barcode_et_0.groupcalc( )
+		
+		PrintDataWindow(ki_id_print_etichette, kds_barcode_et_0)
+
+	end if
+	
+	destroy kds_barcode_et_0
+end subroutine
+
+public function integer stampa_etichetta_riferimento_dastampare (string k_barcode, long k_id_meca) throws uo_exception;/*
+ Conta Etichetta ancora da Stampare
+ ret:  Numero dei BARCODE ancora da stampare 0=tutti stampati
+*/ 
+int k_return
+int k_barcode_da_stampare
+date k_data_no
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	k_data_no = date(kkg.data_no)
+	if k_barcode > " " then
+		k_barcode = trim(k_barcode)
+	else
+		k_barcode= ""
+	end if
+
+	SELECT count(barcode)
+		into :k_barcode_da_stampare  
+	 FROM barcode 
+	 WHERE 
+			 barcode.id_meca = :k_id_meca 
+			 and (barcode.data_stampa <= :k_data_no or barcode.data_stampa is null)
+			 and (barcode = :k_barcode or :k_barcode = '')
+			 using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in verifica se barcode " + k_barcode +  " in ristampa.")
+	end if
+	
+	if k_barcode_da_stampare > 0 then
+		k_return = k_barcode_da_stampare
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+
+
 end function
 
 on kuf_barcode_stampa.create

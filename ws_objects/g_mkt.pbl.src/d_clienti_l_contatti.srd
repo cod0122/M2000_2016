@@ -10,7 +10,7 @@ table(column=(type=long update=yes updatewhereclause=yes identity=yes name=id_cl
  column=(type=char(30) updatewhereclause=yes name=clienti_rag_soc_11 dbname="clienti.rag_soc_2" )
  column=(type=char(30) update=yes updatewhereclause=yes name=localita dbname="clienti.localita" )
  column=(type=char(2) update=yes updatewhereclause=yes name=prov dbname="clienti.prov" )
- column=(type=char(40) updatewhereclause=yes name=clienti_mkt_qualifica dbname="clienti_mkt.qualifica" )
+ column=(type=char(80) updatewhereclause=yes name=clienti_mkt_qualifica dbname="clienti_mkt.qualifica" )
  column=(type=char(40) updatewhereclause=yes name=clienti_mkt_qualifica_contatto dbname="clienti_mkt.qualifica_contatto" )
  column=(type=char(3) updatewhereclause=yes name=clienti_id_nazione_1 dbname="clienti.id_nazione_1" )
  column=(type=char(75) updatewhereclause=yes name=nazioni_nome dbname="nazioni.nome" )
@@ -142,4 +142,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

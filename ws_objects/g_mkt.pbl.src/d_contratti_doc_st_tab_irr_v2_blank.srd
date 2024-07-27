@@ -1,0 +1,396 @@
+﻿$PBExportHeader$d_contratti_doc_st_tab_irr_v2_blank.srd
+release 22;
+datawindow(units=3 data.export.format=1 timer_interval=0 color=1073741824 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=yes print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 635 print.margin.right = 635 print.margin.top = 635 print.margin.bottom = 635 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 selected.mouse=no )
+header(height=2989 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
+detail(height=423 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" height.autosize=yes )
+table(column=(type=char(4000) updatewhereclause=yes name=prodotto dbname="prodotto" )
+ column=(type=char(79) updatewhereclause=yes name=dosing_range dbname="dosing_range" )
+ column=(type=char(4000) updatewhereclause=yes name=density_range dbname="density_range" )
+ column=(type=char(142) updatewhereclause=yes name=size_weight dbname="size_weight" )
+ column=(type=char(4000) updatewhereclause=yes name=e1_item_number dbname="e1_item_number" )
+ column=(type=char(4000) updatewhereclause=yes name=rif_interno dbname="rif_interno" )
+ column=(type=char(4000) updatewhereclause=yes name=prezzo dbname="prezzo" )
+ column=(type=char(2) updatewhereclause=yes name=stampa_tradotta dbname="v_contratti_doc.stampa_tradotta" )
+ column=(type=char(4000) updatewhereclause=yes name=code_our dbname="code_our" )
+ column=(type=char(4000) updatewhereclause=yes name=qaa dbname="qaa" )
+ column=(type=char(4000) updatewhereclause=yes name=treat_validate dbname="treat_validate" )
+ retrieve=" SELECT 
+    trim(ctr.cliente_desprod_rid)  prodotto
+			,CASE    
+     			WHEN ctr.dose_min > 0 and ctr.dose_max > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min as varchar)) + ' kGy   Max ' + trim(cast(ctr.dose_max as varchar)) + ' kGy')   
+     			WHEN ctr.dose_min > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min as varchar)) + ' kGy')   
+     			WHEN ctr.dose_max > 0 THEN 
+							('Max ' + trim(cast(ctr.dose_max as varchar)) + ' kGy')   
+      		ELSE ' '   
+			END dosing_range
+         ,trim(ctr.density_x) density_range
+			,CASE    
+     			WHEN ctr.mis_z_1 > 0 and ctr.peso_max_kg > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_1/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_1/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_1/10 as varchar)) + '   weight ' + trim(cast(ctr.peso_max_kg as varchar)) + ' kg') 
+     			WHEN ctr.mis_z_1 > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_1/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_1/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_1/10 as varchar)) )
+     			WHEN ctr.peso_max_kg > 0 THEN 
+		         ('weight ' + trim(cast(ctr.peso_max_kg as varchar)) + ' kg') 
+      		ELSE ' '   
+			END size_weight
+         ,trim(ctr.e1litm) e1_item_number
+    		,CASE 
+      		   WHEN trim(rif_interno_alt) > ' ' THEN trim(rif_interno_alt) 
+		         ELSE (trim(ctr.quotazione_tipo) + ' ' + trim(cast(id_contratto_doc as varchar)) + '/' +  trim(cast(ctr.anno as varchar)))
+      	END rif_interno
+         ,concat(cast(format(COALESCE(ctr.prezzo_1, 0.00), 'N2') as varchar), ' €/', trim(COALESCE(ctr.unita_misura, '')))  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         ,CASE when trim(COALESCE(ctr.code_our_1, '')) > ' ' then trim(COALESCE(ctr.code_our_1, '')) else 'N/A' end  code_our
+         ,CASE when trim(COALESCE(ctr.qaa_1, '')) > ' ' then trim(COALESCE(ctr.qaa_1, '')) else 'N/A' end  qaa
+         , trim(COALESCE(ctr.treat_validate, '')) treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc        
+            and (ctr.e1litm > ' ' or dose_min > 0 or ctr.dose_max > 0 or ctr.mis_z_1 > 0)
+union all
+ SELECT 
+         ''  prodotto
+			,CASE    
+     			WHEN ctr.dose_min_2 > 0 and ctr.dose_max_2 > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min_2 as varchar)) + ' kGy   Max ' + trim(cast(ctr.dose_max_2 as varchar)) + ' kGy')   
+     			WHEN ctr.dose_min_2 > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min_2 as varchar)) + ' kGy')   
+     			WHEN ctr.dose_max_2 > 0 THEN 
+							('Max ' + trim(cast(ctr.dose_max_2 as varchar)) + ' kGy')   
+      		ELSE ' '   
+			END dosing_range
+         ,trim(ctr.density_x) density_range_2
+			,CASE    
+     			WHEN ctr.mis_z_2 > 0 and ctr.peso_max_kg_2 > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_2/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_2/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_2/10 as varchar)) + '   weight ' + trim(cast(ctr.peso_max_kg_2 as varchar)) + ' kg') 
+     			WHEN ctr.mis_z_2 > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_2/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_2/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_2/10 as varchar)) )
+     			WHEN ctr.peso_max_kg_2 > 0 THEN 
+		         ('weight ' + trim(cast(ctr.peso_max_kg_2 as varchar)) + ' kg') 
+      		ELSE ' '   
+			END size_weight
+         ,trim(ctr.e1litm_2) e1_item_number
+    		,CASE 
+      		   WHEN trim(rif_interno_alt) > ' ' THEN trim(rif_interno_alt) 
+		         ELSE (trim(ctr.quotazione_tipo) + ' ' + trim(cast(id_contratto_doc as varchar)) + '/' +  trim(cast(ctr.anno as varchar)))
+      	END rif_interno
+         ,concat(cast(format(COALESCE(ctr.prezzo_2, 0.00), 'N2') as varchar), ' €/', trim(COALESCE(ctr.unita_misura_2, '')))  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         ,CASE when trim(COALESCE(ctr.code_our_2, '')) > ' ' then trim(COALESCE(ctr.code_our_2, '')) else 'N/A' end  code_our
+         ,CASE when trim(COALESCE(ctr.qaa_2, '')) > ' ' then trim(COALESCE(ctr.qaa_2, '')) else 'N/A' end  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.e1litm_2 > ' ' or dose_min_2 > 0 or ctr.dose_max_2 > 0 or ctr.mis_z_2 > 0)
+union all
+ SELECT 
+         ''  prodotto
+			,CASE    
+     			WHEN ctr.dose_min_3 > 0 and ctr.dose_max_3 > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min_3 as varchar)) + ' kGy   Max ' + trim(cast(ctr.dose_max_3 as varchar)) + ' kGy')   
+     			WHEN ctr.dose_min_3 > 0 THEN 
+							('Min ' + trim(cast(ctr.dose_min_3 as varchar)) + ' kGy')   
+     			WHEN ctr.dose_max_3 > 0 THEN 
+							('Max ' + trim(cast(ctr.dose_max_3 as varchar)) + ' kGy')   
+      		ELSE ' '   
+			END dosing_range
+         ,trim(ctr.density_x) density_range_3
+			,CASE    
+     			WHEN ctr.mis_z_3 > 0 and ctr.peso_max_kg_2 > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_3/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_3/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_3/10 as varchar)) + '   weight ' + trim(cast(ctr.peso_max_kg_3 as varchar)) + ' kg') 
+     			WHEN ctr.mis_z_3 > 0 THEN 
+		         ('cm ' + trim(cast(ctr.mis_z_3/10 as varchar)) + ' x '  + trim(cast(ctr.mis_x_3/10 as varchar)) + ' x '  + trim(cast(ctr.mis_y_3/10 as varchar)) )
+     			WHEN ctr.peso_max_kg_3 > 0 THEN 
+		         ('weight ' + trim(cast(ctr.peso_max_kg_3 as varchar)) + ' kg') 
+      		ELSE ' '   
+			END size_weight
+         ,trim(ctr.e1litm_3) e1_item_number
+    		,CASE 
+      		   WHEN trim(rif_interno_alt) > ' ' THEN trim(rif_interno_alt) 
+		         ELSE (trim(ctr.quotazione_tipo) + ' ' + trim(cast(id_contratto_doc as varchar)) + '/' +  trim(cast(ctr.anno as varchar)))
+      	END rif_interno
+         ,concat(cast(format(COALESCE(ctr.prezzo_3, 0.00), 'N2') as varchar), ' €/', trim(COALESCE(ctr.unita_misura_3, '')))  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         ,CASE when trim(COALESCE(ctr.code_our_3, '')) > ' ' then trim(COALESCE(ctr.code_our_3, '')) else 'N/A' end  code_our
+         ,CASE when trim(COALESCE(ctr.qaa_3, '')) > ' ' then trim(COALESCE(ctr.qaa_3, '')) else 'N/A' end  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.e1litm_3 > ' ' or dose_min_3 > 0 or ctr.dose_max_3 > 0 or ctr.mis_z_3 > 0)
+union all
+ SELECT 
+        'Routine Dosimeter'  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,trim(ctr.e1itmdosim) e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.e1itmdosimprezzo, 0.00), 'N2') as varchar) + ' €/unit')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and ctr.e1itmdosimprezzo > 0
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  'Minimum invoice for industrial irradiation' 
+               else 'Minimo di fatturazione'     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.impon_minimo, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and ctr.impon_minimo > 0
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_1) 
+               else trim(ctr.descr_1)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_1, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_1 <> 'N' or ctr.flg_st_voce_1 is null)
+            and ctr.descr_1 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_2) 
+               else trim(ctr.descr_2)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_2, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_2 <> 'N' or ctr.flg_st_voce_2 is null)
+            and ctr.descr_2 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_3) 
+               else trim(ctr.descr_3)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_3, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_3 <> 'N' or ctr.flg_st_voce_3 is null)
+            and ctr.descr_3 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_4) 
+               else trim(ctr.descr_4)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_4, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_4 <> 'N' or ctr.flg_st_voce_4 is null)
+            and ctr.descr_4 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_5) 
+               else trim(ctr.descr_5)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_5, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_5 <> 'N' or ctr.flg_st_voce_5 is null)
+            and ctr.descr_5 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_6) 
+               else trim(ctr.descr_6)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_6, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_6 <> 'N' or ctr.flg_st_voce_6 is null)
+            and ctr.descr_6 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_7) 
+               else trim(ctr.descr_7)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_7, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_7 <> 'N' or ctr.flg_st_voce_7 is null)
+            and ctr.descr_7 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_8) 
+               else trim(ctr.descr_8)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_8, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_8 <> 'N' or ctr.flg_st_voce_8 is null)
+            and ctr.descr_8 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_9) 
+               else trim(ctr.descr_9)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_9, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_9 <> 'N' or ctr.flg_st_voce_9 is null)
+            and ctr.descr_9 > ' '
+union all
+ SELECT 
+          case ctr.stampa_tradotta
+              when 'EN' then  trim(ctr.descr_10) 
+               else trim(ctr.descr_10)     
+          end  prodotto
+         ,'N/A' dosing_range
+         ,'N/A' density_range
+         ,'N/A' size_weight
+         ,'N/A' e1_item_number
+         ,'N/A' rif_interno
+         ,(cast(format(COALESCE(ctr.voce_prezzo_tot_10, 0.00), 'N2') as varchar) + ' €')  prezzo
+         , ctr.stampa_tradotta stampa_tradotta 
+         , 'N/A'  code_our
+         , 'N/A'  qaa
+         , trim(COALESCE(ctr.treat_validate, ''))  treat_validate
+		FROM v_contratti_doc as ctr 
+   WHERE ctr.id_contratto_doc = :k_id_contratto_doc    
+            and (ctr.flg_st_voce_10 <> 'N' or ctr.flg_st_voce_10 is null)
+            and ctr.descr_10 > ' '
+" arguments=(("k_id_contratto_doc", number)) )
+text(band=header alignment="0" text="Code Our" border="0" color="33554432" x="11747" y="26" height="370" width="2725" html.valueishtml="0"  name=code_our_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text="Qaa" border="0" color="33554432" x="14525" y="26" height="370" width="2989" html.valueishtml="0"  name=qaa_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Prezzo
+~tif ( stampa_tradotta = ~"EN~", string(~"Price~"), string(~"Prezzo~"))" enabled="0" border="0" color="33554432" x="17541" y="2196" height="740" width="1957" html.valueishtml="0"  name=prezzo_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Report di
+Validazione~tif ( stampa_tradotta = ~"EN~", string(~"QAA~"), string(~"Report di~~rValidazione~"))" border="0" color="0" x="14525" y="2196" height="740" width="2989" html.valueishtml="0"  name=t_4 visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Rif. Interno
+Sterigenics Italy~tif ( stampa_tradotta = ~"EN~", string(~"Sterigenics Italy ~~rinternal reference~"), string(~"Rif. Interno ~~rSterigenics Italy~"))" border="0" color="0" x="11747" y="2196" height="740" width="2725" html.valueishtml="0"  name=t_1 visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Prodotto~tif ( stampa_tradotta = 'EN', string(~"Product~"), string(~"Prodotto~"))" enabled="0" border="0" color="33554432" x="52" y="2196" height="740" width="2672" html.valueishtml="0"  name=prodotto_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Dosing Range" enabled="0" border="0" color="33554432" x="2778" y="2196" height="740" width="1852" html.valueishtml="0"  name=dosing_range_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Density Range" enabled="0" border="0" color="33554432" x="4683" y="2196" height="740" width="1719" html.valueishtml="0"  name=density_range_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Size Weight~tif ( stampa_tradotta = 'EN', string(~"Size and weight~"), string(~"Dimensioni e peso~"))" enabled="0" border="0" color="33554432" x="6455" y="2196" height="740" width="1852" html.valueishtml="0"  name=size_weight_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="2" text="Item Number" enabled="0" border="0" color="33554432" x="8360" y="2196" height="740" width="3333" html.valueishtml="0"  name=e1_item_number_t visible="1"  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+column(band=detail id=7 alignment="0" tabsequence=32766 border="0" color="33554432" x="17594" y="27" height="370" width="1905" format=" " html.valueishtml="0"  name=prezzo visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=1 alignment="0" tabsequence=32766 border="0" color="33554432" x="79" y="27" height="370" width="2645" format=" " html.valueishtml="0"  name=prodotto visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.autovscroll=yes  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=2 alignment="2" tabsequence=32766 border="0" color="33554432" x="2804" y="27" height="370" width="1825" format=" " html.valueishtml="0"  name=dosing_range visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.autovscroll=yes  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=3 alignment="2" tabsequence=32766 border="0" color="33554432" x="4709" y="27" height="370" width="1693" format=" " html.valueishtml="0"  name=density_range visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.autovscroll=yes  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=4 alignment="2" tabsequence=32766 border="0" color="33554432" x="6482" y="27" height="370" width="1825" format=" " html.valueishtml="0"  name=size_weight visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.autovscroll=yes  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=5 alignment="2" tabsequence=32766 border="0" color="33554432" x="8387" y="27" height="370" width="3307" format=" " html.valueishtml="0"  name=e1_item_number visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no edit.autovscroll=yes  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=9 alignment="2" tabsequence=32766 border="0" color="33554432" x="11773" y="27" height="370" width="2698" format=" " html.valueishtml="0"  name=code_our visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=10 alignment="2" tabsequence=32766 border="0" color="33554432" x="14552" y="27" height="370" width="2963" format=" " html.valueishtml="0"  name=qaa visible="1" height.autosize=yes edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Calibri" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=foreground alignment="2" text="
+" border="0" color="16777215" x="0" y="0" height="2063" width="18944" html.valueishtml="0"  name=t_3 visible="1"  slideup=directlyabove  font.face="Tahoma" font.height="-16" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="8388608" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=foreground alignment="2" text="text
+~tif ( stampa_tradotta = 'EN', string(~"STERIGENICS ITALY SPA~~rOCCASIONAL IRRADIATION~~r~"), string(~"STERIGENICS ITALY SPA~~rTRATTAMENTO OCCASIONALE~~r~"))+
+if ( treat_validate = 'S', '  ',
+if ( stampa_tradotta = 'EN', string(~"GENERIC TREATMENT NOT VALIDATED~"), string(~"TRATTAMENTO GENERICO NON VALIDATO~")))" border="0" color="16777215" x="635" y="211" height="1481" width="17727" html.valueishtml="0"  name=t_2 visible="1"  slideup=directlyabove  font.face="Calibri" font.height="-12" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="8388608" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+htmltable(border="1" )
+htmlgen(clientevents="1" clientvalidation="1" clientcomputedfields="1" clientformatting="0" clientscriptable="0" generatejavascript="1" encodeselflinkargs="1" netscapelayers="0" pagingmethod=0 generatedddwframes="1" )
+xhtmlgen() cssgen(sessionspecific="0" )
+xmlgen(inline="0" )
+xsltgen()
+jsgen()
+export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
+import.xml()
+export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
+export.xhtml()
+ 

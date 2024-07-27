@@ -186,6 +186,7 @@ protected subroutine u_dw_groupage_colore (ref datawindow k_dw)
 public function long togli_barcode_figlio (boolean k_esponi_msg)
 public subroutine togli_barcode_padre ()
 public subroutine togli_barcode_figlio_post (long k_id_meca)
+private subroutine riapre_pl_barcode (st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception
 end prototypes
 
 private function string cancella ();//
@@ -334,21 +335,12 @@ st_tab_pl_barcode kst_tab_pl_barcode
 	kiuf_pl_barcode.set_pl_barcode_nuovo_default(kst_tab_pl_barcode)
 	set_dw_dett_0(kst_tab_pl_barcode)
 
-//	dw_dett_0.setcolumn("data")
-
-
-//=== Posiziona il cursore sul Data Windows
-//	dw_dett_0.setfocus() 
-
 	attiva_tasti()
 
 	proteggi_campi()
 
 //--- rilegge le liste utili al nuovo programma da fare
 	ki_riga_pos_dw_meca = dw_meca.getrow( )  //cattura la riga selezionata
-	//if ki_riga_pos_dw_meca > 0 then
-	//	ki_id_meca_pos_dw_meca = dw_meca.getitemnumber( ki_riga_pos_dw_meca, "id_meca")
-	//end if
 	dw_meca.setfocus( )
 	leggi_liste()
 
@@ -1126,13 +1118,19 @@ pointer oldpointer  // Declares a pointer variable
 //--- nessun codice trovato
 			case 0
 				SetPointer(oldpointer)
-				messagebox("Piano di Lavorazione", &
-					"Non e' stato trovato in archivio il Piano di Lavorazione ~n~r" + &
-					"(Codice cercato :" + string(k_key) + ")~n~r" )
-				ki_exit_si = true
-				return "2"   // EXIT!!
-				//cb_ritorna.postevent("clicked!")
+				if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 					
+					inserisci( )
+					
+				else
+					messagebox("Piano di Lavorazione", &
+						"Non e' stato trovato in archivio il Piano di Lavorazione ~n~r" + &
+						"(Codice cercato :" + string(k_key) + ")~n~r" )
+					ki_exit_si = true
+					return "2"   // EXIT!!
+					//cb_ritorna.postevent("clicked!")
+				end if
+				
 //--- se codice trovato
 			case is > 0		
 				dw_dett_0.resetupdate()
@@ -1217,7 +1215,6 @@ pointer oldpointer  // Declares a pointer variable
 	end if
 	
 	if ki_st_open_w.flag_primo_giro = 'S' then
-
 		ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
 		retrieve_figli_all( )   // verifica i figli
 		leggi_liste()
@@ -1522,11 +1519,11 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 	end if
 
 	//if m_main.m_strumenti.m_fin_gest_libero2.enabled <> cb_file.enabled then
-		m_main.m_strumenti.m_fin_gest_libero2.text = "&Cicli di Lavorazione"
+		m_main.m_strumenti.m_fin_gest_libero2.text = "&Trattamento"
 		if kiuf_barcode_mod_giri.ki_modifica_cicli_enabled = kiuf_barcode_mod_giri.ki_modifica_cicli_enabled_modif then
-			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Modifica i cicli di trattamento del Barcode/intero Lotto di Entrata   "
+			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Modifica dati di trattamento del Barcode o l'intero Lotto "
 		else
-			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Visualizza cicli di trattamento del Barcode/intero Lotto di Entrata   "
+			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Visualizza dati di trattamento del Barcode o l'intero Lotto "
 		end if
 		m_main.m_strumenti.m_fin_gest_libero2.enabled = true //cb_file.enabled
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemtext = "Giri,"+ m_main.m_strumenti.m_fin_gest_libero2.text
@@ -1594,7 +1591,7 @@ if ki_st_open_w.flag_primo_giro <> "S" then
 		m_main.m_strumenti.m_fin_gest_libero6.text = "Chiudi P.L."
 		m_main.m_strumenti.m_fin_gest_libero6.microhelp = 	"Salva e Chiude il Piano di Lavorazione, NON SARA' PIU' possibile effettuare alcuna modifica     "
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemtext = "Chiudi,"+ m_main.m_strumenti.m_fin_gest_libero6.text
-		//ki_menu.m_strumenti.m_fin_gest_libero6.toolbaritemname = kGuo_path.get_risorse() + "\lucch32.png"
+		//ki_menu.m_strumenti.m_fin_gest_libero6.toolbaritemname = kGuo_path.get_risorse() + "\lucch16.png"
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemname = "lucch16.png"
 	else
 		m_main.m_strumenti.m_fin_gest_libero6.text = "Riapre P.L."
@@ -2609,8 +2606,7 @@ st_esito kst_esito, kst_esito_err
 		kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
 	
 //--- prima di Chiudere RIPRISTINA gli archivi da eventuali chiusure passate
-		kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
-		kiuf_pl_barcode.riapre_pl_barcode(kst_tab_pl_barcode)
+		riapre_pl_barcode(kst_tab_pl_barcode)
 			
 //--- Controllo se Tutto OK			
 		if_programmazione_ok()
@@ -2896,20 +2892,14 @@ try
 
 //--- RIPRISTINA gli archivi da eventuali chiusure passate
 	kst_tab_pl_barcode.codice = dw_dett_0.getitemnumber(dw_dett_0.getrow(), "codice")
-	kst_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
-	kiuf_pl_barcode.riapre_pl_barcode(kst_tab_pl_barcode)
+	riapre_pl_barcode(kst_tab_pl_barcode)
 		
-	//kguo_sqlca_db_magazzino.db_commit( ) 
-
 	dw_dett_0.setitem (1, "data_chiuso", kst_tab_pl_barcode.data_chiuso)
 
 catch (uo_exception kuo_exception)
 	kst_esito = kuo_exception.get_st_esito()
-	kst_esito.sqlerrtext = "Errore durante Riapertura del Piano di Lavorazione (apri_pl_elabora): ~n~r" + trim(kst_esito.sqlerrtext)
-	
-	//kguo_sqlca_db_magazzino.db_rollback( ) 
-	
-	kguo_exception.inizializza( )
+	kst_esito.sqlerrtext = "Errore in Riapertura del Piano di Lavorazione (apri_pl_elabora): " &
+					+ string(kst_tab_pl_barcode.codice) + " " + kkg.acapo + trim(kst_esito.sqlerrtext)
 	kguo_exception.set_esito(kst_esito)
 	kguo_exception.scrivi_log( )
 	throw kguo_exception
@@ -5327,9 +5317,13 @@ ki_lista_0_modifcato = true
 			for k_row_barcode_ds_1 = 1 to kds_1.rowcount() 
 
 				kst_tab_barcode.barcode = kds_1.object.barcode[k_row_barcode_ds_1]
-
+			
+				if trim(kst_tab_barcode.barcode) > " " then
 //--- Cerco il barcode tra i figli e padri gia' presenti (non ci possono essere NONNI)
-				k_riga_find = dw_groupage.find("barcode_barcode = '" + trim(kst_tab_barcode.barcode) + "' or barcode_lav = '" + trim(kst_tab_barcode.barcode) + "'", 1, dw_groupage.rowcount()) 
+					k_riga_find = dw_groupage.find("barcode_barcode = '" + trim(kst_tab_barcode.barcode) + "' or barcode_lav = '" + trim(kst_tab_barcode.barcode) + "'", 1, dw_groupage.rowcount()) 
+				else
+					k_riga_find = 0
+				end if
 
 //--- se il barcode non c'e' ancora tra i figli allora lo aggiungo
 				if k_riga_find < 1  then
@@ -5338,7 +5332,7 @@ ki_lista_0_modifcato = true
 					
 					kiuf_barcode.select_barcode( kst_tab_barcode )
 					kst_tab_armo.id_armo = kst_tab_barcode.id_armo
-					kiuf_armo.leggi_riga( " ", kst_tab_armo )
+					kiuf_armo.leggi_riga(" ", kst_tab_armo )
 					
 					kst_tab_armo.peso_kg = kst_tab_armo.peso_kg / kst_tab_armo.colli_2 // ricavo il peso x collo
 					kst_tab_meca.id = kst_tab_armo.id_meca
@@ -6982,6 +6976,42 @@ end try
 
 end subroutine
 
+private subroutine riapre_pl_barcode (st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception;//--- 
+st_txt_pilota_cmd kst_txt_pilota_cmd
+st_tab_pilota_cmd kst_tab_pilota_cmd
+kuf_pilota_cmd kuf1_pilota_cmd
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+//--- Rimuove il file delle richieste se riguarda questo invio prima che lo legga il PILOTA
+	kuf1_pilota_cmd = create kuf_pilota_cmd
+	kuf1_pilota_cmd.get_path_file_richieste()  // legge il path+file da rimuovere
+	kst_tab_pilota_cmd.path = kuf1_pilota_cmd.kist_tab_pilota_cfg.path_pilota_out
+	kst_tab_pilota_cmd.pfile = kuf1_pilota_cmd.kist_tab_pilota_cfg.file_richieste
+	kst_txt_pilota_cmd = kuf1_pilota_cmd.leggi_file_richieste_padri( )  // legge il file command.txt
+	if kst_txt_pilota_cmd.progressivo_richiesta > 0 then
+//---  get del progressivo associato a questo PL e verifica se è il progressivo che è sul file allora lo cancello
+		if kst_txt_pilota_cmd.progressivo_richiesta = kiuf_pl_barcode.get_pilota_cmd_num_rich(ast_tab_pl_barcode) then
+			kuf1_pilota_cmd.cancella_file_richieste(kst_tab_pilota_cmd)  // cancella il file command.txt
+		end if
+	end if
+
+	ast_tab_pl_barcode.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable
+	kiuf_pl_barcode.riapre_pl_barcode(ast_tab_pl_barcode)
+			
+
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
+
+end try
+end subroutine
+
 on w_pl_barcode_dett.create
 int iCurrent
 call super::create
@@ -7966,6 +7996,7 @@ return 1
 end event
 
 type dw_periodo from uo_d_std_1 within w_pl_barcode_dett
+event u_button_ok ( )
 integer y = 848
 integer width = 955
 integer height = 504
@@ -7977,7 +8008,19 @@ string dataobject = "d_periodo"
 boolean controlmenu = true
 boolean hsplitscroll = false
 boolean livescroll = false
+boolean ki_dw_visibile_in_open_window = false
 end type
+
+event u_button_ok();//
+	this.visible = false
+	this.accepttext( )
+	
+	ki_data_ini  = this.getitemdate( 1, "data_dal")
+	ki_data_fin  = this.getitemdate( 1, "data_al")
+	ki_riga_pos_dw_meca = dw_meca.getrow( )  //cattura la riga selezionata
+	leggi_liste()
+
+end event
 
 event buttonclicked;call super::buttonclicked;//
 st_stampe kst_stampe
@@ -7990,24 +8033,12 @@ oldpointer = SetPointer(HourGlass!)
 
 if dwo.name = "b_ok" then
 	
-	
-	this.visible = false
-	
-	ki_data_ini  = this.getitemdate( 1, "data_dal")
-	ki_data_fin  = this.getitemdate( 1, "data_al")
-	//u_rilegge_no_lav()
-	ki_riga_pos_dw_meca = dw_meca.getrow( )  //cattura la riga selezionata
-//		if ki_riga_pos_dw_meca > 0 then
-//			ki_id_meca_pos_dw_meca = dw_meca.getitemnumber( ki_riga_pos_dw_meca, "id_meca")
-//		end if
-//	kids_meca_orig.reset()
-	leggi_liste()
+	this.event u_button_ok()
 
 else
 	if dwo.name = "b_annulla" then
 
 		this.visible = false
-	
 	
 	end if
 end if
@@ -8036,6 +8067,11 @@ int k_rc
 	this.visible = true
 	this.setfocus()
 	
+end event
+
+event u_pigiato_enter;//
+	this.event u_button_ok()
+
 end event
 
 type dw_prev from uo_d_std_1 within w_pl_barcode_dett
@@ -8080,8 +8116,8 @@ end event
 event u_run();//
 long k_rows, k_rows_retrieve, k_row_found, k_row, k_rows_dw_lista_0
 boolean k_pl_chiuso = false 	
-datawindow kdw_lista
-datastore kds_1
+uo_d_std_1 kdw_lista
+uo_ds_std_1 kds_1
 
 
 try
@@ -8105,7 +8141,7 @@ try
 		
 //--- se PL chiuso non passo i barcode perchè si presuppone siano già inviato alla coda		
 		if	k_pl_chiuso then
-			kdw_lista = create datawindow 
+			kdw_lista = create uo_d_std_1 
 			kdw_lista.dataobject = dw_lista_0.dataobject
 		else
 			kdw_lista = dw_lista_0
@@ -8255,7 +8291,7 @@ try
 catch (uo_exception kuo_exception)
 	
 finally
-	if isnull(kuf1_ausiliari) then destroy kuf1_ausiliari
+	if isvalid(kuf1_ausiliari) then destroy kuf1_ausiliari
 	setpointer(kkg.pointer_default)
 	
 end try

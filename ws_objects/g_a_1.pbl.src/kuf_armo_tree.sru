@@ -4117,7 +4117,7 @@ try
 	
 	choose case k_campo_link
 	
-		case "num_int", "num_int_t", "b_meca"
+		case "num_int", "num_int_t", "meca"
 			if trim(kdw_1.describe("id_meca.x")) <> "!" then
 				kst_tab_meca.id = kdw_1.getitemnumber(k_row, "id_meca")
 				if kst_tab_meca.id > 0 then
@@ -4147,7 +4147,7 @@ try
 			end if
 	
 	
-		case "b_armo", "id_armo"
+		case "armo", "id_armo"
 			kst_tab_armo.id_meca = 0
 			kst_tab_armo.id_armo = kdw_1.getitemnumber(k_row, "id_armo")
 			if kst_tab_armo.id_armo > 0 then
@@ -4157,7 +4157,7 @@ try
 			end if
 	
 	
-		case "b_armo_prezzi", "id_armo_prezzo", "b_armo_prezzi_xstato"
+		case "armo_prezzi", "id_armo_prezzo", "armo_prezzi_xstato"
 			kuf1_armo_prezzi = create kuf_armo_prezzi
 			kuf1_armo_prezzi.link_call(kdw_1, k_campo_link )
 			k_return = false
@@ -4202,7 +4202,7 @@ try
 		
 		choose case k_campo_link
 
-			case "id_meca", "b_meca", "num_int", "num_int_t", "lotto_id"
+			case "id_meca", "meca", "num_int", "num_int_t", "lotto_id"
 				if kdw_1.dataobject = "d_meca_1" or kdw_1.dataobject = "d_meca_1_anteprima" then
 					kst_esito = kiuf_armo.anteprima_a_righe ( kdsi_elenco_output, kst_tab_meca )
 				else

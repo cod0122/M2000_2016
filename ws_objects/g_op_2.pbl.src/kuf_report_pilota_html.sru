@@ -36,17 +36,12 @@ st_esito kst_esito
 
 
 try 
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = "" 
-	kst_esito.nome_oggetto = this.classname()
-
-//--- Genera archivi STATISTICI
 	k_string = u_coda_pilota_crea_report_html( ) 
 	k_string1 = u_programmazione_crea_report_html( ) 
 	if len(trim(k_string + k_string1)) > 0 then
-		kst_esito.SQLErrText = "Operazione conclusa. " + k_string + " - " + k_string1
+		kst_esito.SQLErrText = "Operazione conclusa. " + k_string + " " + kkg.acapo + k_string1
 	else
 		kst_esito.SQLErrText = "Operazione non eseguita. Nessun Report esportato."
 	end if
@@ -75,7 +70,7 @@ datastore kds_1
 	try 
 		if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
 		
-		k_righe = kiuf_pilota_previsioni.get_ds_barcode_in_lav_prev( ) 
+		k_righe = kiuf_pilota_previsioni.crea_temptable_pilota_pallet_workqueue( ) 
 		if k_righe > 0 then
 		
 			kds_1 = create datastore
@@ -98,7 +93,7 @@ datastore kds_1
 		
 	finally
 		if k_righe > 0 then
-			k_return = "Prodotto il file " + k_file + " di " + string(k_righe)
+			k_return = "Prodotto il file " + kkg.acapo + k_file + " di " + string(k_righe) + " righe. "
 		else
 			k_return = "Prodotto il file " + k_file + " vuoto! "
 		end if
@@ -120,7 +115,7 @@ datastore kds_1
 	try 
 		if not isvalid(kiuf_pilota_previsioni) then kiuf_pilota_previsioni = create kuf_pilota_previsioni
 		
-		k_righe = kiuf_pilota_previsioni.get_ds_barcode_in_lav_prev( ) 
+		k_righe = kiuf_pilota_previsioni.crea_temptable_pilota_pallet_in_lav( ) 
 		if k_righe > 0 then
 		
 			kds_1 = create datastore
@@ -144,7 +139,7 @@ datastore kds_1
 		
 	finally
 		if k_righe > 0 then
-			k_return = "Prodotto il file " + k_file + " di " + string(k_righe)
+			k_return = "Prodotto il file " + kkg.acapo + k_file + " di " + string(k_righe) + " righe. "
 		else
 			k_return = "Prodotto il file " + k_file + " vuoto! "
 		end if

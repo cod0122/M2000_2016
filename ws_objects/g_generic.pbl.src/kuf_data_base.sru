@@ -127,6 +127,9 @@ public function string dw_salva_arg_get_nome_file (string k_dw_dataobject, strin
 public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datastore kds_import, ref datetime k_datetime_saved)
 public function string profilestring_leggi_scrivi (readonly integer k_key, string k_key_1, string k_key_2)
 public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref datawindow kdw_import, ref datetime k_datetime_saved)
+public subroutine u_set_uo_sqlca_db_magazzino () throws uo_exception
+public subroutine u_set_ds_change_name_tab_suff (ref datawindow kdw_1, string k_nome_tab, string k_nome_suff) throws uo_exception
+public subroutine u_set_ds_change_name_tab_name (ref datawindow kdw_1, string k_nome_tab, string k_nome_new) throws uo_exception
 end prototypes
 
 public function string db_commit ();//---
@@ -1758,7 +1761,7 @@ try
 			if k_return = "" or k_return = "nullo" then
 				kst_profilestring_ini.esito = "W"
 				kst_profilestring_ini.valore = " "
-				k_return = "Nessun Valore trovato in lettura archivio di Configurazione:kkg." + kkg.acapo &
+				k_return = "Nessun Valore trovato in lettura archivio di Configurazione Base: " + kkg.acapo &
 					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
 			else
 				kst_profilestring_ini.valore = k_return
@@ -1779,7 +1782,7 @@ try
 													  trim(kst_profilestring_ini.valore) ) 
 			if k_rc = -1 then
 				kst_profilestring_ini.esito = "2"
-				k_return = "Accesso in scrittura in archivio di Configurazione FALLITO:" + kkg.acapo &
+				k_return = "Accesso in scrittura in archivio di Configurazione FALLITO: " + kkg.acapo &
 					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
 				kst_esito.sqlcode = 0
 				kst_esito.sqlerrtext = k_return
@@ -1802,7 +1805,7 @@ try
 													  k_valore_iniz ) 
 			if k_rc = -1 then
 				kst_profilestring_ini.esito = "2"
-				k_return = "Accesso archivio di Configurazione per inizializzazione FALLITO:" + kkg.acapo &
+				k_return = "Accesso archivio di Configurazione per inizializzazione FALLITO: " + kkg.acapo &
 					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
 				kst_esito.sqlcode = 0
 				kst_esito.sqlerrtext = k_return
@@ -2002,7 +2005,8 @@ kuf_file_explorer kuf1_file_explorer
 		kst_stampe.stampante_predefinita = ""
 	end if
 
-	if kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_pdf_BATCH then
+	if kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH &
+			or kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_pdf_BATCH then
 		kst_stampe.ds_print.modify("Print.documentname = '"+kst_stampe.titolo+"'")
 		if kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta_BATCH then
 			if kst_stampe.ds_print.print() < 0 then
@@ -2390,16 +2394,15 @@ string k_nome_tab_new
 
 end subroutine
 
-public subroutine u_set_ds_change_name_tab (ref datawindow kdw_1, string k_nome_tab, string k_id_utente) throws uo_exception;//--------------------------------------------------------------------------------------
-//--- Cambia il nome della tabella nel ds come da standard
-//--- es.  vx_MAST_tabella_esempio ---> vx_0001_tabella_esempio
-//---     vx_ = prefisso del nome tabella quasi sempre fisso così
-//---     MAST = parte da cambiare
-//---     _nomeTabella = suffisso del nome tabella
-//--- Inp: datastore, nome tab da cambiare, id utente x completare il nome nuovo
-//--------------------------------------------------------------------------------------
-//
-//
+public subroutine u_set_ds_change_name_tab (ref datawindow kdw_1, string k_nome_tab, string k_id_utente) throws uo_exception;/*
+ Cambia il nome della tabella nel DW come da standard
+   es.  vx_MAST_tabella_esempio ---> vx_0001_tabella_esempio
+	 il nome è diviso in 3 spezzoni dal '_': 
+      1-  vx = prefisso del nome tabella quasi sempre fisso così ma può essere differente
+      2-  MAST = parte da sostituire con il codice utente
+      3-  nomeTabella = nome fisso della 'tabella'
+  Inp: dw, nome da sostituire, id utente che sostituisce il 2' spezzone ad esempio MAST
+*/
 string k_nome_tab_new
 	
 	
@@ -3449,6 +3452,77 @@ pointer kp
 return k_return
 
 end function
+
+public subroutine u_set_uo_sqlca_db_magazzino () throws uo_exception;/*
+  Imposta la connessione al DB principale di AVVIO
+*/
+	if isvalid(kguo_path) then 
+		kguo_path.set_server_name()   // set nome SERVER dal confdb
+		kguo_path.set_file_access_name()  // set nome file di configurazione connessione ecc... DB dal confdb
+		if not isvalid(KGuo_sqlca_db_magazzino) then 
+			KGuo_sqlca_db_magazzino = create Kuo_sqlca_db_magazzino
+			SQLCA = KGuo_sqlca_db_magazzino
+		end if
+		KGuo_sqlca_db_magazzino.inizializza( )   // recupera i dati di connessione al DB
+	else
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Impostazione della Connessione al DB principale non eseguita, ambiente 'PATH' non inizializzato. Rilanciare l'Applicazione."
+	end if
+
+end subroutine
+
+public subroutine u_set_ds_change_name_tab_suff (ref datawindow kdw_1, string k_nome_tab, string k_nome_suff) throws uo_exception;/*
+ Cambia il nome della tabella nel DW come da standard
+   es.  vx_MAST_tabella_esempio ---> vx_0001_tabella_esempio23
+	 il nome è diviso in 3 spezzoni dal '_': 
+      1-  vx = prefisso del nome tabella quasi sempre fisso così ma può essere differente
+      2-  MAST = parte da sostituire con il codice utente
+      3-  nomeTabella = nome fisso della 'tabella'
+  Inp: DW,  Nome da sostituire, Suffisso da aggiungere al nome es '23 
+*/
+string k_nome_tab_new
+	
+	
+	try
+
+		k_nome_tab_new = u_change_nometab_xutente(k_nome_tab)  // ritorna il nuovo nome tab x utente 
+		k_nome_tab_new += trim(k_nome_suff)
+
+		u_set_ds_change_name_tab_1(kdw_1, k_nome_tab, k_nome_tab_new)
+		
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+
+	end try
+		
+	
+
+end subroutine
+
+public subroutine u_set_ds_change_name_tab_name (ref datawindow kdw_1, string k_nome_tab, string k_nome_new) throws uo_exception;/*
+ Cambia il nome della tabella nel DW come da standard
+   es.  vx_MAST_tabella_esempio ---> vx_0001_tabella_esempio
+  Inp: DW,  Nome da sostituire, Nome nuovo
+*/
+	
+	
+	try
+
+		u_set_ds_change_name_tab_1(kdw_1, k_nome_tab, k_nome_new)
+		
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+
+	end try
+		
+	
+
+end subroutine
 
 on kuf_data_base.create
 call super::create

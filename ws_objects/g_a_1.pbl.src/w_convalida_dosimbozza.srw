@@ -59,7 +59,6 @@ private subroutine cambia_data_scadenze ()
 public function boolean get_dati_cliente (ref st_tab_clienti kst_tab_clienti)
 private subroutine put_video_cliente (st_tab_clienti kst_tab_clienti)
 public function integer u_retrieve_dw_lista ()
-public subroutine set_dw_dett_0_dataobject ()
 private function double calcola_coeff_a_s (st_tab_meca_dosimbozza ast_tab_meca_dosimbozza)
 protected subroutine pulizia_righe ()
 protected function string aggiorna_tabelle ()
@@ -69,6 +68,7 @@ protected subroutine u_set_dw_dett_0_update_status ()
 public subroutine u_copia_dato (string a_nomecampo, integer a_valore)
 protected function string check_dati ()
 protected subroutine attiva_tasti_0 ()
+private subroutine u_set_dw_dett_0_dataobject_old ()
 end prototypes
 
 public function string inizializza ();//
@@ -112,13 +112,21 @@ kuf_clienti kuf1_clienti
 			if kist_tab_meca_arg.id > 0  then
 				dw_guida.setitem(1,"codice", string(kist_tab_meca_arg.id))
 			else
-				kuf1_clienti = create kuf_clienti
-				kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
-				kuf1_clienti.get_nome(kst_tab_clienti)
-				if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
-					dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
-				else
-					dw_guida.setitem(1,"codice", "")
+				if kist_tab_meca_arg.clie_3 > 0 then
+					try
+						kuf1_clienti = create kuf_clienti
+						kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
+						kuf1_clienti.get_nome( kst_tab_clienti )
+						if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
+							dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
+						else
+							dw_guida.setitem(1,"codice", "")
+						end if
+					catch (uo_exception kuo_exception)
+						kuo_exception.messaggio_utente()
+					finally	 
+						if isvalid(kuf1_clienti) then destroy kuf1_clienti
+					end try
 				end if
 			end if
 		end if
@@ -286,34 +294,27 @@ end function
 
 protected function integer inserisci ();//
 int k_rc
-long k_riga, k_righe
-//string k_rc1, k_style
-kuf_utility kuf1_utility
-st_esito kst_esito
-datastore kds_1
-//datawindowchild kdwc_clienti_d
+long k_riga //, k_righe
+//datastore kds_1
 
-
-//	dw_lista_0.reset()
 
 	ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento 
 
-//--- se sono sul dw 'singolo' cambia su quello a elenco copiando i dati
-	if dw_dett_0.dataobject = "d_convalida_dosimbozza" and dw_dett_0.rowcount( ) > 0 then
-		kds_1 = create datastore
-		kds_1.dataobject = dw_dett_0.dataobject
-		k_rc = dw_dett_0.rowscopy( 1, dw_dett_0.rowcount( ), primary!, kds_1, 1, primary!)
-		dw_dett_0.dataobject = "d_convalida_dosimbozza_l"
-		dw_dett_0.settransobject(kguo_sqlca_db_magazzino)
-		k_righe = kds_1.rowcount( )
-		k_rc = kds_1.rowscopy( 1, k_righe, primary!, dw_dett_0, 1, primary!)
-		u_set_dw_dett_0_update_status( )
-	end if
+////--- se sono sul dw 'singolo' cambia su quello a elenco copiando i dati
+//	if dw_dett_0.dataobject = "d_convalida_dosimbozza" and dw_dett_0.rowcount( ) > 0 then
+//		kds_1 = create datastore
+//		kds_1.dataobject = dw_dett_0.dataobject
+//		k_rc = dw_dett_0.rowscopy( 1, dw_dett_0.rowcount( ), primary!, kds_1, 1, primary!)
+//		dw_dett_0.dataobject = "d_convalida_dosimbozza_l"
+//		dw_dett_0.settransobject(kguo_sqlca_db_magazzino)
+//		k_righe = kds_1.rowcount( )
+//		k_rc = kds_1.rowscopy( 1, k_righe, primary!, dw_dett_0, 1, primary!)
+//		u_set_dw_dett_0_update_status( )
+//	end if
 
 //--- Aggiunge una riga al data windows
 	k_riga = dw_dett_0.insertrow(0)
 	dw_dett_0.scrolltorow(k_riga)
-	//dw_dett_0.setcolumn(1)
 
 //--- imposta dati di default
 	dw_dett_0.setitem(k_riga, "id_meca_dosimbozza", 0)
@@ -340,20 +341,13 @@ datastore kds_1
 
 	dw_dett_0.setitemstatus(k_riga, 0, primary!, New!)   // resetta lo status a NUOVO come senza imputazioni
 	
-//--- S-protezione campi per riabilitare la modifica 
-	kuf1_utility = create kuf_utility 
-	kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
-	destroy kuf1_utility	
-
-	//dw_dett_0.resetupdate( )
+	dw_dett_0.u_proteggi_dw("0", 0) // S-protezione campi per riabilitare la modifica 
 
 	attiva_tasti()
-
 	
 //--- legge i DWC
 	legge_dwc()
 
-//=== Posiziona il cursore sul Data Windows
 	dw_dett_0.setfocus() 
 
 return (0)
@@ -369,7 +363,6 @@ int k_return, k_rc,  k_ctr, k_taborder
 string k_style, k_rc1
 long k_riga, k_righe
 st_tab_meca_dosim kst_tab_meca_dosim
-kuf_utility kuf1_utility	
 
 
 	if dw_lista_0.getrow() > 0 then
@@ -380,7 +373,8 @@ kuf_utility kuf1_utility
 		end if
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica 
 	
-		set_dw_dett_0_dataobject( )  //imposta il dw giusto (unico o multiriga)
+		//u_set_dw_dett_0_dataobject( )  //imposta dw object diverso se una sola lettura o multipla
+		
 		k_return = dw_dett_0.retrieve( kst_tab_meca_dosim.id_meca ) // legge le dosimetrie
 		if k_return > 0 then
 			if dw_dett_0.getitemdate(1, "dosim_data") > KKG.DATA_ZERO then
@@ -406,9 +400,7 @@ kuf_utility kuf1_utility
 		//end if
 		
 	//--- S-protezione campi per riabilitare la modifica a parte la chiave
-		kuf1_utility = create kuf_utility 
-		kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
-		destroy kuf1_utility	
+		dw_dett_0.u_proteggi_dw("0", 0)
 	else
 		messagebox("Visualizza dosimetria", "Selezionare una riga in elenco")
 	end if
@@ -531,7 +523,7 @@ kuf_utility kuf1_utility
 	
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione 
 
-		set_dw_dett_0_dataobject( )  //imposta il dw giusto (unico o multiriga)
+//		u_set_dw_dett_0_dataobject( )  //imposta il dw giusto (unico o multiriga)
 		k_return = dw_dett_0.retrieve( k_key ) // legge le dosimetrie
 		//if k_return = 0 then
 			k_return += u_popola_righe_nuove(dw_lista_0.getrow())
@@ -627,7 +619,7 @@ end subroutine
 
 protected subroutine open_start_window ();//---
 int k_rc
-datawindowchild  kdwc_clienti_d, kdwc_sc_cf_d, kdwc_sl_pt_d 
+//datawindowchild  kdwc_clienti_d, kdwc_sc_cf_d, kdwc_sl_pt_d 
 kuf_elenco kuf1_elenco
 
 
@@ -850,27 +842,6 @@ return k_return
 
 end function
 
-public subroutine set_dw_dett_0_dataobject ();//	
-//--- imposta la dw a un solo record oppure a multirecord
-//
-	if dw_lista_0.getitemnumber(dw_lista_0.getrow(), "n_dosim") > 1 then
-		dw_dett_0.dataObject = "d_convalida_dosimbozza_l"
-		dw_dett_0.ki_attiva_standard_select_row = true
-		dw_dett_0.ki_d_std_1_attiva_sort = true
-		dw_dett_0.ki_d_std_1_attiva_cerca = true
-		dw_dett_0.ki_colora_riga_aggiornata = true
-	else
-		dw_dett_0.dataObject = "d_convalida_dosimbozza"
-		dw_dett_0.ki_attiva_standard_select_row = false
-		dw_dett_0.ki_d_std_1_attiva_sort = false
-		dw_dett_0.ki_d_std_1_attiva_cerca = false
-		dw_dett_0.ki_colora_riga_aggiornata = false
-		dw_dett_0.selectrow( 0, false)
-	end if
-	dw_dett_0.event u_constructor( )
-	  
-end subroutine
-
 private function double calcola_coeff_a_s (st_tab_meca_dosimbozza ast_tab_meca_dosimbozza);//
 //--- 
 //
@@ -945,61 +916,56 @@ string k_return = "0"
 int k_riga, k_righe
 st_tab_meca_dosim kst_tab_meca_dosim
 st_tab_barcode kst_tab_barcode
-st_esito kst_esito
+//st_esito kst_esito
 kuf_meca_dosim kuf1_meca_dosim
 kuf_barcode kuf1_barcode
 
 
 try
-	kguo_sqlca_db_magazzino.db_commit()  // forse per ovviare al problema delle TemporalTable
+	//kguo_sqlca_db_magazzino.db_commit()  // forse per ovviare al problema delle TemporalTable
 	 
-	u_set_dw_dett_0_update_status( ) 
+	u_set_dw_dett_0_update_status( ) //imposta lo status su dw_dett_0
 	 
 	if dw_dett_0.update() < 0 then
 		kguo_sqlca_db_magazzino.db_rollback()
-		kst_esito.sqlcode = -1
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlerrtext = "Errore durante aggiornamento dati di imputazione dosimetrica in tabella " &
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(dw_dett_0.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento dati di prima lettura dosimetrica. " &
 					             + kkg.acapo + "Errore: " + string(dw_dett_0.kist_esito.sqlcode) + " sqldbcode: " + string(dw_dett_0.kist_esito.sqldbcode) &
 									 + " " + trim(dw_dett_0.kist_esito.sqlerrtext)
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
-	else
-
-//--- Se tutto OK faccio la COMMIT		
-		kguo_sqlca_db_magazzino.db_commit()
-
-		k_righe = dw_dett_0.rowcount()
-//--- se non ancora caricato in MECA_DOSIM lo faccio ora 		
-		kuf1_meca_dosim = create kuf_meca_dosim
-		for k_riga = 1 to k_righe
-			kst_tab_meca_dosim.barcode = dw_dett_0.getitemstring(k_riga, "meca_dosimbozza_barcode")
-			if NOT kuf1_meca_dosim.if_esiste(kst_tab_meca_dosim) then
-				kst_tab_meca_dosim.id_meca = dw_dett_0.getitemnumber(k_riga, "id_meca")
-				kst_tab_meca_dosim.barcode_dosimetro = dw_dett_0.getitemstring(k_riga, "barcode_dosimetro")
-				kst_tab_meca_dosim.barcode_lav = dw_dett_0.getitemstring(k_riga, "barcode_lav")
-				kuf1_meca_dosim.tb_add_barcode(kst_tab_meca_dosim)  // ADD in MECA_DOSIM
-				
-				kist_tab_meca_dosimbozza_insert.dosim_lotto_dosim = kst_tab_meca_dosim.dosim_lotto_dosim // salvo il nome lotto x eventuale reinserimento
-				kist_tab_meca_dosimbozza_insert.dosim_temperatura = kst_tab_meca_dosim.dosim_temperatura // salvo il nome lotto x eventuale reinserimento
-				kist_tab_meca_dosimbozza_insert.dosim_umidita = kst_tab_meca_dosim.dosim_umidita // salvo il nome lotto x eventuale reinserimento
-
-			end if
-		next
-		
-//--- ricostruisce situazione flag dosimetro sui barcode
-		kuf1_barcode = create kuf_barcode
-		kst_tab_barcode.id_meca = dw_dett_0.getitemnumber(1, "id_meca")
-		kuf1_barcode.set_flg_dosimetro_all(kst_tab_barcode)
-		
 	end if
 
+//--- Se tutto OK faccio la COMMIT		
+	kguo_sqlca_db_magazzino.db_commit()
+
+	k_righe = dw_dett_0.rowcount()
+//--- se non ancora caricato in MECA_DOSIM lo faccio ora 		
+	kuf1_meca_dosim = create kuf_meca_dosim
+	for k_riga = 1 to k_righe
+		kst_tab_meca_dosim.barcode = dw_dett_0.getitemstring(k_riga, "meca_dosimbozza_barcode")
+		if NOT kuf1_meca_dosim.if_esiste(kst_tab_meca_dosim) then
+			kst_tab_meca_dosim.id_meca = dw_dett_0.getitemnumber(k_riga, "id_meca")
+			kst_tab_meca_dosim.barcode_dosimetro = dw_dett_0.getitemstring(k_riga, "barcode_dosimetro")
+			kst_tab_meca_dosim.barcode_lav = dw_dett_0.getitemstring(k_riga, "barcode_lav")
+			kuf1_meca_dosim.tb_add_barcode(kst_tab_meca_dosim)  // ADD in MECA_DOSIM
+			
+			kist_tab_meca_dosimbozza_insert.dosim_lotto_dosim = kst_tab_meca_dosim.dosim_lotto_dosim // salvo il nome lotto x eventuale reinserimento
+			kist_tab_meca_dosimbozza_insert.dosim_temperatura = kst_tab_meca_dosim.dosim_temperatura // salvo il nome lotto x eventuale reinserimento
+			kist_tab_meca_dosimbozza_insert.dosim_umidita = kst_tab_meca_dosim.dosim_umidita // salvo il nome lotto x eventuale reinserimento
+
+		end if
+	next
+	
+////--- ricostruisce situazione flag dosimetro sui barcode UFOUFO
+//		kuf1_barcode = create kuf_barcode
+//		kst_tab_barcode.id_meca = dw_dett_0.getitemnumber(1, "id_meca")
+//		kuf1_barcode.set_flg_dosimetro_all(kst_tab_barcode)
+		
 	kguo_sqlca_db_magazzino.db_commit( )
 			
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	k_return = "1Errore: " + string(kst_esito.sqlcode) + " (" + trim(kst_esito.sqlerrtext) + ") "
+	k_return = "1Errore: " + trim(kuo_exception.kist_esito.sqlerrtext) + " (" + string(kuo_exception.kist_esito.sqlcode) + ") "
 	
 finally
 
@@ -1218,6 +1184,27 @@ end if
 
 end subroutine
 
+private subroutine u_set_dw_dett_0_dataobject_old ();////	
+////--- imposta la dw a un solo record oppure a multirecord
+////
+//	if dw_lista_0.getitemnumber(dw_lista_0.getrow(), "n_dosim") > 1 then
+//		dw_dett_0.dataObject = "d_convalida_dosimbozza_l"
+//		dw_dett_0.ki_attiva_standard_select_row = true
+//		dw_dett_0.ki_d_std_1_attiva_sort = true
+//		dw_dett_0.ki_d_std_1_attiva_cerca = true
+//		dw_dett_0.ki_colora_riga_aggiornata = true
+//	else
+//		dw_dett_0.dataObject = "d_convalida_dosimbozza"
+//		dw_dett_0.ki_attiva_standard_select_row = false
+//		dw_dett_0.ki_d_std_1_attiva_sort = false
+//		dw_dett_0.ki_d_std_1_attiva_cerca = false
+//		dw_dett_0.ki_colora_riga_aggiornata = false
+//		dw_dett_0.selectrow( 0, false)
+//	end if
+//	dw_dett_0.event u_constructor( )
+//	  
+end subroutine
+
 on w_convalida_dosimbozza.create
 int iCurrent
 call super::create
@@ -1343,10 +1330,10 @@ integer y = 792
 integer width = 2784
 integer height = 1148
 boolean enabled = true
-string dataobject = "d_convalida_dosimbozza"
+string dataobject = "d_convalida_dosimbozza_l"
 boolean ki_link_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
-boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = true
 end type
 
 event dw_dett_0::itemchanged;call super::itemchanged;//
@@ -1481,9 +1468,9 @@ choose case dwo.name
 		end if
 //--- Copia Lotto-Dosimetrico sulle altre righe
 		if dwo.name = "dosim_lotto_dosim" then 
-			if this.dataobject = "d_convalida_dosimbozza_l" then //row = 1 then
-				post u_copia_dato(dwo.name, data) 
-			end if
+//			if this.dataobject = "d_convalida_dosimbozza_l" then //row = 1 then
+			post u_copia_dato(dwo.name, data) 
+//			end if
 		end if
 		
 
@@ -1491,9 +1478,9 @@ choose case dwo.name
 	case "dosim_temperatura" &
 			,"dosim_umidita"
 		// copia la temperatura/umidità su altre righe
-		if this.dataobject = "d_convalida_dosimbozza_l" and isnumber(trim(data)) then
+//		if this.dataobject = "d_convalida_dosimbozza_l" and isnumber(trim(data)) then
 			post u_copia_dato(dwo.name, integer(trim(data))) 
-		end if
+//		end if
 
 
 end choose
@@ -1502,27 +1489,6 @@ return k_return
 
 
 
-end event
-
-event dw_dett_0::rowfocuschanged;call super::rowfocuschanged;////
-////--- se sono sul ELENCO e campo BARCODE DOSIMETRO ha un valore significa che questa riga è già stata associata a un barcode di lavorazione
-////---    pertanto devo proteggere il campo del barcode di lavoro
-//string k_prot = "0"
-//kuf_utility kuf1_utility
-//
-//
-//	if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
-//		if this.dataobject = "d_convalida_dosimbozza_l" then
-//			if trim(this.getitemstring( currentrow, "barcode")) > " " and trim(this.getitemstring( currentrow, "barcode_lav")) > " " then
-//				k_prot = "1"
-//			end if
-//		end if
-////--- S-protezione campi per riabilitare la modifica 
-//		kuf1_utility = create kuf_utility 
-//		kuf1_utility.u_proteggi_dw(k_prot, "barcode_lav", dw_dett_0)
-//		destroy kuf1_utility		
-//	end if
-//
 end event
 
 event dw_dett_0::clicked;call super::clicked;//
@@ -1633,7 +1599,7 @@ boolean enabled = true
 string dataobject = "d_meca_dosimbozza_guida"
 end type
 
-event dw_guida::ue_retrieve_dinamico;call super::ue_retrieve_dinamico;//---	
+event dw_guida::ue_retrieve_dinamico;call super::ue_retrieve_dinamico;////---	
 //--- 
 //---
 if k_campo = "dosimbozza_si" then 
@@ -1696,6 +1662,11 @@ finally
 	
 end try
 
+
+end event
+
+event dw_guida::editchanged;call super::editchanged;//
+	event ue_retrieve_dinamico(dwo.name, data) 
 
 end event
 

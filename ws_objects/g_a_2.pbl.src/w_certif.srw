@@ -13,7 +13,6 @@ type variables
 //
 //	datastore kdsi_elenco 
 	private boolean ki_stampa_attestato = false
-	private uo_d_certif_stampa kiuo1_d_certif_stampa
 	
 
 end variables
@@ -29,7 +28,7 @@ protected function string check_dati ()
 protected function string inizializza ()
 protected function string dati_modif (string k_titolo)
 protected subroutine open_start_window ()
-private subroutine rigenera_alcuni_dati_lotto ()
+private subroutine u_aggiorna_data_fine_lav ()
 protected subroutine attiva_tasti_0 ()
 end prototypes
 
@@ -261,10 +260,10 @@ protected subroutine attiva_menu ();//
 
 //--- Rigenera alcuni dati del Lotto 		
 	if m_main.m_strumenti.m_fin_gest_libero9.enabled <>  cb_aggiorna.enabled then
-		m_main.m_strumenti.m_fin_gest_libero9.text = "Rilegge e sistema la data di Fine Trattamento "
-		m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Rilegge e sistema la data di Fine Trattamento "
+		m_main.m_strumenti.m_fin_gest_libero9.text = "Aggiorna la data di Fine Trattamento (dai barcode Trattati)"
+		m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Aggiorna la data di Fine Trattamento."
 		m_main.m_strumenti.m_fin_gest_libero9.enabled =  cb_aggiorna.enabled
-		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemtext =  "Riaggiorna,"+ m_main.m_strumenti.m_fin_gest_libero9.text
+		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemtext =  "Fine Lav.,"+ m_main.m_strumenti.m_fin_gest_libero9.text
 		m_main.m_strumenti.m_fin_gest_libero9.toolbaritemvisible = true
 		m_main.m_strumenti.m_fin_gest_libero9.toolbaritembarindex=2
 	end if
@@ -289,7 +288,7 @@ choose case LeftA(k_par_in, 2)
 
 //--- Rigenera alcuni dati del Riferimento
 	case "l9"
-		rigenera_alcuni_dati_lotto()		
+		u_aggiorna_data_fine_lav()		
 		
 	case else
 		super::smista_funz(k_par_in)
@@ -383,8 +382,8 @@ if sicurezza(kst_open_w) then
 						
 					kuf1_certif_print.kist_tab_certif = kst_tab_certif[1]
 					kuf1_certif_print.ki_flag_stampa_di_test = true
-					if not kuf1_certif_print.stampa(kst_tab_certif[], false) then
-						messagebox("Stampa Attestato", 	"Operazione di preparazione alla stampa Fallita." ) //&
+					if kuf1_certif_print.stampa(kst_tab_certif[]) = 0 then
+						messagebox("Stampa Attestato", 	"Attestato n " + string(kst_tab_certif[1].num_certif) + " non stampato." ) 
 					end if
 					
 	
@@ -794,36 +793,40 @@ protected subroutine open_start_window ();
 
 end subroutine
 
-private subroutine rigenera_alcuni_dati_lotto ();//
+private subroutine u_aggiorna_data_fine_lav ();//
 int k_ok=0
+date k_data
 st_tab_meca kst_tab_meca
 kuf_armo kuf1_armo
 
 	
+try
+	kuf1_armo = create kuf_armo
+
 	kst_tab_meca.id = tab_1.tabpage_1.dw_1.object.id_meca[1]
+	if kst_tab_meca.id > 0 then
 
-	try
-
-		kuf1_armo = create kuf_armo
-
-//--- Modifica 
-		k_ok = messagebox("Operazione di: "+trim(m_main.m_strumenti.m_fin_gest_libero9.text), "L'operazione non è distruttiva ma aggiorna dati Lotto, proseguire?", &
+		k_ok = messagebox("Aggiorna Data Fine Trattamento", "Aggiorna la data solo se tutti i Barcode da Trattare hanno concluso il trattamento, proseguire?", &
 							question!, yesno!, 2) 
 		if k_ok = 1 then
 //--- aggiorna lo stato del Riferimento
-			kuf1_armo.set_data_fine_lav(kst_tab_meca)
+			k_data = kuf1_armo.set_data_lav_fine_se_trattato(kst_tab_meca)
+			if k_data > kkg.data_no then
+				messagebox("Operazione Terminata", "Aggiornata la data di fine trattamento al " + string(k_data))
+			else
+				messagebox("Operazione Terminata", "Data di fine trattamento non rilevata, nessun aggiornamento eseguito.")
+			end if
 			inizializza_lista()
 		end if
-			
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-		
-	finally
-		destroy kuf1_armo
-		
-	end try
-
-
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	destroy kuf1_armo
+	
+end try
 
 
 end subroutine
@@ -852,7 +855,6 @@ call super::create
 end on
 
 event close;call super::close;//
-if isvalid(kiuo1_d_certif_stampa) then	destroy kiuo1_d_certif_stampa 
 //if isvalid(kdsi_elenco) then destroy kdsi_elenco   
 
 end event

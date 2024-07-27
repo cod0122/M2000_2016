@@ -13,13 +13,13 @@ type prototypes
 //Declaring the Win32 file manipulation API functions
 //function long FindFirstFile (ref string sPathName, ref st_file_explorer_win32_find_data fd) LIBRARY "KERNEL32.DLL" alias for "FindFirstFileA"
 //function long FindNextFile (long lFileHandle, ref st_file_explorer_win32_find_data fd) LIBRARY "KERNEL32.DLL" alias for "FindNextFileA"
-FUNCTION ulong FindFirstFile(ref string lpszSearchFile, ref st_file_explorer_win32_find_data lpffd)  LIBRARY "kernel32.dll" ALIAS FOR "FindFirstFileA;Ansi"
-FUNCTION boolean FindNextFile(ulong hfindfile, ref st_file_explorer_win32_find_data lpffd)  LIBRARY "kernel32.dll" ALIAS FOR "FindNextFileA;Ansi"
+FUNCTION longPtr FindFirstFile(ref string lpszSearchFile, ref st_file_explorer_win32_find_data lpffd)  LIBRARY "kernel32.dll" ALIAS FOR "FindFirstFileA;Ansi"
+FUNCTION boolean FindNextFile(longPtr hfindfile, ref st_file_explorer_win32_find_data lpffd)  LIBRARY "kernel32.dll" ALIAS FOR "FindNextFileA;Ansi"
 
 //--- per aprire un file con l'applicazione di default (come il doppio click)  
-FUNCTION long ShellExecuteEx(REF st_file_explorer_shellexecute lpExecInfo) LIBRARY "shell32.dll" ALIAS FOR "ShellExecuteExA;Ansi"
+FUNCTION longPtr ShellExecuteEx(REF st_file_explorer_shellexecute lpExecInfo) LIBRARY "shell32.dll" ALIAS FOR "ShellExecuteExA;Ansi"
 //--- per aprire un file con l'applicazione di default (come il doppio click) forse un po' più veloce
-FUNCTION long ShellExecuteW (long hwnd, string lpOperation, string lpFile, string lpParameters,  string lpDirectory, integer nShowCmd ) LIBRARY "shell32.dll"
+FUNCTION longPtr ShellExecuteW (longPtr hwnd, string lpOperation, string lpFile, string lpParameters,  string lpDirectory, integer nShowCmd ) LIBRARY "shell32.dll"
 
 //--- del directoty
 //FUNCTION boolean RemoveDirectoryA( ref string path ) LIBRARY "KERNEL32.DLL" 
@@ -36,6 +36,7 @@ public constant string k_dirlist_tipo_folder = 'c'
 public constant string k_dirlist_tipo_hidden = 'n'
 public constant string k_dirlist_tipo_file = 'f'
 
+public string ki_esito // valorizzato di solito in caso di errore
 end variables
 
 forward prototypes
@@ -51,6 +52,7 @@ public function datastore dirlist_path_search (string a_path, string a_search)
 public function integer u_get_n_list_file (string k_path, string k_file_search) throws uo_exception
 public function longlong u_get_filesize (string a_file)
 public function boolean of_execute_edit (readonly string as_file, readonly string as_extension)
+public function string u_add_path_and_filename (string a_path, string a_filename)
 end prototypes
 
 public function boolean of_execute (readonly string as_file, readonly string as_extension);//
@@ -111,10 +113,7 @@ public function boolean of_execute (string k_file);
 //
 string ls_Null
 long   ll_rc
-
 integer SW_SHOWNORMAL = 1
-
-
 
 
 SetNull(ls_Null)
@@ -134,6 +133,24 @@ ll_rc = ShellExecuteW ( handle( this ), ls_Null, k_file, ls_Null, ls_Null, SW_SH
 //SE_ERR_DDEFAIL          29
 //SE_ERR_DDEBUSY          30
 //SE_ERR_NOASSOC          31
+choose case ll_rc
+	case 2
+		ki_esito = "File non trovato. "
+	case 3
+		ki_esito = "Percorso del file non trovato. "
+	case 5
+		ki_esito = "Accesso al file negato. "
+	case 8
+		ki_esito = "File troppo grande (Out of memory). "
+	case 28
+		ki_esito = "Accesso al File troppo lento (TimeOut). "
+	case 30
+		ki_esito = "File occupato da altra applicazione. "
+	case 31
+		ki_esito = "File non riconosciuto dal Sistema (Manca l'associazione). "
+	case else
+		ki_esito = "File non aperto errore: " + string(ll_rc) + ". "
+end choose
 
 if ll_rc <= 32 or isnull(ll_rc) then
 	return false
@@ -148,7 +165,7 @@ public function datastore dirlist (string path);//
 //--- Inp: cartella con l'estensioni dei file da cercare es: c:\pippo\pluto\*.*
 //--- Out: lista dei file
 //
-long lul_handle
+longPtr lul_handle
 st_file_explorer_win32_find_data str_find
 boolean lb_fin
 long k_riga
@@ -436,7 +453,7 @@ public function datastore dirlist_path_search (string a_path, string a_search);/
 long lul_handle
 st_file_explorer_win32_find_data str_find
 boolean lb_fin
-long k_riga
+longPtr k_riga
 string path
 datastore kds_dirlist
 
@@ -593,6 +610,32 @@ IF ll_ret = 0 THEN
 END IF
 
 RETURN true
+
+end function
+
+public function string u_add_path_and_filename (string a_path, string a_filename);/*
+  Compone il PATH + il nome file aggiunge eventualmente il barra separatore
+    inp: path e nome file 
+	 out: path completo di nome file
+	 
+	es. "c:\pippo", "test.csv"   --> "c:\pippo\test.csv"
+		 "c:\pippo\", "test.csv"  --> "c:\pippo\test.csv"
+	    "c:\pippo", "*.csv"  	  --> "c:\pippo\*.csv"
+*/	 
+string k_path_completed
+
+
+	a_path = trim(a_path)
+	a_filename = trim(a_filename)
+	
+	if right(a_path,1) = kkg.path_sep then
+		k_path_completed = a_path + a_filename
+	else
+		k_path_completed = a_path + kkg.path_sep + a_filename
+	end if
+	
+return k_path_completed
+
 
 end function
 

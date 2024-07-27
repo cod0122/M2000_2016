@@ -257,29 +257,23 @@ kst_esito.nome_oggetto = this.classname()
 
 end subroutine
 
-public function long u_add_email_invio () throws uo_exception;//
-//====================================================================
-//=== Legge Avvisi del Pronto Merce e li carica in tab Email-Invio 
-//=== 
-//=== Inp: 
-//=== Ritorna: nr di email caricate 
-//=== Lancia EXCEPTION
-//===  
-//====================================================================
-//
+public function long u_add_email_invio () throws uo_exception;/*
+ Carica Avvisi del Pronto Merce tab Email-Invio che non hanno ancora la email (scarta i clienti che non hanno l'indirizzo)
+	 Rit: nr di email caricate 
+*/
 long k_return 
 long k_riga, k_righe, k_righe_daelab, k_riga100, k_riga_ds, k_rc, k_riga_tab
 datetime k_datetime
 st_tab_meca_ptmerce kst_tab_meca_ptmerce[], kst_tab_meca_ptmerce_vuoto[]
 st_tab_meca kst_tab_meca
 st_esito kst_esito
-datastore kds_1
+uo_ds_std_1 kds_1
 
 
 try
 	kst_esito = kguo_exception.inizializza(this.classname())
 	
-	kds_1 = create datastore
+	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_meca_ptmerce_noemail"
 	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	k_righe = kds_1.retrieve() // estrazione avvisi senza ancora il id_email_invio
@@ -327,13 +321,8 @@ try
 		if k_rc > 0 then
 			kguo_sqlca_db_magazzino.db_commit( )
 		else
+			kguo_exception.set_st_esito_err_ds(kds_1, "Errore in caricamento nuove avviso email di Pronto Merce. Il primo ID Lotto era " + string(kds_1.getitemnumber(k_riga, "id_meca")))
 			kguo_sqlca_db_magazzino.db_rollback( )
-			kst_esito.sqlcode = k_return
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.SQLErrText = "Errore in carico Avviso Pronto Merce in tabella Email da Inviare. Il primo ID Lotto era " + string(kds_1.getitemnumber(k_riga, "id_meca")) &
-			                       + "~r~nErrore: " + trim(kst_esito.nome_oggetto) + ") "
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
 		
@@ -631,7 +620,11 @@ try
 //--- recupero diversi dati x riempire la tab email-invio			
 		kiuf_email.get_riga(kst_tab_email)
 		
-		kst_tab_email_invio.oggetto = kst_tab_email.oggetto
+		if kst_tab_email_invio.lang = "EN" then
+			kst_tab_email_invio.oggetto = kst_tab_email.oggetto_lang
+		else
+			kst_tab_email_invio.oggetto = kst_tab_email.oggetto
+		end if
 		kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
 		kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 		kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev

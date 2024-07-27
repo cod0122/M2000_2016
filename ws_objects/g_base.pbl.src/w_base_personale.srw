@@ -124,6 +124,10 @@ type st_cb_placeholder_l from statictext within tabpage_9
 end type
 type tabpage_10 from userobject within tab_1
 end type
+type st_deposito from statictext within tabpage_10
+end type
+type cb_depositi from commandbutton within tabpage_10
+end type
 type st_29 from statictext within tabpage_10
 end type
 type cb_aco from commandbutton within tabpage_10
@@ -138,9 +142,11 @@ type st_meca_chiude from statictext within tabpage_10
 end type
 type dw_10 from uo_d_std_1 within tabpage_10
 end type
-type cb_clienti_cntdep_l from commandbutton within tabpage_10
+type b_clienti_cntdep_l from commandbutton within tabpage_10
 end type
 type tabpage_10 from userobject within tab_1
+st_deposito st_deposito
+cb_depositi cb_depositi
 st_29 st_29
 cb_aco cb_aco
 st_smart st_smart
@@ -148,7 +154,7 @@ cb_smart cb_smart
 cb_meca_chiude cb_meca_chiude
 st_meca_chiude st_meca_chiude
 dw_10 dw_10
-cb_clienti_cntdep_l cb_clienti_cntdep_l
+b_clienti_cntdep_l b_clienti_cntdep_l
 end type
 type tabpage_11 from userobject within tab_1
 end type
@@ -191,7 +197,7 @@ end forward
 global type w_base_personale from w_g_tab_3
 integer width = 5257
 integer height = 2324
-string title = "Proprietà Personali"
+string title = "Proprietà"
 long backcolor = 67108864
 string icon = "Form!"
 boolean clientedge = true
@@ -204,8 +210,10 @@ global w_base_personale w_base_personale
 
 type variables
 //
+protected:
 string ki_record_orig
 kuf_stampe kiuf_stampe
+boolean ki_yield_log_in_esec
 end variables
 
 forward prototypes
@@ -699,7 +707,7 @@ tab_1.tabpage_2.dw_2.setfocus()
 
 end subroutine
 
-protected function string aggiorna ();//
+protected function string aggiorna ();////
 //=== Aggiorna il BASE
 //
 string k_return = "0 "
@@ -969,9 +977,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 
 			if k_scelta <> kkg_flag_modalita.inserimento then
 				k_errore = 1
-				messagebox("Ricerca fallita", &
-					"Nessuna impostazione Azienda trovata" )
-//					"(Codice Cercato:" + trim(k_key) + ")~n~r" )
+				messagebox("Ricerca fallita", "Nessuna impostazione Azienda trovata" )
 
 				post close(this)
 				
@@ -1011,7 +1017,7 @@ if k_errore = 0 then
 	else		
 		
 //--- S-protezione campi per riabilitare la modifica 
-      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
 
 //--- legge le stampanti disponibili
 		k_stampanti = kiuf_stampe.get_stampanti_dwddlb_values()
@@ -1030,8 +1036,6 @@ if k_errore = 0 then
 		
 	end if
 end if
-
-
 
 return "0"
 
@@ -1429,6 +1433,7 @@ protected subroutine inizializza_11 () throws uo_exception;//
 int k_rc=0, k_anno, k_file
 long k_byte, k_riga
 string k_codice_attuale, k_codice_prec, k_record, k_filerec, k_filetemp
+string k_rcx
 boolean k_eof = false
 datastore kds_1
 st_log_msg_xml kst_log_msg_xml
@@ -1444,6 +1449,11 @@ setpointer(kkg.pointer_attesa)
 
 try
 	
+	if ki_yield_log_in_esec then 
+		setpointer(kkg.pointer_attesa)
+		RETURN
+	end if
+		
 	kpbdom_builder = create pbdom_builder		
 	
 //	kpbdom_proc = create PBDOM_PROCESSINGINSTRUCTION
@@ -1494,7 +1504,11 @@ try
 				loop
 			end if
 			
+			ki_yield_log_in_esec = true
 			do while not k_eof 
+				
+				Yield()  // consente di eleb altre cose
+				setpointer(kkg.pointer_attesa)
 				
 				kpbdom_doc = CREATE PBDOM_Document
 				
@@ -1578,14 +1592,17 @@ try
 		end if
 	end if
 	
+	ki_yield_log_in_esec = false
 
 CATCH ( PBDOM_Exception pbde )
 //	kguo_exception.inizializza( )
 //	kguo_exception.setmessage( "Errore durante Generazione XML", pbde.getmessage() )
 //	throw kguo_exception
+	ki_yield_log_in_esec = false
 	
 catch (uo_exception kuo_exception) 
 //	throw kuo_exception
+	ki_yield_log_in_esec = false
 	
 finally
 	if k_file > 0 then
@@ -1603,7 +1620,15 @@ finally
 	tab_1.tabpage_12.dw_12.VScrollBar = TRUE
 	tab_1.tabpage_12.dw_12.setredraw(true)
 	tab_1.tabpage_12.dw_12.setfocus()
+
+	k_rcx = tab_1.tabpage_12.dw_12.modify("b_file_errorlog.enabled=yes")
+	
 	setpointer(kkg.pointer_default)
+	
+	if This.WindowState = Minimized! then
+		ki_yield_log_in_esec = false
+		cb_ritorna.event clicked( )
+	end if
 
 end try
 
@@ -2260,8 +2285,8 @@ public subroutine u_resize_1 ();//
 	end if
 
 	if tab_1.tabpage_12.dw_12.enabled then
-		tab_1.tabpage_12.dw_12.width = tab_1.tabpage_12.width //- kk_width
-		tab_1.tabpage_12.dw_12.height = tab_1.tabpage_12.height //- kk_height
+		tab_1.tabpage_12.dw_12.width = tab_1.tabpage_4.dw_4.width //- kk_width
+		tab_1.tabpage_12.dw_12.height = tab_1.tabpage_4.dw_4.height //- kk_height
 		tab_1.tabpage_12.dw_12.x =  0// (tab_1.tabpage_5.width - tab_1.tabpage_5.dw_5.width) / 2
 		tab_1.tabpage_12.dw_12.y =  0// (tab_1.tabpage_5.height - tab_1.tabpage_5.dw_5.height) / 2
 	end if
@@ -2539,6 +2564,14 @@ on w_base_personale.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
 end on
+
+event closequery;call super::closequery;//
+if ki_yield_log_in_esec then
+	This.WindowState = Minimized!
+	return 1
+end if
+
+end event
 
 type dw_print_0 from w_g_tab_3`dw_print_0 within w_base_personale
 end type
@@ -4935,6 +4968,8 @@ long tabtextcolor = 33554432
 string picturename = "Strikethrough!"
 long picturemaskcolor = 536870912
 string powertiptext = "Funzioni varie"
+st_deposito st_deposito
+cb_depositi cb_depositi
 st_29 st_29
 cb_aco cb_aco
 st_smart st_smart
@@ -4942,10 +4977,12 @@ cb_smart cb_smart
 cb_meca_chiude cb_meca_chiude
 st_meca_chiude st_meca_chiude
 dw_10 dw_10
-cb_clienti_cntdep_l cb_clienti_cntdep_l
+b_clienti_cntdep_l b_clienti_cntdep_l
 end type
 
 on tabpage_10.create
+this.st_deposito=create st_deposito
+this.cb_depositi=create cb_depositi
 this.st_29=create st_29
 this.cb_aco=create cb_aco
 this.st_smart=create st_smart
@@ -4953,18 +4990,22 @@ this.cb_smart=create cb_smart
 this.cb_meca_chiude=create cb_meca_chiude
 this.st_meca_chiude=create st_meca_chiude
 this.dw_10=create dw_10
-this.cb_clienti_cntdep_l=create cb_clienti_cntdep_l
-this.Control[]={this.st_29,&
+this.b_clienti_cntdep_l=create b_clienti_cntdep_l
+this.Control[]={this.st_deposito,&
+this.cb_depositi,&
+this.st_29,&
 this.cb_aco,&
 this.st_smart,&
 this.cb_smart,&
 this.cb_meca_chiude,&
 this.st_meca_chiude,&
 this.dw_10,&
-this.cb_clienti_cntdep_l}
+this.b_clienti_cntdep_l}
 end on
 
 on tabpage_10.destroy
+destroy(this.st_deposito)
+destroy(this.cb_depositi)
 destroy(this.st_29)
 destroy(this.cb_aco)
 destroy(this.st_smart)
@@ -4972,12 +5013,64 @@ destroy(this.cb_smart)
 destroy(this.cb_meca_chiude)
 destroy(this.st_meca_chiude)
 destroy(this.dw_10)
-destroy(this.cb_clienti_cntdep_l)
+destroy(this.b_clienti_cntdep_l)
 end on
+
+type st_deposito from statictext within tabpage_10
+integer x = 1285
+integer y = 928
+integer width = 1271
+integer height = 112
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 8388608
+long backcolor = 16777215
+string text = "Gestioni Depositi e Anagrafiche"
+boolean focusrectangle = false
+end type
+
+type cb_depositi from commandbutton within tabpage_10
+integer x = 357
+integer y = 904
+integer width = 891
+integer height = 112
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string text = "Depositi di spedizione"
+boolean flatstyle = true
+end type
+
+event clicked;//--- 
+kuf_depositi kuf1_depositi
+
+
+try
+	
+	kuf1_depositi = create kuf_depositi
+	kuf1_depositi.u_open( )
+		
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_depositi) then destroy kuf1_depositi
+	
+end try
+
+end event
 
 type st_29 from statictext within tabpage_10
 integer x = 1285
-integer y = 672
+integer y = 676
 integer width = 1271
 integer height = 112
 boolean bringtotop = true
@@ -5149,7 +5242,7 @@ integer height = 256
 integer taborder = 40
 end type
 
-type cb_clienti_cntdep_l from commandbutton within tabpage_10
+type b_clienti_cntdep_l from commandbutton within tabpage_10
 integer x = 2523
 integer y = 648
 integer width = 576
@@ -5248,7 +5341,7 @@ integer taborder = 50
 boolean enabled = true
 string dataobject = "d_log_m2000"
 boolean livescroll = false
-boolean ki_link_standard_attivi = false
+boolean ki_link_standard_sempre_possibile = true
 boolean ki_button_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
 boolean ki_db_conn_standard = false

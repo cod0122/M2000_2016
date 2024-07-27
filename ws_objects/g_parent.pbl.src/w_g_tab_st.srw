@@ -28,6 +28,8 @@ type rb_modo_stampa_s from radiobutton within w_g_tab_st
 end type
 type cbx_chiude from checkbox within w_g_tab_st
 end type
+type dw_note from datawindow within w_g_tab_st
+end type
 type gb_aggiorna from groupbox within w_g_tab_st
 end type
 type gb_emissione from groupbox within w_g_tab_st
@@ -43,6 +45,7 @@ string title = "Stampa Documenti"
 long backcolor = 67108864
 string icon = "RunReport5!"
 boolean ki_toolbar_window_presente = true
+event u_add_note ( string a_text )
 rb_emissione_tutto rb_emissione_tutto
 rb_emissione_selezione rb_emissione_selezione
 rb_definitiva rb_definitiva
@@ -56,6 +59,7 @@ cbx_update_tab_varie cbx_update_tab_varie
 rb_modo_stampa_e rb_modo_stampa_e
 rb_modo_stampa_s rb_modo_stampa_s
 cbx_chiude cbx_chiude
+dw_note dw_note
 gb_aggiorna gb_aggiorna
 gb_emissione gb_emissione
 gb_produzione gb_produzione
@@ -177,17 +181,35 @@ end choose
 end subroutine
 
 public subroutine u_resize ();//
+int k_documenti_height
+
 this.setredraw(false) 
+
+if dw_note.visible then
+	dw_note.x = gb_emissione.x + gb_emissione.width + 20 
+	dw_note.y = this.height - (this.height * 0.20) 
+	dw_note.width = this.width - gb_emissione.width - 30
+	if dw_note.width < 0 then
+		dw_note.width = 100
+	end if
+	dw_note.height = this.height - dw_note.y - 10
+	k_documenti_height = dw_note.y - 10
+else
+	dw_note.x = 0
+	dw_note.y = 0
+	dw_note.width = 0
+	dw_note.height = 0
+	k_documenti_height = this.height - 10
+end if
 
 dw_documenti.x = gb_emissione.x + gb_emissione.width + 20 
 dw_documenti.y = 0
-
-dw_documenti.width = this.width - gb_emissione.width  - 30
-
+dw_documenti.width = this.width - gb_emissione.width - 30
 if dw_documenti.width < 0 then
 	dw_documenti.width = 100
 end if
-dw_documenti.height = this.height - dw_documenti.y //- 150
+dw_documenti.height = k_documenti_height
+
 this.setredraw(true) 
 
 
@@ -217,6 +239,7 @@ this.cbx_update_tab_varie=create cbx_update_tab_varie
 this.rb_modo_stampa_e=create rb_modo_stampa_e
 this.rb_modo_stampa_s=create rb_modo_stampa_s
 this.cbx_chiude=create cbx_chiude
+this.dw_note=create dw_note
 this.gb_aggiorna=create gb_aggiorna
 this.gb_emissione=create gb_emissione
 this.gb_produzione=create gb_produzione
@@ -234,9 +257,10 @@ this.Control[iCurrent+10]=this.cbx_update_tab_varie
 this.Control[iCurrent+11]=this.rb_modo_stampa_e
 this.Control[iCurrent+12]=this.rb_modo_stampa_s
 this.Control[iCurrent+13]=this.cbx_chiude
-this.Control[iCurrent+14]=this.gb_aggiorna
-this.Control[iCurrent+15]=this.gb_emissione
-this.Control[iCurrent+16]=this.gb_produzione
+this.Control[iCurrent+14]=this.dw_note
+this.Control[iCurrent+15]=this.gb_aggiorna
+this.Control[iCurrent+16]=this.gb_emissione
+this.Control[iCurrent+17]=this.gb_produzione
 end on
 
 on w_g_tab_st.destroy
@@ -255,6 +279,7 @@ destroy(this.cbx_update_tab_varie)
 destroy(this.rb_modo_stampa_e)
 destroy(this.rb_modo_stampa_s)
 destroy(this.cbx_chiude)
+destroy(this.dw_note)
 destroy(this.gb_aggiorna)
 destroy(this.gb_emissione)
 destroy(this.gb_produzione)
@@ -307,6 +332,9 @@ st_profilestring_ini kst_profilestring_ini
 
 end event
 
+type dw_print_0 from w_g_tab`dw_print_0 within w_g_tab_st
+end type
+
 type st_ritorna from w_g_tab`st_ritorna within w_g_tab_st
 integer x = 2551
 integer y = 1844
@@ -317,13 +345,13 @@ type st_ordina_lista from w_g_tab`st_ordina_lista within w_g_tab_st
 end type
 
 type st_aggiorna_lista from w_g_tab`st_aggiorna_lista within w_g_tab_st
-integer x = 2062
-integer y = 1724
+integer x = 229
+integer y = 1752
 end type
 
 type cb_ritorna from w_g_tab`cb_ritorna within w_g_tab_st
-integer x = 2537
-integer y = 1744
+integer x = 901
+integer y = 1708
 integer taborder = 0
 end type
 
@@ -458,7 +486,7 @@ end event
 type dw_documenti from uo_d_std_1 within w_g_tab_st
 integer x = 1184
 integer width = 2354
-integer height = 1804
+integer height = 1448
 integer taborder = 80
 boolean bringtotop = true
 boolean enabled = true
@@ -603,6 +631,34 @@ string text = "Chiudi al termine dell~'elaborazione"
 boolean lefttext = true
 boolean righttoleft = true
 end type
+
+type dw_note from datawindow within w_g_tab_st
+event u_add_note ( string a_text )
+boolean visible = false
+integer x = 1193
+integer y = 1464
+integer width = 2327
+integer height = 284
+integer taborder = 70
+boolean bringtotop = true
+boolean enabled = false
+string title = "none"
+string dataobject = "dw_note"
+boolean border = false
+boolean livescroll = true
+borderstyle borderstyle = stylelowered!
+end type
+
+event u_add_note(string a_text);//
+this.insertrow(1)
+this.setitem(1, "note", trim(a_text))
+
+end event
+
+event resize;//
+this.modify("note.width = " + string(this.width - 10) )
+
+end event
 
 type gb_aggiorna from groupbox within w_g_tab_st
 integer x = 27

@@ -1,0 +1,15 @@
+﻿$PBExportHeader$st_tab_depositi.srs
+global type st_tab_depositi from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_deposito
+	string		descr
+	string		operativo		descriptor "comment" = "S=magazzino operativo"
+	long		id_deposito_anag
+	string		ddt_n_pref		descriptor "comment" = "ddt di uscita: prefisso del numero"
+	integer		ddt_n_ult		descriptor "comment" = "ddt di uscita: ultimo numero"
+	date		ddt_data_ult		descriptor "comment" = "ddt di uscita: ultima data"
+	character		deleted		descriptor "comment" = "S=cancellato"
+	datetime		x_datins
+	string		x_utente
+end type
+

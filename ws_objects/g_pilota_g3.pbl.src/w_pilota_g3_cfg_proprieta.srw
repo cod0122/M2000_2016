@@ -22,6 +22,7 @@ private subroutine riempi_id ()
 protected subroutine open_start_window ()
 protected subroutine inizializza_1 () throws uo_exception
 protected subroutine inizializza_2 () throws uo_exception
+protected subroutine inizializza_3 () throws uo_exception
 end prototypes
 
 private function integer inserisci ();//
@@ -92,8 +93,8 @@ int k_rc
 
 	if tab_1.tabpage_2.dw_2.rowcount() = 0 then
 
-		kguo_sqlca_db_plav.db_connetti( )
-		tab_1.tabpage_2.dw_2.settransobject(kguo_sqlca_db_plav )
+		kguo_sqlca_db_pilota_g3.db_connetti( )
+		tab_1.tabpage_2.dw_2.settransobject(kguo_sqlca_db_pilota_g3 )
 		k_rc = tab_1.tabpage_2.dw_2.retrieve()
 
 		attiva_tasti()
@@ -112,8 +113,8 @@ int k_rc
 
 	if tab_1.tabpage_3.dw_3.rowcount() = 0 then
 
-		kguo_sqlca_db_plav.db_connetti( )
-		tab_1.tabpage_3.dw_3.settransobject(kguo_sqlca_db_plav )
+		kguo_sqlca_db_pilota_g3.db_connetti( )
+		tab_1.tabpage_3.dw_3.settransobject(kguo_sqlca_db_pilota_g3 )
 		k_rc = tab_1.tabpage_3.dw_3.retrieve()
 
 		attiva_tasti()
@@ -121,6 +122,26 @@ int k_rc
 	end if				
 
 	tab_1.tabpage_3.dw_3.setfocus()
+
+end subroutine
+
+protected subroutine inizializza_3 () throws uo_exception;/*
+ Gestione del TAB 4
+*/
+int k_rc
+
+
+	if tab_1.tabpage_4.dw_4.rowcount() = 0 then
+
+		kguo_sqlca_db_pilota_g3.db_connetti( )
+		tab_1.tabpage_4.dw_4.settransobject(kguo_sqlca_db_pilota_g3 )
+		k_rc = tab_1.tabpage_4.dw_4.retrieve()
+
+		attiva_tasti()
+
+	end if				
+
+	tab_1.tabpage_4.dw_4.setfocus()
 
 end subroutine
 
@@ -222,7 +243,7 @@ call super::destroy
 end on
 
 event tab_1::u_constructor;//
-ki_tabpage_enabled = {true, true, true, false, false, false, false, false, false} // disabilita alcune tabpage
+ki_tabpage_enabled = {true, true, true, true, false, false, false, false, false} // disabilita alcune tabpage
 super::event u_constructor( )
 
 end event
@@ -250,15 +271,15 @@ try
 			destroy kuf1_utility
 	
 		case "b_dbparm"
-			if not isvalid(kguo_sqlca_db_plav) then kguo_sqlca_db_plav = create kuo_sqlca_db_plav
+			if not isvalid(kguo_sqlca_db_pilota_g3) then kguo_sqlca_db_pilota_g3 = create kuo_sqlca_db_pilota_g3
 			kguo_exception.inizializza( )
 			kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
 			if messagebox("Test Connessione", "Salvare prima i dati della Connessione qui indicati. " &
 						+ kkg.acapo + "Attenzione: il test è fatto con i parametri già salvati su DB! " &
 						+ kkg.acapo + "Proseguire?", Question!, yesno!, 1) = 1 then
 				try
-					kguo_sqlca_db_plav.ki_conn_blk_msg_done = false  // reset flag display messagge
-					if kguo_sqlca_db_plav.db_connetti( ) then
+					kguo_sqlca_db_pilota_g3.ki_conn_blk_msg_done = false  // reset flag display messagge
+					if kguo_sqlca_db_pilota_g3.db_connetti( ) then
 						kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
 						kguo_exception.messaggio_utente("Test Connessione",  "Ok, connessione al DB eseguita.")
 					end if
@@ -266,7 +287,7 @@ try
 					kuo_exception.messaggio_utente()
 				end try
 			end if
-			//if isvalid(kiuo_sqlca_db_plav) then destroy kiuo_sqlca_db_plav
+			//if isvalid(kiuo_sqlca_db_pilota_g3) then destroy kiuo_sqlca_db_pilota_g3
 	
 	
 	
@@ -287,6 +308,7 @@ type tabpage_2 from w_db_cfg_proprieta`tabpage_2 within tab_1
 boolean visible = true
 integer y = 176
 integer height = 1204
+boolean enabled = true
 string text = "Elenco Tabelle"
 long picturemaskcolor = 16777215
 end type
@@ -294,7 +316,7 @@ end type
 type dw_2 from w_db_cfg_proprieta`dw_2 within tabpage_2
 boolean visible = true
 boolean enabled = true
-string dataobject = "d_sterigenics_pp_tables_list"
+string dataobject = "d_pilota_g3_tables_list"
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_db_conn_standard = false
 end type
@@ -306,13 +328,14 @@ type tabpage_3 from w_db_cfg_proprieta`tabpage_3 within tab_1
 boolean visible = true
 integer y = 176
 integer height = 1204
-string text = "IMPIANTO G2 ~r~nCoda pallet in Lavorazione"
+boolean enabled = true
+string text = "IMPIANTO G3~r~nCoda pallet in attesa"
 end type
 
 type dw_3 from w_db_cfg_proprieta`dw_3 within tabpage_3
 boolean visible = true
 boolean enabled = true
-string dataobject = "d_programmi_richieste"
+string dataobject = "d_queue_table_g3"
 end type
 
 event dw_3::itemchanged;call super::itemchanged;//
@@ -325,11 +348,15 @@ type st_3_retrieve from w_db_cfg_proprieta`st_3_retrieve within tabpage_3
 end type
 
 type tabpage_4 from w_db_cfg_proprieta`tabpage_4 within tab_1
+boolean visible = true
 integer y = 176
 integer height = 1204
+boolean enabled = true
+string text = "IMPIANTO G3~r~nPallet in Lavorazione"
 end type
 
 type dw_4 from w_db_cfg_proprieta`dw_4 within tabpage_4
+string dataobject = "d_work_table_g3"
 end type
 
 event buttonclicked;//

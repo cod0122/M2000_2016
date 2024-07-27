@@ -4,11 +4,13 @@ global type w_listino_l from w_g_tab0
 end type
 type dw_data from uo_d_std_1 within w_listino_l
 end type
-type dw_box_duplica_listini from datawindow within w_listino_l
+type dw_box_duplica_listini from uo_d_std_1 within w_listino_l
 end type
 end forward
 
 global type w_listino_l from w_g_tab0
+integer width = 3383
+integer height = 1912
 string title = "Listini"
 boolean ki_toolbar_window_presente = true
 dw_data dw_data
@@ -198,60 +200,62 @@ private function string inizializza ();//
 //======================================================================
 //
 string k_return="0 "
-string k_key
-long  k_riga=0
-int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
 
 
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
+	choose case true
+		case ki_st_open_w.flag_primo_giro = "S" &
+				,dw_lista_0.rowcount() = 0 
+			choose case true
+				case ki_st_tab_listino.cod_cli > 0 &
+			     	  ,ki_st_tab_listino.cod_art <> "*" & 
+					  ,ki_st_tab_listino.contratto > 0 &
+					  ,ki_st_open_w.flag_primo_giro <> "S"
+					  
+					if ki_st_tab_listino.cod_cli > 0 then dw_guida.setitem(1,"rag_soc_1", string(ki_st_tab_listino.cod_cli ))
 
-//--- Se non ho richiesto un cliente particolare mi fermo x chiedere
-	if ki_st_open_w.flag_primo_giro = "S" then
-		if ki_st_tab_listino.cod_cli = 0 and ki_st_tab_listino.cod_art = "*" then
-
-			dw_guida.setfocus( )
-			dw_guida.setitem(1,"rag_soc_1", "")
-
-		else
-			dw_guida.setitem(1,"rag_soc_1", string(ki_st_tab_listino.cod_cli ))
-		end if
-		
-		dw_guida.setcolumn("rag_soc_1")
-
-	end if
-//=== Legge le righe del dw salvate l'ultima volta (importfile)
-//	if ki_st_open_w.flag_primo_giro = "S" then  
-//		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
-//	end if
-		
-	if dw_lista_0.rowcount() = 0 &
-	     or ki_st_tab_listino.cod_cli > 0 or ki_st_tab_listino.cod_art <> "*" or ki_st_tab_listino.contratto > 0 or ki_st_open_w.flag_primo_giro <> "S" then
-
-		dw_lista_0.event u_retrieve_filter( )
-//		if u_retrieve_dw_lista() < 1 then
-//			k_return = "1Non trovati Prezzi Listino "
-//	
-//			SetPointer(oldpointer)
-//			messagebox("Elenco Prezzi Listino Vuota", &
-//					"Nesun Codice Trovato per la richiesta fatta")
-//		else
-//			u_retrieve_post()
-//		end if		
-//
-//		if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
-//			mostra_nascondi_in_lista()
+					dw_lista_0.event u_retrieve_filter( )
+			end choose
+	end choose			
+			
+//	if ki_st_open_w.flag_primo_giro = "S" then
+//		if ki_st_tab_listino.cod_cli > 0 &
+//			     or ki_st_tab_listino.cod_art <> "*" or ki_st_tab_listino.contratto > 0 or ki_st_open_w.flag_primo_giro <> "S" then
+//			if ki_st_tab_listino.cod_cli > 0 then
+//				dw_guida.setitem(1,"rag_soc_1", string(ki_st_tab_listino.cod_cli ))
+//			end if
+//			dw_lista_0.event u_retrieve_filter( )
 //		end if
-
-	else
-	
-		attiva_tasti()
-		
-	end if
+//	end if
+//
+////--- Se non ho richiesto un cliente particolare mi fermo x chiedere
+//	if ki_st_open_w.flag_primo_giro = "S" then
+//		if ki_st_tab_listino.cod_cli = 0 and ki_st_tab_listino.cod_art = "*" then
+//
+//			dw_guida.setfocus( )
+//			dw_guida.setitem(1,"rag_soc_1", "")
+//
+//		else
+//			dw_guida.setitem(1,"rag_soc_1", string(ki_st_tab_listino.cod_cli ))
+//		end if
+//		
+//		dw_guida.setcolumn("rag_soc_1")
+//
+//	end if
+//		
+//	if dw_lista_0.rowcount() = 0 &
+//	     or ki_st_tab_listino.cod_cli > 0 or ki_st_tab_listino.cod_art <> "*" or ki_st_tab_listino.contratto > 0 or ki_st_open_w.flag_primo_giro <> "S" then
+//
+//	   SetPointer(kkg.pointer_attesa)
+//		dw_lista_0.event u_retrieve_filter( )
+//	   SetPointer(kkg.pointer_default)
+//		
+//	else
+//	
+//		attiva_tasti()
+//		
+//	end if
 
 return k_return
-
 
 end function
 
@@ -404,8 +408,6 @@ datawindowchild kdwc_cliente
 		ki_duplica_enabled = false
 	end try
 	
-	dw_box_duplica_listini.insertrow(0)
-	
 	ki_st_tab_listino_arg = ki_st_tab_listino
 	
 	
@@ -519,7 +521,6 @@ if dw_lista_0.rowcount() > 0 then
 		end if
 		
 	//=== Richiesta di conferma operazione
-		dw_box_duplica_listini.accepttext( )
 		k_perc = dw_box_duplica_listini.getitemnumber(1, "k_perc")
 		if k_perc <> 0.00 then
 			k_scost_perc = (1.00 + k_perc/100)
@@ -630,39 +631,30 @@ destroy kuf1_listino_duplica_massiva
 end subroutine
 
 private subroutine u_duplica_box ();//
-long k_riga = 0, k_riga1
-boolean k_return = false
-//string k_errore = "0 ", k_errore1 = "0 "
+long k_riga = 0
 string k_rag_soc_10
 st_tab_listino kst_tab_listino
-st_esito kst_esito
 
 
 if dw_lista_0.rowcount( ) > 0 then
-	k_riga = 	dw_lista_0.getselectedrow(0)
+	k_riga = dw_lista_0.getselectedrow(0)
 	if k_riga > 0 then
-		k_riga1 = 	dw_lista_0.getselectedrow(k_riga)
-		if k_riga1 > 0 then
-			u_duplica_massiva( )  // Ho piu' righe selezionate parte la Massiva
-		else
+		if dw_lista_0.getselectedrow(k_riga) = 0 then
 			kst_tab_listino.id = dw_lista_0.getitemnumber(k_riga, "id_listino")
 			k_rag_soc_10  = dw_lista_0.getitemstring(k_riga, "rag_soc_10")
 			if k_rag_soc_10 > " " then
 			else
 				k_rag_soc_10 = "Listino senza Cliente " 
 			end if
-			dw_box_duplica_listini.x = (width - dw_box_duplica_listini.width) / 2 
-			dw_box_duplica_listini.y = (height - dw_box_duplica_listini.height) / 3 
-			//dw_box_duplica_listini.object.b_dup_singolo.text = "Duplica Listino " + string(kst_tab_listino.id, "#") + " di " + trim(k_rag_soc_10)
-			dw_box_duplica_listini.object.k_rag_soc.text = "Duplica Listino " + string(kst_tab_listino.id, "#") + " di " + trim(k_rag_soc_10)
-			dw_box_duplica_listini.visible = true
+			dw_box_duplica_listini.post event u_visible ("Duplica Listino " + string(kst_tab_listino.id, "#") + " di " + trim(k_rag_soc_10))
+			
+			return
+			
 		end if
-	else
-		u_duplica_massiva( )   // non ho nessuna riga selezionata parte la Massiva
 	end if
-else
-	u_duplica_massiva( )  // non ho niente in elenco parte la Massiva
 end if
+
+u_duplica_massiva( )  // non ho niente in elenco parte la Massiva
 
 end subroutine
 
@@ -722,12 +714,6 @@ if IsValid(MenuID) then destroy(MenuID)
 destroy(this.dw_data)
 destroy(this.dw_box_duplica_listini)
 end on
-
-event u_open;call super::u_open;//
-	dw_data.move( 8000, 8000)
-	dw_box_duplica_listini.move( 8000, 8000)
-
-end event
 
 event close;call super::close;//
 //if isvalid(kids_listino) then destroy kids_listino
@@ -965,34 +951,6 @@ parent.triggerevent("rbuttondown")
 
 end on
 
-on dw_dett_0::getfocus;////
-//long k_id_vettore
-//
-////=== Verifico se ho gia' fatto almeno una retrieve o una insert
-//if dw_dett_0.getrow() = 0 then
-//	if cb_modifica.enabled = true then
-//		cb_modifica.triggerevent("clicked")
-//	else
-//		cb_inserisci.triggerevent("clicked")
-//	end if
-//end if
-//
-////=== Controlla quali tasti attivare
-//attiva_tasti()
-//
-//k_id_vettore = this.getitemnumber(1, "id_vettore")
-////k_desc = this.getitemstring(1, "desc")
-//
-////=== Imposto valori di default se non ce ne sono
-////if isnull(k_id_c_pag) = true or isnull(k_desc) = true or &
-////	(trim(k_id_c_pag) = "" and &
-////	 trim(k_desc) = "") then
-////	setitem(1, "tipo", 1)
-////	setitem(1, "scad_p", 1)
-////end if
-//
-end on
-
 type st_orizzontal from w_g_tab0`st_orizzontal within w_listino_l
 end type
 
@@ -1004,7 +962,7 @@ event type long u_retrieve ( )
 integer width = 2807
 integer height = 708
 string dataobject = "d_clienti_listino_l"
-borderstyle borderstyle = stylelowered!
+boolean ki_link_standard_sempre_possibile = true
 end type
 
 event dw_lista_0::u_filtra();//
@@ -1058,10 +1016,8 @@ end event
 event dw_lista_0::u_retrieve_filter();//
 long k_rowcount
 
-
-	pointer kpointer_orig
-	kpointer_orig = setpointer(hourglass!)
-
+	
+	setpointer(kkg.pointer_attesa)
 
 	this.setredraw(false)
 	
@@ -1086,8 +1042,8 @@ long k_rowcount
 	end if		
 		
 	if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
-		this.visible = false
-		event u_retrieve()
+//		this.visible = false
+		event u_retrieve()   //RETRIEVE
 	end if	
 
    if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
@@ -1103,10 +1059,8 @@ long k_rowcount
 
 	attiva_tasti()
 	
-	this.visible = true
-	setpointer(kpointer_orig)
-
-
+//	this.visible = true
+	setpointer(kkg.pointer_default)
 
 
 end event
@@ -1141,9 +1095,6 @@ event type long dw_lista_0::u_retrieve();//---
 //---
 long k_return=0	
 	
-	
-	this.dataobject = this.dataobject
-	this.settransobject(kguo_sqlca_db_magazzino)
 	
 	if ki_listini_nodose = "S" then  // listino NO DOSE di servizio
 		k_return = this.retrieve() 
@@ -1329,7 +1280,7 @@ string k_dacercare
    if ki_st_tab_listino.cod_cli = 0 and k_dacercare > " " and ki_mc_co_filtro = "" then
 		dw_lista_0.reset( )
 	else
-//--- parte la query solo se ricerco un cliente diverso oppure sono ambiati i flag di ricerca
+//--- parte la query solo se ricerco un cliente diverso oppure sono cambiati i flag di ricerca
       if ki_ultimo_clie_3_cercato <> ki_st_tab_listino.cod_cli &
 				or ki_mostra_nascondi_in_lista <> this.getitemstring(1, "mostra") &
 				or ki_listini_nodose <> this.getitemstring(1, "nodose") &
@@ -1395,6 +1346,7 @@ type st_duplica from w_g_tab0`st_duplica within w_listino_l
 end type
 
 type dw_data from uo_d_std_1 within w_listino_l
+event u_button_ok ( )
 integer x = 1829
 integer y = 400
 integer width = 827
@@ -1409,35 +1361,45 @@ boolean controlmenu = true
 string icon = "Information!"
 boolean hsplitscroll = false
 boolean livescroll = false
+boolean ki_link_standard_attivi = false
+boolean ki_button_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
-event buttonclicked;call super::buttonclicked;//
-st_stampe kst_stampe
-pointer oldpointer  // Declares a pointer variable
+event u_button_ok();//
+	
+	this.accepttext( )
 
+	this.visible = false
+		
+	ki_data_scad  = this.getitemdate( 1, "kdata")
+	dw_lista_0.event u_retrieve( )
 	
-//=== Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
-	
+
+
+
+end event
+
+event buttonclicked;call super::buttonclicked;//
 
 if dwo.name = "b_ok" then
 	
-	
-	this.visible = false
-	
-	ki_data_scad  = this.getitemdate( 1, "kdata")
-	inizializza()
+	event u_button_ok( )
 
 else
 	if dwo.name = "b_annulla" then
 
 		this.visible = false
 	
-	
 	end if
 end if
-
-SetPointer(oldpointer)
 
 
 end event
@@ -1458,23 +1420,60 @@ int k_rc
 	this.setfocus()
 end event
 
-type dw_box_duplica_listini from datawindow within w_listino_l
-boolean visible = false
-integer x = 1097
-integer y = 848
-integer width = 1993
-integer height = 692
+event u_pigiato_enter;//
+	event u_button_ok( )
+
+end event
+
+type dw_box_duplica_listini from uo_d_std_1 within w_listino_l
+event u_visible ( string a_descr )
+integer x = 805
+integer y = 560
+integer width = 2167
+integer height = 716
 integer taborder = 50
 boolean bringtotop = true
 boolean titlebar = true
 string title = "DUPLICA LISTINI"
 string dataobject = "d_box_duplica_listini"
 boolean controlmenu = true
-boolean border = false
+boolean hscrollbar = false
+boolean vscrollbar = false
 string icon = "Information!"
+boolean hsplitscroll = false
+boolean ki_disattiva_moment_cb_aggiorna = false
+boolean ki_link_standard_attivi = false
+boolean ki_button_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
+event u_visible(string a_descr);//
+
+	if this.rowcount() = 0 then
+		this.insertrow(0)
+	end if
+
+	this.x = (parent.width - this.width) / 2 
+	this.y = (parent.height - this.height) / 3 
+	//this.object.b_dup_singolo.text = "Duplica Listino " + string(kst_tab_listino.id, "#") + " di " + trim(k_rag_soc_10)
+	this.object.k_rag_soc.text = a_descr 
+
+	this.visible = true
+	this.bringtotop = true
+	this.enabled = true
+	this.setfocus()
+
+end event
+
 event buttonclicked;//
+this.accepttext( )
 if dwo.name = "b_dup_singolo" then
 	u_duplica( )
 else

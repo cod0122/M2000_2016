@@ -57,59 +57,114 @@ string k_return="0 "
 //string k_key
 long k_riga
 int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
 
 
+	SetPointer(kkg.pointer_attesa)
 
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
-
-
-//=== Legge le righe del dw salvate l'ultima volta (importfile)
-		if ki_st_open_w.flag_primo_giro = "S" then 
-	
-			k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
-	
-		end if
-			
-		
-		if k_importa <= 0 then // Nessuna importazione eseguita
-	
-	
-			if dw_lista_0.retrieve( ki_mostra_nascondi_in_lista ) < 1 then
-				k_return = "1Email Non trovate  "
-	
-				SetPointer(oldpointer)
-				messagebox("Lista 'E-mail' Vuota", &
-						"Nesun Codice Trovato per la richiesta fatta")
-			else
-				
-				if ki_st_open_w.flag_primo_giro = "S" then 
-					k_riga = 1
-//--- se ho passato anche il ID allora....
-					if ki_st_tab_email.id_email > 0 then
-						k_riga = dw_lista_0.find( "id_email = " + string(ki_st_tab_email.id_email) + " ", 1, dw_lista_0.rowcount( ) )
-					end if
-					if k_riga > 0 then 
-						dw_lista_0.selectrow( 0, false)
-						dw_lista_0.scrolltorow( k_riga)
-						dw_lista_0.setrow( k_riga)
-						dw_lista_0.selectrow( k_riga, true)
-					end if
-					
-//--- se entro per modificare allora....
-					if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
-						cb_modifica.postevent(clicked!)
-					end if
-				end if
-	
-			end if		
-		end if
-	
+////=== Legge le righe del dw salvate l'ultima volta (importfile)
+//	if ki_st_open_w.flag_primo_giro = "S" then 
+//
+//		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
+//
 //	end if
+		
 	
-return k_return
+//	if k_importa <= 0 then // Nessuna importazione eseguita
+	if dw_lista_0.retrieve( ki_mostra_nascondi_in_lista ) < 1 then
+		SetPointer(kkg.pointer_default)
+		kguo_exception.set_st_esito_err_dw(dw_lista_0, "Errore in lettura elenco dati e-mail! ")
+		kguo_exception.messaggio_utente( )
+		
+		return "1Errore in lettura db "
+	end if
+	
+	if ki_st_open_w.flag_primo_giro = "S" then 
+		k_riga = 1
+//--- se ho passato anche il ID allora....
+		if ki_st_tab_email.id_email > 0 then
+			k_riga = dw_lista_0.find( "id_email = " + string(ki_st_tab_email.id_email) + " ", 1, dw_lista_0.rowcount( ) )
+		end if
+		if k_riga > 0 then 
+			dw_lista_0.selectrow( 0, false)
+			dw_lista_0.scrolltorow( k_riga)
+			dw_lista_0.setrow( k_riga)
+			dw_lista_0.selectrow( k_riga, true)
+		end if
+		
+//--- se entro per modificare allora....
+		if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
+			cb_modifica.postevent(clicked!)
+		end if
+	end if
 
+	SetPointer(kkg.pointer_default)
+	
+//
+////
+////======================================================================
+////=== Inizializzazione della Windows
+////=== Ripristino DW; tasti; e retrieve liste
+////=== Parametro IN : k_id_vettore
+////=== Ritorna 1 chr : 0=Retrieve OK; 1=Retrieve fallita
+////===    Dal 2 char in poi spiegazione errore
+////======================================================================
+////
+//string k_return="0 "
+////string k_key
+//long k_riga
+//int k_importa = 0
+//pointer oldpointer  // Declares a pointer variable
+//
+//
+//
+////=== Puntatore Cursore da attesa.....
+//	oldpointer = SetPointer(HourGlass!)
+//
+//
+////=== Legge le righe del dw salvate l'ultima volta (importfile)
+//		if ki_st_open_w.flag_primo_giro = "S" then 
+//	
+//			k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
+//	
+//		end if
+//			
+//		
+//		if k_importa <= 0 then // Nessuna importazione eseguita
+//	
+//	
+//			if dw_lista_0.retrieve( ki_mostra_nascondi_in_lista ) < 1 then
+//				k_return = "1Email Non trovate  "
+//	
+//				SetPointer(oldpointer)
+//				messagebox("Lista 'E-mail' Vuota", &
+//						"Nesun Codice Trovato per la richiesta fatta")
+//			else
+//				
+//				if ki_st_open_w.flag_primo_giro = "S" then 
+//					k_riga = 1
+////--- se ho passato anche il ID allora....
+//					if ki_st_tab_email.id_email > 0 then
+//						k_riga = dw_lista_0.find( "id_email = " + string(ki_st_tab_email.id_email) + " ", 1, dw_lista_0.rowcount( ) )
+//					end if
+//					if k_riga > 0 then 
+//						dw_lista_0.selectrow( 0, false)
+//						dw_lista_0.scrolltorow( k_riga)
+//						dw_lista_0.setrow( k_riga)
+//						dw_lista_0.selectrow( k_riga, true)
+//					end if
+//					
+////--- se entro per modificare allora....
+//					if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
+//						cb_modifica.postevent(clicked!)
+//					end if
+//				end if
+//	
+//			end if		
+//		end if
+//	
+////	end if
+//	
+return k_return
 
 
 end function
@@ -709,6 +764,7 @@ long ll_p
 kuf_file_explorer kuf1_file_explorer
 
 
+setpointer(kkg.pointer_attesa)
 
 k_file = trim(dw_dett_0.getitemstring (1, "attached"))
 if len(trim(k_file)) > 0 then
@@ -728,6 +784,7 @@ else
 	k_file=""
 end if
 
+setpointer(kkg.pointer_default)
 
 
 end subroutine
@@ -833,15 +890,12 @@ event dw_dett_0::buttonclicked;call super::buttonclicked;//
 	if dwo.name = "b_path_lettera" & 
 	     and (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
 		get_lettera()
-	end if
-	if dwo.name = "b_path_attached" & 
-	     and (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
+	elseif dwo.name = "b_path_attached" & 
+	         and (ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica) then
 		get_attached()
-	end if
-	if dwo.name = "p_img_lettera_vedi" then
+	elseif dwo.name = "p_img_lettera_vedi" then
 		run_app_lettera()
-	end if
-	if dwo.name = "p_img_attached_vedi" then
+	elseif dwo.name = "p_img_attached_vedi" then
 		run_app_attached()
 	end if
 

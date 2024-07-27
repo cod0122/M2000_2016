@@ -47,6 +47,8 @@ global type st_tab_ptasks_rows from structure
 	decimal { 3 }		acc_pesolordoxlottokg
 	string		acc_dhlbox		descriptor "comment" = "codice dhl del box"
 	string		acc_boxdimcm		descriptor "comment" = "dimensioni del box in cm"
+	integer		acc_clie_1		descriptor "comment" = "codice mandante"
+	integer		acc_clie_2		descriptor "comment" = "codice Ricevente"
 	long		valid_modaccompn		descriptor "comment" = "numero del modulo"
 	string		valid_modaccomprogr		descriptor "comment" = "numero + anno es: 134/2021"
 	date		valid_modaccompdata		descriptor "comment" = "data di emissione mod report di Laboratorio"

@@ -33,6 +33,8 @@ private string ki_codice_prec_x_crea_view=" "
 private string ki_stat_x_inventari = ""
 private string ki_stat_x_inventari_ABC = ""
 
+private kuf_utility kiuf_utility 
+
 end variables
 
 forward prototypes
@@ -62,12 +64,10 @@ int k_err_ins, k_rc=0, k_anno, k_id_gruppo, k_anno_base, k_ctr
 double k_dose 
 date k_data_da, k_data_a
 string k_rag_soc, k_indirizzo, k_localita, k_estrazione, k_importa=" "
+string k_estrazione_data
 st_esito kst_esito
 kuf_base kuf1_base 
 datawindowchild kdwc_cliente, kdwc_dose, kdwc_gruppo
-pointer kpointer  // Declares a pointer variable
-
-
 
 
 //--- reperisce lo stato dell'ultima estrazione	
@@ -97,10 +97,7 @@ end if
 //--- se tutto ok 
 if k_return <> ki_exitNow then
 
-	//=== Puntatore Cursore da attesa.....
-	//=== Se volessi riprist. il vecchio puntatore : SetPointer(oldpointer)
-	kpointer = SetPointer(HourGlass!)
-	
+	SetPointer(kkg.pointer_attesa)
 	
 	if ki_st_open_w.flag_primo_giro = 'S' then //se giro di prima volta
 	
@@ -111,24 +108,24 @@ if k_return <> ki_exitNow then
 		kuf1_base = create kuf_base 
 		k_anno_base = integer(kuf1_base.prendi_dato_base("anno"))
 	//--- reperisce estremi ultima estrazione	
-		k_estrazione = MidA(kuf1_base.prendi_dato_base("descr_ultima_estrazione_statistici"),2)
+		k_estrazione = mid(kuf1_base.prendi_dato_base("descr_ultima_estrazione_statistici"),2)
+		k_estrazione_data = mid(kuf1_base.prendi_dato_base("data_ultima_estrazione_statistici"),2)
 		destroy kuf1_base 
-		
 		
 		k_scelta = trim(ki_st_open_w.flag_modalita)
 		k_id_cliente = long(trim(ki_st_open_w.key1)) //cliente fattura
 		k_dose = double(trim(ki_st_open_w.key2))
 		k_id_gruppo = integer(trim(ki_st_open_w.key3))
 	
-		if LenA(trim(ki_st_open_w.key4)) = 0 then
-			k_data_da = date(k_anno_base, 01, 01)
-		else
+		if trim(ki_st_open_w.key4) > " " then
 			k_data_da = date(trim(ki_st_open_w.key4)) 
-		end if
-		if LenA(trim(ki_st_open_w.key5)) = 0 then
-			k_data_a = date(k_anno_base, 12, 31)
 		else
+			k_data_da = date(k_anno_base - 1, 01, 01)
+		end if
+		if trim(ki_st_open_w.key5) > " " then
 			k_data_a = date(trim(ki_st_open_w.key5)) 
+		else
+			k_data_a = relativedate(date(k_estrazione_data), -1)
 		end if
 		k_key = long(trim(ki_st_open_w.key1)) //cliente
 		if k_id_cliente > 0 then
@@ -212,12 +209,6 @@ if k_return <> ki_exitNow then
 			kist_stat_invent.tipo_data = '1'  // data lavorazione
 			kist_stat_invent.magazzino = 9
 			kist_stat_invent.no_dose = 'N'
-			if isnull(kist_stat_invent.data_da) or kist_stat_invent.data_da = date(0) then
-				kist_stat_invent.data_da = date("01/01/1900")
-			end if
-			if isnull(kist_stat_invent.data_a) or kist_stat_invent.data_a = date(0) then
-				kist_stat_invent.data_a = date("01/01/2200")
-			end if
 			
 			
 			tab_1.tabpage_1.dw_1.setitem(1, "data_da", kist_stat_invent.data_da)
@@ -239,7 +230,7 @@ if k_return <> ki_exitNow then
 	attiva_tasti()
 	
 	//=== riprist. il vecchio puntatore 
-	SetPointer(kpointer)
+	SetPointer(kkg.pointer_default)
 	
 end if
 		
@@ -313,252 +304,156 @@ protected subroutine inizializza_4 () throws uo_exception;//--------------------
 //---  TAB 5 
 //--------------------------------------------------------------------------------------------------------------------
 //
-string k_codice_prec
+string k_codice_prec, k_rcx
 int k_rc
 string k_scelta, k_no_dose //, k_tipo_data
 int k_ctr
 string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
 boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
 
 
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
+	SetPointer(kkg.pointer_attesa)
 
-kuf1_utility = create kuf_utility
-
-//--- piglia i parametri x l'estrazione prevalenmetente dalla prima pagina
+//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
 	get_parametri()
 
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-	if LenA(trim(tab_1.tabpage_5.st_5_retrieve.text)) > 0 then
+//--- Acchiappo i parametri per evitare se sono gli stessi di nuovo la RETRIEVE
+	if trim(tab_1.tabpage_5.st_5_retrieve.text) > " " then
 		k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
-	else
-		k_codice_prec = " "
 	end if
-//--- salvo i parametri cosi come sono stati immessi
-	tab_1.tabpage_5.st_5_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	tab_1.tabpage_5.st_5_retrieve.Text = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1) // salvo i parametri cosi come sono stati immessi
 
 	if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
 
 //--- imposta il DW corretto
 		tab_1.tabpage_5.dw_5.dataobject = ki_stat_x_inventari 
 
-
-		kist_stat_invent.flag_fatturati = "T" //tutti
-		kist_stat_invent.flag_trattati = true
-		kist_stat_invent.flag_check_spediti = true
+		//kist_stat_invent.flag_fatturati = "T" //tutti
+		//kist_stat_invent.flag_check_spediti = true
 		kist_stat_invent.stat_tab = 5
 
 //--- Crea le View x le query ---------------------------------
-		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
-			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
-		else
-			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
-		end if
+		k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
 //-------------------------------------------------------------
 
-
 //--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select 
-		//k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_inv2"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select = k_sql_orig 
+		kguf_data_base.u_set_ds_change_name_tab_name(tab_1.tabpage_5.dw_5, "vx_MAST6_statinvTab", k_stringn)
 
 //--- valorizza titolo
-		kist_stampa_dw_4.titolo = 'Inventario merce trattata e fatturata per Cliente '
-		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
-		if kist_stat_invent.magazzino <> 9 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
-		else 
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
-		end if
-		if kist_stat_invent.no_dose = 'S' then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
+	   kist_stampa_dw_4.titolo_2 = ""
+		kist_stampa_dw_4.titolo = "INVENTARIO PER CLIENTE AL " + string( kist_stat_invent.data_a, "dd mmmm yy" ) 
+		if kist_stat_invent.flag_lotto_chiuso then
+			kist_stampa_dw_4.titolo += " PER LOTTI ANCORA APERTI ENTRATI DAL " + string( kist_stat_invent.data_da, "dd mMMM yy" ) 
 		else
-			if kist_stat_invent.dose = 0 then 
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
+			kist_stampa_dw_4.titolo += " PER LOTTI ENTRATI DAL " + string( kist_stat_invent.data_da, "dd MMMm yy" ) 
+		end if
+		if kist_stat_invent.magazzino <> 9 then
+			kist_stampa_dw_4.titolo_2 += " Magazzino: " + string(kist_stat_invent.magazzino ) + ". "
+		end if
+		if kist_stat_invent.no_dose = "S" then
+			kist_stampa_dw_4.titolo_2 += " Per merce senza Dose. "
+		else
+			if kist_stat_invent.dose > 0 then 
+				kist_stampa_dw_4.titolo_2 += "Per merce con Dose: " +  string(kist_stat_invent.dose) + ". " 
 			end if
 		end if
-		if kist_stat_invent.id_gruppo > 0 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-		end if	
-		if kist_stat_invent.id_gruppo > 0 then
-			if kist_stat_invent.gruppo_flag = 1 then
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+		if kist_stat_invent.gruppo_flag = 1 then
+			if kist_stat_invent.id_gruppo > 0 then
+				kist_stampa_dw_4.titolo_2 += "Solo del Gruppo: " + string( kist_stat_invent.id_gruppo )  
+			end if
+		else
+			if kist_stat_invent.id_gruppo > 0 then
+				kist_stampa_dw_4.titolo_2 += "Escludi Gruppo: " + string( kist_stat_invent.id_gruppo )  
 			end if
 		end if	
 			
 
 		if k_esegui_query then
 			
+			tab_1.tabpage_5.dw_5.object.k_testata.expression = "'" + kist_stampa_dw_4.titolo + "'"
+			
 			k_rc = tab_1.tabpage_5.dw_5.settransobject ( sqlca )
 	
 			k_rc = tab_1.tabpage_5.dw_5.retrieve(4)
+			if k_rc < 0 then
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_5.dw_5, "Errore in elaborazione Inventario! " )
+				throw kguo_exception
+			end if
 		end if
 
 	end if
 
-destroy kuf1_utility
-
-attiva_tasti()
-
-if tab_1.tabpage_5.dw_5.rowcount() = 0 then
-	tab_1.tabpage_5.dw_5.insertrow(0) 
-//	else
-//		if k_dose = 0 then
-//			st_parametri.text = replace(st_parametri.text, 3, 10, &
-//					string(tab_1.tabpage_5.dw_5.getitemnumber(1, "dose"), "0000000000")) 
-//		end if
-end if
-
-tab_1.tabpage_5.dw_5.setfocus()
+	attiva_tasti()
 	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
+	if tab_1.tabpage_5.dw_5.rowcount() = 0 then
+		tab_1.tabpage_5.dw_5.insertrow(0) 
+	//	else
+	//		if k_dose = 0 then
+	//			st_parametri.text = replace(st_parametri.text, 3, 10, &
+	//					string(tab_1.tabpage_5.dw_5.getitemnumber(1, "dose"), "0000000000")) 
+	//		end if
+	end if
+	
+	tab_1.tabpage_5.dw_5.setfocus()
+	
+	SetPointer(kkg.pointer_default)
 
-//
 end subroutine
 
 protected subroutine inizializza_5 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
 //---  TAB 6 
 //--------------------------------------------------------------------------------------------------------------------
 //
-string k_codice_prec
+string k_parametri
 int k_rc
-int k_ctr
-string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
+string k_tabName
+boolean k_elabora
 
 
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
+SetPointer(kkg.pointer_attesa)
 
 //--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
-get_parametri()
+	get_parametri()
 
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_6.st_6_retrieve.text)) > 0 then
-	k_codice_prec = tab_1.tabpage_6.st_6_retrieve.text
-else
-	k_codice_prec = " "
-end if
-//--- salvo i parametri cosi come sono stati immessi
-kuf1_utility = create kuf_utility
-tab_1.tabpage_6.st_6_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-destroy kuf1_utility
-
-
-
-//if kist_stat_invent.tipo_data = '2' then // x data Fatturazione ovviamente qui non fa nulla
-//
-//	if tab_1.tabpage_6.dw_6.rowcount() > 0 then
-//		tab_1.tabpage_6.dw_6.reset()
-//	end if
-//
-//	
-//else
+	k_parametri = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	
-	if tab_1.tabpage_6.st_6_retrieve.text <> k_codice_prec then
-	
+//--- Acchiappo i parametri per evitare se sono gli stessi di nuovo la RETRIEVE
+	if trim(tab_1.tabpage_6.st_6_retrieve.text) <> k_parametri then
+		tab_1.tabpage_6.st_6_retrieve.text = k_parametri
 
-//--- imposta il DW corretto
-		tab_1.tabpage_6.dw_6.dataobject = ki_stat_x_inventari 
-	
-		kist_stat_invent.flag_fatturati = "N" //non fatturati
-		kist_stat_invent.flag_trattati = true
-		kist_stat_invent.flag_check_spediti = true
-		kist_stat_invent.stat_tab = 6
-
-//--- Crea le View x le query ---------------------------------
-		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
-			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
+		if kist_stat_invent.id_cliente > 0 then
+			k_elabora = true
 		else
-			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
-		end if
-//-------------------------------------------------------------
-
-	
-	//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_6.dw_6.Object.DataWindow.Table.Select 
-		//k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_inv2"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_6.dw_6.Object.DataWindow.Table.Select = k_sql_orig 
-	
-	//--- valorizza titolo
-		kist_stampa_dw_4.titolo = 'Inventario merce trattata non fatturata per Cliente '
-		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
-		if kist_stat_invent.magazzino <> 9 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
-		else 
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
-		end if
-		if kist_stat_invent.no_dose = 'S' then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
-		else
-			if kist_stat_invent.dose = 0 then 
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
+			if messagebox(tab_1.tabpage_5.text &
+					,"Attenzione l'estrazione su TUTTI i clienti potrebbe durare molto tempo. Procedere con l'elaborazione?" &
+					,question!, yesno!, 2) = 1 then
+				k_elabora = true
 			end if
 		end if
-		if kist_stat_invent.id_gruppo > 0 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-		end if	
-		if kist_stat_invent.id_gruppo > 0 then
-			if kist_stat_invent.gruppo_flag = 1 then
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			end if
-		end if	
-			
-		if k_esegui_query then
-			
+		
+		if k_elabora then
+			kist_stat_invent.stat_tab = 6 // viene aggiunto al suffisso delle tabelle
+	
+	//--- Crea le View x le query ---------------------------------
+			k_tabName = kiuf_stat_invent.crea_view_giacenze_x_data(kist_stat_invent)
+	//-------------------------------------------------------------
+			kguf_data_base.u_set_ds_change_name_tab_name(tab_1.tabpage_6.dw_6, "vx_9999_statinvTab0", k_tabName)
+	
 			k_rc = tab_1.tabpage_6.dw_6.settransobject ( sqlca )
 	
 			k_rc = tab_1.tabpage_6.dw_6.retrieve(5)
+			if k_rc > 1 then
+				tab_1.tabpage_6.dw_6.deleterow(k_rc) // per chiarezza del reeport rimuovo la riga dei Totali	
+			end if
+			attiva_tasti()
+
 		end if
 	end if
-//end if
 
-
-attiva_tasti()
-
-if tab_1.tabpage_6.dw_6.rowcount() = 0 then
-	tab_1.tabpage_6.dw_6.insertrow(0) 
-//	else
-//		if k_dose = 0 then
-//			st_parametri.text = replace(st_parametri.text, 3, 10, &
-//					string(tab_1.tabpage_6.dw_6.getitemnumber(1, "dose"), "0000000000")) 
-//		end if
-end if
-
-tab_1.tabpage_6.dw_6.setfocus()
+	tab_1.tabpage_6.dw_6.setfocus()
 	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
+SetPointer(kkg.pointer_default)
 
-//
 end subroutine
 
 private subroutine get_parametri () throws uo_exception;//======================================================================
@@ -566,37 +461,29 @@ private subroutine get_parametri () throws uo_exception;//======================
 //======================================================================
 //
 string k_codice_prec
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
+st_stat_invent kst_stat_invent_clear
 
+	SetPointer(kkg.pointer_attesa)
+	
+	kist_stat_invent = kst_stat_invent_clear  // pulizia dell'area
+	
+	kist_stat_invent.dose = tab_1.tabpage_1.dw_1.getitemnumber(1, "dose")  
+	kist_stat_invent.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")  
+	kist_stat_invent.id_gruppo = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_gruppo")  
+	kist_stat_invent.gruppo_flag = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_flag")  
+	kist_stat_invent.data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da")  
+	kist_stat_invent.data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a")  
+	kist_stat_invent.no_dose = tab_1.tabpage_1.dw_1.getitemstring(1, "no_dose")  
+	kist_stat_invent.magazzino = tab_1.tabpage_1.dw_1.getitemnumber(1, "magazzino")  
+	//kist_stat_invent.tipo_data = tab_1.tabpage_1.dw_1.getitemstring(1, "tipo_data") 
+	kist_stat_invent.data_estrazione_stat =	tab_1.tabpage_1.dw_1.getitemstring(1, "estrazione")
+	kist_stat_invent.flag_trattati = tab_1.tabpage_1.dw_1.getitemstring(1, "trattati")
 
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-
-kuf1_utility = create kuf_utility
-
-kist_stat_invent.dose = tab_1.tabpage_1.dw_1.getitemnumber(1, "dose")  
-kist_stat_invent.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")  
-kist_stat_invent.id_gruppo = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_gruppo")  
-kist_stat_invent.gruppo_flag = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_flag")  
-kist_stat_invent.data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da")  
-kist_stat_invent.data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a")  
-kist_stat_invent.no_dose = tab_1.tabpage_1.dw_1.getitemstring(1, "no_dose")  
-kist_stat_invent.magazzino = tab_1.tabpage_1.dw_1.getitemnumber(1, "magazzino")  
-//kist_stat_invent.tipo_data = tab_1.tabpage_1.dw_1.getitemstring(1, "tipo_data") 
-kist_stat_invent.data_estrazione_stat =	tab_1.tabpage_1.dw_1.getitemstring(1, "estrazione")
-if tab_1.tabpage_1.dw_1.getitemstring(1, "flag_lotto_chiuso") = "S" then
-	kist_stat_invent.flag_lotto_chiuso = true
-else
-	kist_stat_invent.flag_lotto_chiuso = false
-end if
-
-
-set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-
+	if tab_1.tabpage_1.dw_1.getitemstring(1, "flag_lotto_chiuso") = "S" then
+		kist_stat_invent.flag_lotto_chiuso = true
+	end if
+	
+	set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 
 //=== Controllo date
 	if kist_stat_invent.data_a < kist_stat_invent.data_da then
@@ -619,7 +506,7 @@ set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view
 		kist_stat_invent.dose = 0
 		kist_stat_invent.dose_str = "0"
 	else
-		kist_stat_invent.dose_str = kuf1_utility.u_num_itatousa(string(kist_stat_invent.dose))
+		kist_stat_invent.dose_str = kiuf_utility.u_num_itatousa(string(kist_stat_invent.dose))
 	end if
 	if isnull(kist_stat_invent.id_cliente) then
 		kist_stat_invent.id_cliente = 0
@@ -628,82 +515,8 @@ set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view
 //--- il flag potrebbe essere stato ricambiato
 	tab_1.tabpage_1.dw_1.setitem(1, "gruppo_flag", kist_stat_invent.gruppo_flag)  
 
+	SetPointer(kkg.pointer_default)
 
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-	if LenA(trim(tab_1.tabpage_1.st_1_retrieve.text)) > 0 then
-		k_codice_prec = tab_1.tabpage_1.st_1_retrieve.text
-	else
-		k_codice_prec = " "
-	end if
-
-//--- salvo i parametri cosi come sono stati immessi
-	tab_1.tabpage_1.st_1_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-
-//--- se parametri diversi dall'ultima volta rifaccio alcune operazioni
-	if tab_1.tabpage_1.st_1_retrieve.text <> k_codice_prec then
-
-//		choose case kist_stat_invent.tipo_data
-//				
-//			case '1'
-//				select min(id_meca), max(id_meca) into :kist_stat_invent.id_meca_da, :kist_stat_invent.id_meca_a 
-//				    from s_artr 
-//					 where data_lav_fin between :kist_stat_invent.data_da and :kist_stat_invent.data_a and id_meca > 0;
-//				if sqlca.sqlcode <> 0 then
-//					kist_stat_invent.id_meca_da = 0 
-//				else
-//					if sqlca.sqlcode = 100 then
-//						kist_stat_invent.id_meca_da = 99999 
-//					end if
-//				end if
-//	
-//				
-//	
-//			case '2' // x data fine fatturazione
-//				
-	//--- piglio i ID_MECA rispetto alla data indicata
-//				select min(id_meca), max(id_meca) into :kist_stat_invent.id_meca_da, :kist_stat_invent.id_meca_a 
-//				     from s_arfa 
-//					  where data_fatt between :kist_stat_invent.data_da and :kist_stat_invent.data_a and id_meca > 0;
-//				if sqlca.sqlcode < 0 then
-//					kist_stat_invent.id_meca_da = 0 
-//				else
-//					if sqlca.sqlcode = 100 then
-//						kist_stat_invent.id_meca_da = 99999 
-//					end if
-//				end if
-//	
-//				 
-//			case '3' // x data di riferimento
-	//--- piglio i ID_MECA rispetto alla data indicata
-				select min(id_meca), max(id_meca) into :kist_stat_invent.id_meca_da, :kist_stat_invent.id_meca_a 
-				     from s_armo 
-					  where data_ent between :kist_stat_invent.data_da and :kist_stat_invent.data_a and id_meca > 0;
-				if sqlca.sqlcode < 0 then
-					kist_stat_invent.id_meca_da = 0 
-				else
-					if sqlca.sqlcode = 100 then
-						kist_stat_invent.id_meca_da = 99999 
-					end if
-				end if
-				 
-//		end choose
-		
-		if isnull(kist_stat_invent.id_meca_da) then
-			kist_stat_invent.id_meca_da = 9999999 
-		end if
-		if isnull(kist_stat_invent.id_meca_a) then
-			kist_stat_invent.id_meca_a = 0
-		end if
-	
-	end if
-	
-	
-destroy kuf1_utility
-	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
-//
 end subroutine
 
 private subroutine set_nome_utente_tab () throws uo_exception;//
@@ -741,438 +554,413 @@ end subroutine
 
 protected subroutine open_start_window ();//
 kiuf_stat_invent = create kuf_stat_invent
+kiuf_utility = create kuf_utility
 
 //---- imposta i nomi dei DW da utilizzare
-if kiuf_stat_invent.visualizza_importi( ) then
+//if kiuf_stat_invent.visualizza_importi( ) then
 	ki_stat_x_inventari = "d_stat_inventario_x_cliente"
-	ki_stat_x_inventari_ABC = "d_stat_inventario_x_cliente_mandante"
+//	ki_stat_x_inventari_ABC = "d_stat_inventario_x_cliente_mandante"
 
-else
-	ki_stat_x_inventari = "d_stat_inventario_x_cliente_no_importi"
-	ki_stat_x_inventari_abc = "d_stat_inventario_x_cliente_mandante_no_importo"
-end if
+//else
+//	ki_stat_x_inventari = "d_stat_inventario_x_cliente_no_importi"
+//	ki_stat_x_inventari_abc = "d_stat_inventario_x_cliente_mandante_no_importo"
+//end if
 end subroutine
 
-protected subroutine inizializza_6 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
-//---  TAB 7 
-//--------------------------------------------------------------------------------------------------------------------
+protected subroutine inizializza_6 () throws uo_exception;////--------------------------------------------------------------------------------------------------------------------
+////---  TAB 7 
+////--------------------------------------------------------------------------------------------------------------------
+////
+//string k_codice_prec
+//int k_rc
+//int k_ctr
+//string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
+//boolean k_esegui_query=true
+//kuf_utility kuf1_utility
+//pointer kpointer  // Declares a pointer variable
 //
-string k_codice_prec
-int k_rc
-int k_ctr
-string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-//--- Puntatore Cursore da attesa.....
-//--- Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
-get_parametri()
-
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_7.st_7_retrieve.text)) > 0 then
-	k_codice_prec = tab_1.tabpage_7.st_7_retrieve.text
-else
-	k_codice_prec = " "
-end if
-
-//--- salvo i parametri cosi come sono stati immessi
-kuf1_utility = create kuf_utility
-tab_1.tabpage_7.st_7_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-destroy kuf1_utility
-
-if tab_1.tabpage_7.st_7_retrieve.text <> k_codice_prec then
-
-//--- imposta il DW corretto
-		tab_1.tabpage_7.dw_7.dataobject = ki_stat_x_inventari 
-
-
-		kist_stat_invent.flag_fatturati = "S" // fatturati
-		kist_stat_invent.flag_trattati = true
-		kist_stat_invent.flag_check_spediti = true
-		kist_stat_invent.stat_tab = 7
-
-//--- Crea le View x le query ---------------------------------
-		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
-			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
-		else
-			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
-		end if
-//-------------------------------------------------------------
-
-
-//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_7.dw_7.Object.DataWindow.Table.Select 
-		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_inv2"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_7.dw_7.Object.DataWindow.Table.Select = k_sql_orig 
-
-//--- valorizza titolo
-		kist_stampa_dw_4.titolo = 'Inventario merce trattata e fatturata per Cliente '
-		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
-		if kist_stat_invent.magazzino <> 9 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
-		else 
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
-		end if
-		if kist_stat_invent.no_dose = 'S' then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
-		else
-			if kist_stat_invent.dose = 0 then 
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
-			end if
-		end if
-		if kist_stat_invent.id_gruppo > 0 then
-			if kist_stat_invent.gruppo_flag = 1 then
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			end if
-		end if	
-			
-
-		if k_esegui_query then
-			
-			k_rc = tab_1.tabpage_7.dw_7.settransobject ( sqlca )
-	
-			k_rc = tab_1.tabpage_7.dw_7.retrieve(6)
-		end if
-//	end if
-
-end if
-
-attiva_tasti()
-
-if tab_1.tabpage_7.dw_7.rowcount() = 0 then
-	tab_1.tabpage_7.dw_7.insertrow(0) 
-//	else
-//		if k_dose = 0 then
-//			st_parametri.text = replace(st_parametri.text, 3, 10, &
-//					string(tab_1.tabpage_7.dw_7.getitemnumber(1, "dose"), "0000000000")) 
+//
+////--- Puntatore Cursore da attesa.....
+////--- Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+//kpointer = SetPointer(HourGlass!)
+//
+////--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
+//get_parametri()
+//
+////--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+//if LenA(trim(tab_1.tabpage_7.st_7_retrieve.text)) > 0 then
+//	k_codice_prec = tab_1.tabpage_7.st_7_retrieve.text
+//else
+//	k_codice_prec = " "
+//end if
+//
+////--- salvo i parametri cosi come sono stati immessi
+//kuf1_utility = create kuf_utility
+//tab_1.tabpage_7.st_7_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+//destroy kuf1_utility
+//
+//if tab_1.tabpage_7.st_7_retrieve.text <> k_codice_prec then
+//
+////--- imposta il DW corretto
+//		tab_1.tabpage_7.dw_7.dataobject = ki_stat_x_inventari 
+//
+//
+//		kist_stat_invent.flag_fatturati = "S" // fatturati
+//		//kist_stat_invent.flag_check_spediti = true
+//		kist_stat_invent.stat_tab = 7
+//
+////--- Crea le View x le query ---------------------------------
+//		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
+//			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
+//		else
+//			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
 //		end if
-end if
-
-tab_1.tabpage_7.dw_7.setfocus()
-	
-//--- Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
+////-------------------------------------------------------------
 //
+//
+////--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_7.dw_7.Object.DataWindow.Table.Select 
+//		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_inv2"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_7.dw_7.Object.DataWindow.Table.Select = k_sql_orig 
+//
+////--- valorizza titolo
+//		kist_stampa_dw_4.titolo = 'Inventario merce trattata e fatturata per Cliente '
+//		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
+//		if kist_stat_invent.magazzino <> 9 then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
+//		else 
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
+//		end if
+//		if kist_stat_invent.no_dose = 'S' then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
+//		else
+//			if kist_stat_invent.dose = 0 then 
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
+//			end if
+//		end if
+//		if kist_stat_invent.id_gruppo > 0 then
+//			if kist_stat_invent.gruppo_flag = 1 then
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			end if
+//		end if	
+//			
+//
+//		if k_esegui_query then
+//			
+//			k_rc = tab_1.tabpage_7.dw_7.settransobject ( sqlca )
+//	
+//			k_rc = tab_1.tabpage_7.dw_7.retrieve(6)
+//		end if
+////	end if
+//
+//end if
+//
+//attiva_tasti()
+//
+//if tab_1.tabpage_7.dw_7.rowcount() = 0 then
+//	tab_1.tabpage_7.dw_7.insertrow(0) 
+////	else
+////		if k_dose = 0 then
+////			st_parametri.text = replace(st_parametri.text, 3, 10, &
+////					string(tab_1.tabpage_7.dw_7.getitemnumber(1, "dose"), "0000000000")) 
+////		end if
+//end if
+//
+//tab_1.tabpage_7.dw_7.setfocus()
+//	
+////--- Riprist. il vecchio puntatore : 
+//SetPointer(kpointer)
+//
+////
 end subroutine
 
-protected subroutine inizializza_7 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
-//---  TAB 8 - INVENTARIO A
-//--------------------------------------------------------------------------------------------------------------------
+protected subroutine inizializza_7 () throws uo_exception;////--------------------------------------------------------------------------------------------------------------------
+////---  TAB 8 - INVENTARIO A
+////--------------------------------------------------------------------------------------------------------------------
+////
+//string k_codice_prec
+//int k_rc
+//int k_ctr
+//string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
+//boolean k_esegui_query=true
+//kuf_utility kuf1_utility
+//pointer kpointer  // Declares a pointer variable
 //
-string k_codice_prec
-int k_rc
-int k_ctr
-string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
-get_parametri()
-
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_8.st_8_retrieve.text)) > 0 then
-	k_codice_prec = tab_1.tabpage_8.st_8_retrieve.text
-else
-	k_codice_prec = " "
-end if
-//--- salvo i parametri cosi come sono stati immessi
-kuf1_utility = create kuf_utility
-tab_1.tabpage_8.st_8_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-destroy kuf1_utility
-
-
-
-//if kist_stat_invent.tipo_data = '2' then // x data Fatturazione ovviamente qui non fa nulla
 //
-//	if tab_1.tabpage_8.dw_8.rowcount() > 0 then
-//		tab_1.tabpage_8.dw_8.reset()
+////=== Puntatore Cursore da attesa.....
+////=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+//kpointer = SetPointer(HourGlass!)
+//
+////--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
+//get_parametri()
+//
+////--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+//if LenA(trim(tab_1.tabpage_8.st_8_retrieve.text)) > 0 then
+//	k_codice_prec = tab_1.tabpage_8.st_8_retrieve.text
+//end if
+//
+//tab_1.tabpage_8.st_8_retrieve.Text = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+//
+//if tab_1.tabpage_8.st_8_retrieve.text <> k_codice_prec then	
+//
+////--- imposta il DW corretto
+//		tab_1.tabpage_8.dw_8.dataobject = ki_stat_x_inventari_abc 
+//	
+//		kist_stat_invent.flag_fatturati = "T" // tutti
+//		//kist_stat_invent.flag_check_spediti = true
+//		kist_stat_invent.stat_tab = 8
+//		
+////--- Crea le View x le query ---------------------------------
+//		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
+//			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
+//		else
+//			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
+//		end if
+//		kiuf_stat_invent.crea_view_altri_dati(kist_stat_invent)
+////-------------------------------------------------------------
+//
+////--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
+//		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_inv2"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
+//	//--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
+//		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_num_certif" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_num_certif"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
+//	//--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
+//		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_id_fattura" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_id_fattura"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
+//	
+//	//--- valorizza titolo
+//		kist_stampa_dw_4.titolo = 'Inventario materiale trattato '
+//		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
+//		if kist_stat_invent.magazzino <> 9 then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
+//		else 
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
+//		end if
+//		if kist_stat_invent.no_dose = 'S' then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
+//		else
+//			if kist_stat_invent.dose = 0 then 
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
+//			end if
+//		end if
+//		if kist_stat_invent.id_gruppo > 0 then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//		end if	
+//		if kist_stat_invent.id_gruppo > 0 then
+//			if kist_stat_invent.gruppo_flag = 1 then
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			end if
+//		end if	
+//			
+//		if k_esegui_query then
+//			
+//			k_rc = tab_1.tabpage_8.dw_8.settransobject ( sqlca )
+//	
+//			k_rc = tab_1.tabpage_8.dw_8.retrieve(5)
+//		end if
 //	end if
+////end if
+//
+//
+//attiva_tasti()
+//
+//if tab_1.tabpage_8.dw_8.rowcount() = 0 then
+//	tab_1.tabpage_8.dw_8.insertrow(0) 
+//end if
+//
+//tab_1.tabpage_8.dw_8.setfocus()
+//	
+////=== Riprist. il vecchio puntatore : 
+//SetPointer(kpointer)
+//
+////
+end subroutine
+
+protected subroutine inizializza_8 () throws uo_exception;////--------------------------------------------------------------------------------------------------------------------
+////---  TAB 8 - INVENTARIO B
+////--------------------------------------------------------------------------------------------------------------------
+////
+//string k_codice_prec
+//int k_rc
+//int k_ctr
+//string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
+//boolean k_esegui_query=true
+//kuf_utility kuf1_utility
+//pointer kpointer  // Declares a pointer variable
+//
+//
+////=== Puntatore Cursore da attesa.....
+////=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+//kpointer = SetPointer(HourGlass!)
+//
+////--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
+//get_parametri()
+//
+////--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+//if LenA(trim(tab_1.tabpage_9.st_9_retrieve.text)) > 0 then
+//	k_codice_prec = tab_1.tabpage_9.st_9_retrieve.text
+//else
+//	k_codice_prec = " "
+//end if
+////--- salvo i parametri cosi come sono stati immessi
+//kuf1_utility = create kuf_utility
+//tab_1.tabpage_9.st_9_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+//destroy kuf1_utility
+//
+//
+//
+////if kist_stat_invent.tipo_data = '2' then // x data Fatturazione ovviamente qui non fa nulla
+////
+////	if tab_1.tabpage_9.dw_9.rowcount() > 0 then
+////		tab_1.tabpage_9.dw_9.reset()
+////	end if
+////
+////	
+////else
+//	
+//	if tab_1.tabpage_9.st_9_retrieve.text <> k_codice_prec then
+//	
+//
+////--- imposta il DW corretto
+//		tab_1.tabpage_9.dw_9.dataobject = ki_stat_x_inventari_abc 
+//	
+//
+//		kist_stat_invent.flag_fatturati = "T" // tutti
+//		//kist_stat_invent.flag_check_spediti = true
+//		kist_stat_invent.stat_tab = 9
+//
+////--- Crea le View x le query ---------------------------------
+//		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
+//			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
+//		else
+//			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
+//		end if
+//		kiuf_stat_invent.crea_view_altri_dati(kist_stat_invent)
+////-------------------------------------------------------------
 //
 //	
-//else
-	
-	if tab_1.tabpage_8.st_8_retrieve.text <> k_codice_prec then
-	
-
-//--- imposta il DW corretto
-		tab_1.tabpage_8.dw_8.dataobject = ki_stat_x_inventari_abc 
-	
-
-		kist_stat_invent.flag_fatturati = "T" // tutti
-		kist_stat_invent.flag_trattati = true
-		kist_stat_invent.flag_check_spediti = true
-		kist_stat_invent.stat_tab = 8
-		
-//--- Crea le View x le query ---------------------------------
-		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
-			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
-		else
-			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
-		end if
-		kiuf_stat_invent.crea_view_altri_dati(kist_stat_invent)
-//-------------------------------------------------------------
-
-	
-//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
-		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_inv2"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
-	//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
-		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_num_certif" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_num_certif"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
-	//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
-		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_id_fattura" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_id_fattura"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
-	
-	//--- valorizza titolo
-		kist_stampa_dw_4.titolo = 'Inventario materiale trattato '
-		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
-		if kist_stat_invent.magazzino <> 9 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
-		else 
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
-		end if
-		if kist_stat_invent.no_dose = 'S' then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
-		else
-			if kist_stat_invent.dose = 0 then 
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
-			end if
-		end if
-		if kist_stat_invent.id_gruppo > 0 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-		end if	
-		if kist_stat_invent.id_gruppo > 0 then
-			if kist_stat_invent.gruppo_flag = 1 then
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			end if
-		end if	
-			
-		if k_esegui_query then
-			
-			k_rc = tab_1.tabpage_8.dw_8.settransobject ( sqlca )
-	
-			k_rc = tab_1.tabpage_8.dw_8.retrieve(5)
-		end if
-	end if
-//end if
-
-
-attiva_tasti()
-
-if tab_1.tabpage_8.dw_8.rowcount() = 0 then
-	tab_1.tabpage_8.dw_8.insertrow(0) 
-//	else
-//		if k_dose = 0 then
-//			st_parametri.text = replace(st_parametri.text, 3, 10, &
-//					string(tab_1.tabpage_8.dw_8.getitemnumber(1, "dose"), "0000000000")) 
-//		end if
-end if
-
-tab_1.tabpage_8.dw_8.setfocus()
-	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
-//
-end subroutine
-
-protected subroutine inizializza_8 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
-//---  TAB 8 - INVENTARIO B
-//--------------------------------------------------------------------------------------------------------------------
-//
-string k_codice_prec
-int k_rc
-int k_ctr
-string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
-get_parametri()
-
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_9.st_9_retrieve.text)) > 0 then
-	k_codice_prec = tab_1.tabpage_9.st_9_retrieve.text
-else
-	k_codice_prec = " "
-end if
-//--- salvo i parametri cosi come sono stati immessi
-kuf1_utility = create kuf_utility
-tab_1.tabpage_9.st_9_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-destroy kuf1_utility
-
-
-
-//if kist_stat_invent.tipo_data = '2' then // x data Fatturazione ovviamente qui non fa nulla
-//
-//	if tab_1.tabpage_9.dw_9.rowcount() > 0 then
-//		tab_1.tabpage_9.dw_9.reset()
-//	end if
-//
+////--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
+//		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_inv2"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
+//	//--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
+//		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_num_certif" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_num_certif"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
+//	//--- Aggiorna SQL della dw	
+//		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
+//		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_id_fattura" + string(kist_stat_invent.stat_tab)
+//		k_string = "vx_info_stat_id_fattura"
+//		k_ctr = PosA(k_sql_orig, k_string, 1)
+//		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+//			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+//			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+//		LOOP
+//		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
 //	
-//else
-	
-	if tab_1.tabpage_9.st_9_retrieve.text <> k_codice_prec then
-	
-
-//--- imposta il DW corretto
-		tab_1.tabpage_9.dw_9.dataobject = ki_stat_x_inventari_abc 
-	
-
-		kist_stat_invent.flag_fatturati = "T" // tutti
-		kist_stat_invent.flag_trattati = false
-		kist_stat_invent.flag_check_spediti = true
-		kist_stat_invent.stat_tab = 9
-
-//--- Crea le View x le query ---------------------------------
-		if kist_stat_invent.magazzino = kuf_armo.kki_magazzino_DATRATTARE or kist_stat_invent.magazzino = kuf_armo.kki_magazzino_TUTTI then
-			k_stringn = kiuf_stat_invent.crea_view_6(kist_stat_invent)
-		else
-			k_stringn = kiuf_stat_invent.crea_view_6_nolav(kist_stat_invent)
-		end if
-		kiuf_stat_invent.crea_view_altri_dati(kist_stat_invent)
-//-------------------------------------------------------------
-
-	
-//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
-		k_stringn = "#vx_" + trim(kist_stat_invent.utente) + "_statinv25" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_inv2"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
-	//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
-		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_num_certif" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_num_certif"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
-	//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select 
-		k_stringn = "vx_" + trim(kist_stat_invent.utente) + "_stat_id_fattura" + string(kist_stat_invent.stat_tab)
-		k_string = "vx_info_stat_id_fattura"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_9.dw_9.Object.DataWindow.Table.Select = k_sql_orig 
-	
-	//--- valorizza titolo
-		kist_stampa_dw_4.titolo = 'Inventario materiale NON Trattato '
-		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
-		if kist_stat_invent.magazzino <> 9 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
-		else 
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
-		end if
-		if kist_stat_invent.no_dose = 'S' then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
-		else
-			if kist_stat_invent.dose = 0 then 
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
-			end if
-		end if
-		if kist_stat_invent.id_gruppo > 0 then
-			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-		end if	
-		if kist_stat_invent.id_gruppo > 0 then
-			if kist_stat_invent.gruppo_flag = 1 then
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			else
-				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
-			end if
-		end if	
-			
-		if k_esegui_query then
-			
-			k_rc = tab_1.tabpage_9.dw_9.settransobject ( sqlca )
-	
-			k_rc = tab_1.tabpage_9.dw_9.retrieve(5)
-		end if
-	end if
-//end if
-
-
-attiva_tasti()
-
-if tab_1.tabpage_9.dw_9.rowcount() = 0 then
-	tab_1.tabpage_9.dw_9.insertrow(0) 
-//	else
-//		if k_dose = 0 then
-//			st_parametri.text = replace(st_parametri.text, 3, 10, &
-//					string(tab_1.tabpage_9.dw_9.getitemnumber(1, "dose"), "0000000000")) 
+//	//--- valorizza titolo
+//		kist_stampa_dw_4.titolo = 'Inventario materiale NON Trattato '
+//		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_invent.data_da ) + ' al ' + string( kist_stat_invent.data_a )
+//		if kist_stat_invent.magazzino <> 9 then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_invent.magazzino ) + '   '
+//		else 
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
 //		end if
-end if
-
-tab_1.tabpage_9.dw_9.setfocus()
-	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
+//		if kist_stat_invent.no_dose = 'S' then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
+//		else
+//			if kist_stat_invent.dose = 0 then 
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_invent.dose) + '   ' 
+//			end if
+//		end if
+//		if kist_stat_invent.id_gruppo > 0 then
+//			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//		end if	
+//		if kist_stat_invent.id_gruppo > 0 then
+//			if kist_stat_invent.gruppo_flag = 1 then
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			else
+//				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_invent.id_gruppo )  
+//			end if
+//		end if	
+//			
+//		if k_esegui_query then
+//			
+//			k_rc = tab_1.tabpage_9.dw_9.settransobject ( sqlca )
+//	
+//			k_rc = tab_1.tabpage_9.dw_9.retrieve(5)
+//		end if
+//	end if
+////end if
 //
+//
+//attiva_tasti()
+//
+//if tab_1.tabpage_9.dw_9.rowcount() = 0 then
+//	tab_1.tabpage_9.dw_9.insertrow(0) 
+////	else
+////		if k_dose = 0 then
+////			st_parametri.text = replace(st_parametri.text, 3, 10, &
+////					string(tab_1.tabpage_9.dw_9.getitemnumber(1, "dose"), "0000000000")) 
+////		end if
+//end if
+//
+//tab_1.tabpage_9.dw_9.setfocus()
+//	
+////=== Riprist. il vecchio puntatore : 
+//SetPointer(kpointer)
+//
+////
 end subroutine
 
 protected subroutine inizializza_2 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
@@ -1261,7 +1049,8 @@ if IsValid(MenuID) then destroy(MenuID)
 end on
 
 event close;call super::close;//
-if isvalid(kiuf_stat_invent  ) then destroy kiuf_stat_invent
+if isvalid(kiuf_stat_invent) then destroy kiuf_stat_invent
+if isvalid(kiuf_utility) then destroy kiuf_utility
 
 end event
 
@@ -1312,6 +1101,8 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_stat_invent
+integer x = 0
+integer y = 0
 integer width = 3589
 integer height = 1472
 end type
@@ -1534,6 +1325,10 @@ end if
 
 end event
 
+event dw_1::losefocus;call super::losefocus;//
+this.accepttext( )
+end event
+
 type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
 integer x = 283
 integer y = 988
@@ -1620,8 +1415,8 @@ integer y = 176
 integer width = 3552
 integer height = 1280
 boolean enabled = true
-string text = "Inventario 1 ~r~n"
-string powertiptext = "tutto il materiale non spedito"
+string text = "Inventario~r~n"
+string powertiptext = "Materiale non spedito"
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
@@ -1755,8 +1550,8 @@ integer y = 176
 integer width = 3552
 integer height = 1280
 boolean enabled = true
-string text = "Inventario 2 ~r~nsolo Non fatturato"
-string powertiptext = "materiale non spedito e NON fatturato"
+string text = "Inventario ~r~ngiornaliero"
+string powertiptext = "giacenza diviso a giornate"
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -1764,10 +1559,11 @@ end type
 
 type dw_6 from w_g_tab_3`dw_6 within tabpage_6
 boolean visible = true
+integer y = 16
 integer width = 3259
 integer height = 1244
 boolean enabled = true
-string dataobject = "d_stat_inventario_x_cliente"
+string dataobject = "d_stat_inventario_x_cliente_data"
 boolean ki_link_standard_sempre_possibile = true
 end type
 
@@ -1883,11 +1679,9 @@ SetPointer(kpointer)
 end event
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
-boolean visible = true
 integer y = 176
 integer width = 3552
 integer height = 1280
-boolean enabled = true
 string text = "Inventario 3 ~r~nsolo fatturato"
 string powertiptext = "materiale non spedito e fatturato"
 end type
@@ -1896,10 +1690,8 @@ type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
 end type
 
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
-boolean visible = true
 integer width = 3264
 integer height = 1188
-boolean enabled = true
 string dataobject = "d_stat_inventario_x_cliente"
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_d_std_1_attiva_cerca = false
@@ -2016,11 +1808,9 @@ SetPointer(kpointer)
 end event
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
-boolean visible = true
 integer y = 176
 integer width = 3552
 integer height = 1280
-boolean enabled = true
 string text = "Inventario A ~r~nmateriale Trattato"
 string powertiptext = "materiale trattato ma non spedito "
 end type
@@ -2029,18 +1819,14 @@ type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
 end type
 
 type dw_8 from w_g_tab_3`dw_8 within tabpage_8
-boolean visible = true
 integer width = 3141
-boolean enabled = true
 string dataobject = "d_stat_inventario_x_cliente_mandante"
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
-boolean visible = true
 integer y = 176
 integer width = 3552
 integer height = 1280
-boolean enabled = true
 string text = "Inventario B~r~nmateriale Non Trattato"
 end type
 
@@ -2048,11 +1834,9 @@ type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
 end type
 
 type dw_9 from w_g_tab_3`dw_9 within tabpage_9
-boolean visible = true
 integer x = 37
 integer y = 24
 integer width = 2981
-boolean enabled = true
 string dataobject = "d_stat_inventario_x_cliente_mandante"
 boolean ki_link_standard_sempre_possibile = true
 end type

@@ -278,7 +278,7 @@ try
 				k_return = false
 			end if
 	
-		case "b_wm_pklist_righe"
+		case "wm_pklist_righe"
 			kst_tab_wm_pklist_righe.id_wm_pklist  = adw_link.getitemnumber(adw_link.getrow(), "id_wm_pklist")
 			if kst_tab_wm_pklist_righe.id_wm_pklist  > 0 then
 				kdsi_elenco_output.dataobject = "d_wm_pklist_righe_l_1"

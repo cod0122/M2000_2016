@@ -1287,7 +1287,7 @@ choose case a_campo_link
 			k_return = false
 		end if
 
-	case "b_ric_lotto" 
+	case "ric_lotto" 
 		kst_tab_ricevute.num_fatt = adw_1.getitemnumber(adw_1.getrow(), "num_fatt")
 		if kst_tab_ricevute.num_fatt > 0 then
 			kst_tab_ricevute.data_fatt = adw_1.getitemdate(adw_1.getrow(), "data_fatt")

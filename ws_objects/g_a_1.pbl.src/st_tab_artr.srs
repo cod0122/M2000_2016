@@ -10,6 +10,7 @@ global type st_tab_artr from structure
 	integer		pl_barcode
 	integer		colli_trattati
 	integer		colli_groupage
+	integer		impianto
 	datetime		x_datins
 	string		x_utente
 end type

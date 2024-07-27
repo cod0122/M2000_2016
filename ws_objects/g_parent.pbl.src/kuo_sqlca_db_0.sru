@@ -5,6 +5,7 @@ end type
 end forward
 
 global type kuo_sqlca_db_0 from transaction
+event type integer u_dberror ( long a_code,  string a_sqlsyntax,  string a_sqlerrtext )
 end type
 global kuo_sqlca_db_0 kuo_sqlca_db_0
 
@@ -31,6 +32,9 @@ public boolean ki_conn_blk_msg_done
 //--- utile per salvare i dati sqlerr ... 
 protected kuo_sqlca_db_0 kiuo_sqlca_db_0_saved
 
+protected kuo_sqlca_db_0 kiuo_sqlca_db_0 = this
+
+
 end variables
 
 forward prototypes
@@ -43,7 +47,6 @@ public function boolean if_connesso_x () throws uo_exception
 public function boolean db_set_isolation_level () throws uo_exception
 public function st_esito db_crea_table (string k_table, string k_sql) throws uo_exception
 public function st_esito db_crea_temp_table (string k_table, string k_campi, string k_select) throws uo_exception
-public function st_esito db_crea_view (integer k_id, string k_view, string k_sql)
 public function boolean test_connessione () throws uo_exception
 public subroutine u_crea_schema () throws uo_exception
 public function boolean if_connessione_bloccata () throws uo_exception
@@ -55,7 +58,6 @@ public function boolean db_riconnetti () throws uo_exception
 public function integer u_get_col_len (string a_table, string a_col)
 public function integer x_db_connetti_post_ok () throws uo_exception
 public function boolean db_connetti () throws uo_exception
-public function boolean db_disconnetti () throws uo_exception
 protected function boolean u_if_dberror_grave (integer a_code)
 protected function boolean u_error_db_if_login (ref st_esito ast_esito)
 private subroutine u_error_db (ref st_esito ast_esito)
@@ -63,7 +65,49 @@ protected function boolean u_error_db_if_conn (ref st_esito ast_esito)
 protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
 private subroutine u_error_common (ref st_esito ast_esito)
 protected function boolean u_error_others (ref st_esito ast_esito)
+public function boolean db_disconnetti ()
+public function st_esito db_crea_view (integer k_id, string k_view, string k_sql) throws uo_exception
+protected function integer db_sql_execute (string a_sql, boolean a_commit, boolean a_throw_when_error) throws uo_exception
+public function integer db_insert_select (string k_table, string k_campi, string k_select) throws uo_exception
 end prototypes
+
+event type integer u_dberror(long a_code, string a_sqlsyntax, string a_sqlerrtext);//
+st_esito kst_esito
+
+// -1 è di solito un errore di 'TRANSAZIONE NON CONNESSA' che si verifica spesso, quindi non faccio nulla
+//     code = 4104 o 207 l'ho beccato per errore da retrieve in un DATASTORE
+	if a_code <> -1 and (sqldbcode <> 0 or a_code = 4104 or a_code = 207) then  
+		
+//--- errori personaizzati sul DB		
+		if u_if_dberror_grave(a_code) then
+	
+			kst_esito = kguo_exception.inizializza(kGuf_data_base.u_getfocus_nome())
+		
+			kst_esito.sqlsyntax = trim(a_sqlsyntax)
+			if isnull(kst_esito.sqlsyntax) then kst_esito.sqlsyntax = ""
+		
+			kst_esito.sqlerrtext = trim(a_sqlerrtext)
+			if isnull(kst_esito.sqlerrtext) then kst_esito.sqlerrtext = ""
+		
+			kst_esito.sqlcode = this.sqlcode
+			if this.sqlcode < 0 then
+				kst_esito.esito = kkg_esito.db_ko
+			else
+				kst_esito.esito = kkg_esito.db_wrn
+			end if
+			kst_esito.sqldbcode = a_code
+
+			kguo_exception.set_esito(kst_esito)
+
+			u_error_db(kst_esito)
+			
+		end if
+	end if
+
+
+RETURN 1 // Do not display system error message
+
+end event
 
 public function st_esito db_commit ();//
 //===	Ritorna St_esito - come da standard
@@ -71,14 +115,14 @@ public function st_esito db_commit ();//
 st_esito kst_esito
 uo_exception kuo_exception
 
-
 	kst_esito.esito = kkg_esito.ok
 
 	commit using this;
 
 	if this.sqlcode <> 0 then
 		kuo_exception = create uo_exception
-		kst_esito = kuo_exception.set_st_esito_err_db(this, "Errore in Conferma dati sul DB (Commit).")
+		kuo_sqlca_db_0 = this
+		kst_esito = kuo_exception.set_st_esito_err_db(kiuo_sqlca_db_0, "Errore in Conferma dati sul DB (Commit).")
 		kuo_exception.scrivi_log( )
 	end if
 
@@ -100,7 +144,7 @@ uo_exception kuo_exception
 
 	if this.sqlcode <> 0 then
 		kuo_exception = create uo_exception
-		kst_esito = kuo_exception.set_st_esito_err_db(this, "Errore in Recupero dati sul DB (Rollback).")
+		kst_esito = kuo_exception.set_st_esito_err_db(kiuo_sqlca_db_0, "Errore in Recupero dati sul DB (Rollback).")
 		kuo_exception.scrivi_log( )
 	end if
 
@@ -239,50 +283,27 @@ public function st_esito db_crea_table (string k_table, string k_sql) throws uo_
 string k_sql_d
 st_esito kst_esito
 
-
+try
+	SetPointer(kkg.pointer_attesa)
 	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Cancello e ricreo view/tab
 	k_sql_d = "drop view " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode = 0 then 
-		commit using this;
-	end if
+	db_sql_execute(k_sql_d, true, false)
+
 	k_sql_d = "drop table " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode = 0 then 
-		commit using this;
-	end if
+	db_sql_execute(k_sql_d, true, false)
 	
 	k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
-	EXECUTE IMMEDIATE :k_sql using this;
-	kst_esito.sqlerrtext = "Generazione terminata correttamente "
-	if this.sqlcode <> 0 then
-		if this.sqlcode > 0 then
-			kst_esito.esito = kkg_esito.db_wrn
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Anomalie durante generazione Table '" &
-			                       + trim(k_table) + "' err.: " + trim(this.SQLErrText)
-		else
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Generazione Table '" &
-			                       + trim(k_table) + "' non riuscita: " + trim(this.SQLErrText)
-		end if
-		rollback using this;
+	db_sql_execute(k_sql, true, false)
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-		if kst_esito.sqlcode < 0 then
-			
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-			
-		end if
-		
-	else
-		commit using this;
-	end if
-
+end try
 
 return kst_esito
 end function
@@ -306,125 +327,25 @@ st_esito kst_esito
 
 //--- Cancello e ricreo la view
 	k_sql_d = "drop view " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
+	db_sql_execute(k_sql_d, true, false)
+	
 	k_sql_d = "drop table " + trim(k_table) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
+	db_sql_execute(k_sql_d, true, false)
+	
 	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") "
 //	k_sql_d = " CREATE TEMP  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") with no log "
 //	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") " // DEBUG
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	if this.sqlcode < 0 then
-//		rollback using this;
-//		if this.sqlcode > 0 then
-//			kst_esito.esito = kkg_esito.db_wrn
-//			kst_esito.sqlcode = this.sqlcode
-//			kst_esito.sqlerrtext = "Anomalie durante generazione Temp-Table '" &
-//										  + trim(k_table) + "' err.:" + trim(this.SQLErrText)
-//		else
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Generazione Temp-Table '" &
-										  + trim(k_table) + "' non riuscita: " + trim(this.SQLErrText)
-//		end if
+	db_sql_execute( k_sql_d, true, true)
+	
+	if trim(k_select) = "" then
+		kst_esito.esito = kkg_esito.db_wrn
+		kst_esito.sqlcode = 0
+		kst_esito.sqlerrtext = "Manca la query da cui prendere i dati - tabella temporanea '" + trim(k_table) + "' non popolata! "
 	else
-		commit using this;
-		
-		if trim(k_select) = "" then
-			kst_esito.esito = kkg_esito.db_wrn
-			kst_esito.sqlcode = 0
-			kst_esito.sqlerrtext = "Manca la query da cui prendere i dati - tabella temporanea '" + trim(k_table) + "' non popolata! "
-		else
-			k_sql_d = " insert into "  + trim(k_table) + "  " + trim(k_select) 
-			EXECUTE IMMEDIATE :k_sql_d using this;
-		
-			kst_esito.sqlerrtext = "Generazione terminata correttamente "
-			if this.sqlcode = 0 then
-				commit using this;
-			else
-				if this.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-					kst_esito.sqlcode = this.sqlcode
-					kst_esito.sqlerrtext = "Anomalie durante inserimento dati nella Temp-Table '" &
-												  + trim(k_table) + "' err.:" + trim(this.SQLErrText)
-				else
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = this.sqlcode
-					kst_esito.sqlerrtext = "Inserimanto dati nella Temp-Table '" &
-												  + trim(k_table) + "' non riuscita:" + trim(this.SQLErrText)
-				end if
-				rollback using this;
-				
-			end if
-			
-		end if
-
+		k_sql_d = " insert into "  + trim(k_table) + "  " + trim(k_select) 
+		db_sql_execute( k_sql_d, true, true)
 	end if
 	
-	if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.no_esecuzione and kst_esito.esito <> kkg_esito.db_wrn then
-		
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	end if
-
-
-return kst_esito
-end function
-
-public function st_esito db_crea_view (integer k_id, string k_view, string k_sql);//---------------------------------------------------------------------------------------------------------
-//--- 
-//--- CREA VIEW 
-//---
-//--- Par. input	: k_id = tipo operazione
-//---				: k_view = nome della view
-//---    	       	: k_sql = query della view
-//---
-//--- Ritorna st_esito : Vedi Standard
-//---   
-//---------------------------------------------------------------------------------------------------------
-string k_sql_d
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//--- Cancello e ricreo la view
-	k_sql_d = "drop table " + trim(k_view) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
-	k_sql_d = "drop view " + trim(k_view) + "  " 
-	EXECUTE IMMEDIATE :k_sql_d using this;
-	commit using this;
-	
-	EXECUTE IMMEDIATE :k_sql using this;
-
-	kst_esito.sqlerrtext = "Generazione terminata correttamente "
-	if this.sqlcode <> 0 then
-		if this.sqlcode > 0 then
-			kst_esito.esito = kkg_esito.db_wrn
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Anomalie durante generazione View '" &
-			                       + trim(k_view) + "' err.: " + trim(this.SQLErrText)
-		else
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.sqlerrtext = "Generazione View '" &
-			                       + trim(k_view) + "' non riuscita: " + trim(this.SQLErrText)
-		end if
-		rollback using this;
-
-//--- scrive l'errore su LOG
-		kst_esito.sqldbcode = this.sqlcode
-		kst_esito.sqlsyntax = trim(k_sql)
-		kguo_exception.u_errori_gestione(kst_esito)
-				
-	else
-		commit using this;
-	end if
-
-
 return kst_esito
 end function
 
@@ -754,61 +675,6 @@ end try
 return k_return
 end function
 
-public function boolean db_disconnetti () throws uo_exception;//
-//---   Ritorna: TRUE x OK
-//
-boolean k_return = true
-st_esito kst_esito
-pointer oldpointer  // Declares a pointer variable
-uo_exception kuo_exception
-
-
-
-//--- Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-//--- Se DB connesso 
-	if this.DBHandle ( ) > 0 then
-
-		disconnect using this;
-
-		if this.sqlcode < 0 then
-			k_return = false
-			kst_esito.esito = kkg_esito.DB_KO
-			kst_esito.sqlcode = this.sqlcode
-			kst_esito.SQLErrText = trim(this.sqlerrtext) + "~n~r" + &
-						"Codice : " + string(this.sqldbcode, "#####") + "~n~r" +&
-					this.sqlreturndata
-			kuo_exception = create uo_exception								
-			kuo_exception.set_esito(kst_esito)
-			throw kuo_exception
-		else
-			if this.sqlcode <> 0 then
-				k_return = false
-				kst_esito.esito = kkg_esito.db_wrn
-				kst_esito.sqlcode = this.sqlcode
-				kst_esito.SQLErrText = trim(this.sqlerrtext) 
-				kuo_exception = create uo_exception								
-				kuo_exception.set_esito(kst_esito)
-				throw kuo_exception
-			end if	
-		end if
-	end if
-
-
-SetPointer(oldpointer)
-
-return k_return
-
-
-end function
-
 protected function boolean u_if_dberror_grave (integer a_code);//
 //--- DA PERSONALIZZARE: Ogni Db ha i suoi errori differenti
 //
@@ -948,6 +814,134 @@ protected function boolean u_error_others (ref st_esito ast_esito);//
 return false
 end function
 
+public function boolean db_disconnetti ();/*
+ Disconnette il DB
+    Rit: TRUE x OK
+*/
+boolean k_return = true
+//pointer oldpointer  // Declares a pointer variable
+uo_exception kuo_exception
+
+
+//oldpointer = SetPointer(HourGlass!)
+
+kuo_exception = create uo_exception								
+kuo_exception.inizializza(this.classname())
+
+//--- Se DB connesso 
+	if this.DBHandle ( ) > 0 then
+
+		disconnect using this;
+
+		if this.sqlcode <> 0 then
+			k_return = false
+			kuo_exception.set_st_esito_err_db(kiuo_sqlca_db_0, &
+					"Errore in Chiusura della Connessione del db " + trim(this.ki_db_descrizione))
+			kuo_exception.scrivi_log()
+		end if
+	end if
+
+//SetPointer(oldpointer)
+
+return k_return
+
+
+end function
+
+public function st_esito db_crea_view (integer k_id, string k_view, string k_sql) throws uo_exception;//---------------------------------------------------------------------------------------------------------
+//--- 
+//--- CREA VIEW 
+//---
+//--- Par. input	: k_id = tipo operazione
+//---				: k_view = nome della view
+//---    	       	: k_sql = query della view
+//---
+//--- Ritorna st_esito : Vedi Standard
+//---   
+//---------------------------------------------------------------------------------------------------------
+string k_sql_d
+st_esito kst_esito
+
+
+try
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+//--- Cancello e ricreo la view
+	k_sql_d = "drop table " + trim(k_view) + "  " 
+	db_sql_execute(k_sql_d, true, false)
+
+	k_sql_d = "drop view " + trim(k_view) + "  " 
+	db_sql_execute(k_sql_d, true, false)
+	
+	db_sql_execute(k_sql, true, true)  // esegue la CREATE VIEW
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+//	kst_esito = kuo_exception.get_st_esito()
+	
+end try
+
+return kst_esito
+end function
+
+protected function integer db_sql_execute (string a_sql, boolean a_commit, boolean a_throw_when_error) throws uo_exception;/*
+	Esegue istruzione SQL 
+		inp: sql
+			: true = fa commit/rollback
+			: true = esegue 'throw kguo_exception' se errore sql
+		ret: sqlcode
+*/
+int k_sqlcode
+
+	kguo_exception.inizializza(this.classname())
+
+//--- Cancello e ricreo la view
+	EXECUTE IMMEDIATE :a_sql using this;
+	k_sqlcode = this.sqlcode
+
+	if this.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Esecuzione comando al Database fallito! " &
+											+ kkg.acapo + trim(a_sql))
+		if a_commit then
+			rollback using this;
+		end if
+		
+		if a_throw_when_error then 
+			kguo_exception.scrivi_log( )
+			throw kguo_exception
+		end if
+		
+	else
+		if a_commit then
+			commit using this;
+		end if
+	end if
+
+return k_sqlcode
+end function
+
+public function integer db_insert_select (string k_table, string k_campi, string k_select) throws uo_exception;/*
+	Istruzione di	INSERT INTO table2 (column1, column2, column3, ...)
+			SELECT column1, column2, column3, ...
+			FROM table1
+			WHERE condition;
+		inp: k_table = nome della tabella su cu fare l'INSERT
+	  		: k_campi = i campi della tabella
+			: k_select = la query da cui caricare i dati
+		rit: sqlcode
+*/
+string k_sql_d
+int k_sqlcode
+
+
+	k_sql_d = " INSERT INTO "  + trim(k_table) + "  (" + trim(k_campi) + ") " + k_select
+	k_sqlcode = db_sql_execute( k_sql_d, true, true)
+	
+	
+return k_sqlcode
+end function
+
 on kuo_sqlca_db_0.create
 call super::create
 TriggerEvent( this, "constructor" )
@@ -958,43 +952,6 @@ TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 
-event dberror;//
-st_esito kst_esito
-
-// -1 è di solito un errore di 'TRANSAZIONE NON CONNESSA' che si verifica spesso, quindi non faccio nulla
-	if code <> -1 and sqldbcode <> 0 then  
-		
-//--- errori personaizzati sul DB		
-		if u_if_dberror_grave(code) then
-	
-			kst_esito = kguo_exception.inizializza(kGuf_data_base.u_getfocus_nome())
-		
-			kst_esito.sqlsyntax = trim(sqlsyntax)
-			if isnull(kst_esito.sqlsyntax) then kst_esito.sqlsyntax = ""
-		
-			kst_esito.sqlerrtext = trim(sqlerrtext)
-			if isnull(kst_esito.sqlerrtext) then kst_esito.sqlerrtext = ""
-		
-			kst_esito.sqlcode = this.sqlcode
-			if this.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-			else
-				kst_esito.esito = kkg_esito.db_wrn
-			end if
-			kst_esito.sqldbcode = code
-
-			kguo_exception.set_esito(kst_esito)
-
-			u_error_db(kst_esito)
-			
-		end if
-	end if
-
-
-RETURN 1 // Do not display system error message
-
-end event
-
 event constructor;//
 ki_db_descrizione = "DB della Procedura"   // il default
 
@@ -1002,5 +959,10 @@ end event
 
 event destructor;//
 if isvalid(kiuo_sqlca_db_0_saved) then destroy kiuo_sqlca_db_0_saved
+end event
+
+event dberror;//
+return event u_dberror(code, sqlsyntax, sqlerrortext)
+
 end event
 

@@ -13,6 +13,77 @@ type variables
 st_esito kist_esito
 end variables
 
+forward prototypes
+public function string u_get_evaluate (string a_field, string a_field_describe, long a_row)
+end prototypes
+
+public function string u_get_evaluate (string a_field, string a_field_describe, long a_row);/*
+   torna il valore calcolato da EXPRESSION
+	inp: 
+	     field: nome campo
+	     filed_describe: es. background.color
+		  row: riga se però è una testata si può passare zero
+*/
+string ls_expression, ls_value, ls_eval
+int k_pos
+
+
+a_field = trim(a_field)
+
+IF IsNumber(a_field) THEN   
+	ls_expression = trim(this.describe("#" + a_field + "." + a_field_describe))
+else
+	ls_expression = trim(this.describe(a_field + "." + a_field_describe))
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Get the expression following the tab (~t) 
+ls_expression = trim(Right(ls_expression, Len(ls_expression) - Pos(ls_expression, "~t")))
+
+//--- se NON c'è una parentesi è poco probabile che sia una expression 
+if Pos(ls_expression, "(") = 0 then return ""     // ESCE con nulla
+
+//--- rimuove i doppi apici
+k_pos = Pos(ls_expression, '~"', 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "'")
+	k_pos = Pos(ls_expression, '~"', k_pos)
+loop
+k_pos = Pos(ls_expression, "~~", 1)
+do while k_pos > 0 
+	ls_expression = replace(ls_expression, k_pos, 1, "")
+	k_pos = Pos(ls_expression, "~~", k_pos)
+loop
+
+if left(ls_expression, 1) = "'" then
+	ls_expression = trim(mid(ls_expression, 2))
+end if
+if mid(ls_expression, Len(ls_expression), 1) = "'" then
+	ls_expression = left(ls_expression, Len(ls_expression) -1)
+end if
+
+IF ls_expression > " " THEN   
+else
+	return ""   // ESCE con nulla
+end if
+
+// Build string for Describe. Include a leading   
+// quote to match the trailing quote that remains
+ls_eval = "Evaluate(~"" + ls_expression + "~", " + String(a_row) + ")"   
+
+ls_value = this.Describe(ls_eval)
+
+//--- se errore Torna nulla
+if ls_value = "!" then return ""
+		
+return trim(ls_value)
+
+end function
+
 event dberror;//
 uo_exception kuo1_exception
 
@@ -61,7 +132,7 @@ uo_exception kuo1_exception
 kuo1_exception = create uo_exception
 kist_esito = kuo1_exception.inizializza(this.classname())
 
-if isvalid(parent) then 
+if isvalid(this.getparent()) then
 	kist_esito.nome_oggetto = parent.classname()
 else
 	kist_esito.nome_oggetto = classname()

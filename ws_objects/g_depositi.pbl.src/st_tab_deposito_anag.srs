@@ -1,0 +1,20 @@
+﻿$PBExportHeader$st_tab_deposito_anag.srs
+global type st_tab_deposito_anag from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_deposito_anag
+	string		rag_soc_1
+	string		rag_soc_2
+	string		indi
+	string		cap
+	string		loc
+	string		prov
+	string		id_nazione
+	string		contatto1		descriptor "comment" = "riga info per contatto"
+	string		contatto2		descriptor "comment" = "riga info per contatto"
+	string		contatto3		descriptor "comment" = "riga info per contatto"
+	string		contatto4		descriptor "comment" = "riga info per contatto"
+	character		deleted		descriptor "comment" = "S=cancellato"
+	datetime		x_datins
+	string		x_utente
+end type
+

@@ -23,12 +23,10 @@ forward prototypes
 public function st_esito tb_delete_sr_utenti (st_tab_sr_utenti kst_tab_sr_utenti)
 public function boolean check_user_password (ref st_tab_sr_utenti ast_tab_sr_utenti) throws uo_exception
 private function boolean check_user_dati (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
-public function st_esito check_password_digit_errata (ref st_tab_sr_utenti kst_tab_sr_utenti)
 public function boolean check_password_procedura (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 public function boolean check_cambia_password (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 public function string get_password (st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 public function boolean if_utente_uguale (ref st_tab_sr_utenti kst_tab_sr_utenti)
-public function st_esito tb_update_password_tentativi (st_tab_sr_utenti kst_tab_sr_utenti)
 public function st_esito tb_update_password (st_tab_sr_utenti kst_tab_sr_utenti)
 public function st_esito check_password_sintax (ref st_tab_sr_utenti kst_tab_sr_utenti)
 public function st_esito check_password_scaduta (ref st_tab_sr_utenti kst_tab_sr_utenti)
@@ -41,6 +39,10 @@ public subroutine reset_inutilizzo_sblocco (st_tab_sr_utenti kst_tab_sr_utenti) 
 public function integer get_count_connections (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 public subroutine set_work_version (st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 public function boolean u_if_master (string k_pwd)
+public function string get_pwd_server_decrypted (ref st_tab_sr_utenti ast_tab_sr_utenti) throws uo_exception
+public function st_esito check_password_digit_errata (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
+public subroutine add_password_tentativi (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
+public subroutine tb_update_password_tentativi (st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception
 end prototypes
 
 public function st_esito tb_delete_sr_utenti (st_tab_sr_utenti kst_tab_sr_utenti);//
@@ -143,7 +145,6 @@ public function boolean check_user_password (ref st_tab_sr_utenti ast_tab_sr_ute
 //
 boolean k_return = false
 kuf_sr_activedirectory kuf1_sr_activedirectory
-kuf_sr_utenti kuf1_sr_utenti
 st_esito kst_esito
 
 try
@@ -181,8 +182,6 @@ try
 			throw kguo_exception
 		end if
 
-		ast_tab_sr_utenti.tentativi_ko ++
-		
 //--- controlli vari sull'utente, tipo i troppo tentativi o se non si collega da troppo tempo
 		check_user_dati(ast_tab_sr_utenti)
 
@@ -225,9 +224,8 @@ try
 //--- se password corretta
 	if k_return then
 						
-		kuf1_sr_utenti = create kuf_sr_utenti				
 		ast_tab_sr_utenti.st_tab_g_0.esegui_commit = "S"
-		kuf1_sr_utenti.set_data_connection(ast_tab_sr_utenti)				
+		set_data_connection(ast_tab_sr_utenti)				
 						
 //		ast_tab_sr_utenti.tentativi_ko = 0  // azzera i tentativi password ok
 //		tb_update_password_tentativi(ast_tab_sr_utenti)		
@@ -258,7 +256,6 @@ catch (uo_exception kuo_exception)
 	
 finally
 	SetPointer(kkg.pointer_default)
-	if isvalid(kuf1_sr_utenti) then destroy kuf1_sr_utenti
 	if isvalid(kuf1_sr_activedirectory) then destroy kuf1_sr_activedirectory
 
 end try
@@ -359,38 +356,6 @@ st_esito kst_esito, kst_esito1
 	
 return k_return 
 
-
-end function
-
-public function st_esito check_password_digit_errata (ref st_tab_sr_utenti kst_tab_sr_utenti);//====================================================================
-//=== Password ERRATA 
-//=== 
-//=== fa le cose da fare compreso il lancio del messaggio
-//=== 
-//====================================================================
-st_esito kst_esito, kst_esito1
-
-
-
-	kst_esito.esito =kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-			
-	kst_esito.esito = kkg_esito.no_aut
-	if LenA(trim(kst_tab_sr_utenti.password)) = 0 then
-		kst_esito.SQLErrText = "Digitare la Password  " 
-	else
-		kst_esito1 = tb_update_password_tentativi(kst_tab_sr_utenti)
-
-		kst_esito.SQLErrText = "Digitata password errata, "  &
-		 + "tentativo " + string(kst_tab_sr_utenti.tentativi_ko) &
-		 + " di " + string(kst_tab_sr_utenti.tentativi_max) + ". "  
-//		~n~r" & 
-	end if
-	
-return kst_esito
 
 end function
 
@@ -498,10 +463,7 @@ kuf_cripta kuf1_cripta
 st_esito kst_esito
 
 
-	kst_esito.esito =kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	k_codice_up = upper(kst_tab_sr_utenti.codice)
 	k_codice_lo = lower(kst_tab_sr_utenti.codice)
@@ -563,63 +525,6 @@ return k_return
 
 end function
 
-public function st_esito tb_update_password_tentativi (st_tab_sr_utenti kst_tab_sr_utenti);//
-//====================================================================
-//=== Aggiunge rek nella tabella Associazioni Profili-Utenti
-//=== 
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti:   0=OK; 
-//===                               100=not found
-//===                                 1=errore grave
-//===                                 2=errore > 0
-//=== 
-//====================================================================
-
-integer k_sn=0
-int k_rek_ok=0
-long k_id
-st_esito kst_esito
-kuf_cripta kuf1_cripta
-
-
-kst_esito.esito = "0"
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-//	kst_tab_sr_utenti.x_datins = kGuf_data_base.prendi_x_datins()
-//	kst_tab_sr_utenti.x_utente = kGuf_data_base.prendi_x_utente()
-
-	
-	update sr_utenti  
-			set tentativi_ko = :kst_tab_sr_utenti.tentativi_ko  
-		where id = :kst_tab_sr_utenti.id
-		using sqlca;
-
-	if sqlca.sqlcode < 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.Sicurezza Utenti:" + trim(sqlca.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		rollback using sqlca;
-	else
-		commit using sqlca;
-		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Tab.Sicurezza Utenti:" + trim(sqlca.SQLErrText)
-		else
-			kst_esito.esito = kkg_esito.ok
-		end if
-	end if
-
-
-	
-
-
-
-return kst_esito
-
-end function
-
 public function st_esito tb_update_password (st_tab_sr_utenti kst_tab_sr_utenti);//
 //====================================================================
 //=== Aggiunge rek nella tabella Associazioni Profili-Utenti
@@ -640,12 +545,7 @@ st_esito kst_esito
 kuf_cripta kuf1_cripta
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kst_tab_sr_utenti.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_sr_utenti.x_utente = kGuf_data_base.prendi_x_utente()
@@ -1114,6 +1014,8 @@ public subroutine set_data_connection (st_tab_sr_utenti ast_tab_sr_utenti) throw
 ------------------------------------------------------------------
 */
 st_esito kst_esito
+kuf_cripta kuf1_cripta
+string k_pwd_server_crypt
 
 
 try
@@ -1126,6 +1028,10 @@ try
 		kGuo_exception.set_esito( kst_esito )
 		throw kGuo_exception
 	end if
+
+//--- decripta la password				
+	kuf1_cripta = create kuf_cripta
+	k_pwd_server_crypt = kuf1_cripta.of_set(trim(ast_tab_sr_utenti.password))
 
 	ast_tab_sr_utenti.dthr_last_access = kguo_g.get_datetime_current( )
 	
@@ -1146,6 +1052,7 @@ try
 			, count_connections = :ast_tab_sr_utenti.count_connections
 			, work_version = :ast_tab_sr_utenti.work_version
 			, device_last = :ast_tab_sr_utenti.device_last
+			, pwd_server = :k_pwd_server_crypt
 		where id = :ast_tab_sr_utenti.id
 		using kguo_sqlca_db_magazzino;
 
@@ -1162,10 +1069,13 @@ try
 	else
 		kguo_sqlca_db_magazzino.db_commit( )
 	end if
-	
+
 catch (uo_exception kuo_exception)
 	throw kuo_exception
-	
+
+finally
+	if isvalid(kuf1_cripta) then destroy kuf1_cripta 
+		
 end try
 
 
@@ -1390,6 +1300,127 @@ return k_return
 
 
 end function
+
+public function string get_pwd_server_decrypted (ref st_tab_sr_utenti ast_tab_sr_utenti) throws uo_exception;/*
+ Legge la Password del Server salvata e decriptata
+   inp: st_tab_sr_utenti.id 
+   Out: password del server 
+   Rit: password del server decrypt
+*/
+string k_return
+st_esito kst_esito
+kuf_cripta kuf1_cripta
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if ast_tab_sr_utenti.id > 0 then
+	else
+		kst_esito.esito = kkg_esito.no_esecuzione  
+		kst_esito.SQLErrText = "Errore in lettura dati di autenticazione utente. Manca ID utente"
+		kGuo_exception.set_esito( kst_esito )
+		throw kGuo_exception
+	end if
+
+	select coalesce(trim(pwd_server), '')
+		into :ast_tab_sr_utenti.pwd_server 
+		from sr_utenti  
+		where id = :ast_tab_sr_utenti.id
+		using kguo_sqlca_db_magazzino;
+
+	if sqlca.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in Lettura dati di autenticazione utente, codice=" + string(ast_tab_sr_utenti.id))
+		throw kguo_exception
+	end if
+
+	if ast_tab_sr_utenti.pwd_server > " " then
+//--- decripta la password				
+		kuf1_cripta = create kuf_cripta
+		k_return = kuf1_cripta.of_decrypt(trim(ast_tab_sr_utenti.pwd_server))
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_cripta) then destroy kuf1_cripta
+
+end try
+
+return k_return
+
+end function
+
+public function st_esito check_password_digit_errata (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception;//====================================================================
+//=== Password ERRATA 
+//=== 
+//=== fa le cose da fare compreso il lancio del messaggio
+//=== 
+//====================================================================
+string k_pwd_last_ok
+st_esito kst_esito, kst_esito1
+
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+			
+	kst_esito.esito = kkg_esito.no_aut
+	if trim(kst_tab_sr_utenti.password) = "" then
+		kst_esito.SQLErrText = "Digitare la Password  " 
+	else
+		
+		k_pwd_last_ok = get_pwd_server_decrypted(kst_tab_sr_utenti) // get dell'ultima pwd corretta
+		if trim(k_pwd_last_ok) > " " and trim(kst_tab_sr_utenti.password) = trim(k_pwd_last_ok) then // se erano uguali allora è probabile che sia SCADUTA SUL SERVER
+			kst_esito.SQLErrText = "Attenzione la password potrebbe essere scaduta o è stata modificata sul Server, prego verificare prima di riprovare. " &
+									+ "Tentativo " + string(kst_tab_sr_utenti.tentativi_ko) + "."
+		else
+			
+			add_password_tentativi(kst_tab_sr_utenti)
+		
+			kst_esito.SQLErrText = "Digitata password errata. "  
+			kst_esito.SQLErrText += "Tentativo " + string(kst_tab_sr_utenti.tentativi_ko) &
+											 + " di " + string(kst_tab_sr_utenti.tentativi_max) + ". "  
+		end if
+	end if
+	
+return kst_esito
+
+end function
+
+public subroutine add_password_tentativi (ref st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception;//
+			
+	kst_tab_sr_utenti.tentativi_ko ++
+	tb_update_password_tentativi(kst_tab_sr_utenti)
+	
+
+end subroutine
+
+public subroutine tb_update_password_tentativi (st_tab_sr_utenti kst_tab_sr_utenti) throws uo_exception;/*
+   Aggiorna contatore password
+*/
+
+
+	kguo_exception.inizializza(this.classname())
+
+//	kst_tab_sr_utenti.x_datins = kGuf_data_base.prendi_x_datins()
+//	kst_tab_sr_utenti.x_utente = kGuf_data_base.prendi_x_utente()
+	
+	update sr_utenti  
+			set tentativi_ko = :kst_tab_sr_utenti.tentativi_ko  
+		where id = :kst_tab_sr_utenti.id
+		using sqlca;
+
+	if sqlca.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Errore in Aggiornamento Tentativi digitazione password, utente id " + string(kst_tab_sr_utenti.id))
+		throw kguo_exception		
+	end if
+
+	kguo_sqlca_db_magazzino.db_commit( )
+
+
+end subroutine
 
 on kuf_sr_utenti.create
 call super::create

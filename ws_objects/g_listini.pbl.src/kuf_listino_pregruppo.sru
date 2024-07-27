@@ -493,7 +493,7 @@ try
 				k_return = false
 			end if
 	
-		case  "b_listino_pregruppi"   // elenco 
+		case  "listino_pregruppi"   // elenco 
 			kst_tab_listino_pregruppo.id_listino_pregruppo = 0
 			kst_esito = this.anteprima_l ( kdsi_elenco_output, kst_tab_listino_pregruppo )
 			if kst_esito.esito <> kkg_esito.ok then

@@ -81,7 +81,7 @@ long k_id
 st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	if kst_tab_sr_prof_funz.id > 0 then
 	

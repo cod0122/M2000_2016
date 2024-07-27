@@ -367,8 +367,8 @@ st_tab_sped_free kst_tab_sped_free
 			kst_tab_sped_free.st_tab_g_0.esegui_commit = ast_tab_sped_free.st_tab_g_0.esegui_commit
 			ast_tab_sped_free = kst_tab_sped_free
 
-			kst_tab_sped_free.x_datins = kGuf_data_base.prendi_x_datins()
-			kst_tab_sped_free.x_utente = kGuf_data_base.prendi_x_utente()
+			ast_tab_sped_free.x_datins = kGuf_data_base.prendi_x_datins()
+			ast_tab_sped_free.x_utente = kGuf_data_base.prendi_x_utente()
 
 //--- aggiorna altri dati non JSON 
 			update sped_free

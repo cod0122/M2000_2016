@@ -15,6 +15,8 @@ end type
 end forward
 
 global type w_clienti_mkt from w_g_tab0
+integer width = 3035
+integer height = 2180
 string title = "Marketing"
 string icon = "mkt_icona.ico"
 boolean ki_toolbar_window_presente = true
@@ -102,7 +104,6 @@ protected subroutine cancella_cliente ()
 protected function string inizializza_post ()
 private subroutine call_nuovo_anag (string k_id_programma)
 protected function string leggi_liste ()
-public subroutine lancia_ricerca_valore (string k_par_valore)
 private subroutine call_memo ()
 public function long u_retrieve ()
 public subroutine u_timer ()
@@ -112,6 +113,8 @@ public function boolean u_resize_predefinita ()
 public subroutine u_resize_dw_xplistbar ()
 private subroutine call_elenco_stat_prod ()
 private subroutine u_copy_email_to_clipboard ()
+protected subroutine lancia_ricerca_valore (string k_par_valore)
+public subroutine stampa_report_e1 ()
 end prototypes
 
 private subroutine call_anteprima ();//
@@ -430,15 +433,11 @@ end subroutine
 
 protected subroutine attiva_menu ();//
 boolean k_insert = true
-//
 
 
 //--- se sono già visualizzate non ci ripasso...
 	if not m_main.m_strumenti.m_fin_gest_libero1.visible then 
 
-//
-//--- Attiva/Dis. Voci di menu personalizzate
-//
 		m_main.m_strumenti.m_fin_gest_libero1.text = "Capitolati per l'anagrafica selezionata"
 		m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Capitolato,Elenco Capitolati per l'anagrafica selezionata"
 		m_main.m_strumenti.m_fin_gest_libero1.visible = true
@@ -466,15 +465,15 @@ boolean k_insert = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "FormatDollar!"
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 	
-//		ki_menu.m_strumenti.m_fin_gest_libero4.text = "Elenco documenti di vendita "
-//		ki_menu.m_strumenti.m_fin_gest_libero4.microhelp = "Fatture, Elenco documenti di vendita  "
-//		ki_menu.m_strumenti.m_fin_gest_libero4.visible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero4.enabled = true
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Fatture, Elenco documenti di vendita  "
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemName ="fattura16x16.gif"
-////		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemName =kGuo_path.get_risorse() +  "\fattura16x16.gif"
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
+		m_main.m_strumenti.m_fin_gest_libero4.text = "Stampa Report E1"
+		m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Report, Stampa dati report E1. "
+		m_main.m_strumenti.m_fin_gest_libero4.visible = true
+		m_main.m_strumenti.m_fin_gest_libero4.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero4.microhelp
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "printa16.png"
+//		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = kGuo_path.get_risorse() +  "\fattura16x16.gif"
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
 	
 		m_main.m_strumenti.m_fin_gest_libero5.text = "Nuovo Contatto "
 		m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Contatto, Nuovo Contatto  "
@@ -861,8 +860,10 @@ choose case LeftA(k_par_in, 2)
 	case "l3"		//Listino...
 		call_elenco_listino()
 
-	case "l4"		//Fatture...
-		call_elenco_fatture()
+//	case "l4"		//Fatture...
+//		call_elenco_fatture()
+	case "l4"		//Report E1
+		stampa_report_e1()
 
 	case "l5"		//carica Contatto...
 		call_nuovo_anag (kkg_id_programma_anag_rid) 
@@ -885,13 +886,19 @@ string k_rag_soc
 long k_id_cliente
 string k_errore = "0 ", k_errore1 = "0 "
 long k_riga
-kuf_clienti  kuf1_clienti  
+kuf_clienti_tb_xxx kuf1_clienti_tb_xxx
+st_tab_clienti kst_tab_clienti
 
 
 k_riga = dw_lista_0.getrow()	
 if k_riga > 0 then
-	k_rag_soc = dw_lista_0.getitemstring(k_riga, "rag_soc_10")
-	k_id_cliente = dw_lista_0.getitemnumber(k_riga, "id_cliente")
+	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+		k_rag_soc = dw_lista_0.getitemstring(k_riga, "nome_contatto")
+		k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente_1" ) 
+	else
+		k_rag_soc = dw_lista_0.getitemstring(k_riga, "rag_soc_10")
+		k_id_cliente = dw_lista_0.getitemnumber(k_riga, "id_cliente")
+	end if
 
 	if isnull(k_rag_soc) = true or trim(k_rag_soc) = "" then
 		k_rag_soc = "Anagrafica Senza Ragione Sociale" 
@@ -901,45 +908,25 @@ if k_riga > 0 then
 	if messagebox("Elimina Anagrafica", "Sei sicuro di voler Cancellare : ~n~r" + k_rag_soc, &
 				question!, yesno!, 2) = 1 then
  
-//=== Creo l'oggetto che ha la funzione x cancellare la tabella
-		kuf1_clienti = create kuf_clienti
+		kuf1_clienti_tb_xxx = create kuf_clienti_tb_xxx
 		
-//=== Cancella la riga dal data windows di lista
-		k_errore = kuf1_clienti.tb_delete(k_id_cliente) 
-		if LeftA(k_errore, 1) = "0" then
-	
-			k_errore = kGuf_data_base.db_commit()
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
+		try
+			kst_tab_clienti.codice = k_id_cliente
+			kst_tab_clienti.st_tab_g_0.esegui_commit = "S"
+			kuf1_clienti_tb_xxx.tb_delete(kst_tab_clienti)    // CANCELLA
+			dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
+			dw_lista_0.deleterow(k_riga)
 
-			else
+		catch (uo_exception kuo_exception)
+			k_errore = "1" + kuo_exception.get_errtext( )
+			messagebox("Cancellazione Fallita", mid(k_errore1, 2) ) 	
 
-				dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
-				dw_lista_0.deleterow(k_riga)
+		end try
+		
+		attiva_tasti()
+		dw_lista_0.setfocus()
 
-			end if
-
-			dw_lista_0.setfocus()
-
-		else
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
-
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore1, 2) ) 	
-			if LeftA(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-						"Controllare i dati. " + MidA(k_errore, 2))
-			end if
-
-	
-			attiva_tasti()
-
-		end if
-
-//=== Distruggo l'oggetto che ha avuto la funzione x cancellare la tabella
-		destroy kuf1_clienti
+		destroy kuf1_clienti_tb_xxx
 
 	else
 		messagebox("Elimina Anagrafica", "Operazione Annullata !!")
@@ -1013,176 +1000,6 @@ return k_return
 
 end function
 
-public subroutine lancia_ricerca_valore (string k_par_valore);//---
-//--- Manipola la query aggiungendo la parte della WHERE
-//---
-string k_query,k_select_orig, k_select, k_order_by, k_select_new, k_rc, k_utente="", k_view
-int k_pos
-int kstart_pos = 1
-string k_valore
-
-
-k_valore = "%" + upper(k_par_valore) + "%"
-
-	
-	//--- costruisco la view dei Trattati  
-k_utente = "U" + string(kguo_utente.get_id_utente( ))
-k_view = "vx_" + trim(k_utente) + "_clienti_mkt"  	
-k_query = " " 
-k_query =  "CREATE VIEW " + trim(k_view) + " AS   "  
-k_query +=  &
-		 + "  SELECT  * " &
-		 + " FROM clienti  " &
-		 + " where CLIENTI.CODICE in ( " 
-k_query += &
-  " SELECT DISTINCT clienti.codice  " &
-  	+ "FROM (clienti LEFT OUTER JOIN clienti_mkt ON  " &
- 	 		 + " clienti.codice = clienti_mkt.id_cliente  " &
-	  + " LEFT OUTER JOIN clienti_web ON  " &
-	  + " clienti.codice = clienti_web.id_cliente)   " &
-	  + "  LEFT OUTER JOIN clienti as cont1 ON  " &
-	  + " clienti_mkt.id_contatto_1 > 0 and clienti_mkt.id_contatto_1 = cont1.codice   " &
-	  + "  LEFT OUTER JOIN clienti as cont2 ON  " &
-	  + " clienti_mkt.id_contatto_2 > 0 and clienti_mkt.id_contatto_2 = cont2.codice   " &
-	  + "  LEFT OUTER JOIN clienti as cont3 ON  " &
-	  + " clienti_mkt.id_contatto_3 > 0 and clienti_mkt.id_contatto_3 = cont3.codice   " &
-	  + "  LEFT OUTER JOIN clienti as cont4 ON  " &
-	  + " clienti_mkt.id_contatto_4 > 0 and clienti_mkt.id_contatto_4 = cont4.codice   " &
-	  + "  LEFT OUTER JOIN clienti as cont5 ON  " &
-	  + " clienti_mkt.id_contatto_5 > 0 and clienti_mkt.id_contatto_5 = cont5.codice   " &
-	  + "  LEFT OUTER JOIN gru ON  " &
-	  + " clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice   " &
-	  + "  LEFT OUTER JOIN province ON  " &
-	  + " (clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla) " &
-	  + " WHERE  " &
-	+ " upper(coalesce(CONVERT(VARCHAR,clienti.codice),~' ~')+coalesce(clienti.p_iva,~' ~')+coalesce(clienti.cf,~' ~')+coalesce(clienti.rag_soc_10,~' ~')+coalesce(clienti.rag_soc_11,' ')+coalesce(clienti.rag_soc_20,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti.rag_soc_21,' ')+coalesce(clienti.indi_1,' ')+coalesce(clienti.loc_1,' ')+coalesce(clienti.cap_1,' ')+coalesce(clienti.prov_1,' ')+coalesce(clienti.indi_2,' ')+coalesce(clienti.loc_2,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti.cap_2,' ')+coalesce(clienti.prov_2,' ')+coalesce(clienti.fono,' ')+coalesce(clienti.fax,' ')+coalesce(clienti.banca,' ')+coalesce(CONVERT(VARCHAR,clienti.abi),' ')+coalesce(CONVERT(VARCHAR,clienti.cab),' ')+coalesce(CONVERT(VARCHAR,clienti.iva),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti_mkt.qualifica,' ')+coalesce(clienti_mkt.tipo_rapporto,' ')+coalesce(CONVERT(VARCHAR,clienti_mkt.id_cliente_link),' ')+coalesce(clienti_mkt.altra_sede,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(CONVERT(VARCHAR,clienti_mkt.id_contatto_1),' ')+coalesce(TRIM(clienti_mkt.contatto_1_qualif),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(CONVERT(VARCHAR,clienti_mkt.id_contatto_2),' ')+coalesce(TRIM(clienti_mkt.contatto_2_qualif),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(CONVERT(VARCHAR,clienti_mkt.id_contatto_3),' ')+coalesce(TRIM(clienti_mkt.contatto_3_qualif),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(CONVERT(VARCHAR,clienti_mkt.id_contatto_4),' ')+coalesce(TRIM(clienti_mkt.contatto_4_qualif),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(CONVERT(VARCHAR,clienti_mkt.id_contatto_5),' ')+coalesce(TRIM(clienti_mkt.contatto_5_qualif),' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti_mkt.note_attivita,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti_mkt.note_prodotti,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti_web.email,' ')+coalesce(clienti_web.email1,' ')+coalesce(clienti_web.email2,' ')+coalesce(clienti_web.email3,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti_web.sito_web,' ')+coalesce(clienti_web.sito_web1,' ')) " &   
-	+ " like '" + k_valore + "' "  & 
-	+ " or upper(coalesce(clienti_web.blog_web,' ')+coalesce(clienti_web.blog_web1,' ')) " &   
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(cont1.rag_soc_10,' ')+coalesce(cont1.rag_soc_11,' ')) " &   
-	+ " like '" + k_valore + "' "  &   
-	+ " or upper(coalesce(cont2.rag_soc_10,' ')+coalesce(cont2.rag_soc_11,' ')) " &   
-	+ " like '" + k_valore + "' "  & 
-	+ " or upper(coalesce(cont3.rag_soc_10,' ')+coalesce(cont3.rag_soc_11,' ')) " &   
-	+ " like '" + k_valore + "' "  & 
-	+ " or upper(coalesce(cont4.rag_soc_10,' ')+coalesce(cont4.rag_soc_11,' ')) " &   
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(cont5.rag_soc_10,' ')+coalesce(cont5.rag_soc_11,' ')) " &   
-	+ " like '" + k_valore + "' "   &
-	+ " or coalesce(CONVERT(VARCHAR,clienti_mkt.gruppo),' ')+upper(coalesce(gru.des,' ')) " &   
-	+ " like '" + k_valore + "' "   &
-	+ " or upper(coalesce(province.regione,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(province.prov,' ')) " &
-	+ " like '" + k_valore + "' "  &
-	+ " or coalesce(CONVERT(VARCHAR,clienti.id_clie_classe),' ') " &
-	+ " like '" + k_valore + "' "  &
-	+ " or coalesce(CONVERT(VARCHAR,clienti.e1an),' ') " &
-	+ " like '" + k_valore + "' "  &
-	+ " or upper(coalesce(clienti.e1ancodrs,' ')) " &
-	+ " like '" + k_valore + "' "  &
-     + " ) " 
-k_query += "   "
-kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_query)		
-
-
-if dw_lista_0.dataobject = "d_contatti_l_mkt" then
-	k_select_orig = ki_sqlsyntax_origine_contatti
-else
-	k_select_orig = ki_sqlsyntax_origine 
-end if
-
-//
-////=== Cerca la clausola GROUP BY per inserire la nuova parte della Query
-//k_pos = Pos(k_select_orig, "GROUP BY")
-//if k_pos > 0 then
-//	k_select = Left(k_select_orig, k_pos - 1)
-//	k_order_by = mid(k_select_orig, k_pos)
-//else
-////=== allora Cerca la clausola ORDER BY
-//	k_pos = Pos(k_select_orig, "ORDER BY")
-//	if k_pos > 0 then
-//		k_select = Left(k_select_orig, k_pos - 1)
-//		k_order_by = mid(k_select_orig, k_pos)
-//	end if
-//end if
-
-//k_select_new = k_select + " and CLIENTI.CODICE in (" + k_query + ") " + k_order_by + "'"
-
-////--- sostituisci la TAB alla VIEW
-//k_pos = pos(k_select_orig, "   FROM CLIENTI   ", 1)
-//if k_pos > 0 then 
-//	k_select = Left(k_select_orig, k_pos - 1)
-//	k_order_by = mid(k_select_orig, k_pos + 17)
-//end if
-//k_select_new = k_select + "   FROM "+ k_view + " as clienti   " + k_order_by + "'"
-
-//--- la Query sui contatti è più complicata, dentro ci sono delle UNION ALL x cui ciclo più volte
-//if dw_lista_0.dataobject = "d_contatti_l_mkt" then
-
-	k_pos = Pos(k_select_orig, "   FROM CLIENTI   ", 1)
-	k_select_new = k_select_orig
-	do while k_pos > 0
-		if k_pos > 0 then
-			k_select = Left(k_select_new, k_pos - 1)
-			k_order_by = mid(k_select_new, k_pos + 17)
-		end if
-		k_select_new = k_select + "   FROM "+ k_view + " as clienti   " + k_order_by + "'"
-		//k_select_new = k_select + " and CLIENTI.CODICE in (" + k_query + ") " + k_order_by + "'"
-		
-		k_pos = Pos(k_select_new, "   FROM CLIENTI   ",  (k_pos + 17))  // leggo il successivo 
-		//k_pos = Pos(k_select_new, "UNION ALL", (k_pos + 11)) // + len(k_query) + len(k_order_by) + 1)
-	loop
-
-
-//end if
-
-
-k_select_new = "DataWindow.Table.Select='" + k_select_new
-
-k_rc = dw_lista_0.Modify(k_select_new)
-
-//--- RETRIVE su DW_LISTA
-try
-	
-	u_retrieve()    // RETRIEVE
-//	inizializza()
-	dw_lista_0.title = dw_lista_0.title + " - Valore Cercato: " + k_par_valore
-	
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente( )
-end try
-
-
-
-
-
-end subroutine
-
 private subroutine call_memo ();//
 //=== Legge il rek dalla DW lista per la modifica
 
@@ -1197,14 +1014,18 @@ try
 	k_riga = dw_lista_0.getrow()
 	if k_riga > 0 then
 	
-		kst_tab_clienti_memo.id_cliente_memo = dw_lista_0.getitemnumber( k_riga, "id_cliente_memo" ) 
+//		kst_tab_clienti_memo.id_cliente_memo = dw_lista_0.getitemnumber( k_riga, "id_cliente_memo" ) 
 //		if kst_tab_clienti_memo.id_cliente_memo > 0 then
 //			kiuf_clienti.get_id_memo(kst_tab_clienti_memo)
 //		else
 			kst_tab_clienti_memo.id_memo = 0
 //		end if
-		kst_tab_clienti_memo.id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente" ) 
-			
+		if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+			kst_tab_clienti_memo.id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente_1" ) 
+		else
+			kst_tab_clienti_memo.id_cliente = dw_lista_0.getitemnumber(k_riga, "id_cliente")
+		end if
+
 		if kst_tab_clienti_memo.id_cliente  > 0 then
 			
 			kuf1_memo = create kuf_memo 
@@ -1231,9 +1052,7 @@ long k_return = 0
 
 
 		SetPointer(kkg.pointer_attesa)
-	
-		dw_lista_0.event set_titolo( )
-		
+			
 		k_return = dw_lista_0.retrieve(kist_tab_clienti.tipo, kist_tab_clienti.stato)
 
 		dw_lista_0.setredraw(true)
@@ -1463,6 +1282,167 @@ messagebox("Cattura email", "Sono stati catturati " + string(k_n_email) &
 				+ " indirizzi. Puoi copiarli (ctrl+V o Incolla/Paste) dove desideri") 
 end subroutine
 
+protected subroutine lancia_ricerca_valore (string k_par_valore);//---
+//--- Manipola la query aggiungendo la parte della WHERE
+//---
+string k_query,k_select_orig, k_select, k_order_by, k_select_new, k_rc, k_utente="", k_view
+int k_pos
+int kstart_pos = 1
+string k_valore
+
+try
+	k_valore = "%" + upper(k_par_valore) + "%"
+		
+		//--- costruisco la view dei Trattati  
+	k_utente = "U" + string(kguo_utente.get_id_utente( ))
+	k_view = "vx_" + trim(k_utente) + "_clienti_mkt"  	
+	k_query = " " 
+	k_query =  "CREATE VIEW " + trim(k_view) + " AS   "  
+	k_query +=  &
+			 + "  SELECT  * " &
+			 + " FROM clienti  " &
+			 + " where CLIENTI.CODICE in ( " 
+	k_query += &
+	  " SELECT DISTINCT clienti.codice  " &
+		+ "FROM (clienti LEFT OUTER JOIN clienti_mkt ON  " &
+									+ " clienti.codice = clienti_mkt.id_cliente  " &
+		  + " LEFT OUTER JOIN clienti_web ON  " &
+									+ " clienti.codice = clienti_web.id_cliente)   " &
+		  + "  LEFT OUTER JOIN gru ON  " &
+								  + " clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice   " &
+		  + "  LEFT OUTER JOIN province ON  " &
+							  + " (clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla) " &
+		  + " WHERE  " &
+		+ " coalesce(CONVERT(VARCHAR,clienti.codice),' ')" &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.p_iva,' ')+coalesce(clienti.cf,' '))" &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.rag_soc_10,' ')+coalesce(clienti.rag_soc_11,' ')+coalesce(clienti.rag_soc_20,' ')+coalesce(clienti.rag_soc_21,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.indi_1,' ')+coalesce(clienti.loc_1,' ')+coalesce(clienti.prov_1,' ')+coalesce(clienti.indi_2,' ')+coalesce(clienti.loc_2,' ')+ coalesce(clienti.prov_2,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.cap_1,' '))" &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.cap_2,' '))" &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.fono,' ')+coalesce(clienti.fax,' '))" & 
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.banca,' ')+coalesce(CONVERT(VARCHAR,clienti.abi),' ')+coalesce(CONVERT(VARCHAR,clienti.cab),' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_mkt.qualifica,' '))" &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_mkt.altra_sede,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_mkt.note_attivita,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_mkt.note_prodotti,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_web.email,' ')+coalesce(clienti_web.email1,' ')+coalesce(clienti_web.email2,' ')+coalesce(clienti_web.email3,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti_web.sito_web,' ')+coalesce(clienti_web.sito_web1,' ')) " &   
+		+ " like '" + k_valore + "' "  & 
+		+ " or upper(coalesce(clienti_web.blog_web,' ')+coalesce(clienti_web.blog_web1,' ')) " &   
+		+ " like '" + k_valore + "' "  &
+		+ " or coalesce(CONVERT(VARCHAR,clienti_mkt.gruppo),' ')+upper(coalesce(gru.des,' ')) " &   
+		+ " like '" + k_valore + "' "   &
+		+ " or upper(coalesce(province.regione,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(province.prov,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or coalesce(CONVERT(VARCHAR,clienti.id_clie_classe),' ') " &
+		+ " like '" + k_valore + "' "  &
+		+ " or coalesce(CONVERT(VARCHAR,clienti.e1an),' ') " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.e1ancodrs,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		  + " ) " 
+		//+ " or upper(coalesce(clienti_mkt.tipo_rapporto,' ')+coalesce(CONVERT(VARCHAR,clienti_mkt.id_cliente_link),' ') 
+	k_query += "   "
+	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_query)		
+	
+	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+		k_select_orig = ki_sqlsyntax_origine_contatti
+	else
+		k_select_orig = ki_sqlsyntax_origine 
+	end if
+	
+//--- la Query sui contatti è più complicata, dentro ci sono delle UNION ALL x cui ciclo più volte
+//if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+
+	k_pos = Pos(k_select_orig, "   FROM CLIENTI   ", 1)
+	k_select_new = k_select_orig
+	do while k_pos > 0
+		if k_pos > 0 then
+			k_select = Left(k_select_new, k_pos - 1)
+			k_order_by = mid(k_select_new, k_pos + 17)
+		end if
+		k_select_new = k_select + "   FROM "+ k_view + " as clienti   " + k_order_by + "'"
+		//k_select_new = k_select + " and CLIENTI.CODICE in (" + k_query + ") " + k_order_by + "'"
+		
+		k_pos = Pos(k_select_new, "   FROM CLIENTI   ",  (k_pos + 17))  // leggo il successivo 
+		//k_pos = Pos(k_select_new, "UNION ALL", (k_pos + 11)) // + len(k_query) + len(k_order_by) + 1)
+	loop
+
+
+//end if
+
+	k_select_new = "DataWindow.Table.Select='" + k_select_new
+
+	k_rc = dw_lista_0.Modify(k_select_new)
+
+
+	u_retrieve()    // RETRIEVE
+//	inizializza()
+	dw_lista_0.title = dw_lista_0.title + " - Valore Cercato: " + k_par_valore
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente( )
+end try
+
+
+
+
+
+end subroutine
+
+public subroutine stampa_report_e1 ();/*
+  Stampa Report E1
+*/
+uo_d_std_1 kdw_1
+
+		
+	if dw_lista_0.dataobject <> "d_contatti_l_mkt" then
+		messagebox("Report E1" &
+		, "Non è possibile produrre il Report E1 dei Contatti da questi dati. Accedere all'elenco Contatti."&
+		, stopsign!)
+		return
+	end if
+
+	if dw_lista_0.rowcount() < 1 then
+		messagebox("Report E1", "Nessun Contatto da stampare.", stopsign!)
+		return
+	end if
+		
+	if messagebox("Report E1", "Eseguire la stampa del Report E1 dei " + &
+							string(dw_lista_0.rowcount()) + " Contatti?", question!, yesno!) = 2 then
+		return
+	end if
+	
+	dw_print_0.dataobject = "d_contatti_l_mkt_print"
+	kist_stampe.titolo = "Elenco Contatti (Report E1)"
+	if dw_lista_0.ShareData(dw_print_0) > 0 then
+		
+		kdw_1 = kidw_selezionata
+		
+		kidw_selezionata = dw_print_0
+		stampa_esegui(kist_stampe)
+		
+		kidw_selezionata = kdw_1
+		
+	end if
+
+end subroutine
+
 on w_clienti_mkt.create
 int iCurrent
 call super::create
@@ -1503,6 +1483,9 @@ event timer;call super::timer;//
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_clienti_mkt
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_clienti_mkt
 end type
 
@@ -1533,17 +1516,15 @@ kuf_menu_window kuf1_menu_window
 k_riga = dw_lista_0.getrow()
 if k_riga > 0 then
 
-	k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente" ) 
+	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+		k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente_1" ) 
+	else
+		k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente" ) 
+	end if
 		
 	if k_id_cliente  > 0 then
-//
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice cli;
-		if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+	//	if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+		if dw_lista_0.dataobject = "d_contatti_l_mkt" then
 			K_st_open_w.id_programma = kkg_id_programma_anag_rid
 		else
 			K_st_open_w.id_programma = kkg_id_programma_anag
@@ -1586,18 +1567,16 @@ kuf_menu_window kuf1_menu_window
 k_riga = dw_lista_0.getrow()
 if k_riga > 0 then
 
-	k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente" ) 
+	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
+		k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente_1" ) 
+	else
+		k_id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente" ) 
+	end if
 		
 	if k_id_cliente  > 0 then
-//
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice cli;
 
-		if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+		//if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+		if dw_lista_0.dataobject = "d_contatti_l_mkt" then
 			K_st_open_w.id_programma = kkg_id_programma_anag_rid
 		else
 			K_st_open_w.id_programma = kkg_id_programma_anag
@@ -1643,7 +1622,8 @@ end type
 event cb_inserisci::clicked;//
 //--- Nuova Anagrafe
 //
-	if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+	//if dw_xplistbar.getrow( ) = ki_xpl_Contatti then 
+	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
 		call_nuovo_anag (kkg_id_programma_anag_rid) // carica Contatto
 	else
 		call_nuovo_anag (kkg_id_programma_anag)
@@ -1747,6 +1727,11 @@ end event
 event dw_lista_0::rowfocuschanged;call super::rowfocuschanged;//
 //--- rilegge le liste 	
 //		leggi_dw_dettaglio()
+
+end event
+
+event dw_lista_0::retrievestart;call super::retrievestart;//
+	event post set_titolo( )
 
 end event
 

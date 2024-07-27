@@ -14,7 +14,7 @@ global type st_tab_e1_wo_f5548014 from structure
 	string		osuser		descriptor "comment" = "utente da trasmettere a E1 (codice utente M2000)"
 	datetime		e1updts		descriptor "comment" = "timestamp di aggiornamento su E1 - se non valorizzato è ancora da inviare a E1"
 	decimal { 2 }		ngiri_ossetl		descriptor "comment" = "Numero di giri totale compresi di permuta"
-	string		tcicli_osmmcu		descriptor "comment" = "Tipo CILCI (27002=fila 1 (A)/27005=fila 2 (B)/27006=misti (C))"
+	string		tcicli_osmmcu		descriptor "comment" = "Tipo CILCI 270 + 02=fila 1 (A)/05=fila 2 (B)/06=misti (C)/07=xG3 4PASS(D)/08=xG3 2PASS(E) ) workcenters: IrradiatorA/B/C/D/E "
 	datetime		x_datins
 	string		x_utente
 end type

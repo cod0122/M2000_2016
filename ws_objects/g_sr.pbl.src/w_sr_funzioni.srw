@@ -553,6 +553,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 		tab_1.tabpage_1.dw_1.setfocus()
 	else
 
+		tab_1.tabpage_1.text = "Funzione " + k_key
 		k_rc = tab_1.tabpage_1.dw_1.retrieve(long(k_key)) 
 		
 		choose case k_rc

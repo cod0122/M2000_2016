@@ -47,56 +47,47 @@ string k_return="0 "
 //string k_key
 long k_riga
 int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
 
 
+	SetPointer(kkg.pointer_attesa)
 
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
-
-
-//=== Legge le righe del dw salvate l'ultima volta (importfile)
-		if ki_st_open_w.flag_primo_giro = "S" then 
-	
-			k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
-	
-		end if
-			
-		
-		if k_importa <= 0 then // Nessuna importazione eseguita
-	
-	
-			if dw_lista_0.retrieve() < 1 then
-				k_return = "1Dati Non trovati  "
-	
-				SetPointer(oldpointer)
-				messagebox("Elenco Vuoto", &
-						"Nesun Codice Trovato per la richiesta fatta")
-			else
-				
-				if ki_st_open_w.flag_primo_giro = "S" then 
-					k_riga = 1
-//--- se ho passato anche il ID allora....
-					if ki_st_tab_email_funzioni.id_email > 0 then
-						k_riga = dw_lista_0.find( "id_email_funzione = " + string(ki_st_tab_email_funzioni.id_email_funzione) + " ", 1, dw_lista_0.rowcount( ) )
-					end if
-					if k_riga > 0 then 
-						dw_lista_0.selectrow( 0, false)
-						dw_lista_0.scrolltorow( k_riga)
-						dw_lista_0.setrow( k_riga)
-						dw_lista_0.selectrow( k_riga, true)
-					end if
-					
-//--- se entro per modificare allora....
-					if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
-						cb_modifica.postevent(clicked!)
-					end if
-				end if
-	
-			end if		
-		end if
-	
+////=== Legge le righe del dw salvate l'ultima volta (importfile)
+//	if ki_st_open_w.flag_primo_giro = "S" then 
+//
+//		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
+//
 //	end if
+		
+	
+//	if k_importa <= 0 then // Nessuna importazione eseguita
+	if dw_lista_0.retrieve() < 1 then
+		SetPointer(kkg.pointer_default)
+		kguo_exception.set_st_esito_err_dw(dw_lista_0, "Errore in lettura Prototipi email! ")
+		kguo_exception.messaggio_utente( )
+		
+		return "1Errore in lettura db "
+	end if
+	
+	if ki_st_open_w.flag_primo_giro = "S" then 
+		k_riga = 1
+//--- se ho passato anche il ID allora....
+		if ki_st_tab_email_funzioni.id_email > 0 then
+			k_riga = dw_lista_0.find( "id_email_funzione = " + string(ki_st_tab_email_funzioni.id_email_funzione) + " ", 1, dw_lista_0.rowcount( ) )
+		end if
+		if k_riga > 0 then 
+			dw_lista_0.selectrow( 0, false)
+			dw_lista_0.scrolltorow( k_riga)
+			dw_lista_0.setrow( k_riga)
+			dw_lista_0.selectrow( k_riga, true)
+		end if
+		
+//--- se entro per modificare allora....
+		if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica then 
+			cb_modifica.postevent(clicked!)
+		end if
+	end if
+
+	SetPointer(kkg.pointer_default)
 	
 return k_return
 
@@ -446,6 +437,9 @@ event close;call super::close;//
 if isvalid(kiuf_email_funzioni) then destroy kiuf_email_funzioni
 
 end event
+
+type dw_print_0 from w_g_tab0`dw_print_0 within w_email_funzione
+end type
 
 type st_ritorna from w_g_tab0`st_ritorna within w_email_funzione
 end type

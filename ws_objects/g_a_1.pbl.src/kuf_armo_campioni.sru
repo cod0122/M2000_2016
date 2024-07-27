@@ -271,7 +271,7 @@ if adw_link.getrow() = 0 then
 else
 	choose case a_campo_link
 	
-		case "b_armo_colli_campioni_barcode_lav"
+		case "armo_colli_campioni_barcode_lav"
 			if trim(adw_link.Describe("id_armo.x")) = "!" and trim(adw_link.Describe("barcode.x")) = "!" then 
 				kst_esito.esito = kguo_exception.kk_st_uo_exception_tipo_internal_bug
 				kst_esito.sqlerrtext = "Errore programma interno, nome colonna 'id_armo' o 'barcode' mancante. Anteprima inevasa."
@@ -285,7 +285,7 @@ else
 				end if
 			end if
 	
-		case "b_armo_colli_campioni" &
+		case "armo_colli_campioni" &
 			  ,"campionecolli_lotto"
 			if trim(adw_link.Describe("id_meca.x")) = "!" then 
 				kst_esito.esito = kguo_exception.kk_st_uo_exception_tipo_internal_bug
@@ -299,7 +299,7 @@ else
 				end if
 			end if
 			
-		case "b_campionecolli_print"
+		case "campionecolli_print"
 			if trim(adw_link.Describe("id_meca.x")) = "!" then 
 				kst_esito.esito = kguo_exception.kk_st_uo_exception_tipo_internal_bug
 				kst_esito.sqlerrtext = "Errore programma interno, nome colonna 'id_meca' mancante. Elaborazione di stampa inevasa."
@@ -337,7 +337,7 @@ if k_return then
 		
 		choose case a_campo_link
 					
-			case "b_armo_colli_campioni_barcode_lav"
+			case "armo_colli_campioni_barcode_lav"
 //				k_rc=kdsi_elenco_output.retrieve(kst_tab_armo_campioni.barcode_lav)
 				kst_esito = this.anteprima_x_barcode_lav(kdsi_elenco_output, kst_tab_armo_campioni)
 				if kst_esito.esito <> kkg_esito.ok then
@@ -347,7 +347,7 @@ if k_return then
 				end if
 				kst_open_w.key1 = "Etichette Colli Controcampioni (id riga Lotto=" + trim(string(kst_tab_armo_campioni.id_armo)) + ") " 
 					
-			case "b_armo_colli_campioni_lotto" &
+			case "armo_colli_campioni_lotto" &
 			     ,"campionecolli_lotto"
 //				k_rc=kdsi_elenco_output.retrieve(kst_tab_armo_campioni.barcode_lav)
 				kst_esito = this.anteprima( kdsi_elenco_output, k_id_meca)
@@ -358,7 +358,7 @@ if k_return then
 				end if
 				kst_open_w.key1 = "Etichette Colli Controcampioni (id riga Lotto=" + trim(string(kst_tab_armo_campioni.id_armo)) + ") " 
 				
-			case "b_campionecolli_print"
+			case "campionecolli_print"
 				kuf1_barcode_stampa = create kuf_barcode_stampa
 				k_rows = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(k_id_meca)
 				

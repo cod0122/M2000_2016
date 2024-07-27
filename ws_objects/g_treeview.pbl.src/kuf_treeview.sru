@@ -67,7 +67,6 @@ private function integer u_riempi_listview_anag (string k_tipo_oggetto)
 private function integer u_riempi_treeview_anag_alfa (string k_tipo_oggetto)
 private function integer u_riempi_treeview_anag (string k_tipo_oggetto)
 private function integer u_riempi_listview_armo (string k_tipo_oggetto)
-public function integer u_stampa_barcode_dettaglio ()
 public function st_esito u_select_tab_treeview_all ()
 private function integer u_riempi_treeview_root (string k_tipo_oggetto)
 private function integer u_riempi_treeview_pl_barcode_mese (string k_tipo_oggetto)
@@ -152,6 +151,9 @@ private function integer u_riempi_treeview_certif_mese (ref string k_tipo_oggett
 private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode)
 private function long u_stampa_barcode_get_id_meca (ref st_tab_barcode ast_tab_barcode)
 private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode)
+private function integer u_open_certif_stampa (ref st_treeview_data ast_treeview_data)
+private function integer u_stampa_barcode_dettaglio ()
+private function integer u_stampa_barcode_next (ref listviewitem alvi_listviewitem, ref st_tab_barcode ast_tab_barcode_precedente)
 end prototypes
 
 public function boolean u_sicurezza (st_tab_treeview kst_tab_treeview);//
@@ -568,14 +570,20 @@ end function
 private function integer u_stampa_barcode ();//
 //--- Chiama finestra di dettaglio
 //
-integer k_return = 0, k_lindex = 0, k_n_selezionati=0, k_rc
-long k_handle_item = 0
-integer k_ctr, k_nr_barcode_stampati=0, k_barcode_da_stampare=0, k_controcampioni
-boolean k_stampa_da_listview=true, k_stampa_esegue 
+int k_return = 0, k_lindex = 0
+int k_n_selezionati=0
+int k_rc
+//long k_handle_item = 0
+int k_ctr, k_nr_barcode_stampati=0
+boolean k_barcode_da_stampare
+boolean k_print_open 
+int k_controcampioni
+//boolean k_stampa_da_listview=true, 
+boolean k_stampa_esegue 
 boolean k_ristampa_gia_risposto=false, k_stampa_gia_risposto=false
 st_esito kst_esito
  
-st_tab_barcode kst_tab_barcode, kst_tab_barcode_old
+st_tab_barcode kst_tab_barcode
 st_tab_meca kst_tab_meca, kst_tab_meca_save
 
 st_treeview_data kst_treeview_data
@@ -587,222 +595,139 @@ kuf_barcode_stampa kuf1_barcode_stampa
 kuf_armo kuf1_armo
 
 
-//--- 
-//--- scopro se stampare il barcode in LIST o TREEVIEW				
-//--- lettura primo giro
-k_n_selezionati = kilv_lv1.TotalSelected()
-if k_n_selezionati > 0 then
-	k_stampa_da_listview = true
-	k_lindex = 1
-	k_rc = kilv_lv1.getitem(k_lindex, 1, klvi_listviewitem) 
-	do while k_rc > 0 and not klvi_listviewitem.selected and k_lindex <= kilv_lv1.totalitems()
-		k_lindex++
-		k_rc = kilv_lv1.getitem(k_lindex, 1, klvi_listviewitem) 
-	loop		
-
-	if klvi_listviewitem.selected then
-		kst_treeview_data = klvi_listviewitem.data  
-	end if
-
-else
-	
-	k_stampa_da_listview = false
-	k_n_selezionati = 1
-	k_lindex = kitv_tv1.finditem(CurrentTreeItem!, 0)
-	if k_lindex > 0  then
-		kitv_tv1.getitem(k_lindex, ktvi_treeviewitem)
-		kst_treeview_data = ktvi_treeviewitem.data  
-	else
-		k_lindex = 0
-	end if
-end if
-
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
+
+	k_n_selezionati = kilv_lv1.TotalSelected()
+	if k_n_selezionati > 0 then
+	else
+		return 0
+	end if
+
+// Legge il primo BARCODE da stampare
+	k_lindex = u_stampa_barcode_next(klvi_listviewitem, kst_tab_barcode)  
+	if k_lindex = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Nessun Barcode selezionato in Stampa Barcode. "
+		throw kguo_exception
+	end if
+
+	kuf1_barcode_stampa = create kuf_barcode_stampa
+	kuf1_armo = create kuf_armo
+		
+	kuf1_barcode_stampa.ki_stampa_etichetta_autorizza = true
 	
-	//--- se ho trovato da dove stampare ricavo il barcode/riferimento selezionato...
-	if k_lindex > 0 then 
+	if kst_tab_barcode.num_int > 0 then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Nessun Lotto trovato per eseguire la Stampa Barcode. "
+		throw kguo_exception
+	end if
+
+//--- Verifica se sono in stampa o ristampa?
+	if kuf1_barcode_stampa.stampa_etichetta_riferimento_dastampare(kst_tab_barcode.barcode, kst_tab_barcode.id_meca) > 0 then
+		k_barcode_da_stampare = true
+	end if
+
+//--- Open della coda di stampa
+	kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, not k_barcode_da_stampare)	// FALSE=prima stampa
+	if kuf1_barcode_stampa.ki_id_print_etichette <= 0 then 
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Apertura canale di Stampa Barcode fallita (Lotto n. " + string(kst_tab_barcode.id_meca) + "). "
+		throw kguo_exception
+	end if
 	
-		kuf1_barcode_stampa = create kuf_barcode_stampa
-		kuf1_armo = create kuf_armo
+	k_print_open = true
+	
+//--- Ciclo di stampa ETICHETTE
+	do while k_n_selezionati > 0
+
+//--- messaggio di stampa
+		if k_barcode_da_stampare then
+			if not k_stampa_gia_risposto then
+				k_stampa_gia_risposto=true
+				k_stampa_esegue = u_stampa_barcode_msg_stampa(kst_tab_barcode)
+			end if
+		else
+			if not k_ristampa_gia_risposto then
+				k_ristampa_gia_risposto=true
+				k_stampa_esegue = u_stampa_barcode_msg_ristampa(kst_tab_barcode)
+			end if
+		end if
+		
+		if NOT k_stampa_esegue then EXIT   // forza Uscita ciclo
+
+		setpointer(kkg.pointer_attesa)
+				
+		kst_tab_meca.id = u_stampa_barcode_get_id_meca(kst_tab_barcode) 	//--- ricava ID_MECA							
 			
-		ktvi_treeviewitem.data = kst_treeview_data 
-		kst_treeview_data_any = kst_treeview_data.struttura
-		kst_tab_barcode = kst_treeview_data_any.st_tab_barcode 
-	
-		kuf1_barcode_stampa.ki_stampa_etichetta_autorizza = true
-	
-		if kst_tab_barcode.num_int > 0 then
-
-		//--- Verifica se sono in stampa o ristampa?
-			k_barcode_da_stampare = kuf1_barcode_stampa.stampa_etichetta_riferimento_ristampa &
-														(kst_tab_barcode.barcode, kst_tab_barcode.id_meca)
-			if k_barcode_da_stampare < 0 then
-				kst_esito.sqlcode = k_barcode_da_stampare
-				kst_esito.esito = kkg_esito.no_esecuzione
-				kst_esito.sqlerrtext = &
-								"Errore in Stampa Barcode Barcode '" + trim(kst_tab_barcode.barcode) &
-								+ "' in ricerca per la preparazione della stampa" &
-								+ " (rc=" + string(k_barcode_da_stampare) + ") "
-				kguo_exception.set_esito(kst_esito)
-				k_n_selezionati = 0
-				throw kguo_exception
+		if kst_tab_meca_save.id <> kst_tab_meca.id then // VERIFICA LE AVVERTENZE SOLO SE SONO SU UN NUOVO RIFERIM
+			kst_tab_meca_save.id = kst_tab_meca.id
+			if kuf1_armo.if_stampa_etichetta_avvertenze(kst_tab_meca) then
+				kuf1_barcode_stampa.stampa_etichetta_riferimento_avvertenze(kst_tab_barcode.barcode, kst_tab_barcode.id_meca)
 			end if
-
-	//--- Open della coda di stampa
-	      if k_barcode_da_stampare > 0 then
-				kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, false)	// prima stampa
-			else
-				kuf1_barcode_stampa.stampa_etichetta_riferimento_open(kst_tab_barcode.id_meca, true)	// ristampa
+		end if
+				
+		k_ctr = kuf1_barcode_stampa.stampa_etichetta_riferimento(kst_tab_barcode.barcode, kst_tab_barcode.id_meca)
+		
+		if k_ctr > 0 then
+			k_nr_barcode_stampati += k_ctr
+				
+//--- Stampa eventuali etich. CONTROCAMPIONI solo in Stampa non in RISTAMPA							
+			if k_barcode_da_stampare then 
+				k_controcampioni = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(kst_tab_barcode.id_meca)
 			end if
-			if kuf1_barcode_stampa.ki_id_print_etichette > 0 then
-	
-	//--- Ciclo di stampa ETICHETTE
-				do while k_n_selezionati > 0
-	
-					if k_barcode_da_stampare > 0 then
-						if not k_stampa_gia_risposto then
-							k_stampa_gia_risposto=true
-							k_stampa_esegue = u_stampa_barcode_msg_stampa(kst_tab_barcode)
-						end if
-					else
-						if not k_ristampa_gia_risposto then
-							k_ristampa_gia_risposto=true
-							k_stampa_esegue = u_stampa_barcode_msg_ristampa(kst_tab_barcode)
-						end if
-					end if
-					
-					if k_stampa_esegue then
+				
+//--- cancello item stampato dalla lista (il primo è il simbolo della cartella e quindi devo aggiungerlo)			
+			k_rc = kilv_lv1.deleteitem(k_lindex + 1)   
+			
+		end if
 
-						kst_tab_meca.id = u_stampa_barcode_get_id_meca(kst_tab_barcode) 	//--- ricava ID_MECA							
-						
-						if kst_tab_meca_save.id <> kst_tab_meca.id then // VERIFICA LE AVVERTENZE SOLO SE SONO SU UN NUOVO RIFERIM
-							kst_tab_meca_save.id = kst_tab_meca.id
-							if kuf1_armo.if_stampa_etichetta_avvertenze(kst_tab_meca) then
-								kuf1_barcode_stampa.stampa_etichetta_riferimento_avvertenze (kst_tab_barcode.barcode, &
-																										 kst_tab_barcode.id_meca)
-							end if
-						end if
-							
-						k_ctr = kuf1_barcode_stampa.stampa_etichetta_riferimento &
-															(kst_tab_barcode.barcode, &
-															 kst_tab_barcode.id_meca)
+//--- fa altre operazioni  ---------------------------------------------------------------------------------------------------------------------
+		try 
+			if kst_tab_barcode.id_meca > 0 then
 					
-						if k_ctr > 0 then
-							k_nr_barcode_stampati += k_ctr
-							
-	//--- Stampa eventuali etich. CONTROCAMPIONI solo in Stampa non in RISTAMPA							
-					      if k_barcode_da_stampare > 0 then 
-								k_controcampioni = kuf1_barcode_stampa.stampa_etichetta_riferimento_campioni(kst_tab_barcode.id_meca)
-							end if
-							
-	//--- cancello item stampato dalla lista			
-							if k_stampa_da_listview then
-								k_rc = kilv_lv1.deleteitem(k_lindex) 
-							else
-								k_rc = kitv_tv1.deleteitem(k_lindex)
-							end if					
-							
-						end if
-	
-	//--- fa altre operazioni  ---------------------------------------------------------------------------------------------------------------------
-						try 
-							if kst_tab_barcode.id_meca > 0 then
-								
-								kuf1_barcode_stampa.u_exec_post_stampa(kst_tab_barcode)	
-								
-							end if
-							
-						catch (uo_exception kuo1_exception)
-							kuo1_exception.messaggio_utente()
-							
-						end try					
-						
+				kuf1_barcode_stampa.u_exec_post_stampa(kst_tab_barcode)	
+					
+			end if
+				
+		catch (uo_exception kuo1_exception)
+			kuo1_exception.messaggio_utente()
+				
+		end try						
 //--- FINE: altre operazioni ----------------------------------------------------------------------------------------------------------------
 	
 //--- Se stampa da LIST potrei avere selezionato piu' barcode/riferimenti				
-						if k_stampa_da_listview and kilv_lv1.totalitems() > 0 then
-							
-							kst_tab_barcode_old.barcode = " "
-							kst_tab_barcode_old.num_int = 0
-			
-							k_lindex = 1
-							k_rc = kilv_lv1.getitem(k_lindex, 1, klvi_listviewitem) 
-							do 
-								do while k_rc > 0 and not klvi_listviewitem.selected and k_lindex < kilv_lv1.totalitems()
-									k_lindex++
-									k_rc = kilv_lv1.getitem(k_lindex, 1, klvi_listviewitem) 
-								loop	
-								if k_rc < 1 then
-									k_n_selezionati = 0 // forzo uscita dal ciclo principale
-									exit
-								end if
-								
-								if klvi_listviewitem.selected then
-									kst_treeview_data = klvi_listviewitem.data  
-									ktvi_treeviewitem.data = kst_treeview_data 
-									kst_treeview_data_any = kst_treeview_data.struttura
-									kst_tab_barcode = kst_treeview_data_any.st_tab_barcode 
-								end if
-								
-							loop while kst_tab_barcode_old.barcode = kst_tab_barcode.barcode &
-								and kst_tab_barcode_old.num_int = kst_tab_barcode.num_int &
-								and kst_tab_barcode_old.data_int =  kst_tab_barcode.data_int &
-								and k_lindex < kilv_lv1.totalitems()
-								
-							// è uscito per l'indice o è già stampato?
-							if kst_tab_barcode_old.barcode = kst_tab_barcode.barcode &
-								and kst_tab_barcode_old.num_int = kst_tab_barcode.num_int &
-								and kst_tab_barcode_old.data_int =  kst_tab_barcode.data_int then
-								
-								k_n_selezionati = 0 // forzo uscita dal ciclo principale
-							end if
-							
-							kst_tab_barcode_old = kst_tab_barcode   // x evitare la ristampa delle stesse etichette
-							
-						else
-							k_n_selezionati = 0 // forzo uscita dal ciclo
-						end if
+		k_n_selezionati --
+		if k_n_selezionati > 0 then
+			k_lindex = u_stampa_barcode_next(klvi_listviewitem, kst_tab_barcode)  // get next barcode to print 
+			if k_lindex = 0 then EXIT  // FINE
+		end if
 		
-					else
-						k_n_selezionati = 0 // forzo uscita dal ciclo
-					end if
-	
-					k_n_selezionati --
-					
-				loop
+	loop
 				
-	//--- chiudo coda di stampa
-				kuf1_barcode_stampa.stampa_etichetta_riferimento_close()
+	if k_nr_barcode_stampati > 0 then
 			
-			end if 
+		k_return = k_nr_barcode_stampati
+			
+		if k_controcampioni > 0 then
+			kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento e " &
+											+ string(k_controcampioni) + " Controcampioni, inviata alla stampante ")
 		else
-			
-	//		messagebox("Stampa Codice a Barre", "Valore non disponibile. ")
-			
-			
+			kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento, inviata alla stampante ")
 		end if
-	
-		if k_nr_barcode_stampati > 0 then
-			
-			k_return = k_nr_barcode_stampati
-			
-			if k_controcampioni > 0 then
-				kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento e " &
-												+ string(k_controcampioni) + " Controcampioni, inviata alla stampante ")
-			else
-				kguo_exception.messaggio_utente("Stampa Eseguita","Stampa di " + string (k_nr_barcode_stampati) + " barcode di Trattamento, inviata alla stampante ")
-			end if
-	
-		end if
-						
+
 	end if
+					
 
 catch(uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 
 finally
+	if k_print_open then
+		kuf1_barcode_stampa.stampa_etichetta_riferimento_close() //--- chiudo coda di stampa
+	end if		
 	if isvalid(kuf1_barcode_stampa) then destroy kuf1_barcode_stampa
 	if isvalid(kuf1_armo) then destroy kuf1_armo
 
@@ -1989,45 +1914,6 @@ return k_return
 // 
 //return k_return
 //
-end function
-
-public function integer u_stampa_barcode_dettaglio ();//
-//--- Stampa dettaglio
-//
-integer k_return = 0, k_rc
-string k_tipo_oggetto=" "
-st_treeview_data kst_treeview_data
-kuf_barcode_stampa kuf1_barcode_stampa
-
-	
-//--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
-	kst_treeview_data = u_get_st_treeview_data ()
-
-	k_tipo_oggetto = trim(kst_treeview_data.oggetto)
-
-//--- chiama le funzioni necessarie
-	choose case lower(k_tipo_oggetto)
-					  
-		case kist_treeview_oggetto.barcode &
-			 ,kist_treeview_oggetto.barcode_dett
-
-			kuf1_barcode_stampa = create kuf_barcode_stampa
-			
-			kuf1_barcode_stampa.stampa_etichetta_riferimento_autorizza()
-			
-			if kuf1_barcode_stampa.ki_stampa_etichetta_autorizza then
-				u_stampa_barcode ()
-			end if
-			destroy kuf1_barcode_stampa
-
-		case else
-			messagebox("Operazione non Eseguita", "Funzione richiesta non Abilitata")
-						
-
-	end choose
-
-
-return k_return
 end function
 
 public function st_esito u_select_tab_treeview_all ();//------------------------------------------------------------------------
@@ -4006,11 +3892,9 @@ integer k_return = 0, k_rc = 0
 long k_handle_item = 0, k_riga=0
 integer k_ctr, k_ind
 boolean k_certif_selected_eof, k_flg_ristampa_xddt
-//kuf_certif kuf1_certif
 kuf_artr kuf1_artr
 st_tab_certif kst_tab_certif[]
 st_esito kst_esito
-uo_d_certif_stampa kuo1_d_certif_stampa
 uo_exception kuo_exception
 
 
@@ -4032,6 +3916,7 @@ st_open_w kst_open_w
 			kst_treeview_data_parent = ktvi_treeviewitem_parent.data
 		end if
 	end if
+
 
 //--- ricava la riga
 	if kilv_lv1.visible then
@@ -4089,74 +3974,7 @@ st_open_w kst_open_w
 
 				case kkg_flag_modalita.stampa
 						
-					try
-
-//--- posso fare il certificato solo se sono sulla cartella giusta altrimenti solo ristampa
-						if trim(kst_treeview_data_parent.oggetto) = kist_treeview_oggetto.certif_da_st_dett &
-								or trim(kst_treeview_data_parent.oggetto) = kist_treeview_oggetto.certif_st_dett &
-								or trim(kst_treeview_data_parent.oggetto) = kist_treeview_oggetto.certif_uff_ddt_dett &
-								then
-								//or kuo1_d_certif_stampa.ki_flag_ristampa then
-							kuo1_d_certif_stampa = create uo_d_certif_stampa 
-						else
-							k_return = 1
-							kguo_exception.inizializza(this.classname())
-							kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_non_eseguito
-							kguo_exception.kist_esito.sqlerrtext = "Da questo elenco non e' possibile stampare l'Attestato"
-							throw kguo_exception
-						end if
-						
-//--- In questo caso imposta il flag di a già stampato da Uff.Spedizioni
-						if trim(kst_treeview_data_parent.oggetto) = kist_treeview_oggetto.certif_uff_ddt_dett then
-							k_flg_ristampa_xddt = true
-						end if
-						
-						if not isvalid(kiuf_certif_print) then kiuf_certif_print = create kuf_certif_print
-						kiuf_certif_print.ki_flag_stampa_di_test = false  // stampa VERA!
-
-						k_certif_selected_eof = false
-						do while NOT k_certif_selected_eof
-						
-							kst_tab_certif[1] = kst_treeview_data_any.st_tab_certif
-							if NOT kiuf_certif_print.stampa(kst_tab_certif[], k_flg_ristampa_xddt) then  // STAMPA!!!
-								k_certif_selected_eof = true
-								kguo_exception.inizializza(this.classname())
-								kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
-								kguo_exception.kist_esito.sqlerrtext = "Errore in Stampa dell'Attestato n. " + string(kst_treeview_data_any.st_tab_certif.num_certif)
-								throw kguo_exception
-							end if
-//--- se NON sono in ristampa cancello la riga dall'elenco
-							if not kuo1_d_certif_stampa.ki_flag_ristampa then
-								kilv_lv1.deleteitem(k_riga)
-								k_riga --
-							else
-								klvi_listviewitem.selected = false
-								kilv_lv1.Setitem( k_riga, klvi_listviewitem)
-							end if
-					
-//---Devo ancora cercare altre righe selezionate?
-							k_certif_selected_eof = true
-							k_riga = kilv_lv1.SelectedIndex ( )
-							if k_riga > 0 then
-								if kilv_lv1.getitem(k_riga, klvi_listviewitem)  > 0 then
-									kst_treeview_data = klvi_listviewitem.data  
-									ktvi_treeviewitem.data = kst_treeview_data 
-									kst_treeview_data_any = kst_treeview_data.struttura
-									k_certif_selected_eof = false
-								end if
-							end if
-						loop
-						
-					catch(uo_exception kuo1_exception)
-						//k_return = 1
-						kst_esito = kuo1_exception.get_st_esito()
-						kguo_exception.messaggio_utente("Stampa Attestato", trim(kst_esito.sqlerrtext))
-
-					finally
-						if isvalid(kuo1_d_certif_stampa) then destroy kuo1_d_certif_stampa
-						
-					end try
-
+					u_open_certif_stampa(kst_treeview_data_parent)
 					
 					
 				case kkg_flag_modalita.cancellazione
@@ -12197,6 +12015,201 @@ integer k_rc
 
 end function
 
+private function integer u_open_certif_stampa (ref st_treeview_data ast_treeview_data);/*
+   Stampa ATTESTATI
+*/
+integer k_return
+int k_rc
+long k_row, k_row_selected, k_rows_selected[]
+//boolean k_certif_selected_eof, k_flg_ristampa_xddt
+st_tab_certif kst_tab_certif[]
+
+st_treeview_data kst_treeview_data
+st_treeview_data_any kst_treeview_data_any
+treeviewitem ktvi_treeviewitem, ktvi_treeviewitem_parent
+listviewitem klvi_listviewitem
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	
+//--- posso fare il certificato solo se sono sulla cartella giusta altrimenti solo ristampa
+	if trim(ast_treeview_data.oggetto) = kist_treeview_oggetto.certif_da_st_dett &
+			or trim(ast_treeview_data.oggetto) = kist_treeview_oggetto.certif_st_dett &
+			or trim(ast_treeview_data.oggetto) = kist_treeview_oggetto.certif_uff_ddt_dett &
+			then
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Da questo elenco non e' possibile stampare l'Attestato"
+		throw kguo_exception
+	end if
+
+	if kilv_lv1.totalselected() = 0 then
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Selezionare almeno un documento dall'elenco"
+		throw kguo_exception
+	end if
+
+//--- inizio
+	if not isvalid(kiuf_certif_print) then kiuf_certif_print = create kuf_certif_print
+	
+	if trim(ast_treeview_data.oggetto) = kist_treeview_oggetto.certif_uff_ddt_dett then
+		kiuf_certif_print.ki_flg_ristampa_xddt = true  // flag di stampato da Uff.Spedizioni
+	end if
+	kiuf_certif_print.ki_flag_stampa_di_test = false  // stampa VERA!
+
+	kilv_lv1.setredraw(false)
+	
+//--- Carica gli attestati da Stampare nell'array
+	k_row = kilv_lv1.SelectedIndex()
+	k_rc = kilv_lv1.getitem(k_row, klvi_listviewitem)
+	do while k_row_selected < kilv_lv1.totalselected() and k_rc > 0
+		
+//--- get dati		
+		kst_treeview_data = klvi_listviewitem.data  
+		ktvi_treeviewitem.data = kst_treeview_data 
+		kst_treeview_data_any = kst_treeview_data.struttura
+		
+		k_row_selected ++
+		k_rows_selected[k_row_selected] = k_row
+		kst_tab_certif[k_row_selected] = kst_treeview_data_any.st_tab_certif  // popola gli array Attestati da stampare
+			
+//--- cerca altre righe selezionate
+		k_row ++
+		k_rc = kilv_lv1.getitem(k_row, klvi_listviewitem)
+		do while not klvi_listviewitem.selected and k_rc > 0
+			k_row ++
+			k_rc = kilv_lv1.getitem(k_row, klvi_listviewitem)
+		loop
+
+	loop
+
+	kilv_lv1.setredraw(true)
+	
+	if k_row_selected = 0 then
+		kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
+		kguo_exception.kist_esito.sqlerrtext = "Da questo elenco non sono riuscito a stampare nessun Attestato! Probabile errore interno."
+		throw kguo_exception
+	end if
+		
+//---  STAMPA!!!
+	if kiuf_certif_print.stampa(kst_tab_certif[]) > 0 then 
+
+//--- toglie/deseleziona le righe per gli stampati 
+		for k_row = k_row_selected to 1 step -1
+			kilv_lv1.getitem(k_rows_selected[k_row], klvi_listviewitem)
+		
+//--- se NON sono in ristampa cancello la riga dall'elenco
+			if not kiuf_certif_print.u_get_flag_ristampa() &
+						or trim(ast_treeview_data.oggetto) = kist_treeview_oggetto.certif_uff_ddt_dett then
+				kilv_lv1.deleteitem(k_rows_selected[k_row])
+			else
+				kilv_lv1.getitem(k_rows_selected[k_row], klvi_listviewitem)
+				klvi_listviewitem.selected = false	
+				kilv_lv1.Setitem(k_rows_selected[k_row], klvi_listviewitem)
+			end if
+		next
+	end if
+
+
+catch(uo_exception kuo_exception)
+	if kuo_exception.kist_esito.esito <> kuo_exception.KK_st_uo_exception_tipo_interr_da_utente then
+		k_return = 1
+		kguo_exception.messaggio_utente("Stampa Attestato", trim(kuo_exception.kist_esito.sqlerrtext))
+	end if
+
+finally
+	
+end try
+
+ 
+return k_return
+
+end function
+
+private function integer u_stampa_barcode_dettaglio ();//
+//--- Stampa dettaglio
+//
+integer k_return = 0, k_rc
+string k_tipo_oggetto=" "
+st_treeview_data kst_treeview_data
+kuf_barcode_stampa kuf1_barcode_stampa
+
+	
+//--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
+	kst_treeview_data = u_get_st_treeview_data ()
+
+	k_tipo_oggetto = trim(kst_treeview_data.oggetto)
+
+//--- chiama le funzioni necessarie
+	choose case lower(k_tipo_oggetto)
+					  
+		case kist_treeview_oggetto.barcode &
+			 ,kist_treeview_oggetto.barcode_dett
+
+			kuf1_barcode_stampa = create kuf_barcode_stampa
+			
+			kuf1_barcode_stampa.stampa_etichetta_riferimento_autorizza()
+			
+			if kuf1_barcode_stampa.ki_stampa_etichetta_autorizza then
+				u_stampa_barcode ()
+			end if
+			destroy kuf1_barcode_stampa
+
+		case else
+			messagebox("Operazione non Eseguita", "Funzione richiesta non Abilitata")
+						
+
+	end choose
+
+
+return k_return
+end function
+
+private function integer u_stampa_barcode_next (ref listviewitem alvi_listviewitem, ref st_tab_barcode ast_tab_barcode_precedente);/*
+ Cerca il barcode successivo da stampare
+ inp: lvi_listviewitem e st_tab_barcode appena stampato
+ out: st_tab_barcode da stampare; se barcode = "" allora niente
+ Rit: index della lvi_listviewitem, se zero = nulla
+*/
+integer k_lindex, k_rc
+st_treeview_data kst_treeview_data
+treeviewitem ktvi_treeviewitem
+st_treeview_data_any kst_treeview_data_any
+st_tab_barcode kst_tab_barcode
+
+
+	kst_tab_barcode = ast_tab_barcode_precedente
+		
+	do 
+		
+		k_lindex++
+
+		k_rc = kilv_lv1.getitem(k_lindex, 1, alvi_listviewitem) 
+		if k_rc < 1 then return 0
+			
+		if alvi_listviewitem.selected then
+			kst_treeview_data = alvi_listviewitem.data  
+			ktvi_treeviewitem.data = kst_treeview_data 
+			kst_treeview_data_any = kst_treeview_data.struttura
+			kst_tab_barcode = kst_treeview_data_any.st_tab_barcode 
+		end if
+
+	loop while ast_tab_barcode_precedente.barcode = kst_tab_barcode.barcode &
+			and ast_tab_barcode_precedente.num_int = kst_tab_barcode.num_int &
+			and ast_tab_barcode_precedente.data_int =  kst_tab_barcode.data_int &
+			and k_lindex <= kilv_lv1.totalitems()
+				
+	// è uscito per l'indice o è già stampato?
+	if k_lindex > kilv_lv1.totalitems() then return 0
+			
+	ast_tab_barcode_precedente = kst_tab_barcode	
+			
+return k_lindex - 1
+
+end function
+
 on kuf_treeview.create
 call super::create
 end on
@@ -12378,6 +12391,7 @@ int k_i = 0
 	kist_treeview_oggetto.certif_dett = "certif_dett"
 	kist_treeview_oggetto.certif_in_lav_dett = "certif_in_lav_dett"
 	kist_treeview_oggetto.certif_da_st_sd_dett = "certif_da_st_sd_dett"
+	kist_treeview_oggetto.certif_da_st = "certif_da_st"
 	kist_treeview_oggetto.certif_da_st_dett = "certif_da_st_dett"
 	kist_treeview_oggetto.certif_err_dett = "certif_err_dett"
 	kist_treeview_oggetto.certif_st_mese = "certif_st_mese"

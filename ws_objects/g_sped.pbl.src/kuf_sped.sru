@@ -129,7 +129,6 @@ public function boolean if_ddt_allarme_memo (st_tab_sped kst_tab_sped) throws uo
 public function boolean if_stampato (st_tab_sped ast_tab_sped) throws uo_exception
 public function string get_cura_trasp (ref st_tab_sped kst_tab_sped) throws uo_exception
 private function long u_set_ds_d_sped_l_indirizzi (st_tab_sped kst_tab_sped)
-public subroutine u_db_crea_view_spediti (string a_view_name, long a_id_meca) throws uo_exception
 end prototypes
 
 public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped);//---
@@ -6575,7 +6574,7 @@ k_riga = ads_link.getrow()
 
 choose case a_campo_link
 
-	case "b_arsp_lotto" 
+	case "arsp_lotto" 
 		kst_tab_armo.id_meca = ads_link.getitemnumber(ads_link.getrow(), "id_meca")
 		if kst_tab_armo.id_meca > 0 then
 			kst_open_w.key1 = "Elenco righe DDT di Spedizione  (id lotto=" + trim(string(kst_tab_armo.id_meca)) + ") " 
@@ -6585,7 +6584,7 @@ choose case a_campo_link
 		end if
 
 
-	case "b_arsp_sped", "b_sped", "num_bolla_out", "num_bolla_out_1", "arsp_insped"
+	case "arsp_sped", "sped", "num_bolla_out", "num_bolla_out_1", "arsp_insped"
 		if a_campo_link = "num_bolla_out_1" then
 			kst_tab_sped.num_bolla_out = ads_link.getitemnumber(ads_link.getrow(), "num_bolla_out_1")
 		else
@@ -6628,13 +6627,13 @@ if k_return then
 	
 	choose case a_campo_link
 				
-		case "b_arsp_lotto" 
+		case "arsp_lotto" 
 			kst_esito = anteprima_elenco ( kdsi_elenco_output, kst_tab_armo )
 	
-		case "b_sped", "num_bolla_out", "id_sped"
+		case "sped", "num_bolla_out", "id_sped"
 			kst_esito = anteprima ( kdsi_elenco_output, kst_tab_sped )
 	
-		case "b_arsp_sped"
+		case "arsp_sped"
 			kst_esito = anteprima_righe ( kdsi_elenco_output, kst_tab_sped )
 	
 		case "num_bolla_out_1"
@@ -7578,37 +7577,6 @@ long k_return
 return k_return
 
 end function
-
-public subroutine u_db_crea_view_spediti (string a_view_name, long a_id_meca) throws uo_exception;//
-//--- crea View
-//
-int k_ctr
-string k_view, k_sql
-st_esito kst_esito
-
-
-	k_view =  kguf_data_base.u_get_nometab_xutente(a_view_name)
-	k_sql = " "                                   
-	k_sql = + &
-	"CREATE VIEW " + trim(k_view) &
-	 + " ( id_meca, id_armo, colli_sped) AS   " &
-	 + "  SELECT armo.id_meca,   " &
-	 		+ " armo.id_armo,   " &
-	 		+ " sum(arsp.colli) " &
-	 + "    FROM armo inner join arsp on  armo.id_armo = arsp.id_armo   " &
-	 + "  WHERE "   &
-	             + " armo.id_meca  >=   "  + string(a_id_meca) + "   "     &
-                 + " group by  armo.id_meca, armo.id_armo " 
-
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-
-	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
-		kguo_exception.inizializza(this.classname())
-		kguo_exception.set_esito( kst_esito )
-		throw kguo_exception
-	end if
-
-end subroutine
 
 on kuf_sped.create
 call super::create

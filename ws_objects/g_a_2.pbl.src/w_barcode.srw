@@ -36,6 +36,9 @@ private kuf_barcode_mod_giri kiuf_barcode_mod_giri
 
 private st_tab_armo_campioni kist_tab_armo_campioni
 
+private kuf_pilota_prg_g3 kiuf_pilota_prg_g3
+private kuf_pilota_prg kiuf_pilota_prg
+private boolean ki_provenieneza_pilota_prg 
 end variables
 
 forward prototypes
@@ -792,26 +795,20 @@ return k_return
 end function
 
 private function integer check_rek (string k_codice);//
-int k_return = 0
-int k_anno
-st_esito kst_esito
+int k_return
 st_tab_barcode kst_tab_barcode
-kuf_barcode kuf1_barcode
 
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	kst_tab_barcode.barcode = trim (k_codice)
-	kuf1_barcode = create kuf_barcode
-	kst_esito = kuf1_barcode.select_barcode(kst_tab_barcode)
-	destroy kuf1_barcode
+	if kiuf_barcode.if_barcode_exists(kst_tab_barcode) then
 
-	if kst_esito.esito = "0" then
-
-		if messagebox("BARCODE gia' in Archivio", & 
-					"Vuoi modificare il BARCODE: ~n~r"+ &
-					trim(k_codice)+ " del " + string(kst_tab_barcode.data, "dd/mm/yy"), question!, yesno!, 2) = 1 then
+		if messagebox("Codice già caricato", & 
+					"Vuoi modificare il BARCODE: " + trim(k_codice), question!, yesno!, 2) = 1 then
 		
-//			tab_1.tabpage_1.dw_1.reset()
-
 			ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 			ki_st_open_w.key1 = trim(k_codice) 
 
@@ -826,8 +823,14 @@ kuf_barcode kuf1_barcode
 	end if  
 
 	attiva_tasti()
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-
+end try
 
 return k_return
 
@@ -847,9 +850,7 @@ string k_fine_ciclo=""
 int k_ctr=0, k_errore = 0
 int k_err_ins, k_rc
 st_tab_barcode kst_tab_barcode_vuoto
-kuf_utility kuf1_utility
 datawindowchild kdwc_barcode_figli_conta
-
 
 //=== 
 //tab_1.tabpage_4.dw_41.settransobject(sqlca)
@@ -974,37 +975,35 @@ end if
 if k_errore = 0 then
 	
 //--- Inabilita campi alla modifica se Vsualizzazione
-	kuf1_utility = create kuf_utility 
 	if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.visualizzazione &
-	   or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.cancellazione then
+		   or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.cancellazione then
 		
-		kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
 
 //--- se arrivo da Modifica Programmazione Pilota abbiamo un'eccezione!!!!
-		if trim(ki_st_open_w.id_programma_chiamante) = kkg_id_programma_pilota_programmazione then
-			kuf1_utility.u_proteggi_dw("0", "b_barcode_figli", tab_1.tabpage_1.dw_1)
+		if ki_provenieneza_pilota_prg then
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "b_barcode_figli")
 		else
-			kuf1_utility.u_proteggi_dw("1", "b_barcode_figli", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_barcode_figli")
 		end if
 		
-   	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+   	tab_1.tabpage_5.dw_5.u_proteggi_dw("1", 0)
 	else		
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-   	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+   	tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 
 //--- se barcode già con in Piano di Lavoro allora non posso cambiare il flag da trattare	
 		if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 			if tab_1.tabpage_1.dw_1.getitemnumber(1, "pl_barcode") > 0 then
-				kuf1_utility.u_proteggi_dw("1", "barcode_causale", tab_1.tabpage_1.dw_1) //proteggi campo
-				kuf1_utility.u_proteggi_dw("1", "flg_dosimetro", tab_1.tabpage_1.dw_1) //proteggi campo
-		   	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "barcode_causale") //proteggi campo
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "flg_dosimetro") //proteggi campo
+		   	tab_1.tabpage_5.dw_5.u_proteggi_dw("1", 0)
 				k_rcx = tab_1.tabpage_1.dw_1.Modify("barcode_causale.Tooltip.Enabled=1 flg_dosimetro.Tooltip.Enabled=1")
 				k_rcx = tab_1.tabpage_1.dw_1.Modify("barcode_causale.Tooltip.Tip='Già Pianificato, Non modificabile.' flg_dosimetro.Tooltip.Enabled=Tip='Già Pianificato, Non modificabile.'")
 			end if
 		end if
 	end if
-	destroy kuf1_utility
 	
 //--- se cancellazione
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione then
@@ -1016,7 +1015,6 @@ if k_errore = 0 then
 end if
 
 return "0"
-
 
 end function
 
@@ -1173,48 +1171,47 @@ private subroutine aggiungi_barcode_figlio (st_tab_barcode kst_tab_barcode);//--
 //---   Aggiunge il Barcode FIGLIO su questo Barcode
 //---
 long k_riga
-kuf_barcode kuf1_barcode
-uo_exception kuo_exception
 
-
-kuf1_barcode = create kuf_barcode
-kuf1_barcode.select_barcode(kst_tab_barcode)
-destroy kuf1_barcode
-
-
-
-if tab_1.tabpage_2.dw_2.Find("barcode = '" + kst_tab_barcode.barcode+"' ", 1, tab_1.tabpage_2.dw_2.RowCount()) > 0 then
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 	
-	kuo_exception = create uo_exception
-	kuo_exception.setmessage( "Barcode Figlio gia' presente! ")
-	kuo_exception.messaggio_utente( )
-	destroy kuo_exception
-
-else
-	k_riga = tab_1.tabpage_2.dw_2.insertrow(0)
+	kiuf_barcode.select_barcode(kst_tab_barcode)
 	
-	if k_riga > 0 then
-		tab_1.tabpage_2.dw_2.object.barcode_lav[k_riga] = tab_1.tabpage_1.dw_1.object.barcode[tab_1.tabpage_1.dw_1.getrow()] 
-		tab_1.tabpage_2.dw_2.object.barcode[k_riga] = kst_tab_barcode.barcode
-		tab_1.tabpage_2.dw_2.object.num_int[k_riga] = kst_tab_barcode.num_int
-		tab_1.tabpage_2.dw_2.object.data_int[k_riga] = kst_tab_barcode.data_int
-		tab_1.tabpage_2.dw_2.object.fila_1[k_riga] = string(kst_tab_barcode.fila_1) + ' + ' + string(kst_tab_barcode.fila_1p)
-		tab_1.tabpage_2.dw_2.object.fila_2[k_riga] = string(kst_tab_barcode.fila_2) + ' + ' + string(kst_tab_barcode.fila_2p)
-		tab_1.tabpage_2.dw_2.object.lav_fila_1[k_riga] = string(kst_tab_barcode.lav_fila_1) + ' + ' + string(kst_tab_barcode.lav_fila_1p)
-		tab_1.tabpage_2.dw_2.object.lav_fila_2[k_riga] = string(kst_tab_barcode.lav_fila_2) + ' + ' + string(kst_tab_barcode.lav_fila_2p)
+	if tab_1.tabpage_2.dw_2.Find("barcode = '" + kst_tab_barcode.barcode+"' ", 1, tab_1.tabpage_2.dw_2.RowCount()) > 0 then
+		
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.setmessage( "Barcode Figlio gia' presente!")
+		destroy kguo_exception
+	
+	else
+		k_riga = tab_1.tabpage_2.dw_2.insertrow(0)
+		
+		if k_riga > 0 then
+			tab_1.tabpage_2.dw_2.object.barcode_lav[k_riga] = tab_1.tabpage_1.dw_1.object.barcode[tab_1.tabpage_1.dw_1.getrow()] 
+			tab_1.tabpage_2.dw_2.object.barcode[k_riga] = kst_tab_barcode.barcode
+			tab_1.tabpage_2.dw_2.object.num_int[k_riga] = kst_tab_barcode.num_int
+			tab_1.tabpage_2.dw_2.object.data_int[k_riga] = kst_tab_barcode.data_int
+			tab_1.tabpage_2.dw_2.object.fila_1[k_riga] = string(kst_tab_barcode.fila_1) + ' + ' + string(kst_tab_barcode.fila_1p)
+			tab_1.tabpage_2.dw_2.object.fila_2[k_riga] = string(kst_tab_barcode.fila_2) + ' + ' + string(kst_tab_barcode.fila_2p)
+			tab_1.tabpage_2.dw_2.object.lav_fila_1[k_riga] = string(kst_tab_barcode.lav_fila_1) + ' + ' + string(kst_tab_barcode.lav_fila_1p)
+			tab_1.tabpage_2.dw_2.object.lav_fila_2[k_riga] = string(kst_tab_barcode.lav_fila_2) + ' + ' + string(kst_tab_barcode.lav_fila_2p)
+			
+		end if
+	
+	//--- conta i figli rimasti				
+		conta_figli()
+		attiva_tasti()
 		
 	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-////--- se arrivo da Modifica Programmazione Pilota abbiamo un'eccezione!!!!
-//	if trim(ki_st_open_w.id_programma_chiamante) = kkg_id_programma_pilota_programmazione then
-//		cb_aggiorna.triggerevent( clicked! )
-//	end if
-	
-//--- conta i figli rimasti				
-	conta_figli()
-	attiva_tasti()
-	
-end if
+end try
 
 end subroutine
 
@@ -1617,22 +1614,30 @@ protected subroutine open_start_window ();//
 	kiuf_barcode = create kuf_barcode
 	kiuf_barcode_mod_giri = create kuf_barcode_mod_giri
 
+//--- flag di Provenienza da Modifica Programmazione G2 o G3
+	kiuf_pilota_prg = create kuf_pilota_prg
+	kiuf_pilota_prg_g3 = create kuf_pilota_prg_g3
+	if trim(ki_st_open_w.id_programma_chiamante) = kiuf_pilota_prg_g3.get_id_programma(kkg_flag_modalita.modifica) &
+							or trim(ki_st_open_w.id_programma_chiamante) = kiuf_pilota_prg.get_id_programma(kkg_flag_modalita.modifica) then
+		ki_provenieneza_pilota_prg = true
+	end if
+
 end subroutine
 
 protected function string dati_modif_figlio_inizio (string a_1);//
 string k_return="0"
 
+
 //--- salva la modalità 
 	ki_flag_modalita_orig = ki_st_open_w.flag_modalita
 	
 //--- se arrivo da Modifica Programmazione Pilota abbiamo un'eccezione!!!!
-	if trim(ki_st_open_w.id_programma_chiamante) = kkg_id_programma_pilota_programmazione then
+	if ki_provenieneza_pilota_prg then
 
 		ki_st_open_w.flag_modalita  = kkg_flag_modalita.modifica
 	
 	end if
 	
-
 return k_return
 end function
 
@@ -1735,9 +1740,7 @@ cb_cancella.default = false
 //--- inabilito le mofidifice sulla dw
 //--- se arrivo da Modifica Programmazione Pilota abbiamo un'eccezione!!!!
 if (ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento and  ki_st_open_w.flag_modalita <> kkg_flag_modalita.modifica) &
-	and ( isnull(ki_st_open_w.id_programma_chiamante) &
-		or trim(ki_st_open_w.id_programma_chiamante) <> kkg_id_programma_pilota_programmazione) &
-	then
+	and ( isnull(ki_st_open_w.id_programma_chiamante) or not ki_provenieneza_pilota_prg)  then
 	
 	cb_inserisci.enabled = false
 	cb_aggiorna.enabled = false
@@ -1808,14 +1811,9 @@ st_tab_barcode kst_tab_barcode
 st_barcode_mod_giri kst_barcode_mod_giri
 
 
-//if ki_abilita_funzione_giri then
-
-//--- controlle se consentito solo visualizzazione
-//	if kiuf_barcode_mod_giri.ki_modifica_cicli_enabled = kiuf_barcode_mod_giri.ki_modifica_cicli_enabled_modif then
-//		k_modalita_modifica_file = kiuf_barcode_mod_giri.ki_modalita_modifica_giri_riga
-//	else
-//		k_modalita_modifica_file = kiuf_barcode_mod_giri.ki_modalita_modifica_giri_visualizza
-//	end if
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	if ki_st_open_w.flag_modalita <> kkg_flag_modalita.modifica &
 				and ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento then
@@ -1828,18 +1826,13 @@ st_barcode_mod_giri kst_barcode_mod_giri
 	if k_riga > 0 then		
 		kst_tab_barcode.pl_barcode = 0
 		kst_tab_barcode.barcode = tab_1.tabpage_1.dw_1.object.barcode.primary[k_riga]
-		kst_esito = kiuf_barcode.select_barcode(kst_tab_barcode)
-		if kst_esito.esito <> kkg_esito.ok then
-			messagebox("Modifica Cicli di Trattamento", &
-						"Errore durante Ricerca del Barcode~n~r"+kst_esito.sqlerrtext)
-		else
-			kst_tab_barcode.num_int = kst_tab_barcode.num_int
-			kst_tab_barcode.data_int = kst_tab_barcode.data_int
-			kst_tab_barcode.fila_1 = tab_1.tabpage_1.dw_1.object.barcode_fila_1.primary[k_riga]
-			kst_tab_barcode.fila_1p = tab_1.tabpage_1.dw_1.object.barcode_fila_1p.primary[k_riga]
-			kst_tab_barcode.fila_2 = tab_1.tabpage_1.dw_1.object.barcode_fila_2.primary[k_riga]
-			kst_tab_barcode.fila_2p = tab_1.tabpage_1.dw_1.object.barcode_fila_2p.primary[k_riga]
-		end if	
+		kiuf_barcode.select_barcode(kst_tab_barcode)
+		kst_tab_barcode.num_int = kst_tab_barcode.num_int
+		kst_tab_barcode.data_int = kst_tab_barcode.data_int
+		kst_tab_barcode.fila_1 = tab_1.tabpage_1.dw_1.object.barcode_fila_1.primary[k_riga]
+		kst_tab_barcode.fila_1p = tab_1.tabpage_1.dw_1.object.barcode_fila_1p.primary[k_riga]
+		kst_tab_barcode.fila_2 = tab_1.tabpage_1.dw_1.object.barcode_fila_2.primary[k_riga]
+		kst_tab_barcode.fila_2p = tab_1.tabpage_1.dw_1.object.barcode_fila_2p.primary[k_riga]
 	end if	
 
 
@@ -1877,22 +1870,17 @@ st_barcode_mod_giri kst_barcode_mod_giri
 		
 		kiuf_barcode_mod_giri.u_open(kst_barcode_mod_giri)  // OPEN WINDOWS MODIFICA GIRI
 
-//		dw_modifica.modifica_giri(&
-//										kst_tab_barcode &
-//										,k_modalita_modifica_file &
-//										,dw_modifica.ki_modif_tutto_riferimento &
-//										,dw_modifica_giri_scambio &
-//										,kidw_dett_0_da_non_modificare &
-//										)
-//
-//		
-//	dw_modifica.visible = true
-//	dw_modifica.enabled = true
-//	dw_modifica.setfocus( )
-	
 	end if	
+	
+	
+catch (uo_exception kuo_exception)
+	messagebox("Modifica Cicli di Trattamento", &
+						"Errore durante Ricerca del Barcode " + kkg.acapo + kuo_exception.kist_esito.sqlerrtext)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-	 
+end try	 
 
 
 end subroutine
@@ -2140,6 +2128,9 @@ end event
 event close;call super::close;//
 if isvalid(kiuf_barcode) then destroy kiuf_barcode
 if isvalid(kiuf_barcode_mod_giri) then destroy kiuf_barcode_mod_giri
+
+if isvalid(kiuf_pilota_prg) then destroy kiuf_pilota_prg
+if isvalid(kiuf_pilota_prg_g3) then destroy kiuf_pilota_prg_g3
 
 end event
 

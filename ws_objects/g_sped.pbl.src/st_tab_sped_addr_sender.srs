@@ -1,0 +1,15 @@
+﻿$PBExportHeader$st_tab_sped_addr_sender.srs
+global type st_tab_sped_addr_sender from structure
+	st_tab_g_0		st_tab_g_0
+	long		id_sped_addr_sender
+	string		rag_soc_1
+	string		rag_soc_2
+	string		indi
+	string		loc
+	string		prov
+	string		cap
+	string		id_nazione
+	datetime		x_datins
+	string		x_utente
+end type
+

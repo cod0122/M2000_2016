@@ -7,6 +7,8 @@ end type
 end forward
 
 global type w_clienti from w_g_tab_3
+integer width = 3035
+integer height = 2180
 string title = "Anagrafica "
 boolean ki_toolbar_window_presente = true
 boolean ki_sincronizza_window_consenti = false
@@ -18,6 +20,7 @@ global w_clienti w_clienti
 type variables
 //
 private kuf_clienti kiuf_clienti
+private kuf_clienti_tb_xxx kiuf_clienti_tb_xxx
 private int ki_selectedtab = 1
 private string ki_dwo_name_b_nazioni_l=""
 //private date ki_data_ini 
@@ -29,7 +32,7 @@ private string ki_id_contatto_numero=""   // indicazione del contatto che sto ca
 private kuf_file_dragdrop kiuf_file_dragdrop
 
 private boolean ki_modDatiACO 
- 
+private kuf_contatti kiuf_contatti
 end variables
 
 forward prototypes
@@ -45,7 +48,6 @@ protected function integer inserisci ()
 protected subroutine pulizia_righe ()
 protected subroutine riempi_id ()
 protected subroutine open_start_window ()
-protected subroutine inizializza_4 () throws uo_exception
 protected subroutine inizializza_5 () throws uo_exception
 private subroutine call_elenco_capitolati ()
 private subroutine call_elenco_fatture ()
@@ -58,12 +60,9 @@ private function long retrieve_dw (st_tab_clienti kst_tab_clienti)
 protected subroutine inizializza_2 () throws uo_exception
 private subroutine put_video_mkt_cliente_link (st_tab_clienti kst_tab_clienti)
 private subroutine put_video_mkt_contatti (integer k_nr_contatto, st_tab_clienti kst_tab_clienti)
-private subroutine call_anagrafica_nuovo ()
 public subroutine popola_dwc_3 ()
 public subroutine ripopola_dwc_3 ()
-private subroutine call_anagrafica_modifica (st_tab_clienti kst_tab_clienti)
 private subroutine put_video_mkt_gruppo (st_tab_gru kst_tab_gru)
-public subroutine check_mappa_dw4 (string k_campo, long k_riga, string k_valore)
 private subroutine cambia_periodo_elenco ()
 protected function integer visualizza ()
 protected subroutine inizializza_1 () throws uo_exception
@@ -76,6 +75,9 @@ protected subroutine inizializza_7 () throws uo_exception
 public function boolean set_ki_moddatiaco ()
 protected function string check_dati_1 ()
 private subroutine call_elenco_stat_prod ()
+public subroutine check_mappa_dw5 (string k_campo, long k_riga, string k_valore)
+protected subroutine inizializza_4 () throws uo_exception
+private subroutine call_contatto (st_tab_clienti ast_tab_clienti, string a_flag_modalita)
 end prototypes
 
 protected function string aggiorna ();//
@@ -139,7 +141,7 @@ try
 					kst_tab_ind_comm.cap_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_cap_c")
 					kst_tab_ind_comm.prov_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_prov_c")
 					kst_tab_ind_comm.id_nazione_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "id_nazione_c")
-					kiuf_clienti.tb_update_ind_comm(kst_tab_ind_comm)
+					kiuf_clienti_tb_xxx.tb_update_ind_comm(kst_tab_ind_comm)
 					
 					kst_tab_clienti_fatt.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
 					kst_tab_clienti_fatt.fattura_da = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_da")
@@ -150,13 +152,14 @@ try
 					kst_tab_clienti_fatt.email_invio = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email_invio")
 					kst_tab_clienti_fatt.impon_minimo = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "impon_minimo")
 					kst_tab_clienti_fatt.codice_ipa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "codice_ipa")
-					kiuf_clienti.tb_update(kst_tab_clienti_fatt)
-					
+					kst_tab_clienti_fatt.fattura_per = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_per")
+					kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_fatt)
+					 
 				end if
 			end if
 			kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
 			kst_tab_clienti_altro.e1_asn_ehvr01 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1_asn_ehvr01")
-			kiuf_clienti.tb_update(kst_tab_clienti_altro)
+			kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)
 		else
 			
 			kst_esito = kguo_sqlca_db_magazzino.db_rollback()
@@ -176,16 +179,16 @@ try
 		kst_tab_clienti_mkt.tipo_rapporto = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "tipo_rapporto")
 		kst_tab_clienti_mkt.altra_sede = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_altra_sede")
 		kst_tab_clienti_mkt.cod_atecori = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_cod_atecori")
-		kst_tab_clienti_mkt.contatto_1_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_1_qualif")
-		kst_tab_clienti_mkt.contatto_2_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_2_qualif")
-		kst_tab_clienti_mkt.contatto_3_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_3_qualif")
-		kst_tab_clienti_mkt.contatto_4_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_4_qualif")
-		kst_tab_clienti_mkt.contatto_5_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_5_qualif")
-		kst_tab_clienti_mkt.id_contatto_1 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_1")
-		kst_tab_clienti_mkt.id_contatto_2 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_2")
-		kst_tab_clienti_mkt.id_contatto_3 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_3")
-		kst_tab_clienti_mkt.id_contatto_4 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_4")
-		kst_tab_clienti_mkt.id_contatto_5 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_5")
+//		kst_tab_clienti_mkt.contatto_1_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_1_qualif")
+//		kst_tab_clienti_mkt.contatto_2_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_2_qualif")
+//		kst_tab_clienti_mkt.contatto_3_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_3_qualif")
+//		kst_tab_clienti_mkt.contatto_4_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_4_qualif")
+//		kst_tab_clienti_mkt.contatto_5_qualif = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_contatto_5_qualif")
+//		kst_tab_clienti_mkt.id_contatto_1 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_1")
+//		kst_tab_clienti_mkt.id_contatto_2 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_2")
+//		kst_tab_clienti_mkt.id_contatto_3 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_3")
+//		kst_tab_clienti_mkt.id_contatto_4 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_4")
+//		kst_tab_clienti_mkt.id_contatto_5 = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_contatto_5")
 		kst_tab_clienti_mkt.id_cliente_link = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_cliente_link")
 		kst_tab_clienti_mkt.note_attivita = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_note_attivita")
 		kst_tab_clienti_mkt.note_prodotti = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "clienti_mkt_note_prodotti")
@@ -193,28 +196,24 @@ try
 		kst_tab_clienti_mkt.gruppo = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "gruppo")
 		kst_tab_clienti_mkt.doc_esporta = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "doc_esporta")
 		kst_tab_clienti_mkt.doc_esporta_prefpath = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "doc_esporta_prefpath")
-		kst_esito = kiuf_clienti.tb_update(kst_tab_clienti_mkt)
-		if kst_esito.esito <> kkg_esito.db_ko then
+		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_mkt)
 	
 	//--- Dati WEB
-			kst_tab_clienti_web.id_cliente = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_cliente")
-			kst_tab_clienti_web.blog_web = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "blog_web")
-			kst_tab_clienti_web.blog_web1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "blog_web1")
-			kst_tab_clienti_web.email = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email")
-			kst_tab_clienti_web.email1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email1")
-			kst_tab_clienti_web.email2 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email2")
-			kst_tab_clienti_web.email3 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email3")
-			kst_tab_clienti_web.email_prontomerce = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "email_prontomerce")
-			kst_tab_clienti_web.note = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "note")
-			kst_tab_clienti_web.sito_web = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "sito_web")
-			kst_tab_clienti_web.sito_web1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "sito_web1")
-			kst_tab_clienti_web.email_send_certif_off = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "email_send_certif_off")
-			kst_esito = kiuf_clienti.tb_update(kst_tab_clienti_web)
+		kst_tab_clienti_web.id_cliente = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "id_cliente")
+		kst_tab_clienti_web.blog_web = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "blog_web")
+		kst_tab_clienti_web.blog_web1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "blog_web1")
+		kst_tab_clienti_web.email = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email")
+		kst_tab_clienti_web.email1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email1")
+		kst_tab_clienti_web.email2 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email2")
+		kst_tab_clienti_web.email3 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "email3")
+		kst_tab_clienti_web.email_prontomerce = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "email_prontomerce")
+		kst_tab_clienti_web.note = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "note")
+		kst_tab_clienti_web.sito_web = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "sito_web")
+		kst_tab_clienti_web.sito_web1 = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "sito_web1")
+		kst_tab_clienti_web.email_send_certif_off = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "email_send_certif_off")
+		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_web)
 				
-			if kst_esito.esito = kkg_esito.ok then
-				tab_1.tabpage_3.dw_3.resetupdate( )
-			end if
-		end if
+		tab_1.tabpage_3.dw_3.resetupdate( )
 		
 	end if
 	
@@ -299,6 +298,7 @@ string k_errore = "0 ", k_errore1 = "0 ", k_nro_fatt
 long k_riga, k_seq
 date k_data
 st_esito kst_esito
+st_tab_clienti kst_tab_clienti
 st_tab_clienti_m_r_f kst_tab_clienti_m_r_f
 st_tab_memo kst_tab_memo
 kuf_memo kuf1_memo
@@ -339,21 +339,38 @@ choose case tab_1.selectedtab
 				tab_1.tabpage_2.dw_2.deleterow(k_riga)
 			end if
 		end if
-	case 4
-		k_record = " Associazione Anagrafiche "
+		
+	case 4 // Contatti
+		k_record = " Contatti "
 		k_riga = tab_1.tabpage_4.dw_4.getrow()	
 		if k_riga > 0 then
 			if tab_1.tabpage_4.dw_4.getitemstatus(k_riga, 0, primary!) <> new! and &
 				tab_1.tabpage_4.dw_4.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
-				k_key = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "clie_3")
-				k_clie_1 = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "clie_1")
-				k_clie_2 = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "clie_2")
+				k_key = tab_1.tabpage_4.dw_4.getitemnumber(k_riga, "id_cliente")
+				k_desc = tab_1.tabpage_4.dw_4.getitemstring(k_riga, "nome_contatto")
 				k_record_1 = &
-					"Sei sicuro di voler eliminare il legame con il~n~r" &
-					+ "Mandante " + trim(string(k_clie_1)) + "  e  il Ricevente " &
-					+ trim(string(k_clie_2)) + " ?"
+					"Sei sicuro di voler eliminare il Contatto " + string(k_key) &
+					+ kkg.acapo + trim(k_desc) + " ?"
 			else
 				tab_1.tabpage_4.dw_4.deleterow(k_riga)
+			end if
+		end if
+
+	case 5 // Legami
+		k_record = " Legami Anagrafiche "
+		k_riga = tab_1.tabpage_5.dw_5.getrow()	
+		if k_riga > 0 then
+			if tab_1.tabpage_5.dw_5.getitemstatus(k_riga, 0, primary!) <> new! and &
+				tab_1.tabpage_5.dw_5.getitemstatus(k_riga, 0, primary!) <> newmodified! then 
+				k_key = tab_1.tabpage_5.dw_5.getitemnumber(k_riga, "clie_3")
+				k_clie_1 = tab_1.tabpage_5.dw_5.getitemnumber(k_riga, "clie_1")
+				k_clie_2 = tab_1.tabpage_5.dw_5.getitemnumber(k_riga, "clie_2")
+				k_record_1 = &
+					"Sei sicuro di voler eliminare il legame con il " &
+					+ kkg.acapo + "Mandante " + trim(string(k_clie_1)) + "  e  il Ricevente " &
+					+ trim(string(k_clie_2)) + " ?"
+			else
+				tab_1.tabpage_5.dw_5.deleterow(k_riga)
 			end if
 		end if
 end choose	
@@ -366,71 +383,63 @@ if k_riga > 0 and k_key > 0 then
 //=== Richiesta di conferma della eliminazione del rek
 	if messagebox("Elimina" + k_record, k_record_1, &
 		question!, yesno!, 2) = 1 then
+
+		try
  
 //=== Cancella la riga dal data windows di lista
-		choose case tab_1.selectedtab 
-			case 1 
-				k_errore = kiuf_clienti.tb_delete(k_key) 
-			case 2 
-				try
+			choose case tab_1.selectedtab 
+				case 1, 4 
+					kst_tab_clienti.codice = k_key
+					kst_tab_clienti.st_tab_g_0.esegui_commit = "S"
+					kiuf_clienti_tb_xxx.tb_delete(kst_tab_clienti) 
+				case 2 
 					kuf1_memo = create kuf_memo
 					kst_tab_memo.id_memo = tab_1.tabpage_2.dw_2.getitemnumber(k_riga, "id_memo")
 					kuf1_memo.tb_delete(kst_tab_memo) 
-				catch (uo_exception kuo_exception)
-					kst_esito = kuo_exception.get_st_esito()
-					if kst_esito.esito <> kkg_esito.ok then
-						k_errore = "1"
-					end if
-				end try
-			case 4
-				kst_tab_clienti_m_r_f.clie_1 = k_clie_1
-				kst_tab_clienti_m_r_f.clie_2 = k_clie_2
-				kst_tab_clienti_m_r_f.clie_3 = k_key
-				k_errore = kiuf_clienti.tb_delete_m_r_f(kst_tab_clienti_m_r_f) 
-		end choose	
+				case 5
+					kst_tab_clienti_m_r_f.clie_1 = k_clie_1
+					kst_tab_clienti_m_r_f.clie_2 = k_clie_2
+					kst_tab_clienti_m_r_f.clie_3 = k_key
+					kiuf_clienti_tb_xxx.tb_delete_m_r_f(kst_tab_clienti_m_r_f) 
+			end choose	
+			
+		catch (uo_exception kuo_exception)
+			kst_esito = kuo_exception.get_st_esito()
+			if kst_esito.esito <> kkg_esito.ok then
+				k_errore = "1" + kuo_exception.get_errtext( )
+			end if
+		end try
+			
 		if left(k_errore, 1) = "0" then
 
-			k_errore = kGuf_data_base.db_commit()
-			if left(k_errore, 1) <> "0" then
-				k_return = 1
-				messagebox("Problemi durante la Cancellazione !!", &
-						"Controllare i dati. " + mid(k_errore, 2))
-
-			else
-				
-				choose case tab_1.selectedtab 
-					case 1 
-						tab_1.tabpage_1.dw_1.deleterow(k_riga)
-					case 2 
-						tab_1.tabpage_2.dw_2.deleterow(k_riga)
-					case 4 
-						tab_1.tabpage_4.dw_4.deleterow(k_riga)
-				end choose	
-
-			end if
-
+			kguo_sqlca_db_magazzino.db_commit()
+			
+			choose case tab_1.selectedtab 
+				case 1 
+					tab_1.tabpage_1.dw_1.deleterow(k_riga)
+				case 2 
+					tab_1.tabpage_2.dw_2.deleterow(k_riga)
+				case 4 
+					tab_1.tabpage_4.dw_4.deleterow(k_riga)
+				case 5 
+					tab_1.tabpage_5.dw_5.deleterow(k_riga)
+			end choose	
+			
+			attiva_tasti()
+			
 		else
 			k_return = 1
-			k_errore1 = k_errore
-			k_errore = kGuf_data_base.db_rollback()
 
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							mid(k_errore1, 2) ) 	
-			if left(k_errore, 1) <> "0" then
-				messagebox("Problemi durante il recupero dell'errore !!", &
-					"Controllare i dati. " + mid(k_errore, 2))
-			end if
+			kguo_sqlca_db_magazzino.db_rollback()
 
-			attiva_tasti()
+			messagebox("Cancellazione in errore", mid(k_errore, 2) ) 	
 
 		end if
-
 
 	else
 		messagebox("Elimina" + k_record,  "Operazione Annullata !!")
 		k_return = 2
 	end if
-
 
 end if
 
@@ -448,6 +457,10 @@ choose case tab_1.selectedtab
 		tab_1.tabpage_4.dw_4.setfocus()
 		tab_1.tabpage_4.dw_4.setcolumn(1)
 		tab_1.tabpage_4.dw_4.ResetUpdate ( ) 
+	case 5
+		tab_1.tabpage_5.dw_5.setfocus()
+		tab_1.tabpage_5.dw_5.setcolumn(1)
+		tab_1.tabpage_5.dw_5.ResetUpdate ( ) 
 end choose	
 
 
@@ -764,83 +777,42 @@ return "0"
 
 end function
 
-protected subroutine inizializza_3 () throws uo_exception;////======================================================================
+protected subroutine inizializza_3 () throws uo_exception;//======================================================================
 //=== Inizializzazione del TAB 4 controllandone i valori se gia' presenti
 //======================================================================
 //
-long k_codice, k_codice_4, k_rc
-string k_scelta, k_codice_prec
-int k_ctr=0
-datawindowchild kdwc_clienti_1, kdwc_clienti_2, kdwc_gru
-kuf_utility kuf1_utility
+long k_codice
 
 
 ki_selectedtab = 4
 
-k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-k_scelta = trim(ki_st_open_w.flag_modalita)
-
+if tab_1.tabpage_1.dw_1.rowcount() > 0 then
+	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+end if
 
 if k_codice = 0 then
 	tab_1.tabpage_4.dw_4.reset()
+
 else
 
+	if tab_1.tabpage_4.dw_4.rowcount() = 0 and trim(string(k_codice)) <> trim(tab_1.tabpage_4.st_4_retrieve.Text) then
 
-	//--- Acchiappo il codice CLIENTE x evitare la rilettura
-	if IsNumber(tab_1.tabpage_4.st_4_retrieve.Text) then
-		k_codice_4 = long(tab_1.tabpage_4.st_4_retrieve.Text)
-	else
-		k_codice_4 = 0
-	end if
-	//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
-	tab_1.tabpage_4.st_4_retrieve.Text=string(k_codice, "####0")
-	
-	
-	if tab_1.tabpage_4.dw_4.rowcount() = 0  and k_codice_4 <> k_codice then
-
-//--- Attivo dw archivio Clienti Mandanti
-		k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_clienti_1)
-		k_rc = kdwc_clienti_1.settransobject(sqlca)
-		if kdwc_clienti_1.rowcount() = 0 then
-			kdwc_clienti_1.insertrow(1)
-		end if
-	
-//--- Attivo dw archivio Clienti Riceventi
-		k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_clienti_2)
-		k_rc = kdwc_clienti_2.settransobject(sqlca)
-		if kdwc_clienti_2.rowcount() = 0 then
-			kdwc_clienti_2.insertrow(1)
-		end if
-	
-//--- Attivo dw archivio GRUPPI
-		k_rc = tab_1.tabpage_4.dw_4.getchild("gru", kdwc_gru)
-		k_rc = kdwc_gru.settransobject(sqlca)
-		if kdwc_gru.rowcount() = 0 then
-			kdwc_gru.insertrow(1)
+		if tab_1.tabpage_4.dw_4.retrieve(k_codice) < 0 then
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.set_st_esito_err_dw(tab_1.tabpage_4.dw_4, &
+							"Errore in lettura Contatti collegati all'anagrafica id " + string(k_codice))
+			throw kguo_exception
 		end if
 			
 	end if
-	
-//--- salvo i parametri cosi come sono stati immessi
-	k_codice_prec = tab_1.tabpage_4.st_4_retrieve.text
-	kuf1_utility = create kuf_utility
-	tab_1.tabpage_4.st_4_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-	
-	if tab_1.tabpage_4.st_4_retrieve.text <> k_codice_prec then
 
-      	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_4.dw_4)
-	
-		if tab_1.tabpage_4.dw_4.retrieve(k_codice)  < 1 then
-			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
-				inserisci()
-			end if
-		end if
-	end if
-	
-	attiva_tasti()
-
-		
 end if
+
+	
+tab_1.tabpage_4.st_4_retrieve.Text=trim(string(k_codice)) // per le prossime richieste
+	
+attiva_tasti()
+
 
 
 
@@ -857,6 +829,7 @@ long k_codice, k_nro_commessa, k_riga, k_id_cliente, k_id_protocollo
 //datawindowchild kdwc_cliente, kdwc_cliente_1, kdwc_cliente_2 
 st_tab_clienti_memo kst_tab_clienti_memo
 st_memo kst_memo
+st_tab_clienti kst_tab_clienti
 kuf_base kuf1_base
 kuf_memo kuf1_memo
 kuf_memo_inout kuf1_memo_inout
@@ -881,7 +854,6 @@ if left(k_errore, 1) = "0" then
 
 
 //=== Aggiunge una riga al data windows
-//	choose case tab_1.selectedtab 
 	choose case tab_1.selectedtab
 
 		case  1 
@@ -890,11 +862,13 @@ if left(k_errore, 1) = "0" then
 			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 			
 				tab_1.tabpage_2.enabled = false
+				tab_1.tabpage_3.enabled = false
 				tab_1.tabpage_4.enabled = false
 				tab_1.tabpage_5.enabled = false
 				tab_1.tabpage_6.enabled = false
 				tab_1.tabpage_7.enabled = false
 				tab_1.tabpage_2.dw_2.reset ()
+				tab_1.tabpage_3.dw_3.reset ()
 				tab_1.tabpage_4.dw_4.reset ()
 				tab_1.tabpage_5.dw_5.reset ()
 				tab_1.tabpage_6.dw_6.reset ()
@@ -948,21 +922,25 @@ if left(k_errore, 1) = "0" then
 			tab_1.tabpage_3.dw_3.SetItemStatus( 1, 0, Primary!, NotModified!)
 
 		
-		case 4 // 
+		case 4 // Contatti
+			call_contatto(kst_tab_clienti, kkg_flag_modalita.inserimento)
+
+		
+		case 5 // Legami
 			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
 	
 //=== Riempe indirizzo di Spedizione da DW_1
 			if k_codice > 0 then
-				k_riga = tab_1.tabpage_4.dw_4.insertrow(0)
+				k_riga = tab_1.tabpage_5.dw_5.insertrow(0)
 
 			   	kuf1_utility = create kuf_utility 
-		      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_4.dw_4)  //--- Abilita campi alla modifica 
+		      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_5.dw_5)  //--- Abilita campi alla modifica 
 	
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_3", k_codice)
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_3", k_codice)
 	
-				tab_1.tabpage_4.dw_4.setcolumn("clie_1")
-				tab_1.tabpage_4.dw_4.scrolltorow(k_riga)
-				tab_1.tabpage_4.dw_4.setrow(k_riga)
+				tab_1.tabpage_5.dw_5.setcolumn("clie_1")
+				tab_1.tabpage_5.dw_5.scrolltorow(k_riga)
+				tab_1.tabpage_5.dw_5.setrow(k_riga)
 
 			end if
 		
@@ -1119,6 +1097,9 @@ end subroutine
 
 protected subroutine open_start_window ();//
 	kiuf_clienti = create kuf_clienti
+	kiuf_clienti_tb_xxx = create kuf_clienti_tb_xxx
+	kiuf_contatti = create kuf_contatti
+	
 //	this.tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\" + "cliente.gif"
 //	this.tab_1.tabpage_3.picturename = kGuo_path.get_risorse() + "\" + "torta.gif"
 //	this.tab_1.tabpage_6.picturename = kGuo_path.get_risorse() + "\" + "stat_1.gif"
@@ -1141,8 +1122,8 @@ protected subroutine open_start_window ();//
 	
 end subroutine
 
-protected subroutine inizializza_4 () throws uo_exception;////======================================================================
-//=== Inizializzazione del TAB 5 controllandone i valori se gia' presenti
+protected subroutine inizializza_5 () throws uo_exception;////======================================================================
+//=== Inizializzazione del TAB 6 controllandone i valori se gia' presenti
 //======================================================================
 //
 long k_codice, k_id_cliente
@@ -1171,15 +1152,15 @@ destroy kuf1_sicurezza
 
 if not k_return then
 
-	tab_1.tabpage_5.dw_5.dataobject = "d_funz_no_aut"
-	tab_1.tabpage_5.dw_5.insertrow(0)
-	tab_1.tabpage_5.dw_5.object.funzione[1] = trim(kst_open_w.id_programma) + "  (" + kst_open_w.flag_modalita + ") "
+	tab_1.tabpage_6.dw_6.dataobject = "d_funz_no_aut"
+	tab_1.tabpage_6.dw_6.insertrow(0)
+	tab_1.tabpage_6.dw_6.object.funzione[1] = trim(kst_open_w.id_programma) + "  (" + kst_open_w.flag_modalita + ") "
 
 else
 
-	if tab_1.tabpage_5.dw_5.dataobject <> "d_clienti_listino_l" then
-		tab_1.tabpage_5.dw_5.dataobject = "d_clienti_listino_l" 
-		tab_1.tabpage_5.dw_5.settransobject( sqlca)
+	if tab_1.tabpage_6.dw_6.dataobject <> "d_clienti_listino_l" then
+		tab_1.tabpage_6.dw_6.dataobject = "d_clienti_listino_l" 
+		tab_1.tabpage_6.dw_6.settransobject( sqlca)
 	end if
 
 	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
@@ -1192,15 +1173,15 @@ else
 	end if
 
 //--- salvo i parametri cosi come sono stati immessi
-	k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
+	k_codice_prec = tab_1.tabpage_6.st_6_retrieve.text
 	kuf1_utility = create kuf_utility
-	tab_1.tabpage_5.st_5_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	tab_1.tabpage_6.st_6_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	destroy kuf1_utility
 	
-	if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
+	if tab_1.tabpage_6.st_6_retrieve.text <> k_codice_prec then
 
 //=== Parametri : cliente, articolo, sl-pt
-		tab_1.tabpage_5.dw_5.retrieve(k_codice, date(0), 0, '')
+		tab_1.tabpage_6.dw_6.retrieve(k_codice, date(0), 0, '')
 
 	end if
 	
@@ -1208,66 +1189,8 @@ else
 	
 end if
 
-tab_1.tabpage_5.dw_5.setfocus()
+tab_1.tabpage_6.dw_6.setfocus()
 	
-
-end subroutine
-
-protected subroutine inizializza_5 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 6 controllandone i valori se gia' presenti
-//======================================================================
-//
-long k_codice, k_codice_3
-string k_scelta, k_estrazione, k_codice_prec
-date k_data_int
-kuf_base kuf1_base 
-//kuf_utility kuf1_utility
-
-
-
-	ki_selectedtab = 6
-	
-	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-	k_scelta = trim(ki_st_open_w.flag_modalita)
-	k_data_int = dw_periodo.get_data_ini( ) // ki_data_ini   // date(year(kg_dataoggi) - 1 , 01, 01) //RelativeDate(today(), -365)
-	
-//--- Acchiappo il codice CLIENTE x evitare la rilettura
-//	if IsNumber(tab_1.tabpage_6.dw_6.Object.k_codice.Text) then
-//		k_codice_3 = long(tab_1.tabpage_6.dw_6.Object.k_codice.Text)
-//	else
-//		k_codice_3 = 0
-//	end if
-	
-//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
-//	tab_1.tabpage_6.dw_6.Object.k_codice.Text=string(k_codice) + string(ki_data_ini) + string(ki_data_fin)
-
-//=== Se nr.cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
-	if k_codice = 0 then
-		inserisci()
-		k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-	end if
-
-//--- salvo i parametri cosi come sono stati immessi x evitare la rilettura
-	k_codice_prec = tab_1.tabpage_6.st_6_retrieve.text
-	tab_1.tabpage_6.st_6_retrieve.text = string(k_codice) + string( dw_periodo.get_data_ini( )) + string( dw_periodo.get_data_fin( ))
-	
-	if tab_1.tabpage_6.st_6_retrieve.text = k_codice_prec then
-	else
-
-		kuf1_base = create kuf_base 
-//--- reperisce l'ultima estremi estrazione	
-		k_estrazione = mid(kuf1_base.prendi_dato_base("descr_ultima_estrazione_statistici"),2)
-		destroy kuf1_base 
-		tab_1.tabpage_6.dw_6.object.t_estrazione.text = trim(k_estrazione)
-	
-		tab_1.tabpage_6.dw_6.retrieve(k_codice, k_data_int,  dw_periodo.get_data_fin( ))
-
-
-	end if
-	
-	attiva_tasti()
-
-
 
 end subroutine
 
@@ -1572,87 +1495,65 @@ boolean k_insert = true
 	super::attiva_menu()
 
 	if ki_tab_1_index_new = 2 then
-		m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina MEMO"
 	else
-		m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina"
 	end if
 
-//--- sul TAB dati ACO
-	if ki_tab_1_index_new = 8 then
-		if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
-			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica dati ACO"
-			m_main.m_finestra.m_gestione.m_fin_modifica.visible = true
-			m_main.m_finestra.m_gestione.m_fin_modifica.enabled = ki_modDatiACO
-		else
+	choose case ki_tab_1_index_new
+		case 2 // MEMO
+			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica Memo"
+			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina Memo"
+		case 4 // Contatti
+			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica Contatto"
+			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina Contatto"
+		case 6 // Listino
+			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica Listino"
+		case 8 // dati ACO
+			if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
+				m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica dati ACO"
+				m_main.m_finestra.m_gestione.m_fin_modifica.visible = true
+				m_main.m_finestra.m_gestione.m_fin_modifica.enabled = ki_modDatiACO
+			else
+				m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica dati"
+				m_main.m_finestra.m_gestione.m_fin_modifica.visible = false
+				m_main.m_finestra.m_gestione.m_fin_modifica.enabled = false
+			end if
+		case else
+			m_main.m_finestra.m_gestione.m_fin_elimina.text = "Elimina"
 			m_main.m_finestra.m_gestione.m_fin_modifica.toolbaritemtext = "Mod.,Modifica dati"
-			m_main.m_finestra.m_gestione.m_fin_modifica.visible = false
-			m_main.m_finestra.m_gestione.m_fin_modifica.enabled = false
-		end if
-	else
-		m_main.m_finestra.m_gestione.m_fin_modifica.visible = false
-		m_main.m_finestra.m_gestione.m_fin_modifica.enabled = false
-	end if
+	end choose
 
 end subroutine
 
 protected subroutine inizializza_6 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 6 controllandone i valori se gia' presenti
+//=== Inizializzazione del TAB 7 controllandone i valori se gia' presenti
 //======================================================================
 //
 long k_codice, k_codice_3
 string k_scelta, k_estrazione, k_codice_prec
 date k_data_int
 kuf_base kuf1_base 
-
-boolean k_sicurezza
-kuf_fatt kuf1_fatt
-//st_open_w kst_open_w
+//kuf_utility kuf1_utility
 
 
 
-
-ki_selectedtab = 7
-
-k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-k_scelta = trim(ki_st_open_w.flag_modalita)
-k_data_int =  dw_periodo.get_data_ini( ) //ki_data_ini // date(year(kg_dataoggi) - 1 , 01, 01) //RelativeDate(today(), -365)
-
-////--- Acchiappo il codice CLIENTE x evitare la rilettura
-//if IsNumber(tab_1.tabpage_7.dw_7.tag) then
-//	k_codice_3 = long(tab_1.tabpage_7.dw_7.tag)
-//else
-//	k_codice_3 = 0
-//end if
-////=== Forza valore Codice cliente per ricordarlo per le prossime richieste
-//tab_1.tabpage_7.dw_7.tag =string(k_codice, "####0")
+	ki_selectedtab = 6
+	
+	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+	k_scelta = trim(ki_st_open_w.flag_modalita)
+	k_data_int = dw_periodo.get_data_ini( ) // ki_data_ini   // date(year(kg_dataoggi) - 1 , 01, 01) //RelativeDate(today(), -365)
+	
+//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
+//	tab_1.tabpage_7.dw_7.Object.k_codice.Text=string(k_codice) + string(ki_data_ini) + string(ki_data_fin)
 
 //=== Se nr.cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
-if k_codice = 0 then
-	inserisci()
-	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-end if
-
-
-kuf1_fatt = create kuf_fatt
-k_sicurezza = kuf1_fatt.if_sicurezza(kkg_flag_modalita.elenco)
-
-if not k_sicurezza then
-
-	tab_1.tabpage_7.dw_7.dataobject = "d_funz_no_aut"
-	tab_1.tabpage_7.dw_7.insertrow(0)
-	tab_1.tabpage_7.dw_7.object.funzione[1] = trim(kuf1_fatt.get_id_programma(kkg_flag_modalita.elenco)) + "  (" + kkg_flag_modalita.elenco + ") "
-
-else
-
-	if tab_1.tabpage_7.dw_7.dataobject <> "d_clienti_mov_no_meca" then
-		tab_1.tabpage_7.dw_7.dataobject = "d_clienti_mov_no_meca" 
-		tab_1.tabpage_7.dw_7.settransobject( sqlca)
+	if k_codice = 0 then
+		inserisci()
+		k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
 	end if
 
-	
 //--- salvo i parametri cosi come sono stati immessi x evitare la rilettura
-	k_codice_prec = tab_1.tabpage_6.st_6_retrieve.text
-	tab_1.tabpage_6.st_6_retrieve.text = string(k_codice) + string( dw_periodo.get_data_ini( )) + string( dw_periodo.get_data_fin( )) + tab_1.tabpage_7.dw_7.dataobject
+	k_codice_prec = tab_1.tabpage_7.st_7_retrieve.text
+	tab_1.tabpage_7.st_7_retrieve.text = string(k_codice) + string( dw_periodo.get_data_ini( )) + string( dw_periodo.get_data_fin( ))
 	
 	if tab_1.tabpage_7.st_7_retrieve.text = k_codice_prec then
 	else
@@ -1663,12 +1564,12 @@ else
 		destroy kuf1_base 
 		tab_1.tabpage_7.dw_7.object.t_estrazione.text = trim(k_estrazione)
 	
-		tab_1.tabpage_7.dw_7.retrieve(k_codice, dw_periodo.get_data_ini( ),  dw_periodo.get_data_fin( ))
+		tab_1.tabpage_7.dw_7.retrieve(k_codice, k_data_int,  dw_periodo.get_data_fin( ))
+
 
 	end if
-
+	
 	attiva_tasti()
-end if
 
 
 
@@ -1928,44 +1829,6 @@ tab_1.tabpage_3.dw_3.setitem( 1, "id_contatto_" + string(k_nr_contatto) , kst_ta
 
 end subroutine
 
-private subroutine call_anagrafica_nuovo ();//
-st_open_w k_st_open_w
-//kuf_menu_window kuf1_menu_window
-
-
-
-
-//
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key=vedi sotto
-
-		K_st_open_w.id_programma = kkg_id_programma.anag_rid
-		K_st_open_w.flag_primo_giro = "S"
-		K_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
-		K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-		K_st_open_w.flag_leggi_dw = " "
-		K_st_open_w.flag_cerca_in_lista = "0" //"1" 
-		K_st_open_w.key1 = " "
-		K_st_open_w.key2 = kiuf_clienti.kki_tipo_contatto
-		K_st_open_w.key3 = ki_id_contatto_numero
-		K_st_open_w.key4 = ""
-		K_st_open_w.key5 = " " 
-		K_st_open_w.key6 = " " 
-		K_st_open_w.flag_where = " "
-		K_st_open_w.key12_any = kidw_selezionata
-		
-		//kuf1_menu_window = create kuf_menu_window 
-		kGuf_menu_window.open_w_tabelle(k_st_open_w)
-		//destroy kuf1_menu_window
-								
-
-
-end subroutine
-
 public subroutine popola_dwc_3 ();
 //--- popola le dwc del TAB 3
 
@@ -2061,47 +1924,6 @@ datawindowchild kdwc_c_link, kdwc_contatti1,  kdwc_contatti2,  kdwc_contatti3,  
 
 end subroutine
 
-private subroutine call_anagrafica_modifica (st_tab_clienti kst_tab_clienti);//
-st_open_w k_st_open_w
-//kuf_menu_window kuf1_menu_window
-
-
-
-
-//
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key=vedi sotto
-
-	K_st_open_w.id_programma = kkg_id_programma_anag_rid
-	K_st_open_w.flag_primo_giro = "S"
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-		K_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-	else
-		K_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-	end if
-	K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-	K_st_open_w.flag_leggi_dw = " "
-	K_st_open_w.flag_cerca_in_lista = "0" //"1" 
-	K_st_open_w.key1 = string(kst_tab_clienti.codice)
-	K_st_open_w.key2 = " "
-	K_st_open_w.key3 = " "
-	K_st_open_w.key4 = " " 
-	K_st_open_w.key5 = " " 
-	K_st_open_w.key6 = " " 
-	K_st_open_w.flag_where = " "
-	
-	//kuf1_menu_window = create kuf_menu_window 
-	kGuf_menu_window.open_w_tabelle(k_st_open_w)
-	//destroy kuf1_menu_window
-							
-
-
-end subroutine
-
 private subroutine put_video_mkt_gruppo (st_tab_gru kst_tab_gru);//
 //--- Visualizza dati Cliente il Codice Gruppo su mappa MKT 
 //
@@ -2111,112 +1933,6 @@ private subroutine put_video_mkt_gruppo (st_tab_gru kst_tab_gru);//
 tab_1.tabpage_3.dw_3.modify( "gruppo.Background.Color = '" + string(kkg_colore.BIANCO) + "' " ) 
 tab_1.tabpage_3.dw_3.setitem( 1, "gru_des", kst_tab_gru.des )
 tab_1.tabpage_3.dw_3.setitem( 1, "gruppo" , kst_tab_gru.codice )
-
-end subroutine
-
-public subroutine check_mappa_dw4 (string k_campo, long k_riga, string k_valore);//---
-//--- Controlla la Mappa del DW4
-//---
-
-string k_rag_soc, k_codice
-long k_rc
-datawindowchild kdwc_cli
-
-
-choose case upper(k_campo)
-
-	case "CLIENTI_RAG_SOC_1" 
-
-		k_rag_soc = Trim(k_valore)
-		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
-			
-			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_cli)
-			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
-			if k_rc <= 0 or isnull(k_rc) then
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_1", k_rag_soc+" - NON TROVATO -")
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_1", 0)
-			else
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_1", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
-			end if
-			
-		end if
-
-	
-	case "CLIENTI_RAG_SOC_2" 
-	
-		k_rag_soc = Trim(k_valore)
-		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
-			
-			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_cli)
-			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
-			if k_rc <= 0 or isnull(k_rc) then
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_2", " - NON TROVATO -")
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_2", 0)
-			else
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_2", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
-			end if
-			
-		end if
-	
-		
-	case "CLIE_1" 
-	
-		if isnumber(Trim(k_valore)) then
-			k_codice = Trim(k_valore)
-		else
-			k_codice = "0"
-		end if
-		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
-			
-			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_cli)
-			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
-			if k_rc <= 0 or isnull(k_rc) then
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_1", " - NON TROVATO -")
-//				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_1", 0)
-			else
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_1", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
-			end if
-			
-		end if
-		
-	case "CLIE_2" 
-	
-		if isnumber(Trim(k_valore)) then
-			k_codice = Trim(k_valore)
-		else
-			k_codice = "0"
-		end if
-		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
-			
-			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_cli)
-			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
-			if k_rc <= 0 or isnull(k_rc) then
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_2", k_rag_soc+" - NON TROVATO -")
-//				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_2", 0)
-			else
-//				k_return = 2
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
-				tab_1.tabpage_4.dw_4.setitem(k_riga, "clie_2", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
-			end if
-			
-		end if
-
-end choose
-
-
-
-
-
 
 end subroutine
 
@@ -2235,6 +1951,8 @@ st_memo kst_memo
 datastore kds_1
 //kuf_menu_window kuf1_menu_window
 kuf_memo kuf1_memo
+st_tab_clienti kst_tab_clienti
+
 
 try
 
@@ -2255,10 +1973,17 @@ try
 					kuf1_memo.u_attiva_funzione(kst_memo, kkg_flag_modalita.visualizzazione )
 				end if
 			end if
-		
+	
+		case 4  // Contatto
+			if tab_1.tabpage_4.dw_4.rowcount() > 0 then
+				if tab_1.tabpage_4.dw_4.getrow() > 0 then
+					kst_tab_clienti.codice = tab_1.tabpage_4.dw_4.getitemnumber(&
+													tab_1.tabpage_4.dw_4.getrow(), "id_cliente")
+					call_contatto(kst_tab_clienti, kkg_flag_modalita.visualizzazione)
+				end if
+			end if
 		
 		case 5 // listino
-
 			if tab_1.tabpage_5.dw_5.getrow( ) > 0 then
 				
 		//--- call della window che esegue la funzione
@@ -2483,10 +2208,6 @@ protected subroutine attiva_tasti_0 ();//
 
 super::attiva_tasti_0()
 
-//tab_1.tabpage_2.enabled = false
-//tab_1.tabpage_3.enabled = false
-//tab_1.tabpage_4.enabled = false
-
 ki_sincronizza_window_ok = false 
 ki_sincronizza_window_consenti = false
 
@@ -2529,8 +2250,9 @@ if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				cb_visualizza.enabled = true
 				cb_cancella.enabled = true
 			end if
-		case 4
+		case 4  // Contatti
 			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento then
+			  	cb_visualizza.enabled = true
 				cb_modifica.enabled = true
 				cb_inserisci.enabled = true
 				cb_aggiorna.enabled = true
@@ -3216,6 +2938,216 @@ end if
 
 end subroutine
 
+public subroutine check_mappa_dw5 (string k_campo, long k_riga, string k_valore);//---
+//--- Controlla la Mappa del DW4
+//---
+
+string k_rag_soc, k_codice
+long k_rc
+datawindowchild kdwc_cli
+
+
+choose case upper(k_campo)
+
+	case "CLIENTI_RAG_SOC_1" 
+
+		k_rag_soc = Trim(k_valore)
+		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
+			
+			k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_1", kdwc_cli)
+			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
+			if k_rc <= 0 or isnull(k_rc) then
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_1", k_rag_soc+" - NON TROVATO -")
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_1", 0)
+			else
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_1", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
+			end if
+			
+		end if
+
+	
+	case "CLIENTI_RAG_SOC_2" 
+	
+		k_rag_soc = Trim(k_valore)
+		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
+			
+			k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_2", kdwc_cli)
+			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
+			if k_rc <= 0 or isnull(k_rc) then
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_2", " - NON TROVATO -")
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_2", 0)
+			else
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_2", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
+			end if
+			
+		end if
+	
+		
+	case "CLIE_1" 
+	
+		if isnumber(Trim(k_valore)) then
+			k_codice = Trim(k_valore)
+		else
+			k_codice = "0"
+		end if
+		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
+			
+			k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_1", kdwc_cli)
+			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
+			if k_rc <= 0 or isnull(k_rc) then
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_1", " - NON TROVATO -")
+//				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_1", 0)
+			else
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_1", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
+			end if
+			
+		end if
+		
+	case "CLIE_2" 
+	
+		if isnumber(Trim(k_valore)) then
+			k_codice = Trim(k_valore)
+		else
+			k_codice = "0"
+		end if
+		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
+			
+			k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_2", kdwc_cli)
+			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
+			if k_rc <= 0 or isnull(k_rc) then
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_2", k_rag_soc+" - NON TROVATO -")
+//				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_2", 0)
+			else
+//				k_return = 2
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_rc, "rag_soc_1"))
+				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_2", kdwc_cli.getitemnumber(k_rc, "id_cliente"))
+			end if
+			
+		end if
+
+end choose
+
+
+
+
+
+
+end subroutine
+
+protected subroutine inizializza_4 () throws uo_exception;////======================================================================
+//=== Inizializzazione del TAB 4 controllandone i valori se gia' presenti
+//======================================================================
+//
+long k_codice, k_codice_5, k_rc
+string k_scelta, k_codice_prec
+int k_ctr=0
+datawindowchild kdwc_clienti_1, kdwc_clienti_2, kdwc_gru
+kuf_utility kuf1_utility
+
+
+ki_selectedtab = 4
+
+k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+k_scelta = trim(ki_st_open_w.flag_modalita)
+
+
+if k_codice = 0 then
+	tab_1.tabpage_5.dw_5.reset()
+else
+
+
+	//--- Acchiappo il codice CLIENTE x evitare la rilettura
+	if IsNumber(tab_1.tabpage_5.st_5_retrieve.Text) then
+		k_codice_5 = long(tab_1.tabpage_5.st_5_retrieve.Text)
+	else
+		k_codice_5 = 0
+	end if
+	//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
+	tab_1.tabpage_5.st_5_retrieve.Text=string(k_codice, "####0")
+	
+	
+	if tab_1.tabpage_5.dw_5.rowcount() = 0  and k_codice_5 <> k_codice then
+
+//--- Attivo dw archivio Clienti Mandanti
+		k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_1", kdwc_clienti_1)
+		k_rc = kdwc_clienti_1.settransobject(sqlca)
+		if kdwc_clienti_1.rowcount() = 0 then
+			kdwc_clienti_1.insertrow(1)
+		end if
+	
+//--- Attivo dw archivio Clienti Riceventi
+		k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_2", kdwc_clienti_2)
+		k_rc = kdwc_clienti_2.settransobject(sqlca)
+		if kdwc_clienti_2.rowcount() = 0 then
+			kdwc_clienti_2.insertrow(1)
+		end if
+	
+//--- Attivo dw archivio GRUPPI
+		k_rc = tab_1.tabpage_5.dw_5.getchild("gru", kdwc_gru)
+		k_rc = kdwc_gru.settransobject(sqlca)
+		if kdwc_gru.rowcount() = 0 then
+			kdwc_gru.insertrow(1)
+		end if
+			
+	end if
+	
+//--- salvo i parametri cosi come sono stati immessi
+	k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
+	kuf1_utility = create kuf_utility
+	tab_1.tabpage_5.st_5_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	
+	if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
+
+      	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+	
+		if tab_1.tabpage_5.dw_5.retrieve(k_codice)  < 1 then
+			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
+				inserisci()
+			end if
+		end if
+	end if
+	
+	attiva_tasti()
+
+		
+end if
+
+
+
+	
+
+
+end subroutine
+
+private subroutine call_contatto (st_tab_clienti ast_tab_clienti, string a_flag_modalita);//
+st_open_w kst_open_w
+
+
+	kst_open_w.flag_modalita = a_flag_modalita
+	kst_open_w.key1 = string(ast_tab_clienti.codice)
+	kst_open_w.key2 = kiuf_clienti.kki_tipo_contatto
+	kst_open_w.key3 = ki_id_contatto_numero
+	kst_open_w.key3 = ""
+	kst_open_w.key4 = ""
+	kst_open_w.key5 = "" 
+	kst_open_w.key6 = "" 
+	kst_open_w.flag_where = " "
+	kst_open_w.key12_any = tab_1.tabpage_1.dw_1
+
+	kiuf_contatti.u_open(kst_open_w)
+
+end subroutine
+
 on w_clienti.create
 int iCurrent
 call super::create
@@ -3232,6 +3164,9 @@ end on
 
 event close;call super::close;// 
 if isvalid(kiuf_clienti) then destroy kiuf_clienti
+if isvalid(kiuf_clienti_tb_xxx) then destroy kiuf_clienti_tb_xxx
+if isvalid(kiuf_contatti) then destroy kiuf_contatti 
+
 if isvalid(kdsi_elenco_input) then destroy kdsi_elenco_input 
 
 
@@ -3392,6 +3327,7 @@ datastore kds_1
 //kuf_menu_window kuf1_menu_window
 kuf_utility kuf1_utility
 kuf_memo kuf1_memo
+st_tab_clienti kst_tab_clienti
 
 try
 			
@@ -3415,14 +3351,19 @@ try
 	
 		case 4
 			if tab_1.tabpage_4.dw_4.rowcount() > 0 then
-			   	kuf1_utility = create kuf_utility 
-//--- S-protezione campi per riabilitare la modifica a parte la chiave
-		  		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_4.dw_4)
-				destroy kuf1_utility
-				k_riga = tab_1.tabpage_4.dw_4.getrow()
-				tab_1.tabpage_4.dw_4.setcolumn("clie_1")
-				tab_1.tabpage_4.dw_4.scrolltorow(k_riga)
-				tab_1.tabpage_4.dw_4.setrow(k_riga)
+//			   	kuf1_utility = create kuf_utility 
+////--- S-protezione campi per riabilitare la modifica a parte la chiave
+//		  		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_4.dw_4)
+//				destroy kuf1_utility
+//				k_riga = tab_1.tabpage_4.dw_4.getrow()
+//				tab_1.tabpage_4.dw_4.setcolumn("clie_1")
+//				tab_1.tabpage_4.dw_4.scrolltorow(k_riga)
+//				tab_1.tabpage_4.dw_4.setrow(k_riga)
+				if tab_1.tabpage_4.dw_4.getrow() > 0 then
+					kst_tab_clienti.codice = tab_1.tabpage_4.dw_4.getitemnumber(&
+													tab_1.tabpage_4.dw_4.getrow(), "id_cliente")
+					call_contatto(kst_tab_clienti, kkg_flag_modalita.modifica)
+				end if
 			else
 				inserisci() 
 			end if
@@ -3476,6 +3417,9 @@ fontcharset fontcharset = ansi!
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_clienti
+integer x = 0
+integer y = 0
+integer width = 2999
 end type
 
 on tab_1.create
@@ -3508,6 +3452,7 @@ end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 integer y = 176
+integer width = 2962
 integer height = 952
 string text = " Anagrafica"
 string picturename = "cliente.gif"
@@ -3801,6 +3746,7 @@ end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 integer y = 176
+integer width = 2962
 integer height = 952
 string text = " memo"
 string picturename = "Copy!"
@@ -3833,6 +3779,7 @@ end type
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
 integer y = 176
+integer width = 2962
 integer height = 952
 boolean enabled = true
 string text = " Marketing~r~n & Web"
@@ -3937,43 +3884,6 @@ post attiva_tasti()
 
 end event
 
-event dw_3::buttonclicked;call super::buttonclicked;//
-st_tab_clienti kst_tab_clienti
-
-if left(dwo.name,14) = "b_contatto_new" or dwo.name = "b_link_nuovo" then
-	
-	choose case dwo.name 
-		case "b_link_nuovo"
-			ki_id_contatto_numero = "1"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_1")
-		case "b_contatto_new_1"
-			ki_id_contatto_numero = "1"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_1")
-		case "b_contatto_new_2"
-			ki_id_contatto_numero = "2"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_2")
-		case "b_contatto_new_3"
-			ki_id_contatto_numero = "3"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_3")
-		case "b_contatto_new_4"
-			ki_id_contatto_numero = "4"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_4")
-		case "b_contatto_new_5"
-			ki_id_contatto_numero = "5"
-			kst_tab_clienti.codice = this.getitemnumber( row, "id_contatto_5")
-	end choose
-
-	if kst_tab_clienti.codice > 0 then
-		ki_id_contatto_numero = ""
-		call_anagrafica_modifica(kst_tab_clienti)
-	else
-		call_anagrafica_nuovo ()
-	end if
-	
-end if
-
-end event
-
 event dw_3::getfocus;call super::getfocus;//
 
 	if ki_id_contatto_numero	> " " & 
@@ -3989,130 +3899,55 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
 integer y = 176
+integer width = 2962
+integer height = 952
+boolean enabled = true
+long backcolor = 32435950
+string text = " Contatti"
+long tabbackcolor = 32435950
+string picturename = "clienti16.gif"
+end type
+
+type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+integer x = 14
+integer y = 28
+integer width = 1961
+boolean enabled = true
+string dataobject = "d_contatti_l_x_cliente"
+end type
+
+type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
+end type
+
+type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+boolean visible = true
+integer y = 176
+integer width = 2962
 integer height = 952
 boolean enabled = true
 long backcolor = 32435950
 string text = " Mandanti~r~n & Riceventi"
-long tabbackcolor = 32435950
-string picturename = "Deploy!"
+string picturename = "FormatDollar!"
+long picturemaskcolor = 553648127
+string powertiptext = "Elenco dei legami dell~'anagrafica"
 end type
 
-type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+type dw_5 from w_g_tab_3`dw_5 within tabpage_5
+integer x = 59
+integer y = 76
+integer width = 2153
+integer height = 1296
 boolean enabled = true
 string dataobject = "d_m_r_f_l"
 end type
 
-event dw_4::itemchanged;call super::itemchanged;//
-post check_mappa_dw4 (dwo.name, row, data)
-
-//string k_rag_soc, k_codice
-//long k_rc, k_riga=0
-//integer k_return=0
-//datawindowchild kdwc_cli
-//
-//
-//choose case upper(dwo.name)
-//
-//	case "CLIENTI_RAG_SOC_1" 
-//
-//		k_rag_soc = RightTrim(data)
-//		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
-//			
-//			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_cli)
-//			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
-//			k_riga = k_rc
-//			if k_riga <= 0 or isnull(k_riga) then
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_1", k_rag_soc+" - NON TROVATO -")
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_1", 0)
-//			else
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_riga, "rag_soc_1"))
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_1", kdwc_cli.getitemnumber(k_riga, "id_cliente"))
-//			end if
-//			
-//		end if
-//
-//	
-//	case "CLIENTI_RAG_SOC_2" 
-//	
-//		k_rag_soc = RightTrim(data)
-//		if isnull(k_rag_soc) = false and len(trim(k_rag_soc)) > 0 then
-//			
-//			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_cli)
-//			k_rc = kdwc_cli.find("rag_soc_1 like ~""+k_rag_soc+"%~"",0,kdwc_cli.rowcount())
-//			k_riga = k_rc
-//			if k_riga <= 0 or isnull(k_riga) then
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_2", " - NON TROVATO -")
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_2", 0)
-//			else
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_riga, "rag_soc_1"))
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_2", kdwc_cli.getitemnumber(k_riga, "id_cliente"))
-//			end if
-//			
-//		end if
-//	
-//		
-//	case "CLIE_1" 
-//	
-//		if isnumber(Trim(data)) then
-//			k_codice = Trim(data)
-//		else
-//			k_codice = "0"
-//		end if
-//		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
-//			
-//			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_cli)
-//			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
-//			k_riga = k_rc
-//			if k_riga <= 0 or isnull(k_riga) then
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_1", " - NON TROVATO -")
-////				tab_1.tabpage_4.dw_4.setitem(row, "clie_2", 0)
-//			else
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_1", kdwc_cli.getitemstring(k_riga, "rag_soc_1"))
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_1", kdwc_cli.getitemnumber(k_riga, "id_cliente"))
-//			end if
-//			
-//		end if
-//		
-//	case "CLIE_2" 
-//	
-//		if isnumber(Trim(data)) then
-//			k_codice = Trim(data)
-//		else
-//			k_codice = "0"
-//		end if
-//		if isnull(k_codice) = false and len(trim(k_codice)) > 0 then
-//			
-//			k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_cli)
-//			k_rc = kdwc_cli.find("id_cliente = "+k_codice+" ",0,kdwc_cli.rowcount())
-//			k_riga = k_rc
-//			if k_riga <= 0 or isnull(k_riga) then
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_2", k_rag_soc+" - NON TROVATO -")
-////				tab_1.tabpage_4.dw_4.setitem(row, "clie_2", 0)
-//			else
-//				k_return = 2
-//				tab_1.tabpage_4.dw_4.setitem(row, "clienti_rag_soc_2", kdwc_cli.getitemstring(k_riga, "rag_soc_1"))
-//				tab_1.tabpage_4.dw_4.setitem(row, "clie_2", kdwc_cli.getitemnumber(k_riga, "id_cliente"))
-//			end if
-//			
-//		end if
-//
-//end choose
-//
-//
-//return k_return
-
+event dw_5::itemchanged;call super::itemchanged;//
+post check_mappa_dw5(dwo.name, row, data)
 
 
 end event
 
-event dw_4::itemfocuschanged;call super::itemfocuschanged;//
+event dw_5::itemfocuschanged;call super::itemfocuschanged;//
 long k_rc
 datawindowchild kdwc_clienti, kdwc_clienti_2
 
@@ -4121,8 +3956,8 @@ if (dwo.name = "clienti_rag_soc_1" or dwo.name = "clienti_rag_soc_2"  &
 	and ki_st_open_w.flag_modalita <> "vi" then
 
 //--- Attivo dw archivio Clienti
-	k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_1", kdwc_clienti)
-	k_rc = tab_1.tabpage_4.dw_4.getchild("clienti_rag_soc_2", kdwc_clienti_2)
+	k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_1", kdwc_clienti)
+	k_rc = tab_1.tabpage_5.dw_5.getchild("clienti_rag_soc_2", kdwc_clienti_2)
 
 //	k_rc = kdwc_clienti_d.settransobject(sqlca)
 
@@ -4140,67 +3975,42 @@ end if
 
 end event
 
-type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
-end type
-
-type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
-boolean visible = true
-integer y = 176
-integer height = 952
-boolean enabled = true
-long backcolor = 32435950
-string text = " Listino"
-string picturename = "FormatDollar!"
-long picturemaskcolor = 553648127
-end type
-
-type dw_5 from w_g_tab_3`dw_5 within tabpage_5
-integer width = 2153
-integer height = 1296
-boolean enabled = true
-string dataobject = "d_clienti_listino_l"
-end type
-
 type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
 end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 boolean visible = true
 integer y = 176
+integer width = 2962
 integer height = 952
 boolean enabled = true
-string text = " Movimenti ~r~n Magazzino"
-string picturename = "Graph!"
+string text = " Listino"
+string picturename = "FormatDollar!"
+string powertiptext = "Elenco Listini collegati all~'anagrafica"
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
 end type
 
 type dw_6 from w_g_tab_3`dw_6 within tabpage_6
+integer x = 9
+integer y = 20
 integer width = 2761
 integer height = 1280
 boolean enabled = true
-string dataobject = "d_clienti_mov"
+string dataobject = "d_clienti_listino_l"
 end type
 
-event dw_6::buttonclicked;call super::buttonclicked;//
-//=== Attivo/Disattivo visione grafico
-if this.object.kgr_1.visible = "1" then
-	tab_1.tabpage_6.dw_6.object.kcb_gr.text = "Grafico"
-	tab_1.tabpage_6.dw_6.object.kgr_1.visible = "0" 
-else
-	tab_1.tabpage_6.dw_6.object.kcb_gr.text = "Dati"
-	tab_1.tabpage_6.dw_6.object.kgr_1.visible = "1"
-end if
-//
-
-end event
-
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+boolean visible = true
 integer y = 176
+integer width = 2962
 integer height = 952
-long tabbackcolor = 32435950
-string powertiptext = "elenco articoli senza lotto di entrata"
+boolean enabled = true
+string text = " Movimenti ~r~n Magazzino"
+long tabbackcolor = 32896501
+string picturename = "ControlGraph!"
+string powertiptext = "Elenco Lotti movimentati dall~'anagrafica"
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
@@ -4209,9 +4019,11 @@ end type
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
 integer y = 48
 integer width = 2871
+boolean enabled = true
+string dataobject = "d_clienti_mov"
 end type
 
-event dw_7::itemchanged;call super::itemchanged;//
+event dw_7::buttonclicked;call super::buttonclicked;//
 //=== Attivo/Disattivo visione grafico
 if this.object.kgr_1.visible = "1" then
 	tab_1.tabpage_7.dw_7.object.kcb_gr.text = "Grafico"
@@ -4227,6 +4039,7 @@ end event
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 boolean visible = true
 integer y = 176
+integer width = 2962
 integer height = 952
 boolean enabled = true
 string text = "A.C.O.~r~nCto Deposito"
@@ -4290,6 +4103,7 @@ end event
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer y = 176
+integer width = 2962
 integer height = 952
 end type
 

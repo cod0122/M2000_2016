@@ -67,13 +67,11 @@ public constant int kki_magazzino_TUTTI = 9
 end variables
 
 forward prototypes
-public function st_esito setta_errore_lav (st_tab_meca kst_tab_meca)
 public subroutine meca_if_isnull (st_tab_meca kst_tab_meca)
 public subroutine if_isnull_meca (ref st_tab_meca kst_tab_meca)
 public subroutine if_isnull_armo (ref st_tab_armo kst_tab_armo)
 private function st_esito tb_delete_meca (st_tab_meca kst_tab_meca)
 public function integer richiesta_conferma_cancellazione (st_tab_meca kst_tab_meca)
-public function st_esito chiudi_lavorazione (st_tab_meca kst_tab_meca)
 public function st_esito anteprima_testa (ref datawindow kdw_anteprima, st_tab_meca kst_tab_meca)
 public function boolean if_lotto_dosimetria_gia_autorizzata (ref st_tab_meca kst_tab_meca)
 public function string err_lav_ok_dammi_descr (ref st_tab_meca kst_tab_meca)
@@ -82,7 +80,6 @@ public function st_esito leggi_riga (string k_tipo, ref st_tab_armo kst_tab_armo
 public function st_esito leggi_testa (string k_tipo, ref st_tab_meca kst_tab_meca)
 public function st_esito anteprima_elenco (ref datastore kdw_anteprima, st_tab_armo kst_tab_armo)
 public function st_esito get_id_meca (ref st_tab_armo kst_tab_armo)
-public function st_esito get_stato (ref st_tab_meca kst_tab_meca)
 public function boolean if_stampa_etichetta_avvertenze (st_tab_meca kst_tab_meca)
 public function st_esito anteprima_riga (ref datastore kdw_anteprima, st_tab_armo kst_tab_armo)
 public function integer get_colli_anno_x_clie_3 (readonly st_tab_meca kst_tab_meca) throws uo_exception
@@ -107,11 +104,9 @@ public function st_esito set_stato_in_attenzione_off (ref st_tab_meca kst_tab_me
 public function st_esito set_stato_in_attenzione_on (ref st_tab_meca kst_tab_meca)
 private function st_esito get_stato_in_attenzione (ref st_tab_meca kst_tab_meca)
 public function st_esito set_stato_in_attenzione_cambia (ref st_tab_meca kst_tab_meca)
-public function st_esito get_lotto_rich_autorizz (ref st_tab_meca kst_tab_meca)
 public function boolean if_lotto_rich_autorizz_ok (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function boolean consenti_sblocco_meca_non_conforme (st_tab_meca kst_tab_meca) throws uo_exception
 public function boolean set_id_wm_pklist (st_tab_meca kst_tab_meca)
-public function boolean set_data_fine_lav (st_tab_meca kst_tab_meca) throws uo_exception
 public subroutine get_dati_rid (ref st_tab_meca kst_tab_meca) throws uo_exception
 public subroutine get_clie_listino (ref st_tab_meca kst_tab_meca) throws uo_exception
 public subroutine get_err_lav (ref st_tab_meca kst_tab_meca) throws uo_exception
@@ -165,7 +160,6 @@ public function long get_id_wm_pklist (ref st_tab_meca kst_tab_meca) throws uo_e
 public function integer get_colli_entrati_riga_datrattare (st_tab_armo kst_tab_armo) throws uo_exception
 public function integer get_colli_entrati_datrattare (ref st_tab_armo kst_tab_armo) throws uo_exception
 public function integer get_colli_danontrattare (st_tab_armo kst_tab_armo) throws uo_exception
-public function boolean tb_update_data_lav_fin (st_tab_meca kst_tab_meca) throws uo_exception
 public function long get_e1rorn (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function boolean set_e1rorn (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function integer get_colli_trattati (st_tab_armo kst_tab_armo) throws uo_exception
@@ -213,71 +207,14 @@ public subroutine set_meca_blk_descr_rich_autorizz (ref st_tab_meca kst_tab_meca
 public function long get_id_meca_da_id_armo (ref st_tab_armo kst_tab_armo) throws uo_exception
 public function integer get_impianto (ref st_tab_meca kst_tab_meca) throws uo_exception
 public function long get_id_meca_da_e1_rorn (ref st_tab_meca kst_tab_meca) throws uo_exception
+public subroutine setta_errore_lav (st_tab_meca ast_tab_meca) throws uo_exception
+public function boolean chiudi_lavorazione (st_tab_meca kst_tab_meca) throws uo_exception
+public function integer get_colli_pedane (ref st_tab_armo kst_tab_armo) throws uo_exception
+public function string get_lotto_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception
+public function integer get_stato (ref st_tab_meca kst_tab_meca) throws uo_exception
+public function boolean set_data_lav_fin (st_tab_meca kst_tab_meca) throws uo_exception
+public function date set_data_lav_fine_se_trattato (st_tab_meca kst_tab_meca) throws uo_exception
 end prototypes
-
-public function st_esito setta_errore_lav (st_tab_meca kst_tab_meca);//
-//====================================================================
-//=== Update campo Errore di lavorazione in BARCODE (es. giri errati) su MECA
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//===                                     1=errore grave
-//===                                     2=errore > 0
-//=== 
-//====================================================================
-
-st_esito kst_esito 
-kuf_base kuf1_base
-
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = kst_tab_meca.st_tab_g_0 
-
-	if not isnull(kst_tab_meca.err_lav_fin) &
-		and len(trim(kst_tab_meca.err_lav_fin)) > 0 then
-	
-		kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
-		kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
-
-		update meca set 	 
-			 err_lav_fin = :kst_tab_meca.err_lav_fin,
-			 x_datins = :kst_tab_meca.x_datins,
-			 x_utente = :kst_tab_meca.x_utente
-		where id = :kst_tab_meca.id
-		using kguo_sqlca_db_magazzino;
-			
-
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit( )
-			end if
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.not_fnd
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.sqlerrtext = "Non trovato Lotto ID: " + string(kst_tab_meca.id) + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			else
-				if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.sqlerrtext = "Errore in aggiornamento Lotto campo errore trattamento, ID: "  + string(kst_tab_meca.id) + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-					if kst_esito.st_tab_g_0.esegui_commit <> "N" or isnull(kst_esito.st_tab_g_0.esegui_commit) then
-						kguo_sqlca_db_magazzino.db_rollback( )
-					end if
-				end if
-			end if
-		end if
-
-	end if
-
-
-
-
-
-return kst_esito
-
-
-end function
 
 public subroutine meca_if_isnull (st_tab_meca kst_tab_meca);
 end subroutine
@@ -286,6 +223,7 @@ public subroutine if_isnull_meca (ref st_tab_meca kst_tab_meca);//---
 //--- toglie i NULL ai campi della tabella 
 //---
 kuf_meca_dosim kuf1_meca_dosim
+kuf_impianto kuf1_impianto
 
 
 kuf1_meca_dosim = create kuf_meca_dosim
@@ -305,6 +243,7 @@ if isnull(kst_tab_meca.err_lav_ok) then kst_tab_meca.err_lav_ok = ""
 if isnull(kst_tab_meca.err_lav_fin) then kst_tab_meca.err_lav_fin = "0"
 if isnull(kst_tab_meca.data_lav_fin) then kst_tab_meca.data_lav_fin = date(0)
 if isnull(kst_tab_meca.stato) then kst_tab_meca.stato = 0
+if isnull(kst_tab_meca.impianto) then kst_tab_meca.impianto = kuf1_impianto.kki_impiantodefault
 if isnull(kst_tab_meca.stato_in_attenzione) then kst_tab_meca.stato_in_attenzione = kki_STATO_IN_ATTENZIONE_ON
 
 if isnull(kst_tab_meca.clie_1) then	kst_tab_meca.clie_1 = 0
@@ -590,124 +529,6 @@ end if
 
 
 return k_return
-
-end function
-
-public function st_esito chiudi_lavorazione (st_tab_meca kst_tab_meca);//
-//====================================================================
-//=== Update della data di fine lavorazione se tutti i colli sono stati lavorati
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//===                                     1=errore grave
-//===                                     2=errore > 0
-//=== 
-//====================================================================
-long k_colli_da_trattare
-st_tab_armo kst_tab_armo
-st_tab_artr kst_tab_artr
-st_tab_barcode kst_tab_barcode
-st_esito kst_esito 
-kuf_base kuf1_base
-kuf_barcode kuf1_barcode
-
-
-	try 
-	
-		kst_esito = kguo_exception.inizializza(this.classname())
-	
-		kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
-		kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
-					
-		if kst_tab_meca.data_lav_fin > KKG.DATA_ZERO &
-		   and (kst_tab_meca.num_int > 0 or kst_tab_meca.id > 0) then
-		else
-			kst_esito.esito = kkg_esito.err_logico
-			kst_esito.sqlerrtext = "Errore Interno, manca 'data di fine' o 'num-lotto' (kuf_armo.chiudi_lavorazione)" 
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-
-		if kst_tab_meca.id > 0 then		
-		else
-			//--- se manca recupera l'ID del lotto
-			kst_tab_armo.num_int = kst_tab_meca.num_int
-			kst_tab_armo.data_int = kst_tab_meca.data_int
-			kst_esito = get_id_meca(kst_tab_armo)
-			kst_tab_meca.id = kst_tab_armo.id_meca
-		end if
-		
-		kuf1_barcode = create kuf_barcode
-		kst_tab_barcode.id_meca = kst_tab_meca.id
-		kst_tab_artr.colli = kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode)
-		k_colli_da_trattare = kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode) 
-
-			
-//			select sum(colli_2) 
-//					into :kst_tab_armo.colli_2 
-//					from armo
-//					where armo.id_meca = :kst_tab_meca.id
-//					using kguo_sqlca_db_magazzino;
-//					
-//			if kst_tab_artr.colli >= kst_tab_armo.colli_2 then
-		if kst_tab_artr.colli > 0 and k_colli_da_trattare <= 0 then
-		
-			update meca set 	 
-					 data_lav_fin  = :kst_tab_meca.data_lav_fin
-					 ,x_datins = :kst_tab_meca.x_datins
-					 ,x_utente = :kst_tab_meca.x_utente
-				where id = :kst_tab_meca.id
-				using kguo_sqlca_db_magazzino;
-		else
-			
-			update meca set 	 
-					 data_lav_fin  = CONVERT(date,'01.01.1900')
-					 ,x_datins = :kst_tab_meca.x_datins
-					 ,x_utente = :kst_tab_meca.x_utente
-				where id = :kst_tab_meca.id
-				using kguo_sqlca_db_magazzino;
-					
-		end if	
-	
-		if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-			if kguo_sqlca_db_magazzino.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.sqlerrtext = "Errore in aggiornamento data fine lavorazione Lotto di 'non trovato' (kuf_armo.chiudi_lavorazione). Id Lotto: " + string(kst_tab_meca.id) + " ~n~r" +trim(kguo_sqlca_db_magazzino.SQLErrText)
-			else
-				if kguo_sqlca_db_magazzino.sqlcode < 0 then
-					kst_esito.esito = kkg_esito.db_ko
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.sqlerrtext = "Errore in aggiornamento data fine lavorazione Lotto (kuf_armo.chiudi_lavorazione). Id Lotto: " + string(kst_tab_meca.id) + " ~n~r" +trim(kguo_sqlca_db_magazzino.SQLErrText)
-					if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-						kguo_sqlca_db_magazzino.db_rollback()
-					end if
-				end if
-			end if
-			kguo_exception.inizializza()
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-
-//--- COMMIT			
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit()
-		end if
-	
-	catch (uo_exception kuo1_exception)
-			kst_esito = kguo_exception.get_st_esito( )
-			
-	finally
-		if isvalid(kuf1_barcode) then destroy kuf1_barcode
-		
-	end try
-
-
-
-
-
-return kst_esito
-
 
 end function
 
@@ -1459,55 +1280,6 @@ st_esito kst_esito
 		end if
 	end if
 
-
-return kst_esito
-
-end function
-
-public function st_esito get_stato (ref st_tab_meca kst_tab_meca);//
-//====================================================================
-//=== Torna il codice dello STATO del Lotto 
-//=== 
-//=== 
-//===  input: kst_tab_meca.id_meca  
-//===  Outout: stato_descrizione
-//===             tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//===                                     1=errore grave
-//===                                     2=errore > 0
-//===                                     
-//====================================================================
-//
-int k_anno
-st_esito kst_esito
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	SELECT codice
-			 INTO 
-					:kst_tab_meca.stato
-			 FROM meca inner join meca_stato on 
-			         meca.stato = meca_stato.codice
-			WHERE meca.id = :kst_tab_meca.id 
-				 using sqlca;
-			
-	if isnull(kst_tab_meca.stato) then
-		kst_tab_meca.stato= ki_meca_stato_ok
-	end if
-
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Stato Lotto non Trovato (" + string(kst_tab_meca.id) + ") " &
-									 + "~n~r" + trim(SQLCA.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else	
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
 
 return kst_esito
 
@@ -2929,84 +2701,32 @@ return kst_esito
 
 end function
 
-public function st_esito get_lotto_rich_autorizz (ref st_tab_meca kst_tab_meca);//
-//====================================================================
-//=== Get dato "RICH_AUTORIZZ" da meca_causali x fare la verifica
-//=== 
-//=== Ritorna st_esito : OK=completato;
-//===                  : come standard
-//===   
-//====================================================================
-
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	kst_tab_meca.meca_blk_rich_autorizz = ""
-
-	select rich_autorizz
-		into :kst_tab_meca.meca_blk_rich_autorizz
-		from meca_blk
-		where id_meca = :kst_tab_meca.id
-		using kguo_sqlca_db_magazzino;
-	
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		if kguo_sqlca_db_magazzino.sqlcode > 0 then
-			kst_esito.esito = kkg_esito.db_wrn
-		else
-			kst_esito.esito = kkg_esito.db_ko
-		end if
-		kst_esito.SQLErrText = "Errore in letttura Causale del Lotto (maca_causali)~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText) 
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-	end if
-
-	if isnull(kst_tab_meca.meca_blk_rich_autorizz) then kst_tab_meca.meca_blk_rich_autorizz = ""
-
-
-	
-return kst_esito
-
-end function
-
-public function boolean if_lotto_rich_autorizz_ok (ref st_tab_meca kst_tab_meca) throws uo_exception;//
-//====================================================================
-//=== L'utente è autorizzato a sbloccare il lotto? 
-//=== 
-//=== Ritorna st_esito : TRUE=autorizzato
-//===   
-//====================================================================
+public function boolean if_lotto_rich_autorizz_ok (ref st_tab_meca kst_tab_meca) throws uo_exception;/*
+ L'utente è autorizzato a sbloccare il lotto Medicale/Farmaceutico? 
+   inp: st_tab_meca.id
+   Rit: TRUE=autorizzato
+*/
 boolean k_return = true
-st_esito kst_esito
-st_open_w kst_open_w
 kuf_meca_causali_blk_m kuf1_meca_causali_blk_m
-kuf_sicurezza kuf1_sicurezza
 
 
 try
-//--- legge dal lotto se Rich.Auttorizz. 	
-	kst_esito = get_lotto_rich_autorizz(kst_tab_meca)
 
-	if kst_esito.esito = kkg_esito.db_ko then
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
+//--- legge dal lotto se Rich.Autorizz. 
+	get_lotto_rich_autorizz(kst_tab_meca)
 	
 	kuf1_meca_causali_blk_m = create kuf_meca_causali_blk_m 
 	if kst_tab_meca.meca_blk_rich_autorizz = kuf1_meca_causali_blk_m.ki_rich_autorizz_materiale_medicale then
 		
 //--- legge se funzione Autorizzata
-		kst_open_w.id_programma = kuf1_meca_causali_blk_m.get_id_programma( kkg_flag_modalita.interrogazione )
-		kst_open_w.flag_modalita = kkg_flag_modalita.interrogazione
-
-		kuf1_sicurezza = create kuf_sicurezza
-		k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-		destroy kuf1_sicurezza
+		k_return = kuf1_meca_causali_blk_m.if_sicurezza(kkg_flag_modalita.interrogazione)
 		
 	end if
 	
 catch (uo_exception kuo_exception)
-	throw kuo_exception
+	if kguo_exception.kist_esito.esito <> kguo_exception.KK_st_uo_exception_tipo_noAUT then
+		throw kuo_exception
+	end if
 	
 finally
 	if isvalid(kuf1_meca_causali_blk_m) then destroy kuf1_meca_causali_blk_m
@@ -3029,75 +2749,47 @@ public function boolean consenti_sblocco_meca_non_conforme (st_tab_meca kst_tab_
 //---
 //---
 boolean k_return=false
-boolean k_autorizza
-st_open_w kst_open_w
-kuf_sicurezza kuf1_sicurezza
+kuf_meca_causali_blk_g kuf1_meca_causali_blk_g
 
 
-kuf_sl_pt kuf1_sl_pt
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
-st_esito kst_esito
-st_tab_certif kst_tab_certif
-st_tab_armo kst_tab_armo
-st_tab_sl_pt kst_tab_sl_pt
+//kst_open_w = kst_open_w
+//kst_open_w.flag_modalita = kkg_flag_modalita.modifica
+//kst_open_w.id_programma = kkg_id_programma_sblocca_non_conforme
 
-kst_esito = kguo_exception.inizializza(this.classname())
+//--- controlla se utente autorizzato allo SBLOCCO MATERIALE
+	kuf1_meca_causali_blk_g = create kuf_meca_causali_blk_g
 
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.modifica
-kst_open_w.id_programma = kkg_id_programma_sblocca_non_conforme
+	kuf1_meca_causali_blk_g.if_sicurezza(kkg_flag_modalita.modifica)
 
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_autorizza = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_autorizza then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Aggiornamento Riferimento non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
-	
-//--- leggo archivi se lotto Bloccato/Sbloccato allora posso compiere l'operazione
-	SELECT meca.stato
-				into
-               :kst_tab_meca.stato
-			 FROM meca  
-			 where id = :kst_tab_meca.id  
-				 using sqlca;
+	get_stato(kst_tab_meca)  // get dello STATO
 		
-	if sqlca.sqlcode = 0 then
-		
-    		if kst_tab_meca.stato = ki_meca_stato_blk or kst_tab_meca.stato = ki_meca_stato_sblk &
-			      or kst_tab_meca.stato = ki_meca_stato_blk_controllato or kst_tab_meca.stato = ki_meca_stato_blk_da_controllare then
+  	if kst_tab_meca.stato = ki_meca_stato_blk or kst_tab_meca.stato = ki_meca_stato_sblk &
+	      or kst_tab_meca.stato = ki_meca_stato_blk_controllato or kst_tab_meca.stato = ki_meca_stato_blk_da_controllare then
 				
-//--- controlla se x questo Lotto c'e'  "Richiesta Autorizzazione Particolare" (es Mat medicale)		
-			if if_lotto_rich_autorizz_ok( kst_tab_meca ) then
-				k_return = true
-			end if
+//--- controlla se x questo Lotto è  "Richiesta Autorizzazione Particolare" (es Mat medicale/farmaceutico)		
+		k_return = if_lotto_rich_autorizz_ok( kst_tab_meca ) 
 			
-		end if
 	else
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Lettura Tab.Testata Lotto MECA (id="  + string(kst_tab_meca.id) + " "  + "): " + trim(SQLCA.SQLErrText)
-									 
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else	
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if
+		
+		k_return = true			
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	if kguo_exception.kist_esito.esito <> kguo_exception.KK_st_uo_exception_tipo_noAUT then
+		kuo_exception.scrivi_log( )
+		throw kuo_exception
 	end if
 	
-end if
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_meca_causali_blk_g) then destroy kuf1_meca_causali_blk_g
 
+end try
 
 
 return k_return
@@ -3169,76 +2861,6 @@ end if
 
 
 return k_return
-
-end function
-
-public function boolean set_data_fine_lav (st_tab_meca kst_tab_meca) throws uo_exception;//
-//=== 
-//=== Sistema alcuni dati in tabella MECA (data_fine_lav)
-//=== input: st_tab_meca.id
-//===   
-//
-boolean k_return = false
-st_tab_armo kst_tab_armo, kst_tab_armo_in, kst_tab_armo_no_trattare, kst_tab_armo_trattati
-st_tab_barcode kst_tab_barcode
-kuf_barcode kuf1_barcode
-uo_exception kuo1_exception
-st_esito kst_esito
-
-
-try
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	kuf1_barcode = create kuf_barcode
-
-//--- 
-	kst_tab_armo.id_meca = kst_tab_meca.id
-	kst_tab_barcode.id_meca = kst_tab_meca.id
-
-//--- colli entrati da trattare
-	//kst_tab_armo_in = kst_tab_armo
-	kst_tab_armo_in.colli_2 =  kuf1_barcode.get_nr_barcode(kst_tab_barcode) //get_colli_entrati_datrattare(kst_tab_armo_in)
-
-	if kst_tab_armo_in.colli_2 > 0 then
-
-//--- colli da non trattare
-		//kst_tab_armo_no_trattare = kst_tab_armo
-		kst_tab_armo_no_trattare.colli_2 = kuf1_barcode.get_nr_barcode_da_non_trattare(kst_tab_barcode) //get_colli_danontrattare(kst_tab_armo_no_trattare)
-	
-//--- colli trattati
-		//kst_tab_armo_trattati = kst_tab_armo
-		kst_tab_armo_trattati.colli_2 = kuf1_barcode.get_nr_barcode_trattati(kst_tab_barcode)  //get_colli_trattati(kst_tab_armo_trattati)	
-	
-//--- aggiorna data di fine lavoro se tutti colli trattati
-		
-//--- data fine trattamento		
-		kst_tab_meca.data_lav_fin = date(0)
-		if kst_tab_armo_trattati.colli_2 >= (kst_tab_armo_in.colli_2 - kst_tab_armo_no_trattare.colli_2) then 
-			kst_tab_barcode.id_meca = kst_tab_armo.id_meca
-			kst_tab_meca.data_lav_fin = kuf1_barcode.get_data_lav_fin(kst_tab_barcode)
-		end if
-		tb_update_data_lav_fin(kst_tab_meca)  // AGGIORNA FINE LAVORAZIONE
-		
-	end if
-
-//--- lancia exception?
-	if kst_esito.esito <> kkg_esito.ok then
-		kuo1_exception.set_esito(kst_esito) 
-		throw kuo1_exception
-	end if
-
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_barcode) then destroy kuf1_barcode
-
-end try
-
-return k_return
-
 
 end function
 
@@ -5961,14 +5583,13 @@ public function string get_cod_sl_pt (ref st_tab_armo ast_tab_armo) throws uo_ex
 //===   
 //====================================================================
 string k_return
-st_esito kst_esito
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 //--- 
 	ast_tab_armo.cod_sl_pt = ""
-	select armo.cod_sl_pt
+	select trim(armo.cod_sl_pt)
         into :ast_tab_armo.cod_sl_pt
       from armo 
 		where armo.id_armo = :ast_tab_armo.id_armo
@@ -5982,11 +5603,8 @@ st_esito kst_esito
 		
 	else
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Ricerca del codice Piano di Trattamento sulla riga Lotto. ~n~r" + kguo_sqlca_db_magazzino.sqlerrtext
-			kGuo_exception = create uo_exception
-			kGuo_exception.set_esito( kst_esito )
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino,&
+					"Errore in Ricerca del codice Piano di Trattamento sulla riga Lotto n. " + string(ast_tab_armo.id_armo))
 			throw kGuo_exception
 		end if
 	end if
@@ -6101,9 +5719,8 @@ st_tab_certif kst_tab_certif
 kuf_certif kuf1_certif
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
-
 try
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Controlla se ATTESTATO è stato già stampato
 	kuf1_certif = create kuf_certif
@@ -6114,10 +5731,13 @@ try
 	end if
 	
 	if k_att_stampato then
-		kst_esito.esito = kkg_esito.db_wrn // da non forzare è già stampato!
+		
+		// da non forzare è già stampato!
+		
 	else
+		
 //--- leggo archivi se lotto chiuso allora posso compiere la forzatura
-		SELECT 	meca.cert_forza_stampa
+		SELECT meca.cert_forza_stampa
 						,meca.err_lav_ok
 						,meca.data_lav_fin
 				into
@@ -6126,7 +5746,14 @@ try
 						:kst_tab_meca.data_lav_fin   
 				 FROM meca  
 				 where id = :kst_tab_meca.id  
-					 using sqlca;
+					 using kguo_sqlca_db_magazzino;
+					 
+//--- se errore			
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in verifica se Autorizzazione la 'Forzatura Stampa Attestato' (Lotto id= " + string(kst_tab_meca.id) )
+			throw kguo_exception
+		end if
 			
 		if sqlca.sqlcode = 0 then
 			if kst_tab_meca.cert_forza_stampa = ki_cert_forza_stampa_SI then
@@ -6134,33 +5761,17 @@ try
 			else
 	
 //--- controllo se x il lotto sono stati trattati e convalidati tutti i barcode da lavorare
-				if (kst_tab_meca.err_lav_ok > " " and not isnull(kst_tab_meca.err_lav_ok)) then // convalidati?
+				if trim(kst_tab_meca.err_lav_ok) > " " then // convalidati?
 					kst_tab_armo.id_meca = kst_tab_meca.id 
 					if if_lotto_completo(kst_tab_armo) then  //trattato?
 						k_return = true // AUTORIZZATO
-//					else
-//						kst_esito.esito = kkg_esito.bug
 					end if
-//				else
-//					kst_esito.esito = kkg_esito.bug
 				end if
 			end if
-			
-		else 
-//--- se errore			
-			if sqlca.sqlcode < 0 then
-				kst_esito.sqlcode = sqlca.sqlcode
-				kst_esito.SQLErrText = "Errore durante Autorizzazione per la Forzatura Stampa Attestato (Lotto id= " &
-							 + string(kst_tab_meca.id) + " " &
-							 + ")~n~r" + trim(SQLCA.SQLErrText)
-										 
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)					
-				throw kguo_exception
-			end if
 		end if
+		
 	end if	
+	
 catch (uo_exception kuo_exception)
 	throw kuo_exception
 	
@@ -7182,76 +6793,6 @@ try
 catch (uo_exception kuo_exception)
 	throw kuo_exception
 
-end try
-
-return k_return 
-
-end function
-
-public function boolean tb_update_data_lav_fin (st_tab_meca kst_tab_meca) throws uo_exception;//
-//------------------------------------------------------------------
-//--- Aggiunge/Aggiorna rek nella tabella DATA FINE LAVORAZIONE
-//--- 
-//--- Input: st_tab_meca     id,  data_lav_fin
-//--- Rit: TRUE = aggiornato
-//--- exception  ST_ESITO, Esiti:  STANDARD; 
-//--- 
-//------------------------------------------------------------------
-boolean k_return=false
-long k_rcn
-boolean k_rc
-st_esito kst_esito
-
-
-try
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
-
-	if_isnull_meca(kst_tab_meca)
-
-	//--- controlla se utente autorizzato alla funzione in atto
-	k_rc = if_sicurezza(kkg_flag_modalita.modifica)
-	if not k_rc then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Modifica dati Lotto non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-		kst_esito.esito = kkg_esito.no_aut
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-	UPDATE meca
-			    SET data_lav_fin = :kst_tab_meca.data_lav_fin ,   
-					  x_datins = :kst_tab_meca.x_datins ,   
-					  x_utente = :kst_tab_meca.x_utente
-					WHERE id =  :kst_tab_meca.id  
-					using kguo_sqlca_db_magazzino;
-					
-				
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Tab.dati 'Lotto': " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-			 kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_commit( )
-	end if
-
-	k_return = true
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
 end try
 
 return k_return 
@@ -8827,6 +8368,8 @@ st_esito kst_esito
 
 		end choose
 
+		kguo_sqlca_db_magazzino.db_commit()  // per evitare l'errore sulla temporal-table 
+
 		kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
 		kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
 
@@ -9866,12 +9409,11 @@ public function integer get_impianto (ref st_tab_meca kst_tab_meca) throws uo_ex
 */
 int k_return
 st_esito kst_esito
-kuf_impianto kuf1_impianto
 
 
 	kst_esito = kguo_exception.inizializza(this.classname())
 	 
-	SELECT impianto
+	SELECT isnull(impianto, 0)
 			 INTO 
 					:kst_tab_meca.impianto
 			 FROM meca
@@ -9880,10 +9422,6 @@ kuf_impianto kuf1_impianto
 			
 	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 		
-		if kst_tab_meca.impianto > 0 then 
-		else
-			kst_tab_meca.impianto = kuf1_impianto.kki_impiantoDefault
-		end if
 		k_return = kst_tab_meca.impianto
 		
 	else
@@ -9937,6 +9475,375 @@ catch (uo_exception kuo_exception)
 end try
 
 return k_return
+
+end function
+
+public subroutine setta_errore_lav (st_tab_meca ast_tab_meca) throws uo_exception;/*
+  Update campo Errore di lavorazione di un BARCODE (es. giri errati) su MECA
+     inp: st_tab_meca.id + err_lav_fin
+*/
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	ast_tab_meca.err_lav_fin = ki_err_lav_fin_ko
+	
+	ast_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	ast_tab_meca.x_utente = kGuf_data_base.prendi_x_utente() 
+
+	update meca set 	 
+			 err_lav_fin = :ast_tab_meca.err_lav_fin,
+			 x_datins = :ast_tab_meca.x_datins,
+			 x_utente = :ast_tab_meca.x_utente
+		where id = :ast_tab_meca.id
+		using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Impostazione a Errore di Trattamento in Testata Lotto ID "  + string(ast_tab_meca.id))	
+		throw kguo_exception
+	end if
+			
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	if ast_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_meca.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+public function boolean chiudi_lavorazione (st_tab_meca kst_tab_meca) throws uo_exception;/*
+  Aggiorna data di fine lavorazione se tutti i colli sono stati lavorati
+  inp: st_tab_meca.id oppure num_int+data_int
+  rit: TRUE aggiornamento eseguito
+*/
+boolean k_return 
+long k_colli_da_trattare
+st_tab_armo kst_tab_armo
+st_tab_artr kst_tab_artr
+st_tab_barcode kst_tab_barcode
+kuf_barcode kuf1_barcode
+
+
+try 
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
+				
+	if kst_tab_meca.data_lav_fin > KKG.DATA_ZERO &
+		and (kst_tab_meca.num_int > 0 or kst_tab_meca.id > 0) then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Errore in registrazione Data di Fine Lavorazione su Testata Lotto, manca 'data di fine' o 'num-lotto' (kuf_armo.chiudi_lavorazione)" 
+		throw kguo_exception
+	end if
+
+	if kst_tab_meca.id > 0 then		
+	else
+		//--- se manca recupera l'ID del lotto
+		kst_tab_armo.num_int = kst_tab_meca.num_int
+		kst_tab_armo.data_int = kst_tab_meca.data_int
+		get_id_meca(kst_tab_armo)
+		kst_tab_meca.id = kst_tab_armo.id_meca
+		
+		if kst_tab_meca.id > 0 then
+		else
+			kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+			kguo_exception.kist_esito.sqlerrtext = "Errore in registrazione Data di Fine Lavorazione su Testata Lotto, Id Lotto non recuperato dal Numero " &
+										+ string(kst_tab_meca.num_int) + " - " + string(kst_tab_meca.data_int) 
+			throw kguo_exception
+		end if
+	end if
+		
+		
+	kuf1_barcode = create kuf_barcode
+	kst_tab_barcode.id_meca = kst_tab_meca.id
+	kst_tab_artr.colli = kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode)
+	k_colli_da_trattare = kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode) 
+
+	if kst_tab_artr.colli > 0 and k_colli_da_trattare <= 0 then
+		update meca set 	 
+					 data_lav_fin  = :kst_tab_meca.data_lav_fin
+					 ,x_datins = :kst_tab_meca.x_datins
+					 ,x_utente = :kst_tab_meca.x_utente
+				where id = :kst_tab_meca.id
+				using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in registrazione Data di Fine Lavorazione in Testata Lotto. Id Lotto " &
+									+ string(kst_tab_meca.id) + ", Data Fine " + string(kst_tab_meca.data_lav_fin) ) 
+			throw kguo_exception
+		end if
+	else
+		update meca set 	 
+					 data_lav_fin  = CONVERT(date,'01.01.1900')
+					 ,x_datins = :kst_tab_meca.x_datins
+					 ,x_utente = :kst_tab_meca.x_utente
+				where id = :kst_tab_meca.id
+				using kguo_sqlca_db_magazzino;
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then	 
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Azzeramento della Data di Fine Lavorazione in Testata Lotto. Id Lotto " &
+									+ string(kst_tab_meca.id) ) 
+			throw kguo_exception
+		end if
+	end if	
+
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+
+//--- COMMIT			
+		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit()
+		end if
+		
+		k_return = true
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_rollback()
+	end if
+	throw kuo_exception
+		
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	
+end try
+
+
+return k_return 
+
+
+end function
+
+public function integer get_colli_pedane (ref st_tab_armo kst_tab_armo) throws uo_exception;/*
+  Legge Nr colli x lotto associati a un magazzino SENZA barcode 
+	  inp: st_tab_armo.id_meca 
+	  Out: count dei colli ....
+	  Rit.: Count dei colli
+*/
+integer k_return
+
+
+	kguo_exception.inizializza(this.classname())
+	 
+	SELECT
+				isnull(armo.colli_2, 0),
+				isnull(armo.m_cubi, 0),
+				isnull(armo.peso_kg, 0),  
+				isnull(colli_fatt, 0),   
+				isnull(armo.pedane, 0) 
+		 INTO 
+				:kst_tab_armo.colli_2,   
+				:kst_tab_armo.m_cubi,   
+				:kst_tab_armo.peso_kg,   
+				:kst_tab_armo.colli_fatt,   
+				:kst_tab_armo.pedane 
+		 FROM armo  
+		WHERE armo.id_armo = :kst_tab_armo.id_armo
+				 using kguo_sqlca_db_magazzino ;
+			
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Conteggio Colli e Pedane su riga Lotto id " + string(kst_tab_armo.id_armo))
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+
+		k_return = kst_tab_armo.colli_2
+		
+	end if
+	
+
+return k_return
+
+end function
+
+public function string get_lotto_rich_autorizz (ref st_tab_meca kst_tab_meca) throws uo_exception;/*
+   Get tipo di "RICH_AUTORIZZ" da meca_causali 
+	Inp: st_tab_meca.id 
+	out: st_tab_meca.meca_blk_rich_autorizz
+	rit: meca_blk_rich_autorizz
+*/
+
+	kguo_exception.inizializza(this.classname())
+	
+	kst_tab_meca.meca_blk_rich_autorizz = ""
+
+	select rich_autorizz
+		into :kst_tab_meca.meca_blk_rich_autorizz
+		from meca_blk
+		where id_meca = :kst_tab_meca.id
+		using kguo_sqlca_db_magazzino;
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura tipo di Richiesta Autorizzazione in Casuale del Lotto id: " + string(kst_tab_meca.id))	
+		throw kguo_exception
+	end if
+
+	if isnull(kst_tab_meca.meca_blk_rich_autorizz) then kst_tab_meca.meca_blk_rich_autorizz = ""
+
+
+	
+return kst_tab_meca.meca_blk_rich_autorizz
+
+end function
+
+public function integer get_stato (ref st_tab_meca kst_tab_meca) throws uo_exception;/*
+Torna STATO del Lotto 
+  inp: st_tab_meca.id_meca  
+  out: st_tab_meca.stato
+  rit: st_tab_meca.stato
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	SELECT meca.stato
+			 INTO 
+					:kst_tab_meca.stato
+			 FROM meca 
+			WHERE meca.id = :kst_tab_meca.id 
+				 using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura Stato del Lotto Id: " + string(kst_tab_meca.id))			
+		throw kguo_exception
+	end if
+			
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if isnull(kst_tab_meca.stato) then
+			kst_tab_meca.stato = ki_meca_stato_ok
+		end if
+	else
+		kst_tab_meca.stato = 0
+	end if
+
+return kst_tab_meca.stato
+
+end function
+
+public function boolean set_data_lav_fin (st_tab_meca kst_tab_meca) throws uo_exception;/*
+ Aggiorna Data Fine Lavorazione del Lotto
+   Inp: st_tab_meca     id,  data_lav_fin
+   Rit: TRUE = aggiornato
+*/
+boolean k_return=false
+
+
+try
+
+	kguo_exception.inizializza(this.classname())
+
+	if kst_tab_meca.id > 0 then
+		//--- controlla se utente autorizzato alla funzione in atto
+		if_sicurezza(kkg_flag_modalita.modifica)
+	
+		kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+		kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
+	
+		if isnull(kst_tab_meca.data_lav_fin) then kst_tab_meca.data_lav_fin = kkg.data_zero
+	
+		UPDATE meca
+			 SET data_lav_fin = :kst_tab_meca.data_lav_fin ,   
+				  x_datins = :kst_tab_meca.x_datins ,   
+				  x_utente = :kst_tab_meca.x_utente
+				WHERE id =  :kst_tab_meca.id  
+				using kguo_sqlca_db_magazzino;
+						
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino,&
+						"Errore in Aggiornamento Data Fine Lavorazione del Lotto Id " + string(kst_tab_meca.id))		
+			if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+				 kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+			throw kguo_exception
+		end if
+	
+		if kst_tab_meca.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_meca.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+
+		k_return = true
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+end try
+
+return k_return 
+
+end function
+
+public function date set_data_lav_fine_se_trattato (st_tab_meca kst_tab_meca) throws uo_exception;/*
+  Sistema la data di Fione Lavorazione su MECA (data_fine_lav)
+  inp: st_tab_meca.id
+  out: Data impostata 
+*/
+date k_return 
+st_tab_armo kst_tab_armo
+int k_barcode_in, k_barcode_da_non_trattare, k_barcode_trattati
+st_tab_barcode kst_tab_barcode
+kuf_barcode kuf1_barcode
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+	kuf1_barcode = create kuf_barcode
+
+//--- 
+	kst_tab_armo.id_meca = kst_tab_meca.id
+	kst_tab_barcode.id_meca = kst_tab_meca.id
+
+//--- barcode totali
+	k_barcode_in =  kuf1_barcode.get_nr_barcode(kst_tab_barcode) //get_colli_entrati_datrattare(kst_tab_armo_in)
+
+	if k_barcode_in > 0 then
+
+//--- barcode da non trattare
+		k_barcode_da_non_trattare = kuf1_barcode.get_nr_barcode_da_non_trattare(kst_tab_barcode) //get_colli_danontrattare(kst_tab_armo_no_trattare)
+	
+//--- barcode trattati
+		k_barcode_trattati = kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode)  //get_colli_trattati(kst_tab_armo_trattati)	
+	
+//--- aggiorna data di fine lavoro se tutti colli trattati
+		
+//--- Se barcode tutti Trattati allora aggiorna
+		kst_tab_meca.data_lav_fin = date(0)
+		if k_barcode_in <= (k_barcode_da_non_trattare + k_barcode_trattati) then
+			kst_tab_barcode.id_meca = kst_tab_armo.id_meca
+			kst_tab_meca.data_lav_fin = kuf1_barcode.get_data_lav_fin(kst_tab_barcode)
+			set_data_lav_fin(kst_tab_meca)  // AGGIORNA FINE LAVORAZIONE
+		end if
+		
+	end if
+
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+
+end try
+
+return kst_tab_meca.data_lav_fin
+
 
 end function
 

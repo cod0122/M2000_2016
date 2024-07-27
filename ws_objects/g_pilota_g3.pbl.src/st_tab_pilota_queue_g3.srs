@@ -1,0 +1,11 @@
+﻿$PBExportHeader$st_tab_pilota_queue_g3.srs
+global type st_tab_pilota_queue_g3 from structure
+	string		barcode
+	long		ordine
+	string		cod_prod		descriptor "comment" = "codice PL_barcode"
+	string		id_modo		descriptor "comment" = "n.pass"
+	string		ciclo
+	integer		giri
+	string		user
+end type
+

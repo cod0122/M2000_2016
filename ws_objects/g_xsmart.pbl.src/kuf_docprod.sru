@@ -1131,7 +1131,7 @@ try
 			end if
 	
 	
-		case "b_docprod"
+		case "docprod"
 			kst_tab_docprod.id_docprod = adw_link.getitemnumber(adw_link.getrow(), "id_docprod")
 			if kst_tab_docprod.id_docprod > 0 then
 				anteprima_file(kst_tab_docprod)

@@ -15,22 +15,26 @@ if isvalid(kguo_g) then
 	if kguo_g.theme_dark then
 		if a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
-		elseif a_tipo_oggetto = "COMMESSA" then
+		elseif a_tipo_oggetto = "HIGHLIGHTED" then
 			return rgb(229, 150, 32)
-		elseif a_tipo_oggetto = "COMMESSACOLOR" then // colore testo
-			return kkg_colore.nero
+		elseif a_tipo_oggetto = "TXTHIGHLIGHTED" then // colore testo
+			return kkg_colore.granata
 		elseif a_tipo_oggetto = "KO" then // colore KO
 			return kkg_colore.ko
 		elseif a_tipo_oggetto = "OK" then // colore OK
 			return kkg_colore.ok
 		elseif a_tipo_oggetto = "LINK" then 
 			return long(kkg_colore.link)
+		elseif a_tipo_oggetto = "COLTEXTSTRONG" then 
+			return rgb(0, 255, 255)
 		elseif a_tipo_oggetto = "COLTEXT" then 
 			return kkg_colore.nero
 		elseif a_tipo_oggetto = "COLTEXTDIS" then 
 			return kkg_colore.GRIGIO_SCURO
 		elseif a_tipo_oggetto = "ZEBRA" then //righe alternate tipo vecchio tabulato cartaceo
 			return kkg_colore.GRIGIO_CHIARO
+		elseif a_tipo_oggetto = "GREEN" then 
+			return kkg_colore.VERDE
 		else
 			return rgb(229, 150, 32)
 		end if
@@ -39,22 +43,26 @@ if isvalid(kguo_g) then
 	
 		if a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
-		elseif a_tipo_oggetto = "COMMESSA" then
+		elseif a_tipo_oggetto = "HIGHLIGHTED" then
 			return rgb(229, 150, 32)
-		elseif a_tipo_oggetto = "COMMESSACOLOR" then  // colore testo
-			return kkg_colore.nero
+		elseif a_tipo_oggetto = "TXTHIGHLIGHTED" then // colore testo
+			return kkg_colore.granata
 		elseif a_tipo_oggetto = "KO" then // colore KO
 			return kkg_colore.ko
 		elseif a_tipo_oggetto = "OK" then // colore OK
 			return kkg_colore.ok
 		elseif a_tipo_oggetto = "LINK" then 
 			return long(kkg_colore.link)	
+		elseif a_tipo_oggetto = "COLTEXTSTRONG" then 
+			return rgb(128, 0, 0)
 		elseif a_tipo_oggetto = "COLTEXT" then 
 			return kkg_colore.nero
 		elseif a_tipo_oggetto = "COLTEXTDIS" then 
 			return kkg_colore.GRIGIO_SCURO
 		elseif a_tipo_oggetto = "ZEBRA" then //righe alternate tipo vecchio tabulato cartaceo
 			return kkg_colore.GRIGIO_CHIARO
+		elseif a_tipo_oggetto = "GREEN" then 
+			return kkg_colore.VERDE
 		else
 			return rgb(229, 150, 32)
 		end if

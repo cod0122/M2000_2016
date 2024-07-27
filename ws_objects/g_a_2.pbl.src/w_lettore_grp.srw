@@ -392,6 +392,10 @@ kuf_barcode kuf1_barcode
 datawindow kidw_barcode_da_non_modificare
 
 
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
 //--- valorizza la dw sulla quale fare la modifica
 	kidw_x_modifica_giri = kidw_selezionata
 	setnull(kidw_barcode_da_non_modificare)
@@ -417,14 +421,8 @@ datawindow kidw_barcode_da_non_modificare
 
 	end choose
 
-//--- leggo i dati delbarcode				
-	kuf1_barcode = create kuf_barcode
-	kst_esito = kuf1_barcode.select_barcode (kst_tab_barcode)
-	destroy kuf1_barcode
-	if kst_esito.esito <> kkg_esito.ok then
-		k_riga = 0
-	end if
-				
+//--- leggo barcode				
+	kiuf_barcode.select_barcode (kst_tab_barcode)
 
 	if k_riga > 0 then
 
@@ -442,12 +440,14 @@ datawindow kidw_barcode_da_non_modificare
 						"Selezionare una riga nella lista")
 	end if	
 
-//else
-//	messagebox("Modifica non permessa", &
-//						"In questa modalita' non e' consentita la modifica dei dati")
-//end if
-	 
+catch (uo_exception kuo_exception)
+	messagebox("Modifica Giri in errore", &
+					"Si è verificato un errore in elaborazione dati. " + kkg.acapo + kuo_exception.kist_esito.sqlerrtext)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
+end try
 
 end subroutine
 

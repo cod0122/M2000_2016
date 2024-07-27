@@ -20,9 +20,6 @@ on w_about_start.destroy
 call super::destroy
 end on
 
-type st_informa from w_about`st_informa within w_about_start
-end type
-
 type cb_start from w_about`cb_start within w_about_start
 end type
 

@@ -24,13 +24,13 @@ type st_orizzontal from statictext within w_g_tab_tv
 end type
 type st_vertical from statictext within w_g_tab_tv
 end type
-type dw_data1 from uo_d_std_1 within w_g_tab_tv
+type dw_data1 from uo_dw_periodo within w_g_tab_tv
 end type
 end forward
 
 global type w_g_tab_tv from w_g_tab
-integer width = 37
-integer height = 180
+integer width = 3593
+integer height = 2752
 string title = "Navigatore"
 boolean ki_salva_controlli = true
 boolean ki_windowpredef = true
@@ -66,8 +66,6 @@ private boolean ki_flag_list_appena_espanso = false
 
 //private time ki_time_lbuttondown
 private long ki_index = 0
-//private long ki_time_lbuttondown_riga=0
-//private time ki_time_rileggi_auto
 
 private boolean ki_time_attivo = false
 
@@ -84,9 +82,7 @@ private long ki_listview_index
 
 private boolean ki_focus_on_st_oizzontal, ki_focus_on_st_vertical
 
-private date ki_data_ini, ki_data_fin
 
-//private boolean ki_primo_giro_tv = true
 end variables
 
 forward prototypes
@@ -243,7 +239,9 @@ st_treeview_data kst_treeview_data
 //	if m_main.m_finestra.m_fin_stampa.enabled <> st_stampa.enabled then
 		m_main.m_finestra.m_fin_stampa.enabled = st_stampa.enabled
 		choose case true 
-			case (kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_dett &
+			case (kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st & 
+				   or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_dett &
 					or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_sd_dett &
 			  		or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_farma_dett &
 					or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_alimen_dett &
@@ -262,19 +260,19 @@ st_treeview_data kst_treeview_data
 	st_aggiorna_lista.enabled = true
 	st_ordina_lista.enabled = true
 
-//
 //--- Attiva/Dis. Voci di menu personalizzate
-//
-	//choose case kiuf_treeview.kist_treeview_oggetto.oggetto
+	
 	choose case true 
-		case (kst_treeview_data.oggetto = &
-		            kiuf_treeview.kist_treeview_oggetto.certif_da_st_dett &
-					or kst_treeview_data.oggetto = &
-						kiuf_treeview.kist_treeview_oggetto.certif_da_st_sd_dett &
-			  		or kst_treeview_data.oggetto = & 
-					  kiuf_treeview.kist_treeview_oggetto.certif_da_st_farma_dett &
-					or kst_treeview_data.oggetto = &
-					  	kiuf_treeview.kist_treeview_oggetto.certif_da_st_alimen_dett )
+		case (kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st & 
+					or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_dett &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st_dett &
+					or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_sd_dett &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st_sd_dett &
+			  		or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_farma_dett &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st_farma_dett &
+					or kst_treeview_data.oggetto = kiuf_treeview.kist_treeview_oggetto.certif_da_st_alimen_dett &
+					or kst_treeview_data.oggetto_padre = kiuf_treeview.kist_treeview_oggetto.certif_da_st_alimen_dett )
 			m_main.m_strumenti.m_fin_gest_libero1.text = "Cambia data estrazione Attestati "
 			m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Cambia data estrazione Attestati "
 			m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
@@ -883,9 +881,8 @@ inizializza_lista()
 if not isvalid(kiuf_menu_popup) then kiuf_menu_popup = create kuf_menu_popup
 
 kuf1_base = create kuf_base
-ki_zoom = mid(kuf1_base.prendi_dato_base("tv_zoom"), 2)
-if ki_zoom > " " or isnumber(ki_zoom) then
-	ki_zoom = trim(ki_zoom)
+ki_zoom = trim(mid(kuf1_base.prendi_dato_base("tv_zoom"), 2))
+if ki_zoom > " " and isnumber(ki_zoom) then
 else
 	ki_zoom = "120"
 end if
@@ -1673,30 +1670,15 @@ private subroutine u_set_data_certif_da_st ();//---
 
 if kiuf_treeview.ki_data_certif_da_st_da > date(0) then
 else
-	ki_data_ini = kkg.data_zero 
+	dw_data1.ki_data_ini = kkg.data_zero 
 end if
 if kiuf_treeview.ki_data_certif_da_st_a > date(0) then
 else
-	ki_data_fin = kguo_g.get_dataoggi( )
+	dw_data1.ki_data_fin = kguo_g.get_dataoggi( )
 end if
 
-//
-int k_rc
 
-	dw_data1.width = long(dw_data1.object.data_al.x) + long(dw_data1.object.data_al.width) + 100
-	dw_data1.height = long(dw_data1.object.b_ok.y) + long(dw_data1.object.b_ok.height) + 160
-
-	dw_data1.x = (kiw_this_window.width  - dw_data1.width) / 4
-	dw_data1.y = (kiw_this_window.height - dw_data1.height) / 4
-
-	dw_data1.reset()
-	k_rc = dw_data1.insertrow(0)
-	k_rc = dw_data1.setitem(1, "data_dal", ki_data_ini)
-	k_rc = dw_data1.setitem(1, "data_al", ki_data_fin)
-
-	dw_data1.visible = true
-	dw_data1.enabled = true
-	dw_data1.setfocus()
+dw_data1.event ue_visible( )
 end subroutine
 
 protected subroutine stampa_anteprima ();//
@@ -1949,7 +1931,10 @@ kuf_base kuf1_base
 end event
 
 event u_open;call super::u_open;//
+	
+	dw_data1.kiw_parent = this
 	dw_data1.visible = false
+	
 	post u_resize()
 	
 
@@ -2595,69 +2580,14 @@ ki_focus_on_st_vertical = false
 
 end event
 
-type dw_data1 from uo_d_std_1 within w_g_tab_tv
-event ue_clicked_0 ( integer row,  string k_dwo_name )
-event ue_clicked ( )
+type dw_data1 from uo_dw_periodo within w_g_tab_tv
 integer x = 32000
 integer y = 32000
-integer width = 923
-integer height = 420
 integer taborder = 20
 boolean bringtotop = true
-boolean titlebar = true
-string title = "Periodo di estrazione"
-string dataobject = "d_periodo"
-boolean hscrollbar = false
-boolean vscrollbar = false
-boolean border = true
-boolean hsplitscroll = false
-boolean livescroll = false
 end type
 
-event ue_clicked_0(integer row, string k_dwo_name);//
-//--- Richiamato dal CLICKED
-//
-
-
-IF row > 0 THEN
-
-	try
-	
-		if k_dwo_name = "b_ok" then
-			
-			this.visible = false
-			this.x = 10000
-			this.y = 10000
-			
-			this.accepttext( )
-			
-			ki_data_ini = this.getitemdate( 1, "data_dal")
-			ki_data_fin = this.getitemdate( 1, "data_al")
-			event ue_clicked( )
-		
-		else
-			if k_dwo_name = "b_annulla" then
-		
-				this.visible = false
-			
-			end if
-		end if
-		
-	
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-	
-	
-	finally
-	
-		
-	end try
-
-end if
-
-end event
-
-event ue_clicked();//
+event ue_clicked;call super::ue_clicked;//
 if ki_data_ini > date(0) then
 	kiuf_treeview.ki_data_certif_da_st_da = ki_data_ini 
 else
@@ -2666,28 +2596,5 @@ if ki_data_fin > date(0) then
 	kiuf_treeview.ki_data_certif_da_st_a = ki_data_fin
 else
 end if
-
-kiuf_treeview.ki_forza_refresh = kiuf_treeview.ki_forza_refresh_si
-aggiorna_liste()
-
-end event
-
-event u_pigiato_enter;//
-//--- Premuto ENTER: simulo come il clicked su ITEM_PICTURE
-//
-
-	THIS.Trigger Event ue_clicked_0(1, "b_ok") 
-
-
-return 1 
-
-
-end event
-
-event buttonclicked;call super::buttonclicked;//
-
-THIS.Trigger Event ue_clicked_0(row, dwo.name) 
-
-
 end event
 

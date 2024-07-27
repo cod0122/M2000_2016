@@ -979,7 +979,7 @@ kuf_utility kuf1_utility
 	catch(uo_exception kuo_exception)
 		kguo_exception.kist_esito = kuo_exception.get_st_esito()
 		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito)
-		kguo_exception.setmessage( "Apertura documento Fallita: " +	kkg.acapo + k_files +	kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext))
+		kguo_exception.setmessage( "Apertura documento Fallita. " +	kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext))
 		kguo_exception.messaggio_utente( )
 
 	finally

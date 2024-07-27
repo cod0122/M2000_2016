@@ -2,8 +2,6 @@
 forward
 global type w_about from window
 end type
-type st_informa from multilineedit within w_about
-end type
 type cb_start from picturebutton within w_about
 end type
 type dw_about from datawindow within w_about
@@ -17,13 +15,11 @@ integer y = 264
 integer width = 2021
 integer height = 1428
 boolean titlebar = true
-long backcolor = 33554431
 string icon = "main.ico"
 boolean center = true
 event u_key pbm_keydown
 event ue_open ( )
 event u_pbm_lbuttondown pbm_lbuttondown
-st_informa st_informa
 cb_start cb_start
 dw_about dw_about
 end type
@@ -50,6 +46,7 @@ public subroutine u_start ()
 public function boolean if_connesso_db () throws uo_exception
 public function boolean u_authentication ()
 private function any db_check_pwd ()
+public subroutine set_connesso_display (boolean a_connesso) throws uo_exception
 end prototypes
 
 event ue_open();//
@@ -89,12 +86,12 @@ try
 	
 	cb_start.visible = false
 
+	//dw_about.setitem(1, "st_ultimo_utente_login_data", "")
 	dw_about.modify("sle_password.protect = '1' sle_utente.protect = '1'")
 	dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_disattivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_disattivo)+"'")
 	dw_about.setitem(1, "sle_utente", kguo_utente.get_codice())
-	
+		
 //	if kuf1_utility.u_check_network() then
-//		dw_about.setitem(1, "st_net", "Rete Connessa")
 //	else
 //		dw_about.setitem(1, "st_net", "Rete Assente")
 //	end if
@@ -109,6 +106,9 @@ catch (uo_exception kuo_exception)
 
 finally
 	if isvalid(kuf1_utility) then destroy kuf1_utility
+	
+	dw_about.visible = true
+	dw_about.setfocus( )
 	
 	setpointer(kpointer)
 	
@@ -224,8 +224,8 @@ kuf_program kuf1_program
 		u_close( )
 		
 	else
-		st_informa.text = "Aggiornamento software non riuscito."
-		st_informa.visible = true
+		dw_about.event u_set_st_informa("Aggiornamento software non riuscito.")
+		//st_informa.visible = true
 		this.enabled = true
 		cb_start.enabled = true
 	end if
@@ -354,7 +354,7 @@ try
 		
 	end if
 	
-	if_connesso_db()
+	set_connesso_display( if_connesso_db() )
 	
 	if kuf1_utility.u_check_network() then
 		dw_about.setitem(1, "st_net", "ON")
@@ -404,10 +404,11 @@ st_tab_base kst_tab_base
 	
 	kuf1_base = create kuf_base
 
-	st_informa.visible = false
-	st_informa.text = ""
+	//st_informa.visible = false
+	dw_about.event u_set_st_informa("")
 
 	try 
+		kGuf_data_base.u_set_uo_sqlca_db_magazzino()  // rifà tutta la connessione al DB principale
 		k_db_connected = if_connesso_db( )
 		if not k_db_connected then
 	
@@ -415,9 +416,11 @@ st_tab_base kst_tab_base
 		
 		end if
 	
+		set_connesso_display( k_db_connected )
+	
 	catch (uo_exception kuo_exception)
 		
-		st_informa.text = "Fallita connesione alla Base Dati !" + kkg.acapo + trim(kuo_exception.kist_esito.sqlerrtext)
+		dw_about.event u_set_st_informa("Fallita connesione alla Base Dati !" + kkg.acapo + trim(kuo_exception.kist_esito.sqlerrtext) + ".")
 		
 	end try
 		
@@ -511,9 +514,6 @@ try
 
 	if kguo_sqlca_db_magazzino.if_connesso( ) then
 		k_return = true
-		dw_about.setitem(1, "st_conn_db", "ON")
-	else
-		dw_about.setitem(1, "st_conn_db", "OFF")
 	end if
 	
 catch (uo_exception kuo_exception)
@@ -590,10 +590,8 @@ ELSE
 
 END IF
 
-st_informa.text = ' ' + ls_Message
-//st_Status.BackColor = ll_Color
-//st_Status.TextColor = C_COLOR_YELLOW
-st_informa.visible = true
+dw_about.event u_set_st_informa(" " + ls_Message)
+//st_informa.visible = true
 
 
 destroy kn_login
@@ -605,7 +603,7 @@ end function
 
 private function any db_check_pwd ();//
 boolean k_return = false
-string k_passwd="", k_utente=""
+string k_passwd, k_utente
 int k_ctr
 st_tab_sr_utenti kst_tab_sr_utenti  
 st_esito kst_esito
@@ -647,17 +645,15 @@ try
 		kguo_utente.set_pwd (0) 
 		kst_esito = kiuf_sr_utenti.tb_select(kst_tab_sr_utenti)
 		if kst_esito.esito = kkg_esito.ok then 
-			st_informa.text = "Accesso non Autorizzato, password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi."
+			dw_about.event u_set_st_informa("Accesso non Autorizzato, password non riconosciuta. Sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.")
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.kist_esito.esito = kkg_esito.ko
-			kguo_exception.kist_esito.sqlerrtext = st_informa.text
+			kguo_exception.kist_esito.sqlerrtext = dw_about.getitemstring(1, "st_informa")
 			kguo_exception.scrivi_log( )
-			//messagebox("Accesso non Autorizzato", "Password non riconosciuta, sono rimasti " + string(kst_tab_sr_utenti.tentativi_max - kst_tab_sr_utenti.tentativi_ko) + " tentativi.", information!)
 		else
-			st_informa.text = "Accesso non Autorizzato, provare a ripetere le credenziali di accesso"
-//			messagebox("Accesso non Autorizzato", "Provare a ripetere le credenziali di accesso")
+			dw_about.event u_set_st_informa("Accesso non Autorizzato, provare a ripetere le credenziali di accesso")
 		end if
-		st_informa.visible = true
+//		st_informa.visible = true
 	end if
 
 catch (uo_exception kuo_exception)
@@ -687,9 +683,8 @@ catch (uo_exception kuo_exception)
 			imposta_password()
 
 		case else
-			st_informa.text = "Accesso non Autorizzato " + kkg.acapo + trim(kst_esito.sqlerrtext)
-			st_informa.visible = true
-			//messagebox ("Controllo Password", trim(kst_esito.sqlerrtext), information!)
+			dw_about.event u_set_st_informa("Accesso non Autorizzato. "  + trim(kst_esito.sqlerrtext))
+			//st_informa.visible = true + kkg.acapo
 						
 
 	end choose	
@@ -702,17 +697,25 @@ return k_return
 
 end function
 
+public subroutine set_connesso_display (boolean a_connesso) throws uo_exception;//
+
+	if a_connesso then
+		dw_about.setitem(1, "st_conn_db", "ON")
+	else
+		dw_about.setitem(1, "st_conn_db", "OFF")
+	end if
+	
+
+end subroutine
+
 on w_about.create
-this.st_informa=create st_informa
 this.cb_start=create cb_start
 this.dw_about=create dw_about
-this.Control[]={this.st_informa,&
-this.cb_start,&
+this.Control[]={this.cb_start,&
 this.dw_about}
 end on
 
 on w_about.destroy
-destroy(this.st_informa)
 destroy(this.cb_start)
 destroy(this.dw_about)
 end on
@@ -757,28 +760,6 @@ event close;//
 if isvalid(kiuf_sr_utenti) then destroy kiuf_sr_utenti
 end event
 
-type st_informa from multilineedit within w_about
-boolean visible = false
-integer x = 37
-integer y = 748
-integer width = 1952
-integer height = 184
-integer taborder = 20
-integer textsize = -9
-integer weight = 400
-fontcharset fontcharset = ansi!
-fontpitch fontpitch = variable!
-fontfamily fontfamily = swiss!
-string facename = "Verdana"
-long textcolor = 128
-long backcolor = 12632256
-string text = "none"
-boolean border = false
-boolean autovscroll = true
-alignment alignment = center!
-boolean displayonly = true
-end type
-
 type cb_start from picturebutton within w_about
 boolean visible = false
 integer x = 1774
@@ -810,14 +791,15 @@ event u_enter pbm_dwnprocessenter
 event u_dwnkey pbm_dwnkey
 event u_lbuttondown pbm_lbuttondown
 event u_lbuttonup pbm_lbuttonup
+event u_set_st_informa ( string a_txt )
+boolean visible = false
 integer y = 4
 integer width = 2016
-integer height = 1348
+integer height = 1356
 integer taborder = 10
 string title = "none"
 string dataobject = "d_about"
 boolean border = false
-borderstyle borderstyle = stylelowered!
 end type
 
 event u_enter;//
@@ -864,12 +846,25 @@ event u_lbuttonup;//
 
 end event
 
+event u_set_st_informa(string a_txt);//
+if this.rowcount( ) > 0 then
+	if a_txt > " " then
+	else
+		a_txt = ""
+	end if
+	this.setitem(1, "st_informa", trim(a_txt))
+	this.modify("st_informa.visible='1'")
+else
+	this.modify("st_informa.visible='0'")
+end if
+end event
+
 event buttonclicked;//
 string k_nome
 
 	this.accepttext( )
 
-	st_informa.visible = false
+	//st_informa.visible = false
 
 	k_nome = lower(trim(dwo.name))
 
@@ -898,7 +893,7 @@ string k_nome
 
 	this.accepttext( )
 
-	st_informa.visible = false
+	//st_informa.visible = false
 
 	k_nome = lower(trim(dwo.name))
 
@@ -906,14 +901,6 @@ string k_nome
 	
 		open (w_gnu_gpl)
 	
-//	elseif k_nome = "p_img_update" then
-//		
-//		u_update()
-//		
-//	elseif k_nome = "cb_img_start" then
-//	
-//		u_start()	
-		
 	end if
 	
 end event

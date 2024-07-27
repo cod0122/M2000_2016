@@ -978,7 +978,7 @@ kst_esito.nome_oggetto = this.classname()
 
 choose case a_campo_link
 
-	case "b_contab" 
+	case "contab" 
 		kst_tab_prof.num_fatt = adw_1.getitemnumber(adw_1.getrow(), "num_fatt")
 		if kst_tab_prof.num_fatt > 0 then
 			kst_tab_prof.data_fatt = adw_1.getitemdate(adw_1.getrow(), "data_fatt")

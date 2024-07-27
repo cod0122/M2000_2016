@@ -7,6 +7,8 @@ end type
 end forward
 
 global type w_convalida from w_g_tab0
+integer width = 5038
+integer height = 6180
 string title = "Convalida"
 long backcolor = 32501743
 boolean ki_toolbar_window_presente = true
@@ -106,13 +108,21 @@ kuf_clienti kuf1_clienti
 			if kist_tab_meca_arg.id > 0  then
 				dw_guida.setitem(1,"codice", string(kist_tab_meca_arg.id))
 			else
-				kuf1_clienti = create kuf_clienti
-				kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
-				kuf1_clienti.get_nome(kst_tab_clienti)
-				if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
-					dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
-				else
-					dw_guida.setitem(1,"codice", "")
+				if kist_tab_meca_arg.clie_3 > 0 then
+					try
+						kuf1_clienti = create kuf_clienti
+						kst_tab_clienti.codice = kist_tab_meca_arg.clie_3
+						kuf1_clienti.get_nome( kst_tab_clienti )
+						if len(trim(kst_tab_clienti.rag_soc_10)) > 0 then
+							dw_guida.setitem(1,"codice", string(kst_tab_clienti.rag_soc_10 ))
+						else
+							dw_guida.setitem(1,"codice", "")
+						end if
+					catch (uo_exception kuo_exception)
+						kuo_exception.messaggio_utente()
+					finally	 
+						if isvalid(kuf1_clienti) then destroy kuf1_clienti
+					end try
 				end if
 			end if
 		end if
@@ -256,10 +266,7 @@ protected function integer modifica ();//===
 //=== Routine STANDARD ma event. modificabile
 //=== Torna : <=0=Ko, >0=Ok
 int k_return
-long k_key, k_riga, k_riga_max
-st_open_w kst_open_w
-kuf_utility kuf1_utility	
-st_tab_meca_dosim kst_tab_meca_dosim
+long k_key
 
 
 	if ki_ultimo_guida_flag_convalidati = 0 then
@@ -270,23 +277,7 @@ st_tab_meca_dosim kst_tab_meca_dosim
 	
 		k_return = dw_dett_0.retrieve( k_key ) // legge le dosimetrie
 	
-//--- S-protezione campi per modifica
-		kuf1_utility = create kuf_utility 
-		kuf1_utility.u_proteggi_dw("0", 0, dw_dett_0)
-		
-//		dw_dett_0.modify("dosim_data.protect= 0
-//		k_riga_max = dw_dett_0.rowcount( )
-//		for k_riga = 1 to k_riga_max
-//			kst_tab_meca_dosim.dosim_data = dw_dett_0.getitemdate( k_riga, "meca_dosim_dosim_data")
-//			if kst_tab_meca_dosim.dosim_data > kkg.data_zero then
-//				kuf1_utility.u_proteggi_dw("1", "dosim_data", dw_dett_0)
-//				kuf1_utility.u_proteggi_dw("1", "dosim_temperatura", dw_dett_0)
-//				kuf1_utility.u_proteggi_dw("1", "dosim_umidita", dw_dett_0)
-//			end if
-//		next
-		destroy kuf1_utility	
-
-//		dw_dett_0.event u_modifica_set_color()
+		dw_dett_0.u_proteggi_dw("0", 0) // S-protezione campi per modifica
 		
 //--- legge i DWC
 		legge_dwc()
@@ -416,8 +407,6 @@ private function integer visualizza ();//===
 //=== Torna : <=0=Ko, >0=Ok
 int k_return
 long k_key, k_riga
-st_open_w kst_open_w
-kuf_utility kuf1_utility
 
 
 if dw_lista_0.rowcount( ) > 0 then
@@ -434,10 +423,8 @@ if dw_lista_0.rowcount( ) > 0 then
 	
 		k_return = dw_dett_0.retrieve( k_key ) // legge le dosimetrie
 	
-//--- protezione campi per visual
-		kuf1_utility = create kuf_utility 
-		kuf1_utility.u_proteggi_dw("1", 0, dw_dett_0)
-		destroy kuf1_utility	
+		dw_dett_0.u_proteggi_dw("1", 0)
+
 	end if		
 
 end if
@@ -736,40 +723,37 @@ end subroutine
 
 protected function string aggiorna_tabelle ();//
 string k_return = "0"
-st_tab_meca_dosimbozza kst_tab_meca_dosimbozza	
-st_esito kst_esito
-st_tab_barcode kst_tab_barcode
-kuf_barcode kuf1_barcode
+//st_tab_meca_dosimbozza kst_tab_meca_dosimbozza	
+//st_esito kst_esito
+//st_tab_barcode kst_tab_barcode
+//kuf_barcode kuf1_barcode
 
 
 try	
 	 
 	if dw_dett_0.update() < 0 then
 		kguo_sqlca_db_magazzino.db_rollback()
-		kst_esito.sqlcode = -1
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlerrtext = "Errore durante aggiornamento dati Convalida dosimetrica"
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(dw_dett_0.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento dati di Convalida Dosimetrica. " &
+					             + kkg.acapo + "Errore: " + string(dw_dett_0.kist_esito.sqlcode) + " sqldbcode: " + string(dw_dett_0.kist_esito.sqldbcode) &
+									 + " " + trim(dw_dett_0.kist_esito.sqlerrtext)
 		throw kguo_exception
-	else
+	end if
 
 //=== Se tutto OK faccio la COMMIT		
-		kguo_sqlca_db_magazzino.db_commit()
+	kguo_sqlca_db_magazzino.db_commit()
 		
-//--- ricostruisce situazione flag dosimetro sui barcode
-		kuf1_barcode = create kuf_barcode
-		kst_tab_barcode.id_meca = dw_dett_0.getitemnumber(1, "id_meca")
-		kuf1_barcode.set_flg_dosimetro_all(kst_tab_barcode)
-		
-	end if
-			
+////--- ricostruisce situazione flag dosimetro sui barcode
+//	kuf1_barcode = create kuf_barcode
+//	kst_tab_barcode.id_meca = dw_dett_0.getitemnumber(1, "id_meca")
+//	kuf1_barcode.set_flg_dosimetro_all(kst_tab_barcode)
+					
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	k_return = "1Errore: " + string(kst_esito.sqlcode) + " (" + trim(kst_esito.sqlerrtext) + ") "
+	k_return = "1Errore: " + string(kuo_exception.kist_esito.sqlcode) + " (" + trim(kuo_exception.kist_esito.sqlerrtext) + ") "
 	
 finally
-	if isvalid(kuf1_barcode) then destroy kuf1_barcode 
+//	if isvalid(kuf1_barcode) then destroy kuf1_barcode 
 	
 end try
 
@@ -820,11 +804,13 @@ long k_riga, k_riga_max
 string k_str
 st_tab_meca_dosim kst_tab_meca_dosim
 st_tab_meca_dosimbozza kst_tab_meca_dosimbozza
-datastore kds_1
+uo_ds_std_1 kds_1
 st_esito kst_esito
 
 
 try
+	kguo_exception.inizializza()
+
 	k_riga_max = dw_lista_0.rowcount( )
 
 //--- solo conteggio x info
@@ -835,10 +821,8 @@ try
 	next
 
 	if k_ctr = 0 then
-		kguo_exception.inizializza()
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlerrtext = "Segnare con la spunta almeno una riga in elenco"
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Segnare con la spunta almeno una riga in elenco"
 		throw kguo_exception
 	end if
 		
@@ -850,7 +834,7 @@ try
 	k_sn = messagebox("Convalida Lotti", "Eseguire l'operazione di Convalida" + k_str, question!, YesNo!, 2)
 	if k_sn = 1 then
 
-		kds_1 = create datastore
+		kds_1 = create uo_ds_std_1
 		kds_1.dataobject = "ds_meca_dosimbozza"
 		kds_1.settransobject(kguo_sqlca_db_magazzino)
 		
@@ -871,7 +855,7 @@ try
 					kst_tab_meca_dosim.dosim_lotto_dosim = kds_1.getitemstring(1, "dosim_lotto_dosim")
 					kst_tab_meca_dosim.dosim_rapp_a_s = kds_1.getitemnumber(1, "dosim_rapp_a_s")
 	
-					kst_tab_meca_dosim = kiuf_meca_dosim.get_st_tab_meca_dosim(kst_tab_meca_dosim)  // CONVALIDA
+					kst_tab_meca_dosim = kiuf_meca_dosim.convalida_dosimetrica(kst_tab_meca_dosim)  // CONVALIDA G2 e G3
 	
 					kst_tab_meca_dosim.dosim_data = date(kGuf_data_base.prendi_x_datins()) //kguo_g.get_dataoggi( )
 					kst_tab_meca_dosim.dosim_ora = time(kGuf_data_base.prendi_x_datins())
@@ -1197,8 +1181,10 @@ inserisci( )
 end event
 
 type dw_dett_0 from w_g_tab0`dw_dett_0 within w_convalida
+integer x = 9
+integer y = 1012
 boolean enabled = true
-string dataobject = "d_convalida_dosimbozza_l"
+string dataobject = "d_meca_dosimbozza_l"
 boolean ki_colora_riga_aggiornata = false
 boolean ki_attiva_standard_select_row = true
 boolean ki_d_std_1_attiva_cerca = true
@@ -1356,6 +1342,8 @@ integer y = 744
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_convalida
+integer x = 18
+integer y = 104
 string dataobject = "d_mecadosim_l_da_conv"
 end type
 
@@ -1399,8 +1387,9 @@ end event
 
 type dw_guida from w_g_tab0`dw_guida within w_convalida
 boolean visible = true
-integer y = 8
-integer width = 3433
+integer x = 0
+integer y = 0
+integer width = 4334
 integer height = 84
 boolean enabled = true
 string dataobject = "d_convalida_guida"
@@ -1464,14 +1453,18 @@ end try
 
 end event
 
-event dw_guida::ue_retrieve_dinamico;call super::ue_retrieve_dinamico;//---	
-//--- 
-//---
+event dw_guida::ue_retrieve_dinamico;call super::ue_retrieve_dinamico;//
+
 if k_campo = "flag_sino" then //and (dw_guida.getitemstring(1, "codice") > " " or dw_lista_0.rowcount( ) > 0) then
 	
 	this.post event ue_buttonclicked("default")
 	
 end if
+
+end event
+
+event dw_guida::editchanged;call super::editchanged;//
+	event ue_retrieve_dinamico(dwo.name, data) 
 
 end event
 

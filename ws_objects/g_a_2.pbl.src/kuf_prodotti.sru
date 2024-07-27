@@ -398,7 +398,7 @@ choose case a_campo_link
 		end if
 
 
-	case "b_cod_art_l"
+	case "cod_art_l"
 		kst_esito = this.anteprima_l ( kdsi_elenco_output, kst_tab_prodotti )
 		if kst_esito.esito <> kkg_esito.ok then
 			kguo_exception.inizializza( )

@@ -2531,7 +2531,7 @@ try
 	
 	
 			
-		case "b_barcode_lotto" 
+		case "barcode_lotto" 
 			kst_tab_barcode.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
 			if kst_tab_barcode.id_meca > 0 then
 		

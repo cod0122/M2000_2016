@@ -5,6 +5,8 @@ end type
 end forward
 
 global type w_convalida_dosim from w_g_tab_3
+integer width = 6039
+integer height = 5180
 string title = "Dosimetria"
 long backcolor = 32172778
 boolean ki_esponi_msg_dati_modificati = false
@@ -1377,15 +1379,18 @@ try
 	kst_tab_meca_dosim.dosim_lotto_dosim = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "dosim_lotto_dosim")
 	kst_tab_meca_dosim.dosim_rapp_a_s = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "dosim_rapp_a_s")
 
-	kst_tab_meca = kiuf_meca_dosim.convalida(kst_tab_meca_dosim)
+	kst_tab_meca_dosim = kiuf_meca_dosim.convalida_dosimetrica(kst_tab_meca_dosim)   //2024gennaio chiamava la old_convalida
+
+	kst_tab_meca.id = kst_tab_meca_dosim.id_meca
+	kiuf_armo.get_num_int(kst_tab_meca)  // get della DATA_INT
 
 	tab_1.tabpage_1.dw_1.setitem(k_riga, "data_int", kst_tab_meca.data_int)
-	tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kst_tab_meca.err_lav_ok)
-	tab_1.tabpage_1.dw_1.setitem(k_riga, "note_lav_ok", kst_tab_meca.note_lav_ok)
+	tab_1.tabpage_1.dw_1.setitem(k_riga, "err_lav_ok", kst_tab_meca_dosim.err_lav_ok)
+	tab_1.tabpage_1.dw_1.setitem(k_riga, "note_lav_ok", kst_tab_meca_dosim.note_lav_ok)
 
-	if kst_tab_meca.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok &
-              or kst_tab_meca.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok &
-              or kst_tab_meca.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok then
+	if kst_tab_meca_dosim.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok &
+              or kst_tab_meca_dosim.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok &
+              or kst_tab_meca_dosim.err_lav_ok = kuf_meca_dosim.ki_err_lav_ok_conv_aut_ok then
 		k_ok = true
 	end if
 
@@ -1636,6 +1641,9 @@ if isvalid(kiuf_armo) then destroy kiuf_armo
 
 end event
 
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_convalida_dosim
+end type
+
 type st_ritorna from w_g_tab_3`st_ritorna within w_convalida_dosim
 integer x = 562
 integer y = 1700
@@ -1746,6 +1754,8 @@ return (k_return)
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_convalida_dosim
+integer x = 0
+integer y = 0
 end type
 
 on tab_1.create
@@ -1788,8 +1798,8 @@ end type
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 event u_dropfiles pbm_dropfiles
-integer x = 27
-integer y = 124
+integer x = 1
+integer y = 1
 integer width = 2752
 integer height = 1352
 string dataobject = "d_convalida_dosim"

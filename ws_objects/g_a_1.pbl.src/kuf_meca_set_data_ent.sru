@@ -93,12 +93,10 @@ try
 		if k_rc >= 0 then 
 			kguo_sqlca_db_magazzino.db_commit( )
 		else
-			kst_esito = kds_1.kist_esito
-			kst_esito.SQLErrText = "Errore in aggiornamento data di Entrata e Consegna dei " + string(k_return) + " Lotti a cui mancava, ad esempio per Id (meca): " + string(kds_1.getitemnumber( 1, "id")) &
-									+ kkg.acapo  + trim(kst_esito.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito(kst_esito)
-			kguo_sqlca_db_magazzino.db_rollback( )
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.set_st_esito_err_ds(kds_1, &
+								"Errore in aggiornamento data di Entrata e Consegna dei " + string(k_return) &
+								+ " Lotti a cui mancava. Vedi esempio Id Lotto (ASN): " + string(kds_1.getitemnumber( 1, "id")))
 			throw kguo_exception
 		end if
 	end if

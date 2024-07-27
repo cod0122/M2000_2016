@@ -33,8 +33,6 @@ forward prototypes
 public subroutine _readme ()
 public function long get_tab_lav_x_lotto_prev () throws uo_exception
 private function long u_set_tab_lav_x_lotto_prev () throws uo_exception
-public function long get_ds_barcode_in_lav_prev () throws uo_exception
-public function long get_ds_barcode_queue_prev () throws uo_exception
 public function string get_ki_temptab_pilota_workqueue ()
 public function string get_ki_temptab_pilota_prev_lav ()
 private function long u_set_dataora_lav_prev_fin () throws uo_exception
@@ -43,15 +41,17 @@ public function string get_id_programma (string k_flag_modalita)
 private subroutine u_set_dataora_lav_prev_fin_1 (ref datastore ads_1, long a_riga) throws uo_exception
 public function integer u_esegui_u_m2000_avgtimeplant ()
 public function st_pilota_giri_tempi get_giri_tempi_prev () throws uo_exception
-private function datastore u_get_ds_pilota_workqueue_all () throws uo_exception
-private function datastore u_get_ds_pilota_work () throws uo_exception
 private function long u_set_barcode_avgtimeplant () throws uo_exception
 private function long u_set_ds_queue_lav_xfila (ref datastore kds_1) throws uo_exception
-private function datastore u_set_temptable_pilota_workqueue () throws uo_exception
-private function datastore u_append_ds_pallet_workqueue (ref datastore ads_inp) throws uo_exception
-public function datastore get_ds_pallet_workqueue_by_d_pl_barcode (ref datawindow ads_inp) throws uo_exception
 private subroutine u_set_ds_pilota_queue_data_prev_all (ref datastore ads_queue) throws uo_exception
 public subroutine get_time_io_minute (ref st_tab_s_avgtimeplant ast_tab_s_avgtimeplant) throws uo_exception
+public function long crea_temptable_pilota_pallet_workqueue () throws uo_exception
+public function long crea_temptable_pilota_pallet_in_lav () throws uo_exception
+private function uo_ds_std_1 u_set_temptable_pilota_pallet_workqueue () throws uo_exception
+private function uo_ds_std_1 u_get_ds_pilota_workqueue_all () throws uo_exception
+private function uo_ds_std_1 u_get_ds_pilota_work () throws uo_exception
+private function datastore u_append_ds_pallet_workqueue (ref uo_ds_std_1 ads_inp) throws uo_exception
+public function uo_ds_std_1 get_ds_pallet_workqueue_by_d_pl_barcode (ref datawindow ads_inp) throws uo_exception
 end prototypes
 
 public subroutine _readme ();//
@@ -113,60 +113,6 @@ datastore kds_queue
 return k_righe
 	
 
-end function
-
-public function long get_ds_barcode_in_lav_prev () throws uo_exception;//---
-//--- Popola ds con i barcode in lavorazione nel PILOTA e add all data from M2000
-//---
-//
-long k_rows
- 
-try 
-
-//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
-	u_set_temptable_pilota_workqueue( )
-
-	k_rows = u_set_dataora_lav_prev_fin( )	  // imposta data fine lav per rec in lavorazione
-
-
-catch (uo_exception kuo_exception)
-	throw kguo_exception
-	
-finally
-	
-end try
-
-return k_rows
-end function
-
-public function long get_ds_barcode_queue_prev () throws uo_exception;//---
-//--- Popola il ds con i barcode in programmazione nel PILOTA 
-//---
-//
-int k_rc
-long k_rows
-datastore kds_temp_table_by_pilota, kds_queue
-
-try  
-	
-//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
-	kds_temp_table_by_pilota = u_set_temptable_pilota_workqueue( )
-	
-	k_rows = kds_temp_table_by_pilota.rowcount( )
-	if k_rows > 0 then
-		kds_queue = u_get_ds_pilota_workqueue_all( )
-
-		u_set_ds_pilota_queue_data_prev_all(kds_queue)	  // imposta data fine lav per rec WORK + QUEUE
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	
-end try
-
-return k_rows
 end function
 
 public function string get_ki_temptab_pilota_workqueue ();	//
@@ -513,117 +459,6 @@ return kst_pilota_giri_tempi
 
 end function
 
-private function datastore u_get_ds_pilota_workqueue_all () throws uo_exception;//
-//--------------------------------------------------------------------------------------
-//--- Aggiorna la data di fine lavorazione in tab 'previsioni' per 
-//--- i pallet in lavorazione (WORK)
-//---
-//--------------------------------------------------------------------------------------
-//
-//
-long k_riga, k_righe
-int k_rc
-datastore kds_out, kds_1	
-	
-	try
-
-		kds_out = CREATE datastore
-		kds_out.dataobject = "ds_pilota_workqueue_tmp"
-		k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
-
-		kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
-		
-		k_righe = kds_out.retrieve("*")
-		if k_righe < 1 then //verifica se la tabella temp esiste altrimenti la popola
-		
-//--- popola tabella temp con i data ini e fin previsti ( tutto quello che c'e' nel Pilota in Lav e  in Coda di Programmazione) 		
-			kds_1 = u_set_temptable_pilota_workqueue( )
-			k_righe = kds_1.rowcount( )
-			if k_righe > 0 then
-				k_righe = kds_out.retrieve("*")
-			end if
-		
-		end if
-		
-		if k_righe < 1 then
-			
-			kguo_exception.inizializza( )
-			kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
-			kguo_exception.kist_esito.sqlerrtext = "Il numero di righe estratte dalla tab. temp #" + ki_temptab_pilota_workqueue + " non può essere a zero!"
-			kguo_exception.kist_esito.nome_oggetto = this.classname( )
-			kguo_exception.scrivi_log( )
-			throw kguo_exception
-			
-		end if
-		
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-
-	finally
-
-	end try
-		
-
-return kds_out
-	
-
-end function
-
-private function datastore u_get_ds_pilota_work () throws uo_exception;//
-//--------------------------------------------------------------------------------------
-//--- Aggiorna la data di fine lavorazione in tab 'previsioni' per 
-//--- i pallet in lavorazione (WORK)
-//---
-//--------------------------------------------------------------------------------------
-//
-//
-long k_riga, k_righe
-int k_rc
-datastore kds_out, kds_1
-	
-	try
-
-		kds_out = CREATE datastore
-		kds_out.dataobject = "ds_pilota_workqueue_tmp"
-		k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
-
-		kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
-		
-		k_righe = kds_out.retrieve("WORK")
-		if k_righe < 1 then //verifica se la tabella temp esiste altrimenti la popola
-		
-//--- popola tabella temp con i data ini e fin previsti ( tutto quello che c'e' nel Pilota in Lav e  in Coda di Programmazione) 		
-			kds_1 = u_set_temptable_pilota_workqueue( )
-			k_righe = kds_1.rowcount( )
-			if k_righe > 0 then
-				k_righe = kds_out.retrieve("WORK")
-			end if
-		end if
-		
-		if k_righe < 1 then
-			
-			kguo_exception.inizializza( )
-			kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
-			kguo_exception.kist_esito.sqlerrtext = "Il numero di righe estratte dalla tab. temp #" + ki_temptab_pilota_workqueue + " non può essere a zero!"
-			kguo_exception.kist_esito.nome_oggetto = this.classname( )
-			kguo_exception.scrivi_log( )
-			throw kguo_exception
-			
-		end if
-		
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-
-	finally
-
-	end try
-		
-
-return kds_out
-	
-
-end function
-
 private function long u_set_barcode_avgtimeplant () throws uo_exception;//
 //--------------------------------------------------------------------------------------
 //--- Imposta i tempi di lavorazione previsti in impianto 
@@ -728,244 +563,6 @@ end try
 
 return k_row_insert
 
-
-end function
-
-private function datastore u_set_temptable_pilota_workqueue () throws uo_exception;//
-//-------------------------------------------------------------------------------------------------------
-//--- Recupera da PILOTA tutti i pallet in-lav (WORK) e in coda (QUEUE) e crea la TEMP TABLE con i PALLET
-//--- Out: datastore con i dati della temp-table
-//-------------------------------------------------------------------------------------------------------
-//
-//
-long k_righe=0, k_riga=0
-int k_rc
-long k_rigainsert
-string k_campi, k_stato
-string k_sql_orig, k_string, k_stringn
-int k_ctr
-st_tab_pilota_pallet kst_tab_pilota_pallet
-datastore kds_out, kds_inp
- 	
-	try
-		
-//--- popola pallet in lav e in coda in una tabella di appoggio: #vx_pilota_prev_lav
-
-		k_campi = "stato char(6) " &
-					 	+ " , n_ordine int " &
-					 	+ " , barcode char(13) " &
-					 	+ " , barcode_figlio char(13) " &
-					 	+ " , ordine_figlio tinyint " &
-					 	+ " , num_int_figlio int " &
-					 	+ " , posizione tinyint " &
-					 	+ " , fase tinyint " &
-					 	+ " , nn tinyint " &
-					 	+ " , fila tinyint " &
-						 + ", f1avp smallint " &
-						 + ", f1app smallint " &
-						 + ", f2avp smallint " &
-						 + ", f2app smallint " &
-					 	 + ", dataora_lav_ini datetime " &
-					 	 + ", dataora_lav_fin_prev datetime " &
- 					 	 + ", dataora_lav_fin_min_prev datetime " &
-					 	 + ", dataora_lav_fin_max_prev datetime " &
-					 	 + ", dataora_lav_fin_prev_dtpl datetime " &
-						 + ", avg_time_io_minute integer" 
-//	   	kguo_sqlca_db_magazzino.db_crea_temp_table_global(ki_temptab_pilota_workqueue, k_campi, "")      
-	   	kguo_sqlca_db_magazzino.db_crea_temp_table(ki_temptab_pilota_workqueue, k_campi, "")      
-//	   	kguo_sqlca_db_magazzino.db_crea_table( ki_temptab_pilota_workqueue, k_campi)      
-				
-		kds_inp = CREATE datastore
-		kds_inp.dataobject = ki_ds_pallet_workqueue_dataobject    
-		k_rc = kds_inp.SetTrans (kguo_sqlca_db_pilota)
-
-		kds_out = CREATE datastore
-		kds_out.dataobject = "ds_pilota_pallet_workqueue_temp"
-		k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
-
-		kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
-
-		k_righe = kds_inp.retrieve( )    // get dal db PILOTA tutti i PALLET in lavorazione e in coda 
-
-		for k_riga = 1 to k_righe 
-			k_rigainsert = kds_out.insertrow( 0 )
-			
-			k_stato = kds_inp.getitemstring(k_riga, "stato")  //stato = WORK (in lav) o QUEUE (in coda)
-			kds_out.setitem( k_rigainsert, "stato", k_stato )
-			kds_out.setitem( k_rigainsert, "n_ordine", kds_inp.getitemnumber(k_riga, "n_ordine") )
-			kds_out.setitem( k_rigainsert, "barcode", kds_inp.getitemstring(k_riga, "pallet_code") )
-			kds_out.setitem( k_rigainsert, "barcode_figlio", kds_inp.getitemstring(k_riga, "barcode_figlio") )
-			kds_out.setitem( k_rigainsert, "ordine_figlio", kds_inp.getitemnumber(k_riga, "ordine_figlio") )
-			kds_out.setitem( k_rigainsert, "num_int_figlio", integer(kds_inp.getitemstring(k_riga, "lotto_figlio") ))
-			kds_out.setitem( k_rigainsert, "posizione", integer(kds_inp.getitemstring(k_riga, "posizione") ))
-			
-			kst_tab_pilota_pallet.data_entrata = kds_inp.getitemdatetime(k_riga, "k_dataora_lav_ini")
-			if k_stato = "WORK" then 
-				if kst_tab_pilota_pallet.data_entrata > datetime(date(0)) then
-				else
-					//--- capita a volte che il PALLET è in LAV ma ancora senza data per un po' allora forza adesso
-					kst_tab_pilota_pallet.data_entrata = kguo_g.get_datetime_current( )
-				end if
-			end if
-			kds_out.setitem( k_rigainsert, "dataora_lav_ini", kst_tab_pilota_pallet.data_entrata )
-			
-			kds_out.setitem( k_rigainsert, "fase", kds_inp.getitemnumber(k_riga, "fase") )
-			kds_out.setitem( k_rigainsert, "nn", integer(kds_inp.getitemstring(k_riga, "nn") ))
-			kds_out.setitem( k_rigainsert, "fila", kds_inp.getitemnumber(k_riga, "fila") )
-			kds_out.setitem( k_rigainsert, "f1avp", kds_inp.getitemnumber(k_riga, "f1avp") )
-			kds_out.setitem( k_rigainsert, "f1app", kds_inp.getitemnumber(k_riga, "f1app") )
-			kds_out.setitem( k_rigainsert, "f2avp", kds_inp.getitemnumber(k_riga, "f2avp") )
-			kds_out.setitem( k_rigainsert, "f2app", kds_inp.getitemnumber(k_riga, "f2app") )
-		end for
-
-		k_rc = kds_out.update() 
-		
-		kguo_sqlca_db_magazzino.db_commit( )
-		
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-
-	finally
-		if isvalid(kds_inp) then destroy kds_inp
-		//if isvalid(kds_out) then destroy kds_out
-
-	end try
-		
-
-return kds_out //k_rigainsert
-	
-
-end function
-
-private function datastore u_append_ds_pallet_workqueue (ref datastore ads_inp) throws uo_exception;//---
-//--- Popola ads_inp con i dati di programmazione inizio-fine lav
-//---
-//
-int k_rc
-string k_n_ordine_x
-long k_row, k_rows, k_rows_inp, k_n_ordine, k_rows_queue
-datetime k_datetime_zero
-datastore kds_temp_table_by_pilota, kds_queue
-
-try  
-	
-
-	k_datetime_zero = datetime(date(0))
-	
-//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
-	kds_temp_table_by_pilota = u_set_temptable_pilota_workqueue( )
-	
-	if kds_temp_table_by_pilota.rowcount() > 0 then
-
-		kds_queue = u_get_ds_pilota_workqueue_all( )
-		k_rows_queue = kds_queue.rowcount()
-		
-		if isvalid(ads_inp) then 
-			k_rows_inp = ads_inp.rowcount()
-			if k_rows_inp > 0 then
-		
-//--- Se ho passato qualcosa imposta il n.ordine e ACCODA ads_inp al kds_queue 
-				k_n_ordine_x = kds_queue.describe("evaluate ('max(n_ordine for all)',0)")
-				if isnumber(trim(k_n_ordine_x)) then
-					k_n_ordine = long(trim(k_n_ordine_x))
-					for k_row = 1 to k_rows_inp
-						ads_inp.setitem(k_row, "stato", "ADD")
-						ads_inp.setitem(k_row, "n_ordine", (k_n_ordine + k_row))
-						ads_inp.setitem(k_row, "dataora_lav_ini", k_datetime_zero)
-						ads_inp.setitem(k_row, "dataora_lav_fin_prev", k_datetime_zero)
-					next
-					ads_inp.rowscopy(1, k_rows_inp, primary!, kds_queue, (k_rows_queue + 1), primary!)
-					kds_queue.update( )
-				end if
-			end if
-
-//--- imposta data fine lav per rec WORK + QUEUE + i dati del ads_inp passati	
-			u_set_ds_pilota_queue_data_prev_all(kds_queue)	  
-//DBG kds_queue.SaveAs("c:\ufo\workqueue_1.csv", CSV!, true)
-//			k_rows = kds_queue.rowcount( )
-//					for k_row = 1 to k_rows
-//						k_barcode = kds_queue.getitemstring(k_row, "barcode")
-//						k_fila_1 = kds_queue.getitemnumber(k_row, "f1avp")
-//						k_fila_2 = kds_queue.getitemnumber(k_row, "f2avp")
-//						k_fila = kds_queue.getitemnumber(k_row, "fila")
-//						k_stato = kds_queue.getitemstring(k_row, "stato")
-//						kdataora_lav_ini = kds_queue.getitemdatetime(k_row, "dataora_lav_ini")
-//						kdataora_lav_fin_prev = kds_queue.getitemdatetime(k_row, "dataora_lav_fin_prev")
-//					next
-			
-		end if
-		
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	
-end try
-
-return kds_queue
-end function
-
-public function datastore get_ds_pallet_workqueue_by_d_pl_barcode (ref datawindow ads_inp) throws uo_exception;//
-//--- Restituisce un DS su cui add i dati barcode e fila su cui poi calcolare la data di fine/inizio lav
-//--- Input: ds con le colonne: 
-//---                      barcode_barcode, barcode_fila_1, barcode_fila_1p, barcode_fila_2, barcode_fila_2p
-//--- Out: datastore completo di barcode e data_lav_fin, con le colonne: barcode, 
-//---								numero giri fila 1 e fila 2 (f1avp+f1app o f2avp+f2app)
-//---
-long k_rows, k_row
-//st_tab_barcode kst_tab_barcode
-st_tab_s_avgtimeplant kst_tab_s_avgtimeplant
-datastore kds_queue_add, kds_queue
-
-
-try
-	kds_queue_add = CREATE datastore
-	kds_queue_add.dataobject = "ds_pilota_workqueue_tmp"
-
-	k_rows = ads_inp.rowcount()
-	
-	if k_rows > 0 then
-	
-//--- copia i dati del ads_inp nella QUEUE da aggiungere poi ai barcode già in programmazione
-		for k_row = 1 to k_rows
-			kst_tab_s_avgtimeplant.giri_f1 = ads_inp.getitemnumber(k_row, "barcode_fila_1")
-			kst_tab_s_avgtimeplant.giri_f1p = ads_inp.getitemnumber(k_row, "barcode_fila_1p")
-			kst_tab_s_avgtimeplant.giri_f2 = ads_inp.getitemnumber(k_row, "barcode_fila_2")
-			kst_tab_s_avgtimeplant.giri_f2p = ads_inp.getitemnumber(k_row, "barcode_fila_2p")
-			get_time_io_minute(kst_tab_s_avgtimeplant) // get tempo medio x i giri richiesti
-			kds_queue_add.insertrow(0)
-			kds_queue_add.setitem(k_row, "barcode", ads_inp.getitemstring(k_row, "barcode_barcode"))
-			kds_queue_add.setitem(k_row, "f1avp", kst_tab_s_avgtimeplant.giri_f1)
-			kds_queue_add.setitem(k_row, "f1app", kst_tab_s_avgtimeplant.giri_f1p)
-			kds_queue_add.setitem(k_row, "f2avp", kst_tab_s_avgtimeplant.giri_f2)
-			kds_queue_add.setitem(k_row, "f2app", kst_tab_s_avgtimeplant.giri_f2p)
-			kds_queue_add.setitem(k_row, "time_io_minute_avg", kst_tab_s_avgtimeplant.time_io_minute)
-			kds_queue_add.setitem(k_row, "avg_time_io_minute", kst_tab_s_avgtimeplant.time_io_minute)
-			
-			if kst_tab_s_avgtimeplant.giri_f1 > 0 then
-				kds_queue_add.setitem(k_row, "fila", 1)
-			else
-				kds_queue_add.setitem(k_row, "fila", 2)
-			end if
-		next
-	
-	end if
-	
-//--- add dati del ads_inp nella QUEUE da aggiungere poi ai barcode già in programmazione
-	kds_queue = u_append_ds_pallet_workqueue(kds_queue_add)
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	if isvalid(kds_queue_add) then destroy kds_queue_add
-	
-end try
-
-
-return kds_queue
 
 end function
 
@@ -1197,6 +794,430 @@ string k_find
 
 end subroutine
 
+public function long crea_temptable_pilota_pallet_workqueue () throws uo_exception;//---
+//--- Popola il ds con i barcode in programmazione nel PILOTA 
+//---
+//
+int k_rc
+long k_rows
+uo_ds_std_1 kds_temptable_pilota_pallet_workqueue, kds_queue
+
+try  
+	
+//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
+	kds_temptable_pilota_pallet_workqueue = u_set_temptable_pilota_pallet_workqueue( )
+	
+	k_rows = kds_temptable_pilota_pallet_workqueue.rowcount( )
+	if k_rows > 0 then
+		kds_queue = u_get_ds_pilota_workqueue_all( )
+
+		u_set_ds_pilota_queue_data_prev_all(kds_queue)	  // imposta data fine lav per rec WORK + QUEUE
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	
+end try
+
+return k_rows
+end function
+
+public function long crea_temptable_pilota_pallet_in_lav () throws uo_exception;//---
+//--- Popola ds con i barcode in lavorazione nel PILOTA e add all data from M2000
+//---
+//
+long k_rows
+ 
+try 
+
+//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
+	u_set_temptable_pilota_pallet_workqueue( )
+
+	k_rows = u_set_dataora_lav_prev_fin( )	  // imposta data fine lav per rec in lavorazione
+
+
+catch (uo_exception kuo_exception)
+	throw kguo_exception
+	
+finally
+	
+end try
+
+return k_rows
+end function
+
+private function uo_ds_std_1 u_set_temptable_pilota_pallet_workqueue () throws uo_exception;//
+//-------------------------------------------------------------------------------------------------------
+//--- Recupera da PILOTA tutti i pallet in-lav (WORK) e in coda (QUEUE) e crea la TEMP TABLE con i PALLET
+//--- Out: datastore con i dati della temp-table
+//-------------------------------------------------------------------------------------------------------
+//
+//
+long k_righe=0, k_riga=0
+int k_rc
+long k_rigainsert
+string k_campi, k_stato
+string k_sql_orig, k_string, k_stringn
+int k_ctr
+st_tab_pilota_pallet kst_tab_pilota_pallet
+uo_ds_std_1 kds_out, kds_inp
+
+
+try
+	
+//--- popola pallet in lav e in coda in una tabella di appoggio: #vx_pilota_prev_lav
+
+	k_campi = "stato char(6) " &
+					+ " , n_ordine int " &
+					+ " , barcode char(13) " &
+					+ " , barcode_figlio char(13) " &
+					+ " , ordine_figlio tinyint " &
+					+ " , num_int_figlio int " &
+					+ " , posizione tinyint " &
+					+ " , fase tinyint " &
+					+ " , nn tinyint " &
+					+ " , fila tinyint " &
+					 + ", f1avp smallint " &
+					 + ", f1app smallint " &
+					 + ", f2avp smallint " &
+					 + ", f2app smallint " &
+					 + ", wip_f1avp smallint " &
+					 + ", wip_f1app smallint " &
+					 + ", wip_f2avp smallint " &
+					 + ", wip_f2app smallint " &
+					 + ", dataora_lav_ini datetime " &
+					 + ", dataora_lav_fin_prev datetime " &
+					 + ", dataora_lav_fin_min_prev datetime " &
+					 + ", dataora_lav_fin_max_prev datetime " &
+					 + ", dataora_lav_fin_prev_dtpl datetime " &
+					 + ", avg_time_io_minute integer" 
+//	   	kguo_sqlca_db_magazzino.db_crea_temp_table_global(ki_temptab_pilota_workqueue, k_campi, "")      
+		kguo_sqlca_db_magazzino.db_crea_temp_table(ki_temptab_pilota_workqueue, k_campi, "")      
+//	   	kguo_sqlca_db_magazzino.db_crea_table( ki_temptab_pilota_workqueue, k_campi)      
+			
+	kds_inp = CREATE uo_ds_std_1
+	kds_inp.dataobject = ki_ds_pallet_workqueue_dataobject    
+	k_rc = kds_inp.SetTrans (kguo_sqlca_db_pilota)
+
+	kds_out = CREATE uo_ds_std_1
+	kds_out.dataobject = "ds_pilota_pallet_workqueue_temp"
+	k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
+
+	kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
+
+	k_righe = kds_inp.retrieve( )    // get dal db PILOTA tutti i PALLET in lavorazione e in coda 
+
+	for k_riga = 1 to k_righe 
+		k_rigainsert = kds_out.insertrow( 0 )
+		
+		k_stato = kds_inp.getitemstring(k_riga, "stato")  //stato = WORK (in lav) o QUEUE (in coda)
+		kds_out.setitem( k_rigainsert, "stato", k_stato )
+		kds_out.setitem( k_rigainsert, "n_ordine", kds_inp.getitemnumber(k_riga, "n_ordine") )
+		kds_out.setitem( k_rigainsert, "barcode", kds_inp.getitemstring(k_riga, "pallet_code") )
+		kds_out.setitem( k_rigainsert, "barcode_figlio", kds_inp.getitemstring(k_riga, "barcode_figlio") )
+		kds_out.setitem( k_rigainsert, "ordine_figlio", kds_inp.getitemnumber(k_riga, "ordine_figlio") )
+		kds_out.setitem( k_rigainsert, "num_int_figlio", integer(kds_inp.getitemstring(k_riga, "lotto_figlio") ))
+		kds_out.setitem( k_rigainsert, "posizione", integer(kds_inp.getitemstring(k_riga, "posizione") ))
+		
+		kst_tab_pilota_pallet.data_entrata = kds_inp.getitemdatetime(k_riga, "k_dataora_lav_ini")
+		if k_stato = "WORK" then 
+			if kst_tab_pilota_pallet.data_entrata > datetime(date(0)) then
+			else
+				//--- capita a volte che il PALLET è in LAV ma ancora senza data per un po' allora forza adesso
+				kst_tab_pilota_pallet.data_entrata = kguo_g.get_datetime_current( )
+			end if
+		end if
+		kds_out.setitem( k_rigainsert, "dataora_lav_ini", kst_tab_pilota_pallet.data_entrata )
+		
+		kds_out.setitem( k_rigainsert, "fase", kds_inp.getitemnumber(k_riga, "fase") )
+		kds_out.setitem( k_rigainsert, "nn", integer(kds_inp.getitemstring(k_riga, "nn") ))
+		kds_out.setitem( k_rigainsert, "fila", kds_inp.getitemnumber(k_riga, "fila") )
+		kds_out.setitem( k_rigainsert, "f1avp", kds_inp.getitemnumber(k_riga, "f1avp") )
+		kds_out.setitem( k_rigainsert, "f1app", kds_inp.getitemnumber(k_riga, "f1app") )
+		kds_out.setitem( k_rigainsert, "f2avp", kds_inp.getitemnumber(k_riga, "f2avp") )
+		kds_out.setitem( k_rigainsert, "f2app", kds_inp.getitemnumber(k_riga, "f2app") )
+		kds_out.setitem( k_rigainsert, "wip_f1avp", kds_inp.getitemnumber(k_riga, "wip_f1avp") )
+		kds_out.setitem( k_rigainsert, "wip_f1app", kds_inp.getitemnumber(k_riga, "wip_f1app") )
+		kds_out.setitem( k_rigainsert, "wip_f2avp", kds_inp.getitemnumber(k_riga, "wip_f2avp") )
+		kds_out.setitem( k_rigainsert, "wip_f2app", kds_inp.getitemnumber(k_riga, "wip_f2app") )
+	end for
+
+	k_rc = kds_out.update() 
+	if k_rc < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_esito(kds_out.kist_esito)
+		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento tabella temporanea dei Pallet in Coda e in Lavorazione sul Gamma2. " &
+							+ "Ordine: " + string(kds_inp.getitemnumber(k_riga, "n_ordine")) &
+							+ ", Barcode: " + trim(kds_inp.getitemstring(k_riga, "pallet_code")) + ". " &
+							+ kkg.acapo + kds_out.kist_esito.sqlerrtext
+		kguo_sqlca_db_magazzino.db_rollback( )
+		throw kguo_exception
+	end if		
+	
+	kguo_sqlca_db_magazzino.db_commit( )
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+
+finally
+	if isvalid(kds_inp) then destroy kds_inp
+	//if isvalid(kds_out) then destroy kds_out
+
+end try
+	
+
+return kds_out //k_rigainsert
+	
+
+end function
+
+private function uo_ds_std_1 u_get_ds_pilota_workqueue_all () throws uo_exception;//
+//--------------------------------------------------------------------------------------
+//--- Aggiorna la data di fine lavorazione in tab 'previsioni' per 
+//--- i pallet in lavorazione (WORK)
+//---
+//--------------------------------------------------------------------------------------
+//
+//
+long k_riga, k_righe
+int k_rc
+uo_ds_std_1 kds_out, kds_1	
+	
+	try
+
+		kds_out = CREATE uo_ds_std_1
+		kds_out.dataobject = "ds_pilota_workqueue_tmp"
+		k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
+
+		kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
+		
+		k_righe = kds_out.retrieve("*")
+		if k_righe < 1 then //verifica se la tabella temp esiste altrimenti la popola
+		
+//--- popola tabella temp con i data ini e fin previsti ( tutto quello che c'e' nel Pilota in Lav e  in Coda di Programmazione) 		
+			kds_1 = u_set_temptable_pilota_pallet_workqueue( )
+			k_righe = kds_1.rowcount( )
+			if k_righe > 0 then
+				k_righe = kds_out.retrieve("*")
+			end if
+		
+		end if
+		
+		if k_righe < 1 then
+			
+			kguo_exception.inizializza( )
+			kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
+			kguo_exception.kist_esito.sqlerrtext = "Il numero di righe estratte dalla tab. temp #" + ki_temptab_pilota_workqueue + " non può essere a zero!"
+			kguo_exception.kist_esito.nome_oggetto = this.classname( )
+			kguo_exception.scrivi_log( )
+			throw kguo_exception
+			
+		end if
+		
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+
+	end try
+		
+
+return kds_out
+	
+
+end function
+
+private function uo_ds_std_1 u_get_ds_pilota_work () throws uo_exception;//
+//--------------------------------------------------------------------------------------
+//--- Aggiorna la data di fine lavorazione in tab 'previsioni' per 
+//--- i pallet in lavorazione (WORK)
+//---
+//--------------------------------------------------------------------------------------
+//
+//
+long k_riga, k_righe
+int k_rc
+uo_ds_std_1 kds_out, kds_1
+	
+	try
+
+		kds_out = CREATE uo_ds_std_1
+		kds_out.dataobject = "ds_pilota_workqueue_tmp"
+		k_rc = kds_out.SetTransObject (kguo_sqlca_db_magazzino)
+
+		kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
+		
+		k_righe = kds_out.retrieve("WORK")
+		if k_righe < 1 then //verifica se la tabella temp esiste altrimenti la popola
+		
+//--- popola tabella temp con i data ini e fin previsti ( tutto quello che c'e' nel Pilota in Lav e  in Coda di Programmazione) 		
+			kds_1 = u_set_temptable_pilota_pallet_workqueue( )
+			k_righe = kds_1.rowcount( )
+			if k_righe > 0 then
+				k_righe = kds_out.retrieve("WORK")
+			end if
+		end if
+		
+		if k_righe < 1 then
+			
+			kguo_exception.inizializza( )
+			kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_internal_bug
+			kguo_exception.kist_esito.sqlerrtext = "Il numero di righe estratte dalla tab. temp #" + ki_temptab_pilota_workqueue + " non può essere a zero! " &
+			                      + kkg.acapo + kds_out.kist_esito.sqlerrtext
+			kguo_exception.kist_esito.nome_oggetto = this.classname( )
+			kguo_exception.scrivi_log( )
+			throw kguo_exception
+			
+		end if
+		
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+
+	end try
+		
+
+return kds_out
+	
+
+end function
+
+private function datastore u_append_ds_pallet_workqueue (ref uo_ds_std_1 ads_inp) throws uo_exception;//---
+//--- Popola ads_inp con i dati di programmazione inizio-fine lav
+//---
+//
+int k_rc
+string k_n_ordine_x
+long k_row, k_rows, k_rows_inp, k_n_ordine, k_rows_queue
+datetime k_datetime_zero
+uo_ds_std_1 kds_temptable_pilota_pallet_workqueue, kds_queue
+
+try  
+	
+
+	k_datetime_zero = datetime(date(0))
+	
+//--- popola tabella temp con i data ini e fin previsti ( tutto quello nel Pilota in Lav e  in Coda di Programmazione) 		
+	kds_temptable_pilota_pallet_workqueue = u_set_temptable_pilota_pallet_workqueue( )
+	
+	if kds_temptable_pilota_pallet_workqueue.rowcount() > 0 then
+
+		kds_queue = u_get_ds_pilota_workqueue_all( )
+		k_rows_queue = kds_queue.rowcount()
+		
+		if isvalid(ads_inp) then 
+			k_rows_inp = ads_inp.rowcount()
+			if k_rows_inp > 0 then
+		
+//--- Se ho passato qualcosa imposta il n.ordine e ACCODA ads_inp al kds_queue 
+				k_n_ordine_x = kds_queue.describe("evaluate ('max(n_ordine for all)',0)")
+				if isnumber(trim(k_n_ordine_x)) then
+					k_n_ordine = long(trim(k_n_ordine_x))
+					for k_row = 1 to k_rows_inp
+						ads_inp.setitem(k_row, "stato", "ADD")
+						ads_inp.setitem(k_row, "n_ordine", (k_n_ordine + k_row))
+						ads_inp.setitem(k_row, "dataora_lav_ini", k_datetime_zero)
+						ads_inp.setitem(k_row, "dataora_lav_fin_prev", k_datetime_zero)
+					next
+					ads_inp.rowscopy(1, k_rows_inp, primary!, kds_queue, (k_rows_queue + 1), primary!)
+					kds_queue.update( )
+				end if
+			end if
+
+//--- imposta data fine lav per rec WORK + QUEUE + i dati del ads_inp passati	
+			u_set_ds_pilota_queue_data_prev_all(kds_queue)	  
+//DBG kds_queue.SaveAs("c:\ufo\workqueue_1.csv", CSV!, true)
+//			k_rows = kds_queue.rowcount( )
+//					for k_row = 1 to k_rows
+//						k_barcode = kds_queue.getitemstring(k_row, "barcode")
+//						k_fila_1 = kds_queue.getitemnumber(k_row, "f1avp")
+//						k_fila_2 = kds_queue.getitemnumber(k_row, "f2avp")
+//						k_fila = kds_queue.getitemnumber(k_row, "fila")
+//						k_stato = kds_queue.getitemstring(k_row, "stato")
+//						kdataora_lav_ini = kds_queue.getitemdatetime(k_row, "dataora_lav_ini")
+//						kdataora_lav_fin_prev = kds_queue.getitemdatetime(k_row, "dataora_lav_fin_prev")
+//					next
+			
+		end if
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	
+end try
+
+return kds_queue
+end function
+
+public function uo_ds_std_1 get_ds_pallet_workqueue_by_d_pl_barcode (ref datawindow ads_inp) throws uo_exception;//
+//--- Restituisce un DS su cui add i dati barcode e fila su cui poi calcolare la data di fine/inizio lav
+//--- Input: ds con le colonne: 
+//---                      barcode_barcode, barcode_fila_1, barcode_fila_1p, barcode_fila_2, barcode_fila_2p
+//--- Out: datastore completo di barcode e data_lav_fin, con le colonne: barcode, 
+//---								numero giri fila 1 e fila 2 (f1avp+f1app o f2avp+f2app)
+//---
+long k_rows, k_row
+//st_tab_barcode kst_tab_barcode
+st_tab_s_avgtimeplant kst_tab_s_avgtimeplant
+uo_ds_std_1 kds_queue_add, kds_queue
+
+
+try
+	kds_queue_add = CREATE uo_ds_std_1
+	kds_queue_add.dataobject = "ds_pilota_workqueue_tmp"
+
+	k_rows = ads_inp.rowcount()
+	
+	if k_rows > 0 then
+	
+//--- copia i dati del ads_inp nella QUEUE da aggiungere poi ai barcode già in programmazione
+		for k_row = 1 to k_rows
+			kst_tab_s_avgtimeplant.giri_f1 = ads_inp.getitemnumber(k_row, "barcode_fila_1")
+			kst_tab_s_avgtimeplant.giri_f1p = ads_inp.getitemnumber(k_row, "barcode_fila_1p")
+			kst_tab_s_avgtimeplant.giri_f2 = ads_inp.getitemnumber(k_row, "barcode_fila_2")
+			kst_tab_s_avgtimeplant.giri_f2p = ads_inp.getitemnumber(k_row, "barcode_fila_2p")
+			get_time_io_minute(kst_tab_s_avgtimeplant) // get tempo medio x i giri richiesti
+			kds_queue_add.insertrow(0)
+			kds_queue_add.setitem(k_row, "barcode", ads_inp.getitemstring(k_row, "barcode_barcode"))
+			kds_queue_add.setitem(k_row, "f1avp", kst_tab_s_avgtimeplant.giri_f1)
+			kds_queue_add.setitem(k_row, "f1app", kst_tab_s_avgtimeplant.giri_f1p)
+			kds_queue_add.setitem(k_row, "f2avp", kst_tab_s_avgtimeplant.giri_f2)
+			kds_queue_add.setitem(k_row, "f2app", kst_tab_s_avgtimeplant.giri_f2p)
+			kds_queue_add.setitem(k_row, "time_io_minute_avg", kst_tab_s_avgtimeplant.time_io_minute)
+			kds_queue_add.setitem(k_row, "avg_time_io_minute", kst_tab_s_avgtimeplant.time_io_minute)
+			
+			if kst_tab_s_avgtimeplant.giri_f1 > 0 then
+				kds_queue_add.setitem(k_row, "fila", 1)
+			else
+				kds_queue_add.setitem(k_row, "fila", 2)
+			end if
+		next
+	
+	end if
+	
+//--- add dati del ads_inp nella QUEUE da aggiungere poi ai barcode già in programmazione
+	kds_queue = u_append_ds_pallet_workqueue(kds_queue_add)
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_queue_add) then destroy kds_queue_add
+	
+end try
+
+
+return kds_queue
+
+end function
+
 on kuf_pilota_previsioni.create
 call super::create
 TriggerEvent( this, "constructor" )
@@ -1210,7 +1231,6 @@ end on
 event destructor;//
 	if isvalid(kids_barcode_avgtimeplant) then destroy kids_barcode_avgtimeplant 
 	if isvalid(kids_ds_queue_lav_xfila) then destroy kids_ds_queue_lav_xfila
-//	if isvalid(kiuf_utility) then destroy kiuf_utility 
 	if isvalid(kiuf_date) then destroy kiuf_date 
 
 

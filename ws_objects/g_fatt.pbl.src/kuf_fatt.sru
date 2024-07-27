@@ -6470,7 +6470,7 @@ if adw_link.getrow() = 0 then
 else
 	choose case a_campo_link
 	
-		case "b_arfa_lotto" 
+		case "arfa_lotto" 
 			kst_tab_meca.id = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
 			if kst_tab_meca.id > 0 then
 				k_dataobject = "d_arfa_l_1"
@@ -6488,7 +6488,7 @@ else
 				k_return = true
 			end if
 	
-		case "b_fatt_righe" 
+		case "fatt_righe" 
 			kst_tab_arfa.id_fattura = adw_link.getitemnumber(adw_link.getrow(), "id_fattura")
 			if kst_tab_arfa.id_fattura > 0 then
 				k_dataobject = "d_arfa_l_righe"
@@ -6498,7 +6498,7 @@ else
 			end if
 
 //--- elenco contratti fatturati x codice contratto che può essere preso anche da ID_MECA o ID_ARMO o da ID_LISTINO 	
-		case "b_arfalistaxcontr"
+		case "arfalistaxcontr"
 			k_rcx = adw_link.describe("contratto.x") 
 			if k_rcx <> "!" then
 				kst_tab_arfa.contratto = adw_link.getitemnumber(adw_link.getrow(), "contratto")
@@ -6568,10 +6568,10 @@ if k_return then
 			
 			choose case a_campo_link
 						
-				case "b_arfa_lotto" 
+				case "arfa_lotto" 
 					k_rc=kdsi_elenco_output.retrieve(kst_tab_meca.id)
 			
-				case "b_fatt_righe" 
+				case "fatt_righe" 
 					k_rc=kdsi_elenco_output.retrieve(kst_tab_arfa.id_fattura)
 			
 				case "num_fatt"
@@ -6583,7 +6583,7 @@ if k_return then
 					end if
 					k_dataobject = kdsi_elenco_output.dataobject
 
-				case "b_arfalistaxcontr"
+				case "arfalistaxcontr"
 					k_rc=kdsi_elenco_output.retrieve(kst_tab_arfa.contratto)
 		
 			end choose

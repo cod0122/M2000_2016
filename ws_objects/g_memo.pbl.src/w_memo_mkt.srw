@@ -251,114 +251,125 @@ st_tab_memo kst_tab_memo
 st_tab_meca kst_tab_meca
 st_tab_clienti kst_tab_clienti
 
-
-k_riga = dw_lista_0.getselectedrow(0)
-if k_riga > 0 then
-		
-	kst_tab_memo.id_memo = dw_lista_0.getitemnumber(k_riga, "id_memo")
-	if ki_id_memo_letto_allegati <> kst_tab_memo.id_memo or ki_id_memo_letto_proprieta <> kst_tab_memo.id_memo then
-//	if ki_time_riga_letta <> k_riga then
-			
-		ki_time_riga_letta = k_riga
-		
-		SetPointer(kkg.pointer_attesa)
-		
-		if NOT k_dw_mkt_sized_icon and ki_id_memo_letto_proprieta <> kst_tab_memo.id_memo then
-			dw_mkt.title = " Proprietà Memo " +  string (kst_tab_memo.id_memo) 
-			ki_id_memo_letto_proprieta = kst_tab_memo.id_memo
-			dw_mkt.retrieve(kst_tab_memo.id_memo)  // legge i dati di MKT
-			dw_mkt.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-			kiuf_utility.u_proteggi_sproteggi_dw(dw_mkt)
-		end if
-		
-		if NOT k_dw_web_sized_icon and ki_id_memo_letto_allegati <> kst_tab_memo.id_memo then
-			dw_web.title = " Allgati Memo " +  string (kst_tab_memo.id_memo)  
-			ki_id_memo_letto_allegati = kst_tab_memo.id_memo
-			dw_web.retrieve(kst_tab_memo.id_memo) // legge i dati WEB
-			dw_web.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-			kiuf_utility.u_proteggi_sproteggi_dw(dw_web)
-		end if
-
-	end if
-
-	if ki_xplistbar_riga_INFO > 0 then // se esiste il paragrafo INFO...
-		if NOT dw_xplistbar_info.of_iffilter( ki_xplistbar_riga_INFO) then //--- se non è un ramo collassato allora leggo
-			if ki_id_memo_letto_INFO <> kst_tab_memo.id_memo then
-				ki_id_memo_letto_INFO = kst_tab_memo.id_memo
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 	
-				kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
-				ki_xplistbar_info_num[ki_xplistbar_riga_lotto] = kst_tab_meca.id
-				if kst_tab_meca.id > 0 then //~r"
-					kst_tab_meca.num_int = dw_lista_0.getitemnumber(k_riga, "num_int")
-					kst_tab_meca.data_int = dw_lista_0.getitemdate(k_riga, "data_int")
-					k_lotto = "Lotto.: " + string(kst_tab_meca.num_int) + "  " +string(kst_tab_meca.data_int, "dd/mm/yy")
-					k_lotto_pic = 'molletta.gif'
-				end if
-				
-				kst_tab_clienti.codice = dw_lista_0.getitemnumber(k_riga, "id_cliente")
-				ki_xplistbar_info_num[ki_xplistbar_riga_clienti] = kst_tab_clienti.codice
-				if kst_tab_clienti.codice > 0 then 
-					kiuf_clienti.get_nome(kst_tab_clienti)
-					k_cliente = trim(kst_tab_clienti.rag_soc_10) 
-					k_cliente_pic = 'molletta.gif'
-				end if
+	k_riga = dw_lista_0.getselectedrow(0)
+	if k_riga > 0 then
 			
-//		//--- piglia i dati dell'ultimo d.d.t.		
-//				kst_tab_sped.clie_2 = kst_tab_memo.id_memo
-//				kst_esito = kuf1_sped.get_ultimo_doc(kst_tab_sped)
-//				k_sped =  " "
-//				k_sped_pic = " "
-//				if kst_esito.esito = kkg_esito.ok then
-//					ki_xplistbar_info_num[ki_xplistbar_riga_sped] = kst_tab_sped.num_bolla_out 
-//					ki_xplistbar_info_data[ki_xplistbar_riga_sped] = kst_tab_sped.data_bolla_out 
-//					if kst_tab_sped.num_bolla_out > 0 then
-//						k_sped = "ult.Sped.: " + string(kst_tab_sped.num_bolla_out) + "  " +string(kst_tab_sped.data_bolla_out, "dd/mm/yy")
-//						k_sped_pic = 'molletta.gif'
-//					end if
-//				end if
+		kst_tab_memo.id_memo = dw_lista_0.getitemnumber(k_riga, "id_memo")
+		if ki_id_memo_letto_allegati <> kst_tab_memo.id_memo or ki_id_memo_letto_proprieta <> kst_tab_memo.id_memo then
+	//	if ki_time_riga_letta <> k_riga then
 				
-//		//--- set dei valori nella xp-listbar
-////				dw_xplistbar_info.setredraw( false)
-//				if isnull(kst_tab_memo.rag_soc_10) then
-//					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info ", "") // + "~n~r" + mid(trim(kst_tab_memo.rag_soc_10),13,17), " ")
-//				else					
-//					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info di " + left(trim(kst_tab_memo.rag_soc_10),12), "") // + "~n~r" + mid(trim(kst_tab_memo.rag_soc_10),13,17), " ")
-//				end if
-				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_lotto, k_lotto, k_lotto_pic)
-				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_clienti, k_cliente, k_cliente_pic)
-//				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_fatt, k_fatt, k_fatt_pic)
-//				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_certif, k_certif, k_certif_pic)
-				dw_xplistbar_info.setredraw( true)
-			end if	
+			ki_time_riga_letta = k_riga
+			
+			SetPointer(kkg.pointer_attesa)
+			
+			if NOT k_dw_mkt_sized_icon and ki_id_memo_letto_proprieta <> kst_tab_memo.id_memo then
+				dw_mkt.title = " Proprietà Memo " +  string (kst_tab_memo.id_memo) 
+				ki_id_memo_letto_proprieta = kst_tab_memo.id_memo
+				dw_mkt.retrieve(kst_tab_memo.id_memo)  // legge i dati di MKT
+				dw_mkt.ki_flag_modalita = kkg_flag_modalita.visualizzazione
+				kiuf_utility.u_proteggi_sproteggi_dw(dw_mkt)
+			end if
+			
+			if NOT k_dw_web_sized_icon and ki_id_memo_letto_allegati <> kst_tab_memo.id_memo then
+				dw_web.title = " Allgati Memo " +  string (kst_tab_memo.id_memo)  
+				ki_id_memo_letto_allegati = kst_tab_memo.id_memo
+				dw_web.retrieve(kst_tab_memo.id_memo) // legge i dati WEB
+				dw_web.ki_flag_modalita = kkg_flag_modalita.visualizzazione
+				kiuf_utility.u_proteggi_sproteggi_dw(dw_web)
+			end if
+	
+		end if
+	
+		if ki_xplistbar_riga_INFO > 0 then // se esiste il paragrafo INFO...
+			if NOT dw_xplistbar_info.of_iffilter( ki_xplistbar_riga_INFO) then //--- se non è un ramo collassato allora leggo
+				if ki_id_memo_letto_INFO <> kst_tab_memo.id_memo then
+					ki_id_memo_letto_INFO = kst_tab_memo.id_memo
 		
-//			SetPointer(oldpointer)
+					kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
+					ki_xplistbar_info_num[ki_xplistbar_riga_lotto] = kst_tab_meca.id
+					if kst_tab_meca.id > 0 then //~r"
+						kst_tab_meca.num_int = dw_lista_0.getitemnumber(k_riga, "num_int")
+						kst_tab_meca.data_int = dw_lista_0.getitemdate(k_riga, "data_int")
+						k_lotto = "Lotto.: " + string(kst_tab_meca.num_int) + "  " +string(kst_tab_meca.data_int, "dd/mm/yy")
+						k_lotto_pic = 'molletta.gif'
+					end if
+					
+					kst_tab_clienti.codice = dw_lista_0.getitemnumber(k_riga, "id_cliente")
+					ki_xplistbar_info_num[ki_xplistbar_riga_clienti] = kst_tab_clienti.codice
+					if kst_tab_clienti.codice > 0 then 
+						kiuf_clienti.get_nome(kst_tab_clienti)
+						k_cliente = trim(kst_tab_clienti.rag_soc_10) 
+						k_cliente_pic = 'molletta.gif'
+					end if
+				
+	//		//--- piglia i dati dell'ultimo d.d.t.		
+	//				kst_tab_sped.clie_2 = kst_tab_memo.id_memo
+	//				kst_esito = kuf1_sped.get_ultimo_doc(kst_tab_sped)
+	//				k_sped =  " "
+	//				k_sped_pic = " "
+	//				if kst_esito.esito = kkg_esito.ok then
+	//					ki_xplistbar_info_num[ki_xplistbar_riga_sped] = kst_tab_sped.num_bolla_out 
+	//					ki_xplistbar_info_data[ki_xplistbar_riga_sped] = kst_tab_sped.data_bolla_out 
+	//					if kst_tab_sped.num_bolla_out > 0 then
+	//						k_sped = "ult.Sped.: " + string(kst_tab_sped.num_bolla_out) + "  " +string(kst_tab_sped.data_bolla_out, "dd/mm/yy")
+	//						k_sped_pic = 'molletta.gif'
+	//					end if
+	//				end if
+					
+	//		//--- set dei valori nella xp-listbar
+	////				dw_xplistbar_info.setredraw( false)
+	//				if isnull(kst_tab_memo.rag_soc_10) then
+	//					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info ", "") // + "~n~r" + mid(trim(kst_tab_memo.rag_soc_10),13,17), " ")
+	//				else					
+	//					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info di " + left(trim(kst_tab_memo.rag_soc_10),12), "") // + "~n~r" + mid(trim(kst_tab_memo.rag_soc_10),13,17), " ")
+	//				end if
+					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_lotto, k_lotto, k_lotto_pic)
+					dw_xplistbar_info.of_setitem( ki_xplistbar_riga_clienti, k_cliente, k_cliente_pic)
+	//				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_fatt, k_fatt, k_fatt_pic)
+	//				dw_xplistbar_info.of_setitem( ki_xplistbar_riga_certif, k_certif, k_certif_pic)
+					dw_xplistbar_info.setredraw( true)
+				end if	
 			
+	//			SetPointer(oldpointer)
+				
+			end if
+		end if
+		dw_lista_0.setfocus( )
+			
+	else
+		dw_mkt.title = " Nessun dato presente " 
+		dw_web.title = " Nessun Allegato presente "
+		dw_mkt.reset( )
+		dw_web.reset()
+		if ki_xplistbar_riga_INFO > 0 then // se esiste il paragrafo INFO...
+			ki_xplistbar_info_num[ki_xplistbar_riga_lotto] = 0 
+	//		ki_xplistbar_info_num[ki_xplistbar_riga_sped] = 0  
+	//		ki_xplistbar_info_data[ki_xplistbar_riga_sped] = date(0) 
+	//		ki_xplistbar_info_num[ki_xplistbar_riga_fatt] = 0
+	//		ki_xplistbar_info_num[ki_xplistbar_riga_certif] = 0
+	//--- set dei valori nella xp-listbar
+	//		dw_xplistbar_info.setredraw( false)
+			dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info  ", "")
+			dw_xplistbar_info.of_setitem( ki_xplistbar_riga_lotto, k_lotto, k_lotto_pic)
+	//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_sped, k_sped, k_sped_pic)
+	//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_fatt, k_fatt, k_fatt_pic)
+	//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_certif, k_certif, k_certif_pic)
+			dw_xplistbar_info.setredraw( true)
 		end if
 	end if
-	dw_lista_0.setfocus( )
-		
-else
-	dw_mkt.title = " Nessun dato presente " 
-	dw_web.title = " Nessun Allegato presente "
-	dw_mkt.reset( )
-	dw_web.reset()
-	if ki_xplistbar_riga_INFO > 0 then // se esiste il paragrafo INFO...
-		ki_xplistbar_info_num[ki_xplistbar_riga_lotto] = 0 
-//		ki_xplistbar_info_num[ki_xplistbar_riga_sped] = 0  
-//		ki_xplistbar_info_data[ki_xplistbar_riga_sped] = date(0) 
-//		ki_xplistbar_info_num[ki_xplistbar_riga_fatt] = 0
-//		ki_xplistbar_info_num[ki_xplistbar_riga_certif] = 0
-//--- set dei valori nella xp-listbar
-//		dw_xplistbar_info.setredraw( false)
-		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_info, " Info  ", "")
-		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_lotto, k_lotto, k_lotto_pic)
-//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_sped, k_sped, k_sped_pic)
-//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_fatt, k_fatt, k_fatt_pic)
-//		dw_xplistbar_info.of_setitem( ki_xplistbar_riga_certif, k_certif, k_certif_pic)
-		dw_xplistbar_info.setredraw( true)
-	end if
-end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	throw kuo_exception
 	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try	
 
 end subroutine
 

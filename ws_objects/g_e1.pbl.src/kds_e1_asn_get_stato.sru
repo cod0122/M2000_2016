@@ -34,10 +34,7 @@ st_esito kst_esito
 
 
 try
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
 	if kguo_g.E1MCU > " " then
 	else
@@ -68,7 +65,7 @@ try
 		if k_idx_max = 1 then  // se solo un APID prova a ottimizzare
 			k_sql += " and f4801.waapid = "
 		else
-         	k_sql += " and f4801.waapid in ( "
+         k_sql += " and f4801.waapid in ( "
 		end if
 		
 //--- ciclo IN con il numero APID da estrarre 		
@@ -100,8 +97,10 @@ try
 
 //--- Eseguo la query totale !!!	
 	if k_sql_totale > " " then
-		k_sql_totale = " select wasrst, waapid from ( " + k_sql_totale + ") t " &
-						              + " group by wasrst, waapid "
+		k_sql_totale = " select max(wasrst), waapid from ( " + k_sql_totale + ") t " &
+						              + " group by waapid "
+		//k_sql_totale = " select wasrst, waapid from ( " + k_sql_totale + ") t " &
+		//				              + " group by wasrst, waapid "
 		this.Object.DataWindow.Table.Select = k_sql
 		this.settransobject(kguo_sqlca_db_e1)
 		k_asn_found = this.retrieve()
@@ -130,8 +129,10 @@ try
 			kguo_exception.inizializza()
 			kst_esito.esito = kkg_esito.db_ko
 			kst_esito.sqlcode = k_asn_found
-			kst_esito.SQLErrText = "Errore in lettura STATO dalla tabella ASN di E1 per il numero APID: il primo è " + trim(ast_tab_e1_asn[1].waapid) &
-					 + ", l'ultimo (" + string(k_idx_max) + ") è " + ast_tab_e1_asn[k_idx_max].waapid 
+			kst_esito.SQLErrText = "Errore in lettura STATO dalla tabella ASN di E1 per il numero APID: " &
+					 + kkg.acapo + "il primo Id è " + trim(ast_tab_e1_asn[1].waapid) &
+					 + ", il " + string(k_idx_max) + "' e ultimo è " + ast_tab_e1_asn[k_idx_max].waapid &
+					 + kkg.acapo + "Errore: " + string(this.kist_esito.sqlcode) + " - " + this.kist_esito.sqlerrtext
 					 
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
