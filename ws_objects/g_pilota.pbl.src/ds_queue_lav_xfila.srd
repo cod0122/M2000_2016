@@ -10,13 +10,14 @@ table(column=(type=char(1) updatewhereclause=yes name=fila dbname="fila" )
  column=(type=datetime updatewhereclause=yes name=k_dataora_lav_fin dbname="k_dataora_lav_fin" )
  retrieve="  SELECT distinct  
         case
-			 WHEN  pallet.F2AVP > '00' or pallet.F2APP > '00' THEN '2'
-			 WHEN  pallet.F1AVP > '00' or pallet.F1APP > '00' THEN '1'
+			 WHEN  pallet.ciclifila2 > 0 or pallet.ciclifila2p > 0 THEN '2'
+			 WHEN  pallet.ciclifila1 > 0 or pallet.ciclifila1p > 0 THEN '1'
 			ELSE '0'
         end as fila
-       ,(data_entrata - INTERVAL EXTRACT(SECOND FROM data_entrata) SECOND) as k_dataora_lav_ini
+       ,ifnull( (data_entrata - INTERVAL EXTRACT(SECOND FROM data_entrata) SECOND), STR_TO_DATE('1900-01-01T00:00:00.000','%Y-%m-%dT%H:%i:%s.%f'))  as k_dataora_lav_ini
        ,STR_TO_DATE('1900-01-01T00:00:00.000','%Y-%m-%dT%H:%i:%s.%f') as k_dataora_lav_fin
-    FROM pallet left outer join work_table on pallet.Pallet_Code = work_table.barcode  
+    FROM pallet 
+	 -- left outer join work_table on pallet.barcode = work_table.barcode  
 	where pallet.data_uscita is null or pallet.data_uscita < :k_data
 	order by fila, k_dataora_lav_ini
 
@@ -38,4 +39,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

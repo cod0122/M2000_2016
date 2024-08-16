@@ -18,7 +18,6 @@ end variables
 
 forward prototypes
 public function string tb_delete (string k_codice)
-public function st_esito select_riga (ref st_tab_prodotti k_st_tab_prodotti)
 public function st_esito anteprima (ref datawindow kdw_anteprima, st_tab_prodotti kst_tab_prodotti)
 public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_prodotti kst_tab_prodotti)
 public function st_esito get_gruppo (ref st_tab_prodotti k_st_tab_prodotti)
@@ -27,6 +26,7 @@ public function st_esito anteprima_l (ref datastore kdw_anteprima, st_tab_prodot
 public function integer get_iva (st_tab_prodotti ast_tab_prodotti) throws uo_exception
 public function integer get_magazzino (st_tab_prodotti ast_tab_prodotti) throws uo_exception
 public function string get_des (ref st_tab_prodotti ast_tab_prodotti) throws uo_exception
+public function boolean select_riga (ref st_tab_prodotti k_st_tab_prodotti) throws uo_exception
 end prototypes
 
 public function string tb_delete (string k_codice);//
@@ -117,56 +117,6 @@ end if
 
 
 return k_return
-end function
-
-public function st_esito select_riga (ref st_tab_prodotti k_st_tab_prodotti);//
-//--- Leggo Prodotto specifico
-//
-string k_codice
-st_esito kst_esito
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-	k_codice = k_st_tab_prodotti.codice
-	
-	select des,
-			des_mkt,
-			 gruppo,
-			 iva,
-			 magazzino,
-			 attivo
-	 into :k_st_tab_prodotti.des,
-			:k_st_tab_prodotti.des_mkt,
-			:k_st_tab_prodotti.gruppo,
-			:k_st_tab_prodotti.iva,
-			:k_st_tab_prodotti.magazzino,
-			:k_st_tab_prodotti.attivo
-		from prodotti
-		where codice = :k_codice
-		using kguo_sqlca_db_magazzino;
-	
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Lettura tab. Articoli: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = KKg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = KKg_esito.db_wrn
-			else
-				kst_esito.esito = KKg_esito.db_ko
-			end if
-		end if
-	end if
-	
-return kst_esito
-
 end function
 
 public function st_esito anteprima (ref datawindow kdw_anteprima, st_tab_prodotti kst_tab_prodotti);//
@@ -633,6 +583,44 @@ if isnull(ast_tab_prodotti.des) then ast_tab_prodotti.des = ""
 if isnull(ast_tab_prodotti.des_mkt) then ast_tab_prodotti.des_mkt = ""
 	
 return ast_tab_prodotti.des
+
+end function
+
+public function boolean select_riga (ref st_tab_prodotti k_st_tab_prodotti) throws uo_exception;//
+//--- Leggo Prodotto specifico
+//
+boolean k_return
+st_esito kst_esito
+
+
+	kguo_exception.inizializza(this.classname())
+
+	select des,
+			 des_mkt,
+			 gruppo,
+			 iva,
+			 magazzino,
+			 attivo
+	 into :k_st_tab_prodotti.des,
+			:k_st_tab_prodotti.des_mkt,
+			:k_st_tab_prodotti.gruppo,
+			:k_st_tab_prodotti.iva,
+			:k_st_tab_prodotti.magazzino,
+			:k_st_tab_prodotti.attivo
+		from prodotti
+		where codice = trim(:k_st_tab_prodotti.codice)
+		using kguo_sqlca_db_magazzino;
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura Articolo " + trim(k_st_tab_prodotti.codice))
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+	end if
+	
+return k_return
 
 end function
 

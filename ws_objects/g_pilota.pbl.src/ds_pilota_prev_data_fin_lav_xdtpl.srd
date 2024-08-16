@@ -7,7 +7,7 @@ footer(height=0 color="536870912" transparency="0" gradient.color="8421504" grad
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 table(column=(type=char(13) updatewhereclause=yes name=barcode dbname="barcode" dbalias="barcode" )
  column=(type=datetime updatewhereclause=yes name=dataora_lav_fin_prev dbname="dataora_lav_fin_prev" )
- column=(type=datetime updatewhereclause=yes name=pilota_cmd_data_ins dbname="pilota_cmd.data_ins" dbalias="data_ins" )
+ column=(type=datetime updatewhereclause=yes name=pilota_cmd_data_ins dbname="data_ins" dbalias="data_ins" )
  retrieve="  SELECT wq.barcode barcode,    
          DATEADD(minute, s_avgtimeplant.time_plio_minute,pilota_cmd.data_ins)  dataora_lav_fin_prev
        ,pilota_cmd.data_ins data_ins
@@ -17,10 +17,10 @@ table(column=(type=char(13) updatewhereclause=yes name=barcode dbname="barcode" 
          s_avgtimeplant  
    WHERE ( wq.barcode = barcode.barcode ) and  
          ( barcode.pl_barcode = pilota_cmd.pl_barcode_codice ) and  
-         ( wq.f1avp = s_avgtimeplant.giri_f1 ) and  
-         ( wq.f1app = s_avgtimeplant.giri_f1p ) and  
-         ( wq.f2avp = s_avgtimeplant.giri_f2 ) and  
-         ( wq.f2app = s_avgtimeplant.giri_f2p )    
+         ( wq.ciclifila1 = s_avgtimeplant.giri_f1 ) and  
+         ( wq.ciclifila1p = s_avgtimeplant.giri_f1p ) and  
+         ( wq.ciclifila2 = s_avgtimeplant.giri_f2 ) and  
+         ( wq.ciclifila2p = s_avgtimeplant.giri_f2p )    
 " )
 text(band=header alignment="2" text="Barcode" border="0" color="33554432" x="14" y="8" height="56" width="352" html.valueishtml="0"  name=barcode_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="0" text="Pilota Cmd Data Ins" enabled="0" border="0" color="33554432" x="379" y="4" height="56" width="590" html.valueishtml="0"  name=pilota_cmd_data_ins_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )

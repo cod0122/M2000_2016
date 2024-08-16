@@ -356,6 +356,8 @@ string text = "IMPIANTO G3~r~nPallet in Lavorazione"
 end type
 
 type dw_4 from w_db_cfg_proprieta`dw_4 within tabpage_4
+boolean visible = true
+boolean enabled = true
 string dataobject = "d_work_table_g3"
 end type
 

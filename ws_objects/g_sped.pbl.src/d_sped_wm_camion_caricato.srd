@@ -1,23 +1,20 @@
 ﻿$PBExportHeader$d_sped_wm_camion_caricato.srd
-release 11.5;
-datawindow(units=0 timer_interval=0 color=1073741824 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 )
+release 22;
+datawindow(units=0 data.export.format=1 timer_interval=0 color=1073741824 brushmode=0 transparency=0 gradient.angle=0 gradient.color=8421504 gradient.focus=0 gradient.repetition.count=0 gradient.repetition.length=100 gradient.repetition.mode=0 gradient.scale=100 gradient.spread=100 gradient.transparency=0 picture.blur=0 picture.clip.bottom=0 picture.clip.left=0 picture.clip.right=0 picture.clip.top=0 picture.mode=0 picture.scale.x=100 picture.scale.y=100 picture.transparency=0 processing=1 HTMLDW=no print.printername="" print.documentname="" print.orientation = 0 print.margin.left = 110 print.margin.right = 110 print.margin.top = 96 print.margin.bottom = 96 print.paper.source = 0 print.paper.size = 0 print.canusedefaultprinter=yes print.prompt=no print.buttons=no print.preview.buttons=no print.cliptext=no print.overrideprintjob=no print.collate=yes print.background=no print.preview.background=no print.preview.outline=yes hidegrayline=no showbackcoloronxp=no picture.file="" grid.lines=0 )
 header(height=128 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 summary(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=decimal(0) updatewhereclause=yes name=arsp_colli dbname="arsp.colli" )
- column=(type=decimal(0) updatewhereclause=yes name=colli_insped dbname="colli_insped" )
- column=(type=long updatewhereclause=yes name=arsp_id_armo dbname="arsp.id_armo" )
+table(column=(type=decimal(0) updatewhereclause=yes name=arsp_colli dbname="arsp.colli" dbalias=".colli" )
+ column=(type=long updatewhereclause=yes name=colli_insped dbname="colli_insped" )
+ column=(type=long updatewhereclause=yes name=arsp_id_armo dbname="arsp.id_armo" dbalias=".id_armo" )
  retrieve="  SELECT arsp.colli  ,count(*) as colli_insped, arsp.id_armo
-    FROM arsp,   
-         wm_pklist_righe  
-   WHERE ( arsp.id_armo = wm_pklist_righe.id_armo ) and  
-         ( ( arsp.num_bolla_out = :num_bolla_out ) AND  
-         ( arsp.data_bolla_out = :data_bolla_out ) )    
+    FROM arsp inner join wm_pklist_righe on arsp.id_armo = wm_pklist_righe.id_armo   
+   WHERE arsp.id_sped = :k_id_sped
        and wm_pklist_righe.insped = ~"S~" 
        and (wm_pklist_righe.eliminato <> ~"S~" or wm_pklist_righe.eliminato is null)
 	group by arsp.colli, arsp.id_armo
-" arguments=(("num_bolla_out", number),("data_bolla_out", date)) )
+" arguments=(("k_id_sped", number)) )
 text(band=header alignment="2" text="Arsp
 Colli" border="0" color="33554432" x="9" y="8" height="112" width="274" html.valueishtml="0"  name=arsp_colli_t visible="1"  font.face="Tahoma" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Colli Insped" border="0" color="33554432" x="293" y="8" height="56" width="279" html.valueishtml="0"  name=colli_insped_t visible="1"  font.face="Tahoma" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
@@ -35,6 +32,6 @@ xsltgen()
 jsgen()
 export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
-export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" )
+export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
  

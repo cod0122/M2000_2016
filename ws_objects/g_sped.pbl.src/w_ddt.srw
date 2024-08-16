@@ -205,12 +205,10 @@ k_riga = 1 //tab_1.tabpage_1.dw_1.getrow()
 		kst_tab_sped.id_sped = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "id_sped")
 		if isnull(kst_tab_sped.id_sped) then kst_tab_sped.id_sped = 0
 		//--- se in Inserimento azzera temporaneamente il NUM DDT
-		//if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-		//	kst_tab_sped.num_bolla_out = 0
-		//else
-			kst_tab_sped.num_bolla_out = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "num_bolla_out")
-		//end if
+		kst_tab_sped.numpref_bolla_out = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "numpref_bolla_out")
+		kst_tab_sped.num_bolla_out = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "num_bolla_out")
 		kst_tab_sped.data_bolla_out = tab_1.tabpage_1.dw_1.getitemdate(k_riga, "data_bolla_out")
+		kst_tab_sped.id_deposito = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "id_deposito")
 		kst_tab_sped.clie_2 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "clie_2")
 		kst_tab_sped.clie_3 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "clie_3")
 		kst_tab_sped.stampa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stampa")
@@ -332,6 +330,7 @@ k_riga = 1 //tab_1.tabpage_1.dw_1.getrow()
 				kst_tab_sped_app.id_sped = kiuf_sped.if_num_bolla_out_exists( kst_tab_sped_app )
 				if kst_tab_sped_app.id_sped > 0 then   // Verifica se  n.DDT già utilizzato, non dovrei trovare un ID sono in inserimento!!
 					if kst_tab_sped_app.id_sped <> kst_tab_sped.id_sped then    // se ID trovato è diverso da ddt che sto elaborando, ne cerco uno nuovo!!
+						
 						kst_tab_sped_app.num_bolla_out = kiuf_sped.get_numero_nuovo(kst_tab_sped, 0)   // get nuovo numero ddt
    						//get_ultimo_doc ( kst_tab_sped_app ) 
 						//kst_tab_sped_app.num_bolla_out = kst_tab_sped_app.num_bolla_out + 1
@@ -474,10 +473,8 @@ try
 			case 1 
 	//=== Richiesta di conferma della eliminazione del rek
 				if messagebox("Elimina" + k_record, k_record_1, question!, yesno!, 2) = 1 then
-					kst_esito = kiuf_sped.tb_delete_testa( kst_tab_sped )   // CANCELLA DDT
-					if kst_esito.esito = kkg_esito.ok then
-						u_aggiorna_base_cancella( kst_tab_sped ) // aggiorna il contatore del BASE
-					end if
+					kiuf_sped.tb_delete_testa( kst_tab_sped )   // CANCELLA DDT
+					u_aggiorna_base_cancella( kst_tab_sped ) // aggiorna il contatore del BASE
 				else
 					messagebox("Elimina" + k_record,  "Operazione Annullata !!")
 					k_return = 2
@@ -790,9 +787,10 @@ try
 			ki_alarm_todo_msg = true
 
 			if tab_1.tabpage_1.dw_1.rowcount() > 0 then
-//				kist_tab_sped.data_bolla_out = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_bolla_out" ) 
-				kist_tab_sped.data_bolla_out = kguo_g.get_dataoggi( )
 				ki_data_competenza = tab_1.tabpage_1.dw_1.getitemdate(1, "k_competenza_dal") 
+				kist_tab_sped.numpref_bolla_out = tab_1.tabpage_1.dw_1.getitemstring(1, "numpref_bolla_out")
+				kist_tab_sped.data_bolla_out = kguo_g.get_dataoggi( )
+				kist_tab_sped.id_deposito = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_deposito")
 			end if
 	
 			tab_1.tabpage_4.text = ki_righe_titolo
@@ -809,7 +807,9 @@ try
 			
 			tab_1.tabpage_1.dw_1.setitem( 1, "k_competenza_dal",  ki_data_competenza)
 			tab_1.tabpage_1.dw_1.setitem( 1, "stampa", kiuf_sped.kki_sped_flg_stampa_bolla_da_stamp)
+			tab_1.tabpage_1.dw_1.setitem( 1, "numpref_bolla_out", kist_tab_sped.numpref_bolla_out )
 			tab_1.tabpage_1.dw_1.setitem( 1, "data_bolla_out", kist_tab_sped.data_bolla_out )
+			tab_1.tabpage_1.dw_1.setitem( 1, "id_deposito", kist_tab_sped.id_deposito )
 			tab_1.tabpage_1.dw_1.setitem( 1, "data_rit", kguo_g.get_dataoggi( ))
 			tab_1.tabpage_1.dw_1.setitem( 1, "ora_rit", "" )
 			tab_1.tabpage_1.dw_1.setitem( 1, "sv_call_vettore", 0 )
@@ -1066,8 +1066,8 @@ boolean k_attiva
 			k_attiva = false
 		end if
 		if m_main.m_strumenti.m_fin_gest_libero1.enabled <> k_attiva or ki_st_open_w.flag_primo_giro = "S" then 
-			m_main.m_strumenti.m_fin_gest_libero1.text = "Elenco Lotti da Spedire " 
-			m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Elenco lotti entrati da spedire per il Ricevete indicato "
+			m_main.m_strumenti.m_fin_gest_libero1.text = "Elenco lotti da spedire per il Ricevente e la data di Competenza indicati "
+			m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Elenco lotti da spedire per il Ricevente e la data di Competenza indicati "
 			m_main.m_strumenti.m_fin_gest_libero1.visible = true
 
 			m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
@@ -1080,7 +1080,7 @@ boolean k_attiva
 
 		if m_main.m_strumenti.m_fin_gest_libero2.enabled <> k_attiva or ki_st_open_w.flag_primo_giro = "S" then 
 			m_main.m_strumenti.m_fin_gest_libero2.text = "Elenco Materiale da non trattare da Spedire " 
-			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Elenco materiale entrato per non essere trattato da spedire "
+			m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Elenco materiale da non trattare da spedire "
 			m_main.m_strumenti.m_fin_gest_libero2.visible = true
 
 			m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
@@ -1795,26 +1795,25 @@ private function integer riga_nuova_in_lista (ref st_tab_armo kst_tab_armo) thro
 //--- Inp: id_armo
 //--- out: numero di riga caricata
 //---
-long k_riga=0
+long k_row
 st_tab_arsp kst_tab_arsp
 st_tab_meca kst_tab_meca
 st_tab_prodotti kst_tab_prodotti
 st_esito kst_esito
+ds_armo kds_armo
 
 
 try
 
 //--- devo avere passato il ID riga del lotto da spedire
-	if kst_tab_armo.id_armo  > 0 then
+	if kst_tab_armo.id_armo > 0 then
 
 //--- legge riga Lotto	
+		kds_armo = create ds_armo
+		k_row = kds_armo.u_retrieve(kst_tab_armo)
+		if k_row = 0 then return 0
+		
 		kst_tab_arsp.id_armo = kst_tab_armo.id_armo
-		kst_esito = kiuf_armo.leggi_riga("*", kst_tab_armo)
-		if kst_esito.esito = kkg_esito.db_ko then
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito( kst_esito )
-			throw kguo_exception
-		end if
 		kst_tab_arsp.note_1 = kst_tab_armo.note_1
 		kst_tab_arsp.note_2 = kst_tab_armo.note_2
 		kst_tab_arsp.note_3 = kst_tab_armo.note_3
@@ -1822,49 +1821,45 @@ try
 		kst_tab_arsp.id_sped = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_sped")
 
 //--- legge dati articolo	
-		if len(trim(kst_tab_armo.art)) > 0 then 
+		if kst_tab_armo.art > " " then 
 			kst_tab_prodotti.des = " "
 			kst_tab_prodotti.codice = kst_tab_armo.art
-			kst_esito = kiuf_prodotti.select_riga(kst_tab_prodotti )
-			if kst_esito.esito = kkg_esito.ok then
-			else
-				if kst_esito.esito = kkg_esito.db_ko then
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito( kst_esito )
-					throw kguo_exception
-				end if
-			end if
+			kiuf_prodotti.select_riga(kst_tab_prodotti )
 		end if	
 
 //--- legge colli da spedire
 		kst_tab_arsp.colli = get_colli_da_sped(kst_tab_armo)
+		if kst_tab_arsp.colli = 0 then return 0
 
-//--- se non ci sono colli da spedire non aggiunge la riga 		
-		if kst_tab_arsp.colli > 0 then
-			kst_tab_arsp.colli_out = kst_tab_arsp.colli
+//--- se ci sono colli da spedire aggiunge la riga 		
+		kst_tab_arsp.colli_out = kst_tab_arsp.colli
+
 //--- legge altri dati dalla riga di entrata
-			kiuf_armo.get_altri_dati(kst_tab_armo) 
-			if kst_tab_armo.peso_kg > 0 and kst_tab_armo.colli_2 > 0 then
-				kst_tab_arsp.peso_kg_out = kst_tab_armo.peso_kg / kst_tab_armo.colli_2 * kst_tab_arsp.colli
-			end if
+		kiuf_armo.get_altri_dati(kst_tab_armo) 
+		if kst_tab_armo.peso_kg > 0 and kst_tab_armo.colli_2 > 0 then
+			kst_tab_arsp.peso_kg_out = kst_tab_armo.peso_kg / kst_tab_armo.colli_2 * kst_tab_arsp.colli
+		end if
 
-			if kst_tab_armo.id_meca > 0 then
-				kst_tab_meca.id = kst_tab_armo.id_meca
+		if kst_tab_armo.id_meca > 0 then
+			kst_tab_meca.id = kst_tab_armo.id_meca
+
+//--- Get id Deposito dal MECA
+//			if kiuf_armo.get_contratto(kst_tab_meca) > 0 then
+//--- VERIFICA DEPOSITO E NON PERMETTERE SE GIA' PRESENZA RIGHE CON DEPOSITO DIVERSO ALTRIMENTI IMPOSTARLO IN TESTATA PIGLIANDO IL NUMERO DDT
+//			end if
 
 //--- legge altri dati Lotto
-				kiuf_armo.get_clie(kst_tab_meca)
-				kst_tab_meca.data_ent = kiuf_armo.get_data_ent(kst_tab_meca)
-				kiuf_armo.get_e1_dati(kst_tab_meca)
+			kiuf_armo.get_clie(kst_tab_meca)
+			kst_tab_meca.data_ent = kiuf_armo.get_data_ent(kst_tab_meca)
+			kiuf_armo.get_e1_dati(kst_tab_meca)
+		end if
 
-			end if
-	
 //--- inserisce la riga in elenco	
-			k_riga = riga_nuova_in_lista_1 (kst_tab_arsp, kst_tab_armo, kst_tab_prodotti, kst_tab_meca)  
+		k_row = riga_nuova_in_lista_1 (kst_tab_arsp, kst_tab_armo, kst_tab_prodotti, kst_tab_meca)  
 
 //--- controllo se c'e' un Lotto con Allarme MEMO			
-			u_allarme_lotto()
+		u_allarme_lotto()
 
-		end if
 	else
 		kguo_exception.inizializza( )
 		kst_esito.sqlerrtext = "Manca ID riga Lotto di entrata, non posso proseguire!"
@@ -1880,7 +1875,7 @@ catch(uo_exception kuo_exception)
 end try	
 		
 	
-return k_riga
+return k_row
 
 	
 end function
@@ -1926,16 +1921,16 @@ kuf_elenco kuf1_elenco
 
 try
 	
-	kst_report_merce_da_sped.k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber(tab_1.tabpage_1.dw_1.getrow(), "meca_clie_2")
+	kst_report_merce_da_sped.k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber(1, "meca_clie_2")
 	if kst_report_merce_da_sped.k_clie_2 > 0 then
 	else
-		kst_report_merce_da_sped.k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber(tab_1.tabpage_1.dw_1.getrow(), "clie_2")
+		kst_report_merce_da_sped.k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber(1, "clie_2")
 	end if
 	if kst_report_merce_da_sped.k_clie_2 > 0 then
 
 		SetPointer(kkg.pointer_attesa)
 
-		kst_report_merce_da_sped.k_data_da = tab_1.tabpage_1.dw_1.getitemdate(tab_1.tabpage_1.dw_1.getrow(), "k_competenza_dal")
+		kst_report_merce_da_sped.k_data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "k_competenza_dal")
 		if (kst_report_merce_da_sped.k_clie_2) > 0 then
 
 			if not isvalid(kiuf_report_merce_da_sped.kids_report_merce_da_sped) then
@@ -2987,6 +2982,7 @@ public subroutine u_num_bolla_inp_changed ();//
 	
 		if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 			//kist_tab_sped.id_sped = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_sped")
+			kist_tab_sped_orig.numpref_bolla_out = tab_1.tabpage_1.dw_1.getitemstring(1, "numpref_bolla_out")
 			kist_tab_sped_orig.num_bolla_out = tab_1.tabpage_1.dw_1.getitemnumber(1, "num_bolla_out")
 			kist_tab_sped_orig.data_bolla_out = tab_1.tabpage_1.dw_1.getitemdate(1, "data_bolla_out")
 			if kiuf_sped.get_id_sped(kist_tab_sped_orig) > 0 then

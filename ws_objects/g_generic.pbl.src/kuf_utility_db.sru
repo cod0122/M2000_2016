@@ -47,6 +47,8 @@ private function boolean u_crea_view_v_contatti () throws uo_exception
 private function boolean u_crea_view_v_meca_artr_impianto () throws uo_exception
 private function boolean u_tb_crea_view (string a_viewname, string a_sql) throws uo_exception
 private function boolean u_crea_view_v_colli_sped () throws uo_exception
+private function boolean u_crea_view_v_sped_deposito_anag () throws uo_exception
+private function boolean u_crea_view_v_barcode_data_json () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -565,6 +567,8 @@ try
 	if not krc then k_return=false
 	krc = u_crea_view_v_sped_free()
 	if not krc then k_return=false
+	krc = u_crea_view_v_sped_deposito_anag()
+	if not krc then k_return=false
 	krc = u_crea_view_v_alarm_instock_tosend()
 	if not krc then k_return=false
 	krc = u_crea_view_v_meca_instock()
@@ -573,6 +577,8 @@ try
 	if not krc then k_return=false
 	krc = u_crea_view_v_asd_barcode_all( )
 	if not krc then k_return=false
+	krc = u_crea_view_v_barcode_data_json( )
+	if not krc then k_return=false	
 	
 	krc = u_crea_view_v_temptable_armo( )
 	if not krc then k_return=false
@@ -598,7 +604,7 @@ try
 	if not krc then k_return=false	
 	krc = u_crea_view_v_temptable_sc_cf( )
 	if not krc then k_return=false	
-	krc = u_crea_view_v_temptable_contratti( )
+	krc = u_crea_view_v_temptable_contratti( )	
 	if not krc then k_return=false	
 	krc = u_crea_view_v_temptable_listino( )
 	if not krc then k_return=false	
@@ -608,6 +614,10 @@ try
 	if not krc then k_return=false	
 	
 	kguo_sqlca_db_magazzino.db_commit( )
+
+	if not k_return then
+		kguo_exception.messaggio_utente()
+	end if
 
 catch (uo_exception kuo_exception)
 	k_return = false
@@ -2403,14 +2413,12 @@ return k_return
 
 end function
 
-private function boolean u_crea_view_v_ptasks_rows () throws uo_exception;//
-//=== Estemporanea da lanciare una sola volta
-//=== Crae tabella View  'v_ptsks_rows' 
-//===
+private function boolean u_crea_view_v_ptasks_rows () throws uo_exception;/*
+Estemporanea da lanciare una sola volta
+	Crae tabella View  'v_ptsks_rows' 
+*/
 boolean k_return = true
 string k_sql
-st_esito kst_esito
-uo_exception kuo_exception
 
 
 	SetPointer(kkg.pointer_attesa)
@@ -2490,52 +2498,9 @@ uo_exception kuo_exception
 		+ " , trim(JSON_VALUE(ptasks_rows.data_json ,'$.approvv.stgcharlfattinterc')) approvvigionamenti_stgcharlfattinterc " &
 		+ " FROM ptasks_rows " 
 
-//				+ " ,JSON_VALUE(ptasks_rows.data_json ,'$.iva') iva " & 
+	k_return = u_tb_crea_view("v_ptasks_rows", k_sql)
 
-	EXECUTE IMMEDIATE "drop VIEW v_ptasks_rows " using sqlca;
-
-	EXECUTE IMMEDIATE :k_sql using sqlca;
-
-	if sqlca.sqlcode <> 0 then
-		k_return = false
-		SetPointer(kkg.pointer_default)
-		kuo_exception = create uo_exception
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Errore durante creazione View (v_ptasks_rows): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-		kuo_exception.set_esito(kst_esito )
-		throw kuo_exception
-//	else
-//		k_sql = "grant select on v_meca_pl_v1 to ixuser as informix"		
-//		EXECUTE IMMEDIATE :k_sql using sqlca;
-//		if sqlca.sqlcode <> 0 then
-//			k_return = false
-//			k_errore = 1
-//			SetPointer(kkg.pointer_default)
-//			kuo_exception = create uo_exception
-//			kst_esito.nome_oggetto = this.classname()
-//			kst_esito.esito = kkg_esito.db_ko
-//			kst_esito.sqlcode = sqlca.sqlcode
-//			kst_esito.sqlerrtext = "Errore durante GRANT View (v_meca_pl_v1): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-//			kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-//			kuo_exception.set_esito(kst_esito )
-//			throw kuo_exception
-//		end if	
-	end if	
-			
-	kst_esito.nome_oggetto = this.classname()
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.sqlerrtext = "Generazione VIEW 'v_ptasks_rows' completata." 
-	kuo_exception = create uo_exception
-	kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
-	kuo_exception.set_esito(kst_esito )
-	kuo_exception.scrivi_log()
-	destroy kuo_exception
-	 
-SetPointer(kkg.pointer_default)
+	SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -2621,25 +2586,21 @@ return k_return
 
 end function
 
-private function boolean u_crea_view_v_sped_free () throws uo_exception;//
-//=== Estemporanea da lanciare una sola volta
-//=== Crae tabella View  'v_sped_free' 
-//===
-int k_errore=0
+private function boolean u_crea_view_v_sped_free () throws uo_exception;/*
+ Estemporanea da lanciare una sola volta
+	 Crae tabella View  'v_sped_free' 
+*/
 boolean k_return = true
 string k_sql
-st_esito kst_esito
-uo_exception kuo_exception
  
-
-
 
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
 	k_sql = "create view v_sped_free  " &
 		+ " as SELECT " &
-		+ " id_sped_free" & 
+		+ " id_sped_free " & 
+		+ " ,id_deposito " & 
 		+ " ,data_bolla_out " & 
 		+ " ,trim(num_bolla_out) num_bolla_out " &  
 		+ " ,clie_2     " & 
@@ -2760,59 +2721,10 @@ uo_exception kuo_exception
 
 //				+ " ,JSON_VALUE(dati ,'$.iva') iva " & 
 
-	EXECUTE IMMEDIATE "drop VIEW v_sped_free " using sqlca;
 
-	EXECUTE IMMEDIATE :k_sql using sqlca;
-
-	if sqlca.sqlcode <> 0 then
-		k_return = false
-		k_errore = 1
-		SetPointer(kkg.pointer_default)
-		kuo_exception = create uo_exception
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Errore durante creazione View (v_sped_free): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-		kuo_exception.set_esito(kst_esito )
-		throw kuo_exception
-//	else
-//		k_sql = "grant select on v_meca_pl_v1 to ixuser as informix"		
-//		EXECUTE IMMEDIATE :k_sql using sqlca;
-//		if sqlca.sqlcode <> 0 then
-//			k_return = false
-//			k_errore = 1
-//			SetPointer(kkg.pointer_default)
-//			kuo_exception = create uo_exception
-//			kst_esito.nome_oggetto = this.classname()
-//			kst_esito.esito = kkg_esito.db_ko
-//			kst_esito.sqlcode = sqlca.sqlcode
-//			kst_esito.sqlerrtext = "Errore durante GRANT View (v_meca_pl_v1): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-//			kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-//			kuo_exception.set_esito(kst_esito )
-//			throw kuo_exception
-//		end if	
-	end if	
-			
-
+	k_return = u_tb_crea_view("v_sped_free", k_sql)
 
 	SetPointer(kkg.pointer_default)
-
-	if k_errore = 0 then
-		
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.ok
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Generazione VIEW 'v_sped_free' completata." 
-		kuo_exception = create uo_exception
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
-		kuo_exception.set_esito(kst_esito )
-		kuo_exception.scrivi_log()
-		destroy kuo_exception
-	end if
-	
-	 
-SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -6236,6 +6148,93 @@ string k_sql
 
 	k_return = u_tb_crea_view("v_colli_sped", k_sql)
 
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_sped_deposito_anag () throws uo_exception;/*
+ Estemporanea da lanciare una sola volta
+	 Crae tabella View  'v_sped_deposito_anag' 
+*/
+boolean k_return = true
+string k_sql
+ 
+
+	SetPointer(kkg.pointer_attesa)
+
+	k_sql = "create view v_sped_deposito_anag  " &
+		+ " as SELECT " &
+		+ " id_sped " & 
+		+ " ,convert(integer,isnull(JSON_VALUE(deposito_anag ,'$.id_deposito_anag'),0))  id_deposito_anag " &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1')) " &
+		+ "	ELSE 'Sterigenics Italy S.p.A.'       " &
+		+ "	END depo_rag_soc_1 "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_2')) " &
+		+ "	ELSE ' ' " &
+		+ "	END depo_rag_soc_2 "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_indi'))  " &
+		+ "	ELSE 'Via Marzabotto, 4' "  &
+		+ "	END depo_indi " &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN " &
+		+ "									concat(trim(JSON_VALUE(deposito_anag ,'$.depo_cap')), ' ' " &
+		+ "									,trim(JSON_VALUE(deposito_anag ,'$.depo_loc')),' ('" &
+		+ "									,trim(JSON_VALUE(deposito_anag ,'$.depo_prov')),') ')  "  &
+		+ "	ELSE '40061 MINERBIO (BO)' "  &
+		+ "	END depo_cap_loc_prov  " &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_nazione'))   " &
+		+ "	ELSE ''  " &
+		+ "	END depo_nazione "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_contatto1')) " &
+		+ "	ELSE 'Tel. (+39) 051 66 05 998' " &
+		+ "	END depo_contatto1 "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_contatto2')) " &
+		+ "	ELSE 'Fax (+39) 051 66 05 574' " &
+		+ "	END depo_contatto2 "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_contatto3')) " &
+		+ "	ELSE 'www.sterigenics.com' "  &
+		+ "	END depo_contatto3 "  &
+		+ ",CASE " &
+		+ "	WHEN trim(JSON_VALUE(deposito_anag ,'$.depo_rag_soc_1 ')) > ' ' THEN trim(JSON_VALUE(deposito_anag ,'$.depo_contatto4')) " &
+		+ "	ELSE 'gestione.clienti@sterigenics.com'   " &
+		+ "	END depo_contatto4  " &
+		+ "FROM sped  " 
+
+	k_return = u_tb_crea_view("v_sped_deposito_anag", k_sql)
+
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_barcode_data_json () throws uo_exception;/*
+Estemporanea da lanciare una sola volta
+	Crae tabella View  'v_ptsks_rows' 
+*/
+boolean k_return = true
+string k_sql
+
+
+	SetPointer(kkg.pointer_attesa)
+
+	k_sql = "create view v_barcode_data_json  " &
+		+ " as SELECT barcode.barcode " &
+		+ " , case when JSON_VALUE(barcode.data_json ,'$.g3lav_cicloin' ) > '0' then convert(INTEGER, JSON_VALUE(barcode.data_json ,'$.g3lav_cicloin'  )) else 0 end g3lav_cicloin " & 
+		+ " , case when JSON_VALUE(barcode.data_json ,'$.g3lav_cicloout') > '0' then convert(integer, JSON_VALUE(barcode.data_json ,'$.g3lav_cicloout' )) else 0 end g3lav_cicloout " & 
+		+ " FROM barcode " 
+
+	k_return = u_tb_crea_view("v_barcode_data_json", k_sql)
+
+	SetPointer(kkg.pointer_default)
 
 return k_return
 

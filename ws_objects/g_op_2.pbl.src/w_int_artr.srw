@@ -1438,15 +1438,13 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.insertrow(0)
 	tab_1.tabpage_1.dw_1.visible = true
 
-
-	tab_1.tabpage_1.dw_1.setfocus()
+	try	
+		tab_1.tabpage_1.dw_1.setfocus()
 
 //--- Setta valori di Default
-//	if ki_st_open_w.flag_primo_giro = 'S' then
+		tab_1.tabpage_1.dw_1.setitem(1, "data_dal", relativedate(today(), -30))		
+		tab_1.tabpage_1.dw_1.setitem(1, "barcode", '')		
 
-			
-
-	try	
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
@@ -1487,7 +1485,6 @@ st_tab_clienti kst_tab_clienti
 	
 	k_scelta = trim(ki_st_open_w.flag_modalita)
 
-
 //--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
 	if not isnull(kdw_1.tag) then
 		k_codice_prec = kdw_1.tag
@@ -1499,7 +1496,6 @@ st_tab_clienti kst_tab_clienti
 	kuf1_utility = create kuf_utility
 	kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	destroy kuf1_utility
-	
 
 	if trim(k_codice_prec) <> trim(kdw_1.tag) then
 		u_set_tabpage_picture(true)
@@ -1507,11 +1503,9 @@ st_tab_clienti kst_tab_clienti
 		u_set_tabpage_picture(false)
 	end if
 	
-
 	if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
 
 		kdw_1.visible = true
-
 
 		if tab_1.tabpage_1.dw_1.getitemnumber(1, "impianto") = kuf1_impianto.kki_impiantog3 then
 			kdw_1.dataobject = "d_report_4_pilota_pallet_trattati_g3" 
@@ -1520,12 +1514,14 @@ st_tab_clienti kst_tab_clienti
 			kdw_1.dataobject = "d_report_4_pilota_pallet_trattati" 
 			k_rc = kdw_1.settrans(kguo_sqlca_db_pilota)  // conn/disconn in automatico ad ogni operaz
 		end if		
+		
+		setpointer(kkg.pointer_attesa)
 
-		k_righe = kdw_1.retrieve(date(0))
+		k_righe = kdw_1.retrieve(tab_1.tabpage_1.dw_1.getitemdate(1, "data_dal"), tab_1.tabpage_1.dw_1.getitemstring(1, "barcode"))
 
 		for k_riga = 1 to k_righe
 
-			kst_tab_barcode.barcode = kdw_1.object.barcode[k_riga]
+			kst_tab_barcode.barcode = trim(kdw_1.object.barcode[k_riga])
 			select distinct
 					barcode.id_meca
 				into
@@ -1539,43 +1535,36 @@ st_tab_clienti kst_tab_clienti
 						
 				select distinct
 						meca.clie_2
-						,meca.id
 						,meca.num_int
 						,meca.data_int
-						,meca.area_mag
+						,trim(isnull(meca.area_mag,''))
 						,meca.consegna_data
-						,clienti.rag_soc_10
+						,trim(clienti.rag_soc_10)
 					into
 						:kst_tab_meca.clie_2
-						,:kst_tab_meca.id
 						,:kst_tab_meca.num_int
 						,:kst_tab_meca.data_int
 						,:kst_tab_meca.area_mag
 						,:kst_tab_meca.consegna_data
 						,:kst_tab_clienti.rag_soc_10
-					from 
-					  (barcode
-						inner join meca on
-						 barcode.id_meca = meca.id)
-					 inner join clienti on
-						 meca.clie_2 = clienti.codice 
-					where barcode.barcode = :kst_tab_barcode.barcode 
+					from meca left outer join clienti on meca.clie_2 = clienti.codice 
+					where meca.id = :kst_tab_meca.id
 					using kguo_sqlca_db_magazzino;
 		
-				if kguo_sqlca_db_magazzino.sqlcode = 0 then
-					select count(*)
+				select isnull(count(*),0)
 						into :k_colli
 						from barcode
-						where barcode.id_meca = :kst_tab_meca.id
+						where barcode.id_meca = :kst_tab_meca.id 
 						using kguo_sqlca_db_magazzino;
-					if isnull(k_colli) then k_colli = 0
-					select count(*)
+				
+					select isnull(count(*),0)
 						into :k_colli_tr
 						from barcode
-						where barcode.id_meca = :kst_tab_meca.id and barcode.data_lav_fin > convert(date,'01.01.1899')
+						where barcode.id_meca = :kst_tab_meca.id and barcode.data_lav_fin > convert(date,'01.01.1990')
 						using kguo_sqlca_db_magazzino;
-					if isnull(k_colli_tr) then k_colli_tr = 0
-				end if
+						
+				if isnull(k_colli_tr) then k_colli_tr = 0
+				
 			end if
 
 			if kst_tab_meca.id > 0 then
@@ -1597,7 +1586,7 @@ st_tab_clienti kst_tab_clienti
 				if not isnull(kst_tab_clienti.rag_soc_10) then
 					kdw_1.object.k_rag_soc_10[k_riga] = kst_tab_clienti.rag_soc_10
 				end if
-				kdw_1.object.k_colli[k_riga] = trim(string(k_colli_tr)) + " . " + trim(string(k_colli)) 
+				kdw_1.object.k_colli[k_riga] = trim(string(k_colli_tr)) + " - " + trim(string(k_colli)) 
 			end if
 			
 		end for
@@ -1611,8 +1600,14 @@ st_tab_clienti kst_tab_clienti
 		attiva_tasti()
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
+		else
+			setpointer(kkg.pointer_attesa)
+			kdw_1.sort()
+			kdw_1.GroupCalc ()
 		end if
 		kdw_1.setfocus()
+
+		setpointer(kkg.pointer_default)
 
 	end try
 		

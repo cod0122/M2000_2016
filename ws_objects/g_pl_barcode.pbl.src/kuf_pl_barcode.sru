@@ -1188,17 +1188,17 @@ try
 	kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
 	
 	SetPointer(kkg.pointer_attesa )
-	
+	 
 	for k_riga_pallet = 1 to k_righe_pallet_tot
 		
 //--- popola struttura da datastore elenco PALLET con data FINE LAVORAZIONE
 		kst_tab_pilota_pallet.Data_Entrata = kds1_pilota_pallet_in.getitemdatetime(k_riga_pallet, "Data_Entrata")   
 		kst_tab_pilota_pallet.Data_Uscita = kds1_pilota_pallet_in.getitemdatetime(k_riga_pallet, "Data_Uscita")
-		kst_tab_pilota_pallet.Pallet_Code = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "Pallet_Code") 
-		kst_tab_pilota_pallet.F1AVP = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "F1AVP")
-		kst_tab_pilota_pallet.F2AVP = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "F2AVP")
-		kst_tab_pilota_pallet.F1APP = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "F1APP")
-		kst_tab_pilota_pallet.F2APP = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "F2APP")
+		kst_tab_pilota_pallet.barcode = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "barcode") 
+		kst_tab_pilota_pallet.ciclifila1 = kds1_pilota_pallet_in.getitemnumber(k_riga_pallet, "ciclifila1")
+		kst_tab_pilota_pallet.ciclifila2 = kds1_pilota_pallet_in.getitemnumber(k_riga_pallet, "ciclifila2")
+		kst_tab_pilota_pallet.ciclifila1p = kds1_pilota_pallet_in.getitemnumber(k_riga_pallet, "ciclifila1p")
+		kst_tab_pilota_pallet.ciclifila2p = kds1_pilota_pallet_in.getitemnumber(k_riga_pallet, "ciclifila2p")
 		kst_tab_pilota_pallet.Posizione = kds1_pilota_pallet_in.getitemstring(k_riga_pallet, "Posizione")
 		kst_tab_pilota_pallet.Bilancella = kds1_pilota_pallet_in.getitemnumber(k_riga_pallet, "Bilancella")
 	
@@ -1207,7 +1207,7 @@ try
 
 		kst_tab_barcode = kst_tab_barcode_vuota
 
-		kst_tab_barcode.barcode = kst_tab_pilota_pallet.Pallet_Code
+		kst_tab_barcode.barcode = kst_tab_pilota_pallet.barcode
 
 //--- legge Barcode x prendere id armo e vede se gia' lavorato
 		if NOT kuf1_barcode.select_barcode(kst_tab_barcode) then
@@ -1505,11 +1505,11 @@ try
 	//--- popola struttura da datastore elenco PALLET con data FINE LAVORAZIONE
 			kst_tab_pilota_pallet.Data_Entrata = kds1_pilota_pallet_out.getitemdatetime(k_riga_pallet, "Data_Entrata")   
 			kst_tab_pilota_pallet.Data_Uscita = kds1_pilota_pallet_out.getitemdatetime(k_riga_pallet, "Data_Uscita")
-			kst_tab_pilota_pallet.Pallet_Code = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "Pallet_Code") 
-			kst_tab_pilota_pallet.F1AVP = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "F1AVP")
-			kst_tab_pilota_pallet.F2AVP = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "F2AVP")
-			kst_tab_pilota_pallet.F1APP = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "F1APP")
-			kst_tab_pilota_pallet.F2APP = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "F2APP")
+			kst_tab_pilota_pallet.barcode = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "barcode") 
+			kst_tab_pilota_pallet.ciclifila1 = kds1_pilota_pallet_out.getitemnumber(k_riga_pallet, "ciclifila1")
+			kst_tab_pilota_pallet.ciclifila2 = kds1_pilota_pallet_out.getitemnumber(k_riga_pallet, "ciclifila2")
+			kst_tab_pilota_pallet.ciclifila1p = kds1_pilota_pallet_out.getitemnumber(k_riga_pallet, "ciclifila1p")
+			kst_tab_pilota_pallet.ciclifila2p = kds1_pilota_pallet_out.getitemnumber(k_riga_pallet, "ciclifila2p")
 			kst_tab_pilota_pallet.Posizione = kds1_pilota_pallet_out.getitemstring(k_riga_pallet, "Posizione")
 			kst_tab_pilota_pallet.Bilancella = kds1_pilota_pallet_out.getitemnumber(k_riga_pallet, "Bilancella")
 	
@@ -1519,7 +1519,7 @@ try
 			kst_tab_barcode = kst_tab_barcode_vuota
 	
 	//--- Estrazione del BARCODE 
-			kst_tab_barcode.barcode = kst_tab_pilota_pallet.Pallet_Code
+			kst_tab_barcode.barcode = kst_tab_pilota_pallet.barcode
 	
 			if NOT kuf1_barcode.select_barcode(kst_tab_barcode) then
 	
@@ -1638,7 +1638,7 @@ try
 							
 		//--- Imposta i Tempi Impianto di trattamento sul BARCODE
 							kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
-							k_rc = kuf1_barcode.set_imptime_second(kst_tab_barcode)
+							k_rc = kuf1_barcode.set_imptime_second_g2(kst_tab_barcode)
 								
 						end if
 						
@@ -1731,7 +1731,7 @@ try
 
 		//--- Imposta i Tempi Impianto di trattamento sul BARCODE figlio
 									kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "S" 
-									k_rc = kuf1_barcode.set_imptime_second(kst_tab_barcode_figlio)
+									k_rc = kuf1_barcode.set_imptime_second_g2(kst_tab_barcode_figlio)
 			
 									kguo_sqlca_db_magazzino.db_commit( )  
 
@@ -2948,23 +2948,23 @@ private subroutine u_set_tab_barcode (readonly st_tab_pilota_pallet kst_tab_pilo
 			kst_tab_barcode.ora_lav_fin = time(kst_tab_pilota_pallet.Data_Uscita)
 		end if		
 		
-		if isnumber(kst_tab_pilota_pallet.F1AVP) then
-			kst_tab_barcode.lav_fila_1 = integer(kst_tab_pilota_pallet.F1AVP)
+		if kst_tab_pilota_pallet.ciclifila1 > 0 then
+			kst_tab_barcode.lav_fila_1 = kst_tab_pilota_pallet.ciclifila1
 		else
 			kst_tab_barcode.lav_fila_1 = 0
 		end if
-		if isnumber(kst_tab_pilota_pallet.F2AVP) then
-			kst_tab_barcode.lav_fila_2 = integer(kst_tab_pilota_pallet.F2AVP)
+		if kst_tab_pilota_pallet.ciclifila2 > 0 then
+			kst_tab_barcode.lav_fila_2 = kst_tab_pilota_pallet.ciclifila2
 		else
 			kst_tab_barcode.lav_fila_2 = 0
 		end if
-		if isnumber(kst_tab_pilota_pallet.F1ApP) then
-			kst_tab_barcode.lav_fila_1p = integer(kst_tab_pilota_pallet.F1ApP)
+		if kst_tab_pilota_pallet.ciclifila1p > 0 then
+			kst_tab_barcode.lav_fila_1p = kst_tab_pilota_pallet.ciclifila1p
 		else
 			kst_tab_barcode.lav_fila_1p = 0
 		end if
-		if isnumber(kst_tab_pilota_pallet.F2ApP) then
-			kst_tab_barcode.lav_fila_2p = integer(kst_tab_pilota_pallet.F2ApP)
+		if kst_tab_pilota_pallet.ciclifila2p > 0 then
+			kst_tab_barcode.lav_fila_2p = kst_tab_pilota_pallet.ciclifila2p
 		else
 			kst_tab_barcode.lav_fila_2p = 0
 		end if

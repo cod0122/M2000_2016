@@ -1440,6 +1440,7 @@ string k_errore="0"
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_ddt_free
+integer x = 0
 integer y = 28
 integer width = 3255
 integer height = 1384

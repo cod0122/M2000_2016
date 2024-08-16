@@ -476,7 +476,7 @@ try
 //		if kst_esito.esito <> kkg_esito.ok then
 //			k_return += "~n~rfallito anche il 'recupero' dell'errore: ~n~r" + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
 //		end if
-		k_return += "~n~rPrego, controllare i dati !! "
+		k_return += " " + kkg.acapo + "Prego, controllare i dati !! "
 		
 	else
 //--- OK!		
@@ -487,7 +487,8 @@ try
 //--- Commit		
 			kst_esito = kguo_sqlca_db_magazzino.db_commit()
 			if kst_esito.esito <> kkg_esito.ok then
-				k_return = "3" + "Fallita conferma di aggiornamento archivi (COMMIT), errore: ~n~r" + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
+				k_return = "3" + "Fallita conferma di aggiornamento archivi (COMMIT), errore: " &
+									+ kkg.acapo + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
 			end if
 			
 		else
@@ -496,7 +497,7 @@ try
 //			if kst_esito.esito <> kkg_esito.ok then
 //				k_return += "~n~rfallito anche il 'recupero' dell'errore: ~n~r" + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
 //			end if
-			k_return += "~n~rPrego, controllare i dati !! "
+			k_return += " " + kkg.acapo + "Prego, controllare i dati !! "
 			
 		end if
 		
@@ -1210,11 +1211,11 @@ protected subroutine leggi_liste_reset ();//
 
 	if dw_lista_0.visible then 
 		ki_riga_selezionata = dw_lista_0.getrow()
-		dw_lista_0.reset()
+		//dw_lista_0.reset()
 	else
 		if dw_dett_0.visible then 
 			ki_riga_selezionata = dw_dett_0.getrow()
-			dw_dett_0.reset()
+			//dw_dett_0.reset()   // dava un errore strano di tipo not selected
 		end if
 	end if
 		
@@ -1517,7 +1518,11 @@ try
 					
 			end choose
 	
-			attiva_tasti()
+			if ki_exit_si then
+				cb_ritorna.post event clicked( )
+			else
+				attiva_tasti()
+			end if
 			
 		end if
 		
@@ -1889,8 +1894,8 @@ try
 			end if
 		else
 			kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-			kguo_exception.setmessage( "Operazione fallita", "Dati non trovati in archivio~n~r" + &
-															"Provare a riaggiornare l'elenco e rifare l'operazione appena tentata")
+			kguo_exception.setmessage( "Operazione fallita", "Dati non trovati in archivio " + kkg.acapo &
+															+ "Provare a riaggiornare l'elenco e rifare l'operazione appena tentata")
 			throw kguo_exception
 		end if
 	end if
@@ -2008,6 +2013,11 @@ try
 			if left(k_esito_funzioneX,1) = "0" then
 	//--- funzione utile alla sincronizzazione con la window di ritorno (come il navigatore)
 				kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w)
+				
+				if ki_exit_dopo_save_ok then
+					ki_exit_si = true
+				end if
+				
 			end if
 		end if
 		

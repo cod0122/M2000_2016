@@ -6,8 +6,8 @@ summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gra
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=608 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 table(column=(type=char(12) updatewhereclause=yes name=art dbname="clienti.art" )
- column=(type=long updatewhereclause=yes name=num_bolla_out dbname="clienti.num_bolla_out" )
- column=(type=date updatewhereclause=yes name=data_bolla_out dbname="clienti.data_bolla_out" )
+ column=(type=long updatewhereclause=yes name=num_bolla_out dbname="num_bolla_out" )
+ column=(type=date updatewhereclause=yes name=data_bolla_out dbname="data_bolla_out" )
  column=(type=long updatewhereclause=yes name=clie_2 dbname="clienti.clie_2" )
  column=(type=long updatewhereclause=yes name=clie_3 dbname="clienti.clie_3" )
  column=(type=char(30) updatewhereclause=yes name=rag_soc_10 dbname="clienti.rag_soc_10" )
@@ -21,8 +21,8 @@ table(column=(type=char(12) updatewhereclause=yes name=art dbname="clienti.art" 
  column=(type=decimal(0) updatewhereclause=yes name=colli_2 dbname="clienti.colli_2" )
  retrieve="  SELECT distinct 
 			armo.art,
-         arsp.num_bolla_out,   
-         arsp.data_bolla_out,   
+         sped.num_bolla_out,   
+         sped.data_bolla_out,   
          sped.clie_2,   
          coalesce(sped.clie_3, 0) clie_3,   
          clienti.rag_soc_10,   
@@ -77,4 +77,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

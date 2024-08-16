@@ -236,7 +236,7 @@ call super::destroy
 end on
 
 event constructor;call super::constructor;//
-	ki_db_descrizione = "DB di Interfaccia Programmazione Pilota Impianto G2 e G3"
+	ki_db_descrizione = "DB di Interfaccia di Invio Programmazione al Pilota Impianto G2 e G3"
 	ki_title_id = "db_plav"
 end event
 

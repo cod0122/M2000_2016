@@ -3,6 +3,7 @@ global type st_tab_depositi from structure
 	st_tab_g_0		st_tab_g_0
 	long		id_deposito
 	string		descr
+	string		sigla		descriptor "comment" = "sigla di riconoscimento (descr breve)"
 	string		operativo		descriptor "comment" = "S=magazzino operativo"
 	long		id_deposito_anag
 	string		ddt_n_pref		descriptor "comment" = "ddt di uscita: prefisso del numero"

@@ -37,6 +37,7 @@ global type st_tab_base from structure
 	long		mis_x
 	long		mis_y
 	long		mis_z
+	long		id_deposito		descriptor "comment" = "deposito principale da cui prende indirizzo per DDT"
 	long		num_bolla
 	long		num_bolla_stamp
 	long		num_certif

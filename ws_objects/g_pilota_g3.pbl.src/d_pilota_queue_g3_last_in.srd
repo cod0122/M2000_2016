@@ -5,27 +5,27 @@ header(height=132 color="536870912" transparency="0" gradient.color="8421504" gr
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long updatewhereclause=yes key=yes name=ordine dbname="queue_table.Ordine" dbalias=".Ordine" )
- column=(type=char(12) updatewhereclause=yes name=barcode dbname="queue_table.Barcode" dbalias=".Barcode" )
+table(column=(type=long updatewhereclause=yes key=yes name=ordine dbname="Ordine" dbalias=".Ordine" )
+ column=(type=char(12) updatewhereclause=yes name=barcode dbname="Barcode" dbalias=".Barcode" )
  column=(type=char(2) updatewhereclause=yes name=id_modo dbname="id_modo" )
  column=(type=char(16) updatewhereclause=yes name=ciclo dbname="ciclo" )
  column=(type=decimal(0) updatewhereclause=yes name=giri dbname="giri" )
- column=(type=char(11) updatewhereclause=yes name=lotto dbname="lotto" )
+ column=(type=number updatewhereclause=yes name=lotto dbname="lotto" )
  column=(type=decimal(0) updatewhereclause=yes name=num_int dbname="num_int" )
  column=(type=char(1) updatewhereclause=yes name=e1ancodrs dbname="e1ancodrs" )
  column=(type=decimal(0) updatewhereclause=yes name=id_meca dbname="id_meca" )
- retrieve="SELECT queue_table.Ordine 
-          , queue_table.Barcode 
-          , trim(queue_table.id_modo)  id_modo
-          , trim(queue_table.ciclo)  ciclo
-          , coalesce(queue_table.giri, 0) giri
-          , trim(queue_table.Cod_Prod) lotto
+ retrieve="SELECT Ordine 
+          , Barcode 
+          , trim(id_modo)  id_modo
+          , trim(ciclo)  ciclo
+          , coalesce(giri, 0) giri
+          , Piano_Lavorazione lotto
    		 ,0 num_int,
            ' ' e1ancodrs,
    		  0 id_meca
          FROM queue_table 
-		where queue_table.ordine = 
-            (select max(queue_table.Ordine)
+		where ordine = 
+            (select max(Ordine)
                    from queue_table)
 " update="queue_table" updatewhere=0 updatekeyinplace=no )
 text(band=header alignment="2" text="Ordine
@@ -66,4 +66,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

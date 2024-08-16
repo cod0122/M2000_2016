@@ -6226,25 +6226,16 @@ end if
 
 end subroutine
 
-public function long get_contratto (ref st_tab_meca kst_tab_meca) throws uo_exception;//
-//====================================================================
-//=== Torna il codice il ID del Contratto del Lotto 
-//=== 
-//=== 
-//===  input: kst_tab_meca.id_meca  
-//===  Outout: kst_tab_meca.contratto  id del contratto
-//===             tab. ST_ESITO, Esiti: 0=OK; 100=not found
-//===                                     1=errore grave
-//===                                     2=errore > 0
-//===                                     
-//====================================================================
-//
-long k_return = 0
-int k_anno
-st_esito kst_esito
+public function long get_contratto (ref st_tab_meca kst_tab_meca) throws uo_exception;/*
+ Torna il codice il ID del Contratto del Lotto 
+	inp: kst_tab_meca.id_meca  
+	Out: kst_tab_meca.contratto 
+	Rir: id del contratto
+*/
+long k_return
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	SELECT contratto
 			 INTO 
@@ -6253,21 +6244,12 @@ st_esito kst_esito
 			WHERE meca.id = :kst_tab_meca.id 
 				 using kguo_sqlca_db_magazzino;
 			
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Codice Contratto Lotto non Trovato (" + string(kst_tab_meca.id) + ") " &
-									 + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if
-	else
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Codice Contratto Lotto non Trovato. Id Lotto " + string(kst_tab_meca.id))
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 		if kst_tab_meca.contratto > 0 then
 			k_return = kst_tab_meca.contratto
 		end if

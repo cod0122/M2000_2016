@@ -200,6 +200,10 @@ long k_riga
 //--- Imposta valori di default
 	k_riga = dw_dett_0.rowcount( )
 	if k_riga > 0 then
+		if dw_dett_0.getitemstring(k_riga, "sigla") > " " then
+		else
+			dw_dett_0.setitem(k_riga, "sigla", "")
+		end if
 		if dw_dett_0.getitemstring(k_riga, "ddt_n_prefisso") > " " then
 		else
 			dw_dett_0.setitem(k_riga, "ddt_n_prefisso", "")

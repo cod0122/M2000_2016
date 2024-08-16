@@ -8,6 +8,7 @@ global type w_meca_autorizza from w_g_tab0
 integer width = 2039
 integer height = 2180
 string title = "_"
+boolean ki_filtra_attivo = false
 boolean ki_reset_dopo_save_ok = false
 boolean ki_consenti_modifica = false
 boolean ki_consenti_inserisci = false
@@ -60,7 +61,7 @@ private subroutine autorizza_funzioni ()
 private subroutine call_memo ()
 protected function integer modifica ()
 protected function integer visualizza ()
-public function boolean u_lancia_funzione_imvc (st_open_w kst_open_w_arg)
+public function boolean u_lancia_funzione_imvc (st_open_w ast_open_w)
 protected function string check_dati ()
 private subroutine forza_convalida ()
 protected subroutine attiva_menu ()
@@ -714,7 +715,7 @@ return 1
 
 end function
 
-public function boolean u_lancia_funzione_imvc (st_open_w kst_open_w_arg);//---
+public function boolean u_lancia_funzione_imvc (st_open_w ast_open_w);
 //--- lancia la funzione giusta di Inserimento/Modifica/Visualizzazione/Cancellazione
 //---
 //--- Inp: st_open_w.flag_modalita
@@ -724,12 +725,9 @@ boolean k_return = false
 st_open_w kst_open_w
 
 
-	kst_open_w.flag_modalita = kst_open_w_arg.flag_modalita
-
-		
 	if dw_dett_0.rowcount( ) > 0 then
 			
-		choose case kst_open_w.flag_modalita
+		choose case ast_open_w.flag_modalita
 		
 //			case kkg_flag_modalita.inserimento
 //

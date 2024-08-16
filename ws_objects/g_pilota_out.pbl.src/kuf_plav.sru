@@ -45,7 +45,6 @@ public constant int kki_richieste_tipo_richiesta_PULISCI = 99
 end variables
 
 forward prototypes
-public function integer job_genera_piano_lavoro () throws uo_exception
 private function boolean job_genera_piano_lavoro_esegui (ref st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
 private function long u_pilota_programmi_richieste (ref st_plav_programmi ast_plav_programmi) throws uo_exception
@@ -53,122 +52,13 @@ private function long u_pilota_programmi_work_orders (st_plav_programmi ast_plav
 private function integer u_pilota_programmi_dettaglio_g2 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
 private function integer u_pilota_programmi_groupage (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
 private function long u_pilota_programmi_accessori_dosimetri (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
-public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barcode) throws uo_exception
 private function integer u_pilota_programmi_dettaglio_g3 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception
 public function string u_prima_del_barcode (integer a_impianto, string a_barcode_proposto) throws uo_exception
 public function long set_id_stato_to_deprecato (long a_id_programma)
 public function boolean if_riapro_si (long a_id_programma)
+public function integer job_genera_piano_lavoro (string a_impianto_gx) throws uo_exception
+public function boolean job_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception
 end prototypes
-
-public function integer job_genera_piano_lavoro () throws uo_exception;/*
-   Generazione Nuovo Piano di Lavorazione per il Pilota
-   Out: Numero Richieste evase
-*/
-
-int k_return
-long k_row, k_rows
-uo_ds_std_1 kds_pl_da_inviare
-kuf_impianto kuf1_impianto
-//qui da sostituire con il nuovo PILOTA G2/G3 per prendere 'prima del  BARCODE'...
-st_tab_pilota_queue kst_tab_pilota_queue   // da aggiornare quando ho il DB PILOTA NUOVO
-//kuf_pilota_cmd kuf1_pilota_cmd             // da aggiornare quando ho il DB PILOTA NUOVO
-
-st_tab_pl_barcode kst_tab_pl_barcode, kst_tab_pl_barcode_clear
-st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
-kuf_plav_conn_cfg kuf1_plav_conn_cfg
-uo_exception kuo1_exception
-
-
-try
-	SetPointer(kkg.pointer_attesa)
-	kguo_exception.inizializza(this.classname())
-	
-//--- Connessione Bloccata?
-	kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
-	kuf1_plav_conn_cfg.get_plav_conn_cfg(kst_tab_plav_conn_cfg)
-	if kuf1_plav_conn_cfg.if_conn_bloccata(kst_tab_plav_conn_cfg) then
-		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Connessione al DB '" + kguo_sqlca_db_plav.ki_title_id + "' " &
-													+ kguo_sqlca_db_plav.ki_db_descrizione + " è Bloccata. " &
-													+ kkg.acapo + "Per proseguire, l'operazione di Generazione nuovo Piano da inviare al Pilota, disattivare il blocco in Proprietà della Connessione. " 
-		throw kguo_exception
-	end if		
-		
-//--- Verifica se c'e' un nuovo Piano da Inviare al Pilota (STATO_PL=CHIUSO)
-	kds_pl_da_inviare = kiuf_pl_barcode.get_pl_barcode_da_inviare_g2g3(kuf1_impianto.kki_impiantog3 ,7) 
-	if isvalid(kds_pl_da_inviare) and kds_pl_da_inviare.rowcount( ) > 0 then
-		k_rows = kds_pl_da_inviare.rowcount()
-
-		try 
-			for k_row = 1 to k_rows
-				kst_tab_pl_barcode = kst_tab_pl_barcode_clear
-			
-				kst_tab_pl_barcode.codice = kds_pl_da_inviare.getitemnumber(k_row, "codice") 
-				
-				if kst_tab_pl_barcode.codice > 0 then	
-	
-	//--- Imposta la STATO in elaborazione così da evitare che sia riutilizzato
-					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inelab
-					kst_tab_pl_barcode.id_programma = 0
-					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
-	
-					kst_tab_pl_barcode.prima_del_barcode = kds_pl_da_inviare.getitemstring(k_row, "prima_del_barcode")
-		
-
-	
-	//--- PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
-					if job_genera_piano_lavoro_esegui(kst_tab_pl_barcode)	then
-						k_return++
-					end if
-						
-	//--- Set nuovo STATO e id programma nel Piano di Lavorazione
-					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inviato
-					kst_tab_pl_barcode.id_programma = kst_tab_pl_barcode.id_programma
-					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
-				
-				end if
-				
-			next	
-			
-		catch (uo_exception kuo_exception)
-			kuo1_exception = create uo_exception
-			kuo1_exception.set_esito(kuo_exception.kist_esito)
-			kuo1_exception.scrivi_log()
-		
-			//--- Set nuovo STATO in ERRORE nel Piano di Lavorazione
-			try
-				kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inerrore
-				kst_tab_pl_barcode.id_programma = 0
-				kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
-				kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
-			catch (uo_exception kuo_exception2)
-				kuo_exception2.scrivi_log()
-			end try
-		
-			throw kuo1_exception
-		
-		end try
-			
-	end if
-
-catch (uo_exception kuo2_exception)
-	kuo2_exception.scrivi_log()
-	throw kuo2_exception
-
-finally
-	
-	if isvalid(kuf1_plav_conn_cfg) then destroy kuf1_plav_conn_cfg
-
-	SetPointer(kkg.pointer_default)
-
-end try
-
-
-return k_return
-
-end function
 
 private function boolean job_genera_piano_lavoro_esegui (ref st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception;/*
    Generazione Nuovo Piano di Lavorazione per il Pilota
@@ -308,26 +198,38 @@ public function st_esito u_batch_run () throws uo_exception;//---
 //--- Lancio operazioni Batch
 //---
 int k_richieste_evase
-st_esito kst_esito
 kuo_sqlca_db_plav kuo1_sqlca_db_plav
 
 
 try 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	kuo1_sqlca_db_plav = create kuo_sqlca_db_plav
 	if kuo1_sqlca_db_plav.if_connessione_bloccata( ) then
-		kst_esito.SQLErrText = "Operazione non eseguita correttamente. " &
-										+ "La Connessione alle tabelle Pilota è BLOCCATA da Proprietè Azienda." 
+		kguo_exception.kist_esito.esito = kkg_esito_no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Operazione di invio Piani di Lavorazione al Pilota non eseguita. " &
+										+ "La Connessione alle tabelle Pilota è BLOCCATA in Proprietè Azienda." 
+		throw kguo_exception
 	end if	
-	
-	k_richieste_evase = job_genera_piano_lavoro( )
+
+	//--- Invia Piani G2 al PILOTA
+	k_richieste_evase = job_genera_piano_lavoro(this.kki_id_impianto_g2)
 	if k_richieste_evase > 0 then
-		kst_esito.SQLErrText = "Operazione conclusa correttamente. " &
-									+ string(k_richieste_evase) + " Piani di Lavoro inviati nelle tabelle di scambio con il 'PILOTA'." 
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa correttamente. " &
+									+ string(k_richieste_evase) + " Piani di Lavoro G2 inviati nelle tabelle di scambio con il 'PILOTA'." 
 	else			
-		kst_esito.SQLErrText = "Operazione conclusa. Nessun Piano di Lavorazione Chiuso da inviare al Pilota trovato."
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa. Nessun Piano G2 di Lavorazione Chiuso da inviare al Pilota trovato."
 	end if
+
+//	//--- Invia Piani G3 al PILOTA
+//	k_richieste_evase = job_genera_piano_lavoro(this.kki_id_impianto_g3)
+//	if k_richieste_evase > 0 then
+//		kguo_exception.kist_esito.SQLErrText += kkg.acapo + "Operazione conclusa correttamente. " &
+//									+ string(k_richieste_evase) + " Piani di Lavoro G3 inviati nelle tabelle di scambio con il 'PILOTA'." 
+//	else			
+//		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa. Nessun Piano G3 di Lavorazione Chiuso da inviare al Pilota trovato."
+//	end if
+
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -338,7 +240,7 @@ finally
 end try
 
 
-return kst_esito
+return kguo_exception.kist_esito
 end function
 
 private function long u_pilota_programmi_richieste (ref st_plav_programmi ast_plav_programmi) throws uo_exception;/*
@@ -1015,134 +917,6 @@ return k_return
 
 end function
 
-public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
-   Sostituzione completa Piano di Lavorazione per il Pilota 
-	inp: ds_pl_barcode  tutti i barcode della Pianificazione compresi gli 'intoccabili'
-   Out: true = richiesta completata
-*/
-
-boolean k_return
-long k_row, k_rows, k_rows_inavase
-int k_rc
-st_plav_programmi kst_plav_programmi
-ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
-uo_ds_std_1 kds_programmi_richieste_inevase, kds_pl_da_inviare
-
-st_tab_pilota_queue kst_tab_pilota_queue   // da aggiornare quando ho il DB PILOTA NUOVO
-kuf_pilota_cmd kuf1_pilota_cmd             // da aggiornare quando ho il DB PILOTA NUOVO
-st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
-kuf_plav_conn_cfg kuf1_plav_conn_cfg
-uo_exception kuo1_exception
-
-
-try
-	SetPointer(kkg.pointer_attesa)
-	kguo_exception.inizializza(this.classname())
-	
-//--- Connessione Bloccata?
-	kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
-	kuf1_plav_conn_cfg.get_plav_conn_cfg(kst_tab_plav_conn_cfg)
-	if kuf1_plav_conn_cfg.if_conn_bloccata(kst_tab_plav_conn_cfg) then
-		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Connessione al DB '" + kguo_sqlca_db_plav.ki_title_id + "' " &
-													+ kguo_sqlca_db_plav.ki_db_descrizione + " è Bloccata. " &
-													+ kkg.acapo + "Per proseguire, l'operazione di Sostituzione della Pianificazione sul Pilota, disattivare il blocco in Proprietà della Connessione. " 
-		throw kguo_exception
-	end if		
-		
-//--- Verifica se ci sono ancora Piani da evadere NON ce ne devono essere!!
-	kds_programmi_richieste_inevase = create uo_ds_std_1
-	kds_programmi_richieste_inevase.dataobject = "kds_programmi_richieste_inevase"
-	k_rows_inavase = kds_programmi_richieste_inevase.retrieve(0)
-	if k_rows_inavase > 0 then
-		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
-													+ kkg.acapo + "Attenzione, ci sono ancora " + string(k_rows_inavase) + " " &
-													+ "Richieste nello stato di inevase! " + &
-													+ kkg.acapo + "Attendere il loro completamento o forzarle a concluse o errate. " 
-		throw kguo_exception
-	else
-		if k_rows_inavase < 0 then
-			kguo_exception.set_esito(kds_programmi_richieste_inevase.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
-														+ kkg.acapo + "Errore: " + kds_programmi_richieste_inevase.kist_esito.sqlerrtext
-			throw kguo_exception
-		end if
-	end if
-	
-					
-	kds_programmi_richieste_id_stato_update = create ds_programmi_richieste_id_stato_update
-
-//--- INIZIO PRODUZIONE DATI PER IL PILOTA ------------------------------------------------------------------
-		
-//--- Crea la RICHIESTA		
-	kst_plav_programmi.id_pl_barcode = 0
-	kst_plav_programmi.id_impianto = kki_id_impianto_G2  // Qui sempre G2
-	kst_plav_programmi.id_modo = ""  // il G2 lavora sempre con la stessa modalità
-	kst_plav_programmi.barcode = ""  // nulla in questo caso
-	kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_sostituzione
-	u_pilota_programmi_richieste(kst_plav_programmi)  
-
-//--- Popola tabella barcode PADRI
-	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_dettaglio_g2(kst_plav_programmi, ads_pl_barcode)
-	 
-//--- popola il file x il Pilota con i groupage (barcode figli)
-	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_groupage(kst_plav_programmi, ads_pl_barcode)
-
-//--- popola il file x il Pilota con i DOSIMETRI presenti sui barcode padri 
-	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
-	u_pilota_programmi_accessori_dosimetri(kst_plav_programmi, ads_pl_barcode)
-
-	kguo_sqlca_db_plav.db_commit( )
-		
-//--- Set nuovo STATO su RICHIESTA a pronto per il PILOTA
-	if kds_programmi_richieste_id_stato_update.retrieve(kst_plav_programmi.id_programma) > 0 then
-		kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local( ) )
-		kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_pronta )
-		
-//---- Update STATO RICHIESTA
-		k_rc = kds_programmi_richieste_id_stato_update.update( )
-		if k_rc < 0 then
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_esito(kds_programmi_richieste_id_stato_update.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento STATO della Richiesta Piano di Lavoro per il Pilota (update)! " &
-														+ kkg.acapo + "Id Programma " + string(kst_plav_programmi.id_programma) + " " &
-														+ "stato a '" + string(kki_richieste_stato_pronta) + "' " &
-														+ kkg.acapo + kds_programmi_richieste_id_stato_update.kist_esito.sqlerrtext
-			kguo_sqlca_db_plav.db_rollback( )
-			throw kguo_exception
-		end if
-		if k_rc > 0 then
-			kguo_sqlca_db_plav.db_commit( )
-		end if
-		
-	end if
-
-//--- FINE PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
-
-		k_return = true
-		
-
-catch (uo_exception kuo_exception)
-	kuo_exception.scrivi_log()
-	throw kuo_exception
-
-finally
-	if isvalid(kuf1_plav_conn_cfg) then destroy kuf1_plav_conn_cfg
-	if isvalid(kds_programmi_richieste_inevase) then destroy kds_programmi_richieste_inevase
-	if isvalid(kds_programmi_richieste_id_stato_update) then destroy kds_programmi_richieste_id_stato_update	
-	
-	SetPointer(kkg.pointer_default)
-
-end try
-
-
-return k_return
-
-end function
-
 private function integer u_pilota_programmi_dettaglio_g3 (st_plav_programmi ast_plav_programmi, ref ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Popola la tabella programmi_dettaglio_G3 dei barcode padri
 	inp: ast_plav_programmi.id_programma 
@@ -1473,6 +1247,251 @@ end try
 
 return k_return
 
+
+end function
+
+public function integer job_genera_piano_lavoro (string a_impianto_gx) throws uo_exception;/*
+   Generazione Nuovo Piano di Lavorazione per il Pilota
+	Inp: this.kki_id_impianto_G_
+   Out: Numero Richieste evase
+*/
+
+int k_return
+long k_row, k_rows
+int k_impianto_n
+uo_ds_std_1 kds_pl_da_inviare
+kuf_impianto kuf1_impianto
+//qui da sostituire con il nuovo PILOTA G2/G3 per prendere 'prima del  BARCODE'...
+st_tab_pilota_queue kst_tab_pilota_queue   // da aggiornare quando ho il DB PILOTA NUOVO
+//kuf_pilota_cmd kuf1_pilota_cmd             // da aggiornare quando ho il DB PILOTA NUOVO
+
+st_tab_pl_barcode kst_tab_pl_barcode, kst_tab_pl_barcode_clear
+st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
+kuf_plav_conn_cfg kuf1_plav_conn_cfg
+uo_exception kuo1_exception
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+//--- Connessione Bloccata?
+	kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
+	kuf1_plav_conn_cfg.get_plav_conn_cfg(kst_tab_plav_conn_cfg)
+	if kuf1_plav_conn_cfg.if_conn_bloccata(kst_tab_plav_conn_cfg) then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Connessione al DB '" + kguo_sqlca_db_plav.ki_title_id + "' " &
+													+ kguo_sqlca_db_plav.ki_db_descrizione + " è Bloccata. " &
+													+ kkg.acapo + "Per proseguire, l'operazione di Generazione nuovo Piano da inviare al Pilota, disattivare il blocco in Proprietà della Connessione. " 
+		throw kguo_exception
+	end if		
+		
+//--- Verifica se c'e' un nuovo Piano da Inviare al Pilota (STATO_PL=CHIUSO)
+	if a_impianto_gx = kki_id_impianto_G2 then 
+		k_impianto_n = kuf1_impianto.kki_impiantog2
+	else
+		k_impianto_n = kuf1_impianto.kki_impiantog3
+	end if
+	kds_pl_da_inviare = kiuf_pl_barcode.get_pl_barcode_da_inviare_g2g3(k_impianto_n ,7) 
+	if isvalid(kds_pl_da_inviare) and kds_pl_da_inviare.rowcount( ) > 0 then
+		k_rows = kds_pl_da_inviare.rowcount()
+
+		try 
+			for k_row = 1 to k_rows
+				kst_tab_pl_barcode = kst_tab_pl_barcode_clear
+			
+				kst_tab_pl_barcode.codice = kds_pl_da_inviare.getitemnumber(k_row, "codice") 
+				
+				if kst_tab_pl_barcode.codice > 0 then	
+	
+	//--- Imposta la STATO in elaborazione così da evitare che sia riutilizzato
+					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inelab
+					kst_tab_pl_barcode.id_programma = 0
+					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
+					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
+	
+					kst_tab_pl_barcode.prima_del_barcode = kds_pl_da_inviare.getitemstring(k_row, "prima_del_barcode")
+	
+	//--- PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
+					if job_genera_piano_lavoro_esegui(kst_tab_pl_barcode)	then
+						k_return++
+					end if
+						
+	//--- Set nuovo STATO e id programma nel Piano di Lavorazione
+					kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inviato
+					kst_tab_pl_barcode.id_programma = kst_tab_pl_barcode.id_programma
+					kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
+					kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
+				
+				end if
+				
+			next	
+			
+		catch (uo_exception kuo_exception)
+			kuo1_exception = create uo_exception
+			kuo1_exception.set_esito(kuo_exception.kist_esito)
+			kuo1_exception.scrivi_log()
+		
+			//--- Set nuovo STATO in ERRORE nel Piano di Lavorazione
+			try
+				kst_tab_pl_barcode.stato_pl = kiuf_pl_barcode.ki_stato_pl_inerrore
+				kst_tab_pl_barcode.id_programma = 0
+				kst_tab_pl_barcode.st_tab_g_0.esegui_commit = "S"
+				kiuf_pl_barcode.set_stato_pl_id_programma(kst_tab_pl_barcode) 
+			catch (uo_exception kuo_exception2)
+				kuo_exception2.scrivi_log()
+			end try
+		
+			throw kuo1_exception
+		
+		end try
+			
+	end if
+
+catch (uo_exception kuo2_exception)
+	kuo2_exception.scrivi_log()
+	throw kuo2_exception
+
+finally
+	
+	if isvalid(kuf1_plav_conn_cfg) then destroy kuf1_plav_conn_cfg
+
+	SetPointer(kkg.pointer_default)
+
+end try
+
+
+return k_return
+
+end function
+
+public function boolean job_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+   Sostituzione completa Piano di Lavorazione per il Pilota 
+	inp: ds_pl_barcode  tutti i barcode della Pianificazione compresi gli 'intoccabili'
+   Out: true = richiesta completata
+*/
+
+boolean k_return
+long k_row, k_rows, k_rows_inavase
+int k_rc
+st_plav_programmi kst_plav_programmi
+ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
+uo_ds_std_1 kds_programmi_richieste_inevase, kds_pl_da_inviare
+
+st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
+kuf_plav_conn_cfg kuf1_plav_conn_cfg
+uo_exception kuo1_exception
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+//--- Blocca le richieste		
+	kiuf_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kiuf_pilota_cmd.ki_blocca_richieste_SI
+	kiuf_pilota_cmd.set_blocca_richieste( kiuf_pilota_cmd.kist_tab_pilota_cfg )
+	
+//--- Connessione DB Bloccata?
+	kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
+	kuf1_plav_conn_cfg.get_plav_conn_cfg(kst_tab_plav_conn_cfg)
+	if kuf1_plav_conn_cfg.if_conn_bloccata(kst_tab_plav_conn_cfg) then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Connessione al DB '" + kguo_sqlca_db_plav.ki_title_id + "' " &
+													+ kguo_sqlca_db_plav.ki_db_descrizione + " è Bloccata. " &
+													+ kkg.acapo + "Per proseguire, l'operazione di Sostituzione della Pianificazione sul Pilota, disattivare il blocco in Proprietà della Connessione. " 
+		throw kguo_exception
+	end if		
+
+//--- Verifica se ci sono ancora Piani da evadere NON ce ne devono essere!!
+	kds_programmi_richieste_inevase = create uo_ds_std_1
+	kds_programmi_richieste_inevase.dataobject = "kds_programmi_richieste_inevase"
+	k_rows_inavase = kds_programmi_richieste_inevase.retrieve(0)
+	if k_rows_inavase > 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
+													+ kkg.acapo + "Attenzione, ci sono ancora " + string(k_rows_inavase) + " " &
+													+ "Richieste nello stato di inevase! " + &
+													+ kkg.acapo + "Attendere il loro completamento o forzarle a concluse o errate. " 
+		throw kguo_exception
+	else
+		if k_rows_inavase < 0 then
+			kguo_exception.set_esito(kds_programmi_richieste_inevase.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
+														+ kkg.acapo + "Errore: " + kds_programmi_richieste_inevase.kist_esito.sqlerrtext
+			throw kguo_exception
+		end if
+	end if
+	
+					
+	kds_programmi_richieste_id_stato_update = create ds_programmi_richieste_id_stato_update
+
+//--- INIZIO PRODUZIONE DATI PER IL PILOTA ------------------------------------------------------------------
+		
+//--- Crea la RICHIESTA		
+	kst_plav_programmi.id_pl_barcode = 0
+	kst_plav_programmi.id_impianto = kki_id_impianto_G2  // Qui sempre G2
+	kst_plav_programmi.id_modo = ""  // il G2 lavora sempre con la stessa modalità
+	kst_plav_programmi.barcode = ""  // nulla in questo caso
+	kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_sostituzione
+	u_pilota_programmi_richieste(kst_plav_programmi)  
+
+//--- Popola tabella barcode PADRI
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_dettaglio_g2(kst_plav_programmi, ads_pl_barcode)
+	 
+//--- popola il file x il Pilota con i groupage (barcode figli)
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_groupage(kst_plav_programmi, ads_pl_barcode)
+
+//--- popola il file x il Pilota con i DOSIMETRI presenti sui barcode padri 
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_accessori_dosimetri(kst_plav_programmi, ads_pl_barcode)
+
+	kguo_sqlca_db_plav.db_commit( )
+		
+//--- Set nuovo STATO su RICHIESTA a pronto per il PILOTA
+	if kds_programmi_richieste_id_stato_update.retrieve(kst_plav_programmi.id_programma) > 0 then
+		kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local( ) )
+		kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_pronta )
+		
+//---- Update STATO RICHIESTA
+		k_rc = kds_programmi_richieste_id_stato_update.update( )
+		if k_rc < 0 then
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.set_esito(kds_programmi_richieste_id_stato_update.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento STATO della Richiesta Piano di Lavoro per il Pilota (update)! " &
+														+ kkg.acapo + "Id Programma " + string(kst_plav_programmi.id_programma) + " " &
+														+ "stato a '" + string(kki_richieste_stato_pronta) + "' " &
+														+ kkg.acapo + kds_programmi_richieste_id_stato_update.kist_esito.sqlerrtext
+			kguo_sqlca_db_plav.db_rollback( )
+			throw kguo_exception
+		end if
+		if k_rc > 0 then
+			kguo_sqlca_db_plav.db_commit( )
+		end if
+		
+	end if
+
+//--- FINE PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
+
+		k_return = true
+		
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_plav_conn_cfg) then destroy kuf1_plav_conn_cfg
+	if isvalid(kds_programmi_richieste_inevase) then destroy kds_programmi_richieste_inevase
+	if isvalid(kds_programmi_richieste_id_stato_update) then destroy kds_programmi_richieste_id_stato_update	
+	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+
+return k_return
 
 end function
 

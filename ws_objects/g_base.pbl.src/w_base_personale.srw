@@ -863,6 +863,7 @@ if tab_1.tabpage_5.dw_5.rowcount( ) > 0 then
 					kst_tab_base.ddt_out_year_free = tab_1.tabpage_5.dw_5.getitemnumber(1, "ddt_out_year_free")
 					kst_tab_base.ptasks_valid_modaccompn = tab_1.tabpage_5.dw_5.getitemnumber(1, "ptasks_valid_modaccompn")
 					kst_tab_base.ptasks_cs_invoicen = tab_1.tabpage_5.dw_5.getitemnumber(1, "ptasks_cs_invoicen")
+					kst_tab_base.id_deposito = tab_1.tabpage_5.dw_5.getitemnumber(1, "id_deposito")
 					kst_tab_base.st_tab_g_0.esegui_commit = "N" 
 					kuf1_base.tb_update_base_vari_ctr(kst_tab_base)
 				catch (uo_exception kuo_exception)

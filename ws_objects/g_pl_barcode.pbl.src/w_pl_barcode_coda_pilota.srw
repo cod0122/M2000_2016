@@ -154,13 +154,12 @@ try
 		kuo_exception = create uo_exception
 		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_db_ko)
 		kuo_exception.setmessage( "Il Pilota non prevede un numero sufficiente di Barcode 'Intoccabili'~n~r" &
-			 + "per operare con questa funzione. ~n~r(numero Intoccabili impostati =" + string (kist_tab_pilota_impostazioni.num_intouchable) + ") " &
+			 + "per operare con questa funzione. " &
+			 + kkg.acapo + "(numero Intoccabili impostati =" + string (kist_tab_pilota_impostazioni.num_intouchable) + ") " &
 			 )
 		kuo_exception.messaggio_utente( )
 		destroy kuo_exception
-		k_return="2 " // EXIT!
-		//cb_ritorna.postevent("clicked!")
-		
+		ki_exit_si = true  // EXIT!
 	else	
 
 		
@@ -646,30 +645,27 @@ private subroutine crea_richiesta_pilota () throws uo_exception;//---
 //---
 string k_errore
 kuf_pl_barcode kuf1_pl_barcode
-kuf_pilota_cmd kuf1_pilota_cmd
 kuf_plav kuf1_plav   // nuova programmazione G2
-
 st_esito kst_esito
 st_tab_pl_barcode kst_tab_pl_barcode
 
 
 try
 
-	if messagebox ("Invio Programmazione Impianto", &
-						"L'operazione SOSTITUISCE la Programmazione ATTUALE del Pilota !!~n~r" &
-						+" ~n~r" &
+	if messagebox ("Invio Programmazione Impianto G2", &
+						"L'operazione SOSTITUISCE la Programmazione ATTUALE del Pilota Impianto G2!! " &
+						+ kkg.acapo &
 						+ "Vuoi proseguire?" &
 						 ,question!, YesNo!, 2) = 2 then
 
 		kguo_exception.inizializza( )
 		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_generico)
-		kguo_exception.setmessage("Nessun Dato Inviato.~n~r" &
+		kguo_exception.setmessage("Nessun Dato Inviato. " + kkg.acapo &
 											+"L'operazione non è stata eseguita.") 
 		throw kguo_exception
 
 	else
 
-		kuf1_pilota_cmd = create kuf_pilota_cmd
 		kuf1_plav = create kuf_plav
 		kuf1_pl_barcode = create kuf_pl_barcode
 	
@@ -697,9 +693,10 @@ try
 //--- toglie i barcode cancellati anche dalla Pianificazione
 					cancella_toglie_barcode_da_pl()
 				
-//=== Job di generazione della Richiesta  
-					kuf1_pilota_cmd.job_sostituzione_programmazione_pilota(kids_pl_barcode)
-// da attivare quando partiamo:					kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode)
+
+					//OLD kuf1_pilota_cmd.job_sostituzione_programmazione_pilota(kids_pl_barcode) //=== Job di generazione della Richiesta  
+//--- Carica il PL sul G2					
+					kuf1_plav.job_sostituzione_piano_lavoro_g2(kids_pl_barcode)
 
 //--- Accende il flag di invio andato a buon fine
 					ki_invio_programma_eseguito = true
@@ -711,7 +708,7 @@ try
 					ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
 					kguo_exception.inizializza( )
 					kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
-					kguo_exception.setmessage("Nessun Bancale estratto.~n~r" &
+					kguo_exception.setmessage("Nessun Bancale estratto. " + kkg.acapo &
 																		 +"L'operazione non e' stata eseguita. Uscire dalla Funzione.") //--- errore
 					throw kguo_exception
 					
@@ -723,10 +720,6 @@ try
 //				abilita_modifica_giri()
 				attiva_tasti()
 	
-	//--- tutto ok sblocca le richieste		
-				kuf1_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
-				kuf1_pilota_cmd.set_blocca_richieste( kuf1_pilota_cmd.kist_tab_pilota_cfg )
-	
 	//--- poi disabilito le dw di modifica
 				dw_dett_0.u_proteggi_dw("1", 0)
 	
@@ -737,15 +730,13 @@ try
 			timer( 0 )   // Disattivo il timer x non fare più retrieve
 
 			ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
-	//--- tutto KO sblocca le richieste		
-			kuf1_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
-			kuf1_pilota_cmd.set_blocca_richieste( kuf1_pilota_cmd.kist_tab_pilota_cfg )
+
 	//--- poi disabilito le dw di modifica
 			dw_dett_0.u_proteggi_dw("1", 0)
 			
 			kguo_exception.inizializza(this.classname())
 			kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
-			kguo_exception.setmessage("La coda Pilota e' stata Inaspettatamente Aggiornata " &
+			kguo_exception.setmessage("La coda Pilota del G2 è stata Inaspettatamente Aggiornata " &
 																+ kkg.acapo + kst_esito.sqlerrtext + " " &
 																+ kkg.acapo + "L'operazione non puo' essere effettuata. Uscire dalla Funzione.") //--- errore
 	
@@ -760,7 +751,6 @@ catch(uo_exception kuo_exception)
 	throw kuo_exception
 	
 finally
-	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
 	if isvalid(kuf1_plav) then destroy kuf1_plav
 	if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
 end try
@@ -1073,7 +1063,7 @@ private function long retrieve_dw () throws uo_exception;//---
 //---      3/4 del num_intouchable sono di fila 1
 //---
 long  k_intoccabili, k_intoccabili_fila1, k_intoccabili_fila2, k_riga_intoccabili, k_riga_modificabili 
-string k_CicliFila1, k_CicliFila2, k_CicliFila1p, k_CicliFila2p
+integer k_CicliFila1, k_CicliFila2, k_CicliFila1p, k_CicliFila2p
 boolean k_insert_intoccabili
 st_tab_barcode kst_tab_barcode
 st_tab_meca kst_tab_meca
@@ -1089,16 +1079,15 @@ try
 				  queue_table.Ordine ,
 				  queue_table.Barcode ,
 				  queue_table.Posizione ,
-				  queue_table.CicliFila1  ,
-				  queue_table.CicliFila2 ,
-				  queue_table.CicliFila1P  ,
-				  queue_table.CicliFila2P ,
-				  queue_table.NN 
+				  ifnull(queue_table.CicliFila1, 0)  ,
+				  ifnull(queue_table.CicliFila2, 0) ,
+				  ifnull(queue_table.CicliFila1P, 0)  ,
+				  ifnull(queue_table.CicliFila2P, 0) 
 			  FROM queue_table
 			order by ordine asc
 			 using kguo_sqlca_db_pilota;
 	
-	
+//				  queue_table.NN 
 	
 	dw_lista_0.reset()
 	dw_dett_0.reset()
@@ -1129,34 +1118,19 @@ try
 				  :k_CicliFila1,
 				  :k_CicliFila2,
 				  :k_CicliFila1p,
-				  :k_CicliFila2p,
-				  :kst_tab_pilota_queue.NN ;
+				  :k_CicliFila2p
+				  ;
+				//  :kst_tab_pilota_queue.NN ;
 	
 	//--- popola i campi della dw con i pallet intoccabili
 		k_riga_intoccabili = 0
 		k_riga_modificabili = 0
 		do while kguo_sqlca_db_pilota.sqlcode = 0 
 	
-			if isnumber(k_CicliFila1) then
-				kst_tab_pilota_queue.CicliFila1 = integer(k_CicliFila1)
-			else
-				kst_tab_pilota_queue.CicliFila1 = 0
-			end if
-			if isnumber(k_CicliFila1p) then
-				kst_tab_pilota_queue.CicliFila1p = integer(k_CicliFila1p)
-			else
-				kst_tab_pilota_queue.CicliFila1p = 0
-			end if
-			if isnumber(k_CicliFila2) then
-				kst_tab_pilota_queue.CicliFila2 = integer(k_CicliFila2)
-			else
-				kst_tab_pilota_queue.CicliFila2 = 0
-			end if
-			if isnumber(k_CicliFila2p) then
-				kst_tab_pilota_queue.CicliFila2p = integer(k_CicliFila2p)
-			else
-				kst_tab_pilota_queue.CicliFila2p = 0
-			end if
+			kst_tab_pilota_queue.CicliFila1 = (k_CicliFila1)
+			kst_tab_pilota_queue.CicliFila1p = (k_CicliFila1p)
+			kst_tab_pilota_queue.CicliFila2 = (k_CicliFila2)
+			kst_tab_pilota_queue.CicliFila2p = (k_CicliFila2p)
 	
 	//--- lettura dati correlati	
 				select distinct
@@ -1277,8 +1251,9 @@ try
 					  :k_CicliFila1,
 					  :k_CicliFila2,
 					  :k_CicliFila1p,
-					  :k_CicliFila2p,
-					  :kst_tab_pilota_queue.NN ;
+					  :k_CicliFila2p
+					  ;
+					 // :kst_tab_pilota_queue.NN ;
 		
 			
 		loop
@@ -2398,6 +2373,7 @@ boolean bringtotop = true
 boolean enabled = true
 boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event ue_mostra_aggiornamenti_dw;call super::ue_mostra_aggiornamenti_dw;//
@@ -2431,6 +2407,7 @@ boolean hsplitscroll = false
 boolean livescroll = false
 boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 type dw_dett_0_modificati from datawindow within w_pl_barcode_coda_pilota

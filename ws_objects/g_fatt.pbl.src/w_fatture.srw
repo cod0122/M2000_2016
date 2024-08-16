@@ -56,6 +56,7 @@ private string ki_art_x_costo_call = ""
 private kuf_menu_window kiuf_menu_window
 
 end variables
+
 forward prototypes
 protected function string aggiorna ()
 protected function integer cancella ()
@@ -3772,6 +3773,7 @@ private subroutine riga_aggiorna_in_lista (long k_riga, st_tab_arfa kst_tab_arfa
 //
 st_esito kst_esito
 st_tab_arsp kst_tab_arsp
+st_tab_sped kst_tab_sped
 
 
 //---- scrive Trace su LOG---------
@@ -3799,7 +3801,11 @@ try
 		kst_tab_arsp.id_armo = kst_tab_arfa.id_armo
 		kst_esito = kiuf_sped.get_id_riga_da_id_armo( kst_tab_arsp )
 		if kst_esito.esito = kkg_esito.ok then
-			kst_esito = kiuf_sped.get_numero_da_id( kst_tab_arsp )
+			if kst_tab_arsp.id_sped > 0 then
+			else
+				kst_tab_sped.id_sped = kiuf_sped.get_id_sped(kst_tab_arsp)
+			end if
+			kst_esito = kiuf_sped.get_numero_da_id(kst_tab_sped )
 			if kst_esito.esito = kkg_esito.ok then
 				kst_tab_arfa.num_bolla_out = kst_tab_arsp.num_bolla_out
 				kst_tab_arfa.data_bolla_out = kst_tab_arsp.data_bolla_out
@@ -3996,17 +4002,9 @@ try
 		kst_tab_arfa.des = " "
 		kst_tab_arfa.iva = 0
 		kst_tab_prodotti.codice = kst_tab_arfa.art
-		kst_esito = kiuf_prodotti.select_riga(kst_tab_prodotti )
-		if kst_esito.esito = kkg_esito.ok then
-			kst_tab_arfa.des = trim(kst_tab_prodotti.des)
-			kst_tab_arfa.iva = kst_tab_prodotti.iva
-		else
-			if kst_esito.esito = kkg_esito.db_ko then
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito( kst_esito )
-				throw kguo_exception
-			end if
-		end if
+		kiuf_prodotti.select_riga(kst_tab_prodotti )
+		kst_tab_arfa.des = trim(kst_tab_prodotti.des)
+		kst_tab_arfa.iva = kst_tab_prodotti.iva
 	end if	
 	kiuf_fatt.if_isnull_testa(kst_tab_arfa)
 
@@ -4386,17 +4384,9 @@ try
 				kst_tab_arfa[k_ind].des = " "
 				kst_tab_arfa[k_ind].iva = 0
 				kst_tab_prodotti.codice = kst_tab_arfa[k_ind].art
-				kst_esito = kiuf_prodotti.select_riga(kst_tab_prodotti )
-				if kst_esito.esito = kkg_esito.ok then
-					kst_tab_arfa[k_ind].des = trim(kst_tab_prodotti.des)
-					kst_tab_arfa[k_ind].iva = kst_tab_prodotti.iva
-				else
-					if kst_esito.esito = kkg_esito.db_ko then
-						kguo_exception.inizializza( )
-						kguo_exception.set_esito( kst_esito )
-						throw kguo_exception
-					end if
-				end if
+				kiuf_prodotti.select_riga(kst_tab_prodotti )
+				kst_tab_arfa[k_ind].des = trim(kst_tab_prodotti.des)
+				kst_tab_arfa[k_ind].iva = kst_tab_prodotti.iva
 			end if	
 
 //--- Calcola prezzo tot
@@ -5518,19 +5508,18 @@ if k_riga > 0 then
 	this.getchild( "iva", kdwc_1)
 
 	if k_campo = "art" then 
-		kst_tab_prodotti.codice = this.getitemstring(k_riga, "art")
-		if len(trim(kst_tab_prodotti.codice)) > 0 then 
-			kst_esito = kuf1_prodotti.select_riga( kst_tab_prodotti )
-			if kst_esito.esito = kkg_esito.ok then
-				this.setitem(k_riga, "comm", trim(kst_tab_prodotti.des))
+		try
+			kst_tab_prodotti.codice = this.getitemstring(k_riga, "art")
+			if len(trim(kst_tab_prodotti.codice)) > 0 then 
+				if kuf1_prodotti.select_riga( kst_tab_prodotti ) then
+					this.setitem(k_riga, "comm", trim(kst_tab_prodotti.des))
 
 //--- Piglia da Listino il prezzo
-				kuf1_listino = create kuf_listino
-				kst_tab_listino.cod_art = kst_tab_prodotti.codice
-				kst_tab_listino.COD_CLI = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")
-				kst_esito = kuf1_listino.get_id_listino(kst_tab_listino)
-				if kst_esito.esito = kkg_esito.ok then
-					try
+					kuf1_listino = create kuf_listino
+					kst_tab_listino.cod_art = kst_tab_prodotti.codice
+					kst_tab_listino.COD_CLI = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_cliente")
+					kst_esito = kuf1_listino.get_id_listino(kst_tab_listino)
+					if kst_esito.esito = kkg_esito.ok then
 						kst_tab_arfa.id_listino = kst_tab_listino.id
 						kst_tab_arfa.id_armo = 0
 						kst_tab_arfa.art = kst_tab_prodotti.codice
@@ -5547,37 +5536,38 @@ if k_riga > 0 then
 							//                                  + trim(kst_tab_listino.cod_art) + " e cliente " + string(kst_tab_listino.COD_CLI))
 							this.setitem(k_riga, "prezzo_u", 0 )
 						end if
-					catch (uo_exception kuo_exception)
-						kuo_exception.messaggio_utente()
-						
-					end try
-				end if
-				
-				destroy kuf1_listino
+					end if
 				
 //--- piglia l'aliquota IVA controllo ESENZIONE
-				if tab_1.tabpage_1.dw_1.getitemnumber(1, "k_iva_esente") = 1 then
-					kst_tab_prodotti.iva = tab_1.tabpage_1.dw_1.getitemnumber(1, "iva")
-				end if
-				
-				this.setitem(k_riga, "iva", kst_tab_prodotti.iva)
-				k_riga_1 = kdwc_1.find("codice = '"+ string(kst_tab_prodotti.iva) + "' " ,1 ,kdwc_1.RowCount()) 
-				if k_riga_1 > 0 then
-					kdwc_1.setrow( k_riga_1 )
+					if tab_1.tabpage_1.dw_1.getitemnumber(1, "k_iva_esente") = 1 then
+						kst_tab_prodotti.iva = tab_1.tabpage_1.dw_1.getitemnumber(1, "iva")
+					end if
+					
+					this.setitem(k_riga, "iva", kst_tab_prodotti.iva)
+					k_riga_1 = kdwc_1.find("codice = '"+ string(kst_tab_prodotti.iva) + "' " ,1 ,kdwc_1.RowCount()) 
+					if k_riga_1 > 0 then
+						kdwc_1.setrow( k_riga_1 )
+					else
+						kdwc_1.setrow( 1 )
+					end if
 				else
+					this.setitem(k_riga, "iva", 0)
 					kdwc_1.setrow( 1 )
 				end if
 			else
 				this.setitem(k_riga, "iva", 0)
 				kdwc_1.setrow( 1 )
 			end if
-		else
-			this.setitem(k_riga, "iva", 0)
-			kdwc_1.setrow( 1 )
-		end if
-		
-		u_set_art_v_dwchild( )  // legge descrizioni precedenti per metterli nel dw child
-		
+			
+			u_set_art_v_dwchild( )  // legge descrizioni precedenti per metterli nel dw child
+				
+		catch (uo_exception kuo_exception)
+			kuo_exception.messaggio_utente()
+			
+		finally
+			if isvalid(kuf1_listino) then	destroy kuf1_listino
+			
+		end try
 	end if
 	if k_campo = "prezzo_u" or k_campo  = "iva" or k_campo = "colli" then 
 		this.setitem(k_riga, "prezzo_t", 0)

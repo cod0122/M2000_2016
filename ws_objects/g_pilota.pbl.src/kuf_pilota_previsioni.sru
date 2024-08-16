@@ -200,10 +200,10 @@ datastore kds_inp, kds_out
 					 	+ " , id_meca int " &
 					 	+ " , num_int int " &
 					 	+ " , data_int date " &
-						 + ", f1avp smallint " &
-						 + ", f1app smallint " &
-						 + ", f2avp smallint " &
-						 + ", f2app smallint " &
+						 + ", ciclifila1 smallint " &
+						 + ", ciclifila1p smallint " &
+						 + ", ciclifila2 smallint " &
+						 + ", ciclifila2p smallint " &
 					 	+ " , fila tinyint " &
 					 	+ " , consegna_data date " & 	 
 					 	+ " , pilota_ordine int "  &
@@ -233,10 +233,10 @@ datastore kds_inp, kds_out
 			k_rigainsert = kds_out.insertrow( 0 )
 			kds_out.setitem( k_rigainsert, "id_cliente", 0 )
 			kds_out.setitem( k_rigainsert, "id_meca", kds_inp.getitemnumber(k_riga, "id_meca") )
-			kds_out.setitem( k_rigainsert, "f1avp", kds_inp.getitemnumber(k_riga, "f1avp") )
-			kds_out.setitem( k_rigainsert, "f1app", kds_inp.getitemnumber(k_riga, "f1app") )
-			kds_out.setitem( k_rigainsert, "f2avp", kds_inp.getitemnumber(k_riga, "f2avp") )
-			kds_out.setitem( k_rigainsert, "f2app", kds_inp.getitemnumber(k_riga, "f2app") )
+			kds_out.setitem( k_rigainsert, "ciclifila1", kds_inp.getitemnumber(k_riga, "ciclifila1") )
+			kds_out.setitem( k_rigainsert, "ciclifila1p", kds_inp.getitemnumber(k_riga, "ciclifila1p") )
+			kds_out.setitem( k_rigainsert, "ciclifila2", kds_inp.getitemnumber(k_riga, "ciclifila2") )
+			kds_out.setitem( k_rigainsert, "ciclifila2p", kds_inp.getitemnumber(k_riga, "ciclifila2p") )
 			kds_out.setitem( k_rigainsert, "fila", kds_inp.getitemnumber(k_riga, "fila") )
 			kds_out.setitem( k_rigainsert, "pilota_ordine", kds_inp.getitemnumber(k_riga, "n_ordine") )
 			kds_out.setitem( k_rigainsert, "note", "" )
@@ -879,14 +879,14 @@ try
 					+ " , fase tinyint " &
 					+ " , nn tinyint " &
 					+ " , fila tinyint " &
-					 + ", f1avp smallint " &
-					 + ", f1app smallint " &
-					 + ", f2avp smallint " &
-					 + ", f2app smallint " &
-					 + ", wip_f1avp smallint " &
-					 + ", wip_f1app smallint " &
-					 + ", wip_f2avp smallint " &
-					 + ", wip_f2app smallint " &
+					 + ", ciclifila1 smallint " &
+					 + ", ciclifila1p smallint " &
+					 + ", ciclifila2 smallint " &
+					 + ", ciclifila2p smallint " &
+					 + ", wip_ciclifila1 smallint " &
+					 + ", wip_ciclifila1p smallint " &
+					 + ", wip_ciclifila2 smallint " &
+					 + ", wip_ciclifila2p smallint " &
 					 + ", dataora_lav_ini datetime " &
 					 + ", dataora_lav_fin_prev datetime " &
 					 + ", dataora_lav_fin_min_prev datetime " &
@@ -908,6 +908,11 @@ try
 	kguf_data_base.u_set_ds_change_name_tab(kds_out, "vx_MAST_pilota_pallet_workqueue")
 
 	k_righe = kds_inp.retrieve( )    // get dal db PILOTA tutti i PALLET in lavorazione e in coda 
+	if k_righe < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_inp, "Errore in lettura Pallet in Coda e in Lavorazione sul Gamma2. ")
+		kguo_sqlca_db_magazzino.db_rollback( )
+		throw kguo_exception
+	end if		
 
 	for k_riga = 1 to k_righe 
 		k_rigainsert = kds_out.insertrow( 0 )
@@ -915,7 +920,7 @@ try
 		k_stato = kds_inp.getitemstring(k_riga, "stato")  //stato = WORK (in lav) o QUEUE (in coda)
 		kds_out.setitem( k_rigainsert, "stato", k_stato )
 		kds_out.setitem( k_rigainsert, "n_ordine", kds_inp.getitemnumber(k_riga, "n_ordine") )
-		kds_out.setitem( k_rigainsert, "barcode", kds_inp.getitemstring(k_riga, "pallet_code") )
+		kds_out.setitem( k_rigainsert, "barcode", kds_inp.getitemstring(k_riga, "barcode") )
 		kds_out.setitem( k_rigainsert, "barcode_figlio", kds_inp.getitemstring(k_riga, "barcode_figlio") )
 		kds_out.setitem( k_rigainsert, "ordine_figlio", kds_inp.getitemnumber(k_riga, "ordine_figlio") )
 		kds_out.setitem( k_rigainsert, "num_int_figlio", integer(kds_inp.getitemstring(k_riga, "lotto_figlio") ))
@@ -932,31 +937,29 @@ try
 		kds_out.setitem( k_rigainsert, "dataora_lav_ini", kst_tab_pilota_pallet.data_entrata )
 		
 		kds_out.setitem( k_rigainsert, "fase", kds_inp.getitemnumber(k_riga, "fase") )
-		kds_out.setitem( k_rigainsert, "nn", integer(kds_inp.getitemstring(k_riga, "nn") ))
+		kds_out.setitem( k_rigainsert, "nn", '' )
 		kds_out.setitem( k_rigainsert, "fila", kds_inp.getitemnumber(k_riga, "fila") )
-		kds_out.setitem( k_rigainsert, "f1avp", kds_inp.getitemnumber(k_riga, "f1avp") )
-		kds_out.setitem( k_rigainsert, "f1app", kds_inp.getitemnumber(k_riga, "f1app") )
-		kds_out.setitem( k_rigainsert, "f2avp", kds_inp.getitemnumber(k_riga, "f2avp") )
-		kds_out.setitem( k_rigainsert, "f2app", kds_inp.getitemnumber(k_riga, "f2app") )
-		kds_out.setitem( k_rigainsert, "wip_f1avp", kds_inp.getitemnumber(k_riga, "wip_f1avp") )
-		kds_out.setitem( k_rigainsert, "wip_f1app", kds_inp.getitemnumber(k_riga, "wip_f1app") )
-		kds_out.setitem( k_rigainsert, "wip_f2avp", kds_inp.getitemnumber(k_riga, "wip_f2avp") )
-		kds_out.setitem( k_rigainsert, "wip_f2app", kds_inp.getitemnumber(k_riga, "wip_f2app") )
+		kds_out.setitem( k_rigainsert, "ciclifila1", kds_inp.getitemnumber(k_riga, "ciclifila1") )
+		kds_out.setitem( k_rigainsert, "ciclifila1p", kds_inp.getitemnumber(k_riga, "ciclifila1p") )
+		kds_out.setitem( k_rigainsert, "ciclifila2", kds_inp.getitemnumber(k_riga, "ciclifila2") )
+		kds_out.setitem( k_rigainsert, "ciclifila2p", kds_inp.getitemnumber(k_riga, "ciclifila2p") )
+		kds_out.setitem( k_rigainsert, "wip_ciclifila1", kds_inp.getitemnumber(k_riga, "wip_ciclifila1") )
+		kds_out.setitem( k_rigainsert, "wip_ciclifila1p", kds_inp.getitemnumber(k_riga, "wip_ciclifila1p") )
+		kds_out.setitem( k_rigainsert, "wip_ciclifila2", kds_inp.getitemnumber(k_riga, "wip_ciclifila2") )
+		kds_out.setitem( k_rigainsert, "wip_ciclifila2p", kds_inp.getitemnumber(k_riga, "wip_ciclifila2p") )
 	end for
 
-	k_rc = kds_out.update() 
-	if k_rc < 0 then
-		kguo_exception.inizializza(this.classname())
-		kguo_exception.set_esito(kds_out.kist_esito)
-		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento tabella temporanea dei Pallet in Coda e in Lavorazione sul Gamma2. " &
-							+ "Ordine: " + string(kds_inp.getitemnumber(k_riga, "n_ordine")) &
-							+ ", Barcode: " + trim(kds_inp.getitemstring(k_riga, "pallet_code")) + ". " &
-							+ kkg.acapo + kds_out.kist_esito.sqlerrtext
-		kguo_sqlca_db_magazzino.db_rollback( )
-		throw kguo_exception
-	end if		
+	if kds_out.rowcount() > 0 then
+		k_rc = kds_out.update() 
+		if k_rc < 0 then
+			kguo_exception.set_st_esito_err_ds(kds_out, "Errore in aggiornamento tabella temporanea dei Pallet in Coda e in Lavorazione sul Gamma2. " &
+								+ ", il primo Barcode da aggiornare era: " + trim(kds_out.getitemstring(1, "barcode")) + ". ")
+			kguo_sqlca_db_magazzino.db_rollback( )
+			throw kguo_exception
+		end if		
 	
-	kguo_sqlca_db_magazzino.db_commit( )
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if		
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.scrivi_log()
@@ -1134,8 +1137,8 @@ try
 //			k_rows = kds_queue.rowcount( )
 //					for k_row = 1 to k_rows
 //						k_barcode = kds_queue.getitemstring(k_row, "barcode")
-//						k_fila_1 = kds_queue.getitemnumber(k_row, "f1avp")
-//						k_fila_2 = kds_queue.getitemnumber(k_row, "f2avp")
+//						k_fila_1 = kds_queue.getitemnumber(k_row, "ciclifila1")
+//						k_fila_2 = kds_queue.getitemnumber(k_row, "ciclifila2")
 //						k_fila = kds_queue.getitemnumber(k_row, "fila")
 //						k_stato = kds_queue.getitemstring(k_row, "stato")
 //						kdataora_lav_ini = kds_queue.getitemdatetime(k_row, "dataora_lav_ini")
@@ -1161,7 +1164,7 @@ public function uo_ds_std_1 get_ds_pallet_workqueue_by_d_pl_barcode (ref datawin
 //--- Input: ds con le colonne: 
 //---                      barcode_barcode, barcode_fila_1, barcode_fila_1p, barcode_fila_2, barcode_fila_2p
 //--- Out: datastore completo di barcode e data_lav_fin, con le colonne: barcode, 
-//---								numero giri fila 1 e fila 2 (f1avp+f1app o f2avp+f2app)
+//---								numero giri fila 1 e fila 2 (ciclifila1+ciclifila1p o ciclifila2+ciclifila2p)
 //---
 long k_rows, k_row
 //st_tab_barcode kst_tab_barcode
@@ -1186,10 +1189,10 @@ try
 			get_time_io_minute(kst_tab_s_avgtimeplant) // get tempo medio x i giri richiesti
 			kds_queue_add.insertrow(0)
 			kds_queue_add.setitem(k_row, "barcode", ads_inp.getitemstring(k_row, "barcode_barcode"))
-			kds_queue_add.setitem(k_row, "f1avp", kst_tab_s_avgtimeplant.giri_f1)
-			kds_queue_add.setitem(k_row, "f1app", kst_tab_s_avgtimeplant.giri_f1p)
-			kds_queue_add.setitem(k_row, "f2avp", kst_tab_s_avgtimeplant.giri_f2)
-			kds_queue_add.setitem(k_row, "f2app", kst_tab_s_avgtimeplant.giri_f2p)
+			kds_queue_add.setitem(k_row, "ciclifila1", kst_tab_s_avgtimeplant.giri_f1)
+			kds_queue_add.setitem(k_row, "ciclifila1p", kst_tab_s_avgtimeplant.giri_f1p)
+			kds_queue_add.setitem(k_row, "ciclifila2", kst_tab_s_avgtimeplant.giri_f2)
+			kds_queue_add.setitem(k_row, "ciclifila2p", kst_tab_s_avgtimeplant.giri_f2p)
 			kds_queue_add.setitem(k_row, "time_io_minute_avg", kst_tab_s_avgtimeplant.time_io_minute)
 			kds_queue_add.setitem(k_row, "avg_time_io_minute", kst_tab_s_avgtimeplant.time_io_minute)
 			

@@ -65,13 +65,13 @@ private function boolean tb_update_base_fatt (st_tab_base ast_tab_base) throws u
 private function boolean tb_update_base_gmt (st_tab_base ast_tab_base) throws uo_exception
 private function boolean tb_update_base_smtp (st_tab_base kst_tab_base) throws uo_exception
 public function boolean tb_update_other (st_tab_base ast_tab_base) throws uo_exception
-private function boolean tb_update_base_vari (st_tab_base kst_tab_base) throws uo_exception
-public function boolean tb_update_base_vari_ctr (st_tab_base kst_tab_base) throws uo_exception
 public function decimal get_occupazione_pedana (st_tab_base kst_tab_base) throws uo_exception
 public function string set_confdb_path_centrale (string a_path_centrale)
 public function string get_confdb_path_centrale ()
 private function string prendi_dato_base_db (string k_key)
 private function string get_dato_personale (string a_key) throws uo_exception
+public function boolean tb_update_base_vari_ctr (ref st_tab_base kst_tab_base) throws uo_exception
+private function boolean tb_update_base_vari (ref st_tab_base kst_tab_base) throws uo_exception
 end prototypes
 
 public function string check_pwd (string k_pwd);//
@@ -2349,178 +2349,6 @@ return k_return
 
 end function
 
-private function boolean tb_update_base_vari (st_tab_base kst_tab_base) throws uo_exception;/*
- Aggiorna rek nella tabella BASE per dati VARI 
-	 Input: st_tab_base 
-*/
-boolean k_return
-long k_rcn
-
-
-kguo_exception.inizializza(this.classname())
-
-if len(trim(kst_tab_base.id_base)) > 0 then
-	
-	kst_tab_base.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_base.x_utente = kGuf_data_base.prendi_x_utente()
-
-	if isnull(kst_tab_base.smart_pickup_lots_url_xbook ) then
-		kst_tab_base.smart_pickup_lots_url_xbook = ""
-	end if
-	if isnull(kst_tab_base.smart_pickup_lots_sha_key) then
-		kst_tab_base.smart_pickup_lots_sha_key = ""
-	end if
-	
-	k_rcn = 0
-	select count(*)
-		into :k_rcn
-		from base_vari
-		WHERE base_vari.id_base = :kst_tab_base.id_base
-		using kguo_sqlca_db_magazzino;
-				
-//--- tento l'insert se manca in arch.
-	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
-		
-		if k_rcn > 0 then
-			UPDATE base_vari
-			  SET smart_pickup_lots_url_xbook = :kst_tab_base.smart_pickup_lots_url_xbook   
-					,smart_pickup_lots_sha_key = :kst_tab_base.smart_pickup_lots_sha_key
-					,x_datins = :kst_tab_base.x_datins
-					,x_utente = :kst_tab_base.x_utente  
-				WHERE id_base = :kst_tab_base.id_base 
-				using kguo_sqlca_db_magazzino;
-				
-		else
-			
-			INSERT INTO base_vari
-						( id_base,   
-						  smart_pickup_lots_url_xbook,   
-						  smart_pickup_lots_sha_key,   
-						  x_datins,   
-						  x_utente )  
-				  VALUES ( :kst_tab_base.id_base,   
-						  :kst_tab_base.smart_pickup_lots_url_xbook,   
-						  :kst_tab_base.smart_pickup_lots_sha_key,   
-						  :kst_tab_base.x_datins,   
-						  :kst_tab_base.x_utente )  
-				using kguo_sqlca_db_magazzino;
-		end if
-		
-	end if	
-
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento dati 'Proprietà Procedura' (base_vari), codice=" + trim(kst_tab_base.id_base))		
-		throw kguo_exception
-	else
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			k_return = true
-			if kst_tab_base.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_base.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit()
-			end if
-		end if
-	end if
-
-else
-	kguo_exception.kist_esito.SQLErrText = "Carico dati 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
-	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-	throw kguo_exception
-end if
-
-
-return k_return
-
-end function
-
-public function boolean tb_update_base_vari_ctr (st_tab_base kst_tab_base) throws uo_exception;//
-//====================================================================
-//=== Aggiorna rek nella tabella BASE per dati VARI contatori
-//=== 
-//=== Input: st_tab_base 
-//=== Ritorna tab. ST_ESITO, Esiti:  STANDARD; 
-//=== 
-//====================================================================
-boolean k_return
-long k_rcn
-st_esito kst_esito
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if len(trim(kst_tab_base.id_base)) > 0 then
-	
-	kst_tab_base.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_base.x_utente = kGuf_data_base.prendi_x_utente()
-
-	k_rcn = 0
-	select count(*)
-		into :k_rcn
-		from base_vari
-		WHERE base_vari.id_base = :kst_tab_base.id_base
-		using kguo_sqlca_db_magazzino;
-				
-//--- tento l'insert se manca in arch.
-	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
-		
-		if k_rcn > 0 then
-			UPDATE base_vari
-			  SET ddt_out_n_free = :kst_tab_base.ddt_out_n_free   
-					,ddt_out_year_free = :kst_tab_base.ddt_out_year_free
-					,ptasks_valid_modaccompn = :kst_tab_base.ptasks_valid_modaccompn
-					,ptasks_cs_invoicen = :kst_tab_base.ptasks_cs_invoicen
-					,x_datins = :kst_tab_base.x_datins
-					,x_utente = :kst_tab_base.x_utente  
-				WHERE id_base = :kst_tab_base.id_base 
-				using kguo_sqlca_db_magazzino;
-				
-		else
-			
-			INSERT INTO base_vari
-						( id_base,   
-						  ddt_out_n_free,   
-						  ddt_out_year_free,   
-						  ptasks_valid_modaccompn,   
-						  ptasks_cs_invoicen,   
-						  x_datins,   
-						  x_utente )  
-				  VALUES ( :kst_tab_base.id_base,   
-						  :kst_tab_base.ddt_out_n_free,   
-						  :kst_tab_base.ddt_out_year_free,   
-						  :kst_tab_base.ptasks_valid_modaccompn,   
-						  :kst_tab_base.ptasks_cs_invoicen,   
-						  :kst_tab_base.x_datins,   
-						  :kst_tab_base.x_utente )  
-				using kguo_sqlca_db_magazzino;
-		end if
-		
-	end if	
-
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento dati 'Proprietà Procedura' (base_vari):" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	else
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-			k_return = true
-			if kst_tab_base.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_base.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit()
-			end if
-		end if
-	end if
-
-else
-	kst_esito.SQLErrText = "Carico dati 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
-	kst_esito.esito = kkg_esito.no_esecuzione
-	kguo_exception.set_esito(kst_esito)
-	throw kguo_exception
-end if
-
-
-return k_return
-
-end function
-
 public function decimal get_occupazione_pedana (st_tab_base kst_tab_base) throws uo_exception;//
 //====================================================================
 //=== Torna l'occupazione della Pedana in base alle misure caricate nella tabella BASE
@@ -4060,6 +3888,175 @@ st_profilestring_ini kst_profilestring_ini
 			
 	end if
 			
+return k_return
+
+end function
+
+public function boolean tb_update_base_vari_ctr (ref st_tab_base kst_tab_base) throws uo_exception;/*
+ Aggiorna rek nella tabella BASE per dati VARI contatori
+	Inp: st_tab_base 
+	Rit: True = aggiornato
+*/
+boolean k_return
+long k_rcn
+
+
+kguo_exception.inizializza(this.classname())
+
+if len(trim(kst_tab_base.id_base)) > 0 then
+
+	if isnull(kst_tab_base.id_deposito) then kst_tab_base.id_deposito = 0
+
+	kst_tab_base.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_base.x_utente = kGuf_data_base.prendi_x_utente()
+
+	k_rcn = 0
+	select count(*)
+		into :k_rcn
+		from base_vari
+		WHERE base_vari.id_base = :kst_tab_base.id_base
+		using kguo_sqlca_db_magazzino;
+				
+//--- tento l'insert se manca in arch.
+	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
+		
+		if k_rcn > 0 then
+			UPDATE base_vari
+			  SET ddt_out_n_free = :kst_tab_base.ddt_out_n_free   
+					,ddt_out_year_free = :kst_tab_base.ddt_out_year_free
+					,ptasks_valid_modaccompn = :kst_tab_base.ptasks_valid_modaccompn
+					,ptasks_cs_invoicen = :kst_tab_base.ptasks_cs_invoicen
+					,id_deposito = :kst_tab_base.id_deposito
+					,x_datins = :kst_tab_base.x_datins
+					,x_utente = :kst_tab_base.x_utente  
+				WHERE id_base = :kst_tab_base.id_base 
+				using kguo_sqlca_db_magazzino;
+				
+		else
+			
+			INSERT INTO base_vari
+						( id_base,   
+						  ddt_out_n_free,   
+						  ddt_out_year_free,   
+						  ptasks_valid_modaccompn,   
+						  ptasks_cs_invoicen,   
+						  id_deposito,
+						  x_datins,   
+						  x_utente )  
+				  VALUES ( :kst_tab_base.id_base,   
+						  :kst_tab_base.ddt_out_n_free,   
+						  :kst_tab_base.ddt_out_year_free,   
+						  :kst_tab_base.ptasks_valid_modaccompn,   
+						  :kst_tab_base.ptasks_cs_invoicen,   
+						  :kst_tab_base.id_deposito,
+						  :kst_tab_base.x_datins,   
+						  :kst_tab_base.x_utente )  
+				using kguo_sqlca_db_magazzino;
+		end if
+		
+	end if	
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento dati Contatori in 'Proprietà Procedura' (base_vari). Codice Azienda " + kst_tab_base.id_base)	
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+		if kst_tab_base.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_base.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit()
+		end if
+	end if
+
+else
+	kguo_exception.kist_esito.SQLErrText = "Carico dati Contatori 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+	throw kguo_exception
+end if
+
+
+return k_return
+
+end function
+
+private function boolean tb_update_base_vari (ref st_tab_base kst_tab_base) throws uo_exception;/*
+ Aggiorna rek nella tabella BASE per dati VARI 
+	Input: st_tab_base 
+	Rit: True = aggiornato
+*/
+boolean k_return
+long k_rcn
+
+
+kguo_exception.inizializza(this.classname())
+
+if len(trim(kst_tab_base.id_base)) > 0 then
+	
+	kst_tab_base.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_base.x_utente = kGuf_data_base.prendi_x_utente()
+
+	if isnull(kst_tab_base.smart_pickup_lots_url_xbook ) then
+		kst_tab_base.smart_pickup_lots_url_xbook = ""
+	end if
+	if isnull(kst_tab_base.smart_pickup_lots_sha_key) then
+		kst_tab_base.smart_pickup_lots_sha_key = ""
+	end if
+	
+	k_rcn = 0
+	select count(*)
+		into :k_rcn
+		from base_vari
+		WHERE base_vari.id_base = :kst_tab_base.id_base
+		using kguo_sqlca_db_magazzino;
+				
+//--- tento l'insert se manca in arch.
+	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
+		
+		if k_rcn > 0 then
+			UPDATE base_vari
+			  SET smart_pickup_lots_url_xbook = :kst_tab_base.smart_pickup_lots_url_xbook   
+					,smart_pickup_lots_sha_key = :kst_tab_base.smart_pickup_lots_sha_key
+					,x_datins = :kst_tab_base.x_datins
+					,x_utente = :kst_tab_base.x_utente  
+				WHERE id_base = :kst_tab_base.id_base 
+				using kguo_sqlca_db_magazzino;
+				
+		else
+			
+			INSERT INTO base_vari
+						( id_base,   
+						  smart_pickup_lots_url_xbook,   
+						  smart_pickup_lots_sha_key,   
+						  x_datins,   
+						  x_utente )  
+				  VALUES ( :kst_tab_base.id_base,   
+						  :kst_tab_base.smart_pickup_lots_url_xbook,   
+						  :kst_tab_base.smart_pickup_lots_sha_key,   
+						  :kst_tab_base.x_datins,   
+						  :kst_tab_base.x_utente )  
+				using kguo_sqlca_db_magazzino;
+		end if
+		
+	end if	
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento dati 'Proprietà Procedura' (base_vari). Codice Azienda " + kst_tab_base.id_base)	
+		throw kguo_exception
+	end if
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+		if kst_tab_base.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_base.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit()
+		end if
+	end if
+
+else
+	kguo_exception.kist_esito.SQLErrText = "Carico dati 'Proprietà Procedura' (base_vari): operazione non eseguita, manca il codice Azienda. "
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+	throw kguo_exception
+end if
+
+
 return k_return
 
 end function

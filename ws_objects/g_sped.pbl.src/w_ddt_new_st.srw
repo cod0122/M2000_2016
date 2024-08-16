@@ -53,22 +53,16 @@ st_tab_sped kst_tab_sped
 st_ddt_stampa kst_ddt_stampa[]
 st_esito kst_esito
 uo_exception kuo1_exception
-pointer kpointer
-
-
-kpointer = setpointer(hourglass!)
-
-kuf1_sped_ddt = create kuf_sped_ddt
-kuf1_sped = create kuf_sped
-kuo1_exception = create uo_exception
-
-kst_esito.esito = "0"
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 
 
 try 
+	setpointer(kkg.pointer_attesa)
+	
+	kuf1_sped_ddt = create kuf_sped_ddt
+	kuf1_sped = create kuf_sped
+	kuo1_exception = create uo_exception
+
+	kst_esito = kguo_exception.inizializza(this.classname())
 //--- set nell'area kist_sped_ddt[] delle bolle da stmpare dal DW	
 	popola_st_da_lista()
 
@@ -76,7 +70,7 @@ try
 	if UpperBound(kist_sped_ddt[]) > 0 then
 	
 		for k_riga_ddt = 1 to UpperBound(kist_sped_ddt[])
-			if kist_sped_ddt[k_riga_ddt].kst_tab_sped.NUM_BOLLA_OUT > 0 then
+			if kist_sped_ddt[k_riga_ddt].kst_tab_sped.id_sped > 0 then
 
 //--- controlla se Spedizione caricata su camion				
 				k_flag_camion_caricato_si = true
@@ -85,6 +79,7 @@ try
 					try
 						kst_tab_sped.num_bolla_out = kist_sped_ddt[k_riga_ddt].kst_tab_sped.NUM_BOLLA_OUT
 						kst_tab_sped.data_bolla_out = kist_sped_ddt[k_riga_ddt].kst_tab_sped.DATA_BOLLA_OUT
+						kst_tab_sped.id_sped = kist_sped_ddt[k_riga_ddt].kst_tab_sped.id_sped
 						k_camion_caricato = kuf1_sped.get_sped_camion_caricato(kst_tab_sped)
 						
 					catch (uo_exception kuo_exception_camion_caricato)
@@ -220,7 +215,7 @@ finally
 	if isvalid(kuf1_sped) then destroy kuf1_sped
 //	if isvalid(kuo1_exception) then destroy kuo1_exception
 
-	setpointer(kpointer)
+	setpointer(kkg.pointer_default)
 	
 //--- se richiesto ed elenco vuoto esce dalla funzione	
 	if cbx_chiude.checked then
@@ -381,8 +376,7 @@ if rb_prova.checked then k_diprova = "S"
 
 for k_riga = 1 to dw_documenti.rowcount()
 
-
-	if dw_documenti.getitemnumber(k_riga,"num_bolla_out") > 0 then
+	if dw_documenti.getitemnumber(k_riga,"id_sped") > 0 then
 		
 //--- solo i documenti selezionati
 		if not (rb_emissione_selezione.checked) or (dw_documenti.getitemnumber(k_riga, "sel")) = 1 then
@@ -728,7 +722,7 @@ for k_riga = 1 to upperbound(kist_sped_ddt[])
 	kst_tab_sped.id_sped = kist_sped_ddt[k_riga].kst_tab_sped.id_sped
 
 	try 
-		if kst_tab_sped.num_bolla_out > 0 then
+		if kst_tab_sped.id_sped > 0 then
 
 //--- piglia dati ddt
 			if kst_tab_sped.id_sped > 0 then
@@ -757,7 +751,7 @@ for k_riga = 1 to upperbound(kist_sped_ddt[])
 	//			end if
 			else
 				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Codice ID del d.d.t. non indicato~n~r" &
+				kst_esito.SQLErrText = "ID del DDT non indicato, n. " + kkg.acapo &
 							+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
 							+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy")
 				kst_esito.esito = kkg_esito.ko

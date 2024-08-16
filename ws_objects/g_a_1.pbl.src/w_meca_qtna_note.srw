@@ -7,10 +7,9 @@ end forward
 global type w_meca_qtna_note from w_g_tab0
 integer width = 2002
 integer height = 1412
-boolean ki_esponi_msg_dati_modificati = false
-boolean ki_esponi_msg_dati_modificati_salvaauotom = true
 boolean ki_exit_dopo_save_ok = true
 boolean ki_reset_dopo_save_ok = false
+boolean ki_reselect_row_if_updated = false
 end type
 global w_meca_qtna_note w_meca_qtna_note
 
@@ -62,6 +61,7 @@ end function
 
 protected function string aggiorna ();//
 int k_rc
+long k_id
 pointer kp_oldpointer
 
 
@@ -76,9 +76,9 @@ try
 	k_rc = dw_dett_0.update( )
 	
 	if k_rc < 0 then
-		kguo_exception.inizializza(this.classname())
-		kguo_exception.set_esito(dw_dett_0.kist_esito)
-		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento 'Quarantena' " + kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext) 
+		k_id = dw_dett_0.getitemnumber(1, "id_meca")
+		if isnull(k_id) then k_id = 0
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Aggiornamento operazione in 'Quarantena'. Id Lotto " + string(k_id))
 		throw kguo_exception
 	end if
 	
@@ -118,7 +118,8 @@ try
 			
 			dw_dett_0.accepttext( )
 			kiuf_meca_qtna.u_rimuovi()	
-			cb_ritorna.event clicked( )
+			
+			//cb_ritorna.post event clicked( )
 		else
 			messagebox("Rimozione QUARANTENA", "Operazione Interrotta dall'utente", stopsign!)
 		end if
@@ -288,6 +289,8 @@ boolean hsplitscroll = false
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_sort = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 boolean ki_dw_visibile_in_open_window = true
 end type
 

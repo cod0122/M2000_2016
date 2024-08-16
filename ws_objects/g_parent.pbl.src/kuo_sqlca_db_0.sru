@@ -122,7 +122,12 @@ uo_exception kuo_exception
 	if this.sqlcode <> 0 then
 		kuo_exception = create uo_exception
 		kuo_sqlca_db_0 = this
-		kst_esito = kuo_exception.set_st_esito_err_db(kiuo_sqlca_db_0, "Errore in Conferma dati sul DB (Commit).")
+		if sqlerrtext > " " then
+			sqlerrtext = "Errore in Conferma dati sul DB (Commit)." + kkg.acapo + sqlerrtext
+		else
+			sqlerrtext = "Errore in Conferma dati sul DB (Commit)."
+		end if			
+		kst_esito = kuo_exception.set_st_esito_err_db(kiuo_sqlca_db_0, sqlerrtext)
 		kuo_exception.scrivi_log( )
 	end if
 
@@ -962,7 +967,7 @@ if isvalid(kiuo_sqlca_db_0_saved) then destroy kiuo_sqlca_db_0_saved
 end event
 
 event dberror;//
-return event u_dberror(code, sqlsyntax, sqlerrortext)
+return event u_dberror(code, sqlsyntax, sqlerrortext + " (" + trim(ki_db_descrizione) + ")")
 
 end event
 

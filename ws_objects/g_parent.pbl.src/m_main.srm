@@ -5914,7 +5914,7 @@ try
 						"Il file di Pianificazione per il 'PILOTA' sarà creato solo se: " &
 						+kkg.acapo+"     1-l'ultima Richiesta e' stata evasa positivamente " &
 						+kkg.acapo+"     2-almeno un Piano di Lavoro nello stato di 'Chiuso' (da Inviare) " &
-						+kkg.acapo+"     2-Invia Piano al nuovo G2 (premi [CANCEL] per evitare questa operazione) " &
+						+kkg.acapo+"     3-Invia Piano al nuovo G2 (premi [CANCEL] per evitare questa operazione) " &
 						+kkg.acapo &
 						+ "Avviare l'operazione?" &
 						 ,question!, YesNo!, 2) 
@@ -5934,7 +5934,7 @@ try
 
 					SetPointer(kkg.pointer_attesa)
 					if NOT kuo1_sqlca_db_plav.if_connessione_bloccata( ) then
-						k_richieste_evase = kuf1_plav.job_genera_piano_lavoro( )
+						k_richieste_evase = kuf1_plav.job_genera_piano_lavoro(kuf1_plav.kki_id_impianto_g2)
 					end if
 	
 				catch (uo_exception kuo1_exception)
@@ -5981,7 +5981,9 @@ end event
 on m_inviapianoalpilota.create
 call super::create
 this.tag = "pilota_exp_p"
+this.visible = false
 this.text = "Invia Piano al Pilota "
+this.enabled = false
 this.microhelp = "Crea il file di scambio da Piano di Lavorazione Chiuso per il Pilota"
 this.menuimage = "Destination5_2!"
 this.menustyle = contemporarymenu!
@@ -6020,7 +6022,7 @@ try
 	SetPointer(kkg.pointer_attesa)
 	if kuo1_sqlca_db_plav.if_connessione_bloccata( ) then
 		SetPointer(kkg.pointer_default)
-		messagebox ("Invio Piani di Lavorazione al PILOTA" &
+		messagebox ("Invio Piani di Lavorazione G2 al PILOTA" &
 							,"ATTENZIONE la Connessione alle tabelle Pilota è stata BLOCCATA!" &
 							+  kkg.acapo &
 							+ "Per sbloccarla occorre farlo da Connessioni in Proprietè Azienda." &
@@ -6029,8 +6031,8 @@ try
 	end if
 
 	SetPointer(kkg.pointer_default)
-	if messagebox ("Invio Piani di Lavorazione al PILOTA", &
-						"La Pianificazione sarà inviata alle tabelle 'PILOTA' solo se: " + kkg.acapo &
+	if messagebox ("Invio Piani di Lavorazione G2 al PILOTA", &
+						"La Pianificazione sarà caricata sulle tabelle del 'PILOTA' solo se: " + kkg.acapo &
 							+ "     1-Piano di Lavoro Chiuso; " + kkg.acapo &
 							+ "     2-Connessione alle tabelle Pilota Aperta e server 'raggiungibile'. " &
 							+  kkg.acapo &
@@ -6038,17 +6040,17 @@ try
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
-		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro( )
+		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro(kuf1_plav.kki_id_impianto_g2)
 		if k_richieste_evase > 0 then
 			
 			SetPointer(kkg.pointer_default)
-			messagebox ("Invio Piani di Lavorazione al PILOTA", &
+			messagebox ("Invio Piani di Lavorazione G2 al PILOTA", &
 					"Operazione conclusa correttamente. " + kkg.acapo &
 					 + string(k_richieste_evase) + " Piani di Lavoro caricati nelle tabelle di scambio con il 'PILOTA'. " &
 					 ,Information!) 
 		else
-			messagebox ("Invio Piani di Lavorazione al PILOTA", &
-					"Operazione conclusa. Ma nessun Piano di Lavoro chiuso ancora da caricare in Impianto è stato trovato. " &
+			messagebox ("Invio Piani di Lavorazione G2 al PILOTA", &
+					"Operazione conclusa. Ma nessun Piano di Lavoro G2 chiuso ancora da caricare in Impianto è stato trovato. " &
 					 ,Information!) 
 		end if
 	
@@ -6126,7 +6128,7 @@ try
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
-		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro( )
+		k_richieste_evase = kuf1_plav.job_genera_piano_lavoro(kuf1_plav.kki_id_impianto_g3)
 		if k_richieste_evase > 0 then
 			
 			SetPointer(kkg.pointer_default)

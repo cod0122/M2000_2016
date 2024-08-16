@@ -17,10 +17,10 @@ forward prototypes
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function st_tab_e1_wo_f5548014 u_get_e1_ws_f5548014_pianif (st_tab_barcode ast_tab_barcode) throws uo_exception
 private subroutine u_set_tab_barcode (readonly uo_ds_std_1 kds_pilota_pallet_in_g3, ref st_tab_barcode kst_tab_barcode)
-private subroutine importa_trattati_pilota_g3_e1 (ref ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, ref st_tab_barcode kst_tab_barcode, ref kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014, ref kuf_barcode kuf1_barcode, ref st_tab_meca ast_tab_meca) throws uo_exception
 public function integer importa_inizio_lav_pilota_g3 () throws uo_exception
 private function integer importa_trattati_pilota_g3_1 (ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, kuf_barcode auf1_barcode) throws uo_exception
 public function integer importa_trattati_pilota_g3 () throws uo_exception
+private subroutine importa_trattati_pilota_g3_e1 (long a_riga_pallet, ref ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, ref st_tab_barcode kst_tab_barcode, ref kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014, ref kuf_barcode kuf1_barcode, ref st_tab_meca ast_tab_meca) throws uo_exception
 end prototypes
 
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//
@@ -88,12 +88,12 @@ private subroutine u_set_tab_barcode (readonly uo_ds_std_1 kds_pilota_pallet_in_
 //--- Out: st_tab_barcode
 //
 
-		kst_tab_barcode.data_lav_ini = date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_entrata"))
-		kst_tab_barcode.ora_lav_ini = time(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_entrata"))
+		kst_tab_barcode.data_lav_ini = date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_carico"))
+		kst_tab_barcode.ora_lav_ini = time(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_carico"))
 		
-		if date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_uscita")) > kkg.data_zero then
-			kst_tab_barcode.data_lav_fin = date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_uscita"))
-			kst_tab_barcode.ora_lav_fin = time(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_uscita"))
+		if date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_scarico")) > kkg.data_zero then
+			kst_tab_barcode.data_lav_fin = date(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_scarico"))
+			kst_tab_barcode.ora_lav_fin = time(kds_pilota_pallet_in_g3.getitemdatetime(1, "data_scarico"))
 		end if		
 		
 		if isnumber(trim(kds_pilota_pallet_in_g3.getitemstring(1, "id_modo"))) then
@@ -101,8 +101,8 @@ private subroutine u_set_tab_barcode (readonly uo_ds_std_1 kds_pilota_pallet_in_
 		else
 			kst_tab_barcode.g3lav_npass = 0
 		end if
-		if isnumber(trim(kds_pilota_pallet_in_g3.getitemstring(1, "ciclo"))) then
-			kst_tab_barcode.g3lav_ciclo = integer(trim(kds_pilota_pallet_in_g3.getitemstring(1, "ciclo")))
+		if kds_pilota_pallet_in_g3.getitemnumber(1, "mastertimer_entrata") > 0 then
+			kst_tab_barcode.g3lav_ciclo = kds_pilota_pallet_in_g3.getitemnumber(1, "mastertimer_entrata")
 		else
 			kst_tab_barcode.g3lav_ciclo = 0
 		end if
@@ -112,75 +112,10 @@ private subroutine u_set_tab_barcode (readonly uo_ds_std_1 kds_pilota_pallet_in_
 			kst_tab_barcode.g3lav_ngiri = 0
 		end if
 
-		kst_tab_barcode.Bilancella = kds_pilota_pallet_in_g3.getitemnumber(1, "carrier")  //???
+		kst_tab_barcode.Bilancella = kds_pilota_pallet_in_g3.getitemnumber(1, "carrier")  
+		kst_tab_barcode.g3lav_cicloIn = kds_pilota_pallet_in_g3.getitemnumber(1, "ciclo_entrata")   // codice Ciclo NORTRACK in Entrata
+		kst_tab_barcode.g3lav_cicloOut = kds_pilota_pallet_in_g3.getitemnumber(1, "ciclo_uscita")   // codice Ciclo NORTRACK in Uscita
 
-
-
-end subroutine
-
-private subroutine importa_trattati_pilota_g3_e1 (ref ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, ref st_tab_barcode kst_tab_barcode, ref kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014, ref kuf_barcode kuf1_barcode, ref st_tab_meca ast_tab_meca) throws uo_exception;/*
- Carica i dati nella tabella di appoggio 'e1_wo_f5548014' per scambio con E1
-*/
-long k_riga_impo=0, k_ctr, k_righe_pallet_tot=0, k_riga_pallet
-date k_datainizioanno
-int k_giorniafter, k_anno, k_anno_rid
-long k_rc
-st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
-
-
-
-	SetPointer(kkg.pointer_attesa)
-	kguo_exception.inizializza(this.classname())
-
-	kst_tab_e1_wo_f5548014.wo_osdoco = ast_tab_meca.e1doco
-	if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
-
-//--- verifica se è il primo/ultimo barcode del trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
-		kst_tab_e1_wo_f5548014.data_osa801 = string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "dd/mm/yy")
-		k_anno = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yyyy"))
-		k_anno_rid = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yy"))
-		k_datainizioanno = date(k_anno,01,01)
-		k_giorniafter = DaysAfter(k_datainizioanno, date(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"))) + 1
-		kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
-		kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "Data_Entrata")))
-		if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode) = 0 then
-			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
-			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
-			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
-		end if
-		if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
-			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
-			kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode) //kst_tab_meca)  // get del tipo ciclo pianificato
-			kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
-			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
-		end if
-
-//--- verifica se è il primo/ultimo barcode deil trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
-		kst_tab_e1_wo_f5548014.data_osa801 = string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "data_uscita"), "dd/mm/yy")
-		k_anno = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "data_uscita"), "yyyy"))
-		k_anno_rid = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "data_uscita"), "yy"))
-		k_datainizioanno = date(k_anno,01,01)
-		k_giorniafter = DaysAfter(k_datainizioanno, date(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "data_uscita"))) + 1
-		kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
-		kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(ads_pilota_pallet_out_g3.getitemdatetime(k_riga_pallet, "data_uscita")))
-
-		if kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode) = 0 then
-			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstunload
-			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
-			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi per E1 primo pallet uscito 
-		end if
-		if kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode) = 1 then
-			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastunload
-			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"
-			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi su E1 ultimo pallet uscito 
-		end if
-	end if
-
-						
 
 end subroutine
 
@@ -246,7 +181,7 @@ try
 		
 //--- popola struttura da datastore elenco PALLET con data FINE LAVORAZIONE
 //		kst_tab_pilota_pallet.Data_Entrata = kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata")   
-//		kst_tab_pilota_pallet.Data_Uscita = kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Uscita")
+//		kst_tab_pilota_pallet.data_scarico = kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_scarico")
 //		kst_tab_pilota_pallet.Pallet_Code = kds_pilota_pallet_in_g3.getitemstring(k_riga_pallet, "barcode") 
 //		kst_tab_pilota_pallet. = kds_pilota_pallet_in_g3.getitemstring(k_riga_pallet, "F1AVP")
 //		kst_tab_pilota_pallet.F2AVP = kds_pilota_pallet_in_g3.getitemstring(k_riga_pallet, "F2AVP")
@@ -282,24 +217,24 @@ try
 						kst_tab_meca.id = kst_tab_barcode.id_meca
 						kst_tab_e1_wo_f5548014.wo_osdoco = kuf1_armo.get_e1doco(kst_tab_meca)
 						if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
-							kst_tab_e1_wo_f5548014.data_osa801 = string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "dd/mm/yy")
-							k_anno = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yyyy"))
-							k_anno_rid = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yy"))
+							kst_tab_e1_wo_f5548014.data_osa801 = string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "dd/mm/yy")
+							k_anno = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "yyyy"))
+							k_anno_rid = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "yy"))
 							k_datainizioanno = date(k_anno,01,01)
-							k_giorniafter = DaysAfter(k_datainizioanno, date(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"))) + 1
+							k_giorniafter = DaysAfter(k_datainizioanno, date(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"))) + 1
 							kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
-							kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata")))
+							kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico")))
 							if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode) = 0 then
 								kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 								kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 								kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 							end if
 							if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
 								kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 								kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode)  // get del tipo ciclo pianificato
 								kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 								kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 							end if
 						end if
@@ -309,17 +244,17 @@ try
 					u_set_tab_barcode(kds_pilota_pallet_in_g3, kst_tab_barcode)
 						
 				//--- Aggiorna gli archivi con i dati di Lavorazione ------------------------------------------------------
-					kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+					kst_tab_barcode.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 					kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini")
 		
 		//--- inserisce collo in ARTR
 					setnull(kst_tab_artr.data_fin) 
 					kst_tab_artr.pl_barcode = kst_tab_barcode.pl_barcode
 					kst_tab_artr.id_armo = kst_tab_barcode.id_armo
-					kst_tab_artr.st_tab_g_0.esegui_commit =  "S"    //"N" x temporaltable 
+					kst_tab_artr.st_tab_g_0.esegui_commit =  "N"    //"N" x temporaltable 
 					kuf1_artr.apri_lavorazione(kst_tab_artr)
 
-					kguo_sqlca_db_magazzino.db_commit( )  //06072016
+					//kguo_sqlca_db_magazzino.db_commit( )  //06072016
 		
 		//--- Tratta eventuali Figli
 					kds_1 = kuf1_barcode.get_figli_barcode(kst_tab_barcode)
@@ -339,52 +274,61 @@ try
 							kst_tab_meca.id = kst_tab_barcode_figlio.id_meca
 							kst_tab_e1_wo_f5548014.wo_osdoco = kuf1_armo.get_e1doco(kst_tab_meca)
 							if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
-								kst_tab_e1_wo_f5548014.data_osa801 = string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "dd/mm/yy")
-								k_anno = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yyyy"))
-								k_anno_rid = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"), "yy"))
+								kst_tab_e1_wo_f5548014.data_osa801 = string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "dd/mm/yy")
+								k_anno = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "yyyy"))
+								k_anno_rid = integer(string(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"), "yy"))
 								k_datainizioanno = date(k_anno,01,01)
-								k_giorniafter = DaysAfter(k_datainizioanno, date(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata"))) + 1
+								k_giorniafter = DaysAfter(k_datainizioanno, date(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico"))) + 1
 								kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
-								kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "Data_Entrata")))
+								kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(kds_pilota_pallet_in_g3.getitemdatetime(k_riga_pallet, "data_carico")))
 								if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode_figlio) = 0 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
 								end if
 								if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode_figlio) = 1 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
 									kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode)  // get del tipo ciclo pianificato
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
-									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 								end if
 							end if
 						end if
 						
 //--- apre il Trattamento del Figlio
-						kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+						kst_tab_barcode.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 						kuf1_barcode.u_update_campo(kst_tab_barcode_figlio, "data_lav_ini")
 
 //--- inserisce collo in ARTR
 						setnull(kst_tab_artr.data_fin) 
 						kst_tab_artr.pl_barcode = kst_tab_barcode_figlio.pl_barcode
 						kst_tab_artr.id_armo = kst_tab_barcode_figlio.id_armo
-						kst_tab_artr.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable 
+						kst_tab_artr.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable 
 						kuf1_artr.apri_lavorazione(kst_tab_artr)
 
-						kguo_sqlca_db_magazzino.db_commit( )  //06072016
 					end for
+
+//--- COMMIT consolido su DB Tradizionale x E1
+					kguo_sqlca_db_magazzino.db_commit( )
+					kguo_sqlca_db_e1.db_commit()
 				
 //--- conta i barcode importati in trattatamento
 					k_riga_impo	++
 						
 				catch (uo_exception kuo5_exception)
 					//--- qls va male nella registrazione su E1
+					kuo5_exception.scrivi_log()
+					if kuo5_exception.kist_esito.esito = kkg_esito.db_ko then
+						kguo_sqlca_db_magazzino.db_rollback()
+						kguo_sqlca_db_e1.db_rollback()
+					else
+						kguo_sqlca_db_magazzino.db_commit( )
+						kguo_sqlca_db_e1.db_commit()
+					end if
 
 				finally
-//--- COMMIT consolido su DB Tradizionale e E1
-					kguo_sqlca_db_magazzino.db_commit( )
 											
 				end try
 			
@@ -481,7 +425,7 @@ try
 //--- Estrazione del BARCODE 
 			kst_tab_barcode.barcode = ads_pilota_pallet_out_g3.getitemstring(k_riga_pallet, "barcode") 
 	
-//--- legge Barcode x prendere id armo e vede se gia' lavorato
+//--- legge Barcode x prendere id armo e vedere se gia' lavorato
 			auf1_barcode.select_barcode(kst_tab_barcode)
 				
 //--- se ancora da chiudere in lavorazione...			
@@ -496,7 +440,7 @@ try
 					kuf1_armo.get_e1doco(kst_tab_meca)
 					
 					//--- carica dati in E1
-					importa_trattati_pilota_g3_e1(ads_pilota_pallet_out_g3, kst_tab_barcode, kuf1_e1_wo_f5548014, auf1_barcode, kst_tab_meca)
+					importa_trattati_pilota_g3_e1(k_riga_pallet, ads_pilota_pallet_out_g3, kst_tab_barcode, kuf1_e1_wo_f5548014, auf1_barcode, kst_tab_meca)
 					
 				end if
 
@@ -507,7 +451,7 @@ try
 				auf1_barcode.check_anomalie_lavorazione_g3(kst_tab_barcode)
 			
 		//--- Aggiorna gli archivi con i dati di Lavorazione ------------------------------------------------------
-				kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
+				kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
 				auf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini_fin") //AGGIORNA TAB
 			
 		//--- se Anomalia....
@@ -515,7 +459,7 @@ try
 					kst_tab_meca.id = kst_tab_barcode.id_meca 
 					kst_tab_meca.err_lav_fin = kst_tab_barcode.err_lav_fin 
 								
-					kst_tab_meca.st_tab_g_0.esegui_commit = "S" 
+					kst_tab_meca.st_tab_g_0.esegui_commit = "N" 
 					kuf1_armo.setta_errore_lav(kst_tab_meca)  // AGGIORNA ERRORE SU MECA
 				end if
 			
@@ -526,21 +470,19 @@ try
 				kst_tab_artr.pl_barcode = kst_tab_barcode.pl_barcode
 			
 		//--- se elaborazione NO di simulazione...
-				kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
+				kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
 				kuf1_artr.chiudi_lavorazione(kst_tab_artr)
 			
 				kst_tab_artr.num_certif = 0
 						
 	//--- Crea ATTESTATO su ARTR - ritorna il num certificato  
-				kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
+				kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
 				kuf1_artr.crea_attestato_dettaglio(kst_tab_artr)
 
 	//--- Imposta i Tempi Impianto di trattamento sul BARCODE
-				kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
-				k_rc = auf1_barcode.set_imptime_second(kst_tab_barcode)
+				kst_tab_barcode.st_tab_g_0.esegui_commit = "N" 
+				k_rc = auf1_barcode.set_imptime_second_g3(kst_tab_barcode)
 							
-				kguo_sqlca_db_magazzino.db_commit( )  //06072016
-
 	//--- conta i barcode importati trattati
 				k_riga_impo	++
 
@@ -566,7 +508,7 @@ try
 						kst_tab_e1_wo_f5548014.wo_osdoco = kuf1_armo.get_e1doco(kst_tab_meca)
 						
 						//--- carica dati Figlio in E1 
-						importa_trattati_pilota_g3_e1(ads_pilota_pallet_out_g3, kst_tab_barcode_figlio, kuf1_e1_wo_f5548014, auf1_barcode, kst_tab_meca)
+						importa_trattati_pilota_g3_e1(k_riga_pallet, ads_pilota_pallet_out_g3, kst_tab_barcode_figlio, kuf1_e1_wo_f5548014, auf1_barcode, kst_tab_meca)
 
 					end if
 
@@ -574,26 +516,25 @@ try
 					kuf1_pl_barcode.chiudi_lav_barcode_figlio_g2g3(kst_tab_barcode_figlio)
 
 //--- Imposta i Tempi Impianto di trattamento sul BARCODE figlio
-					kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "S" 
-					k_rc = auf1_barcode.set_imptime_second(kst_tab_barcode_figlio)
-	
-					kguo_sqlca_db_magazzino.db_commit( )  
+					kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "N" 
+					k_rc = auf1_barcode.set_imptime_second_g3(kst_tab_barcode_figlio)
 
 				end for
 							
 	//--- provo a chiudere lavorazione sul Lotto MECA
 				kst_tab_meca.id = kst_tab_barcode.id_meca
 				kst_tab_meca.data_lav_fin = kst_tab_barcode.data_lav_fin
-				kst_tab_meca.st_tab_g_0.esegui_commit = "S"
+				kst_tab_meca.st_tab_g_0.esegui_commit = "N"
 				kuf1_armo.chiudi_lavorazione(kst_tab_meca)
 			
 			end if
+			
 	//-------------------------------------------------------------------------------------------------------------
+	
+			kguo_sqlca_db_magazzino.db_commit( )  
 			
 		end for
 		
-//--- consolido su DB -------------------------------------------------------------------------
-		kguo_sqlca_db_magazzino.db_commit( )
 //------------------------------------------------------------------------------------------------	
 	
 
@@ -602,6 +543,8 @@ try
 		if k2uo_exception.kist_esito.esito <> kkg_esito.ok then
 			kguo_sqlca_db_magazzino.db_rollback( )
 			throw k2uo_exception
+		else
+			kguo_sqlca_db_magazzino.db_commit( )  
 		end if
 		
 //--- FINE -----------------------------------------------------------------------------------
@@ -628,7 +571,6 @@ public function integer importa_trattati_pilota_g3 () throws uo_exception;/*
 */
 long k_riga_impo=0, k_ctr, k_righe_pallet_tot
 date k_data_ultima, k_data_da=date(0)
-boolean k_e1_enabled=false
 long k_rc
 kuf_barcode kuf1_barcode
 kuf_base kuf1_base
@@ -643,8 +585,6 @@ try
 	SetPointer(kkg.pointer_attesa)
 	
 	kguo_exception.inizializza(this.classname())
-	
-	k_e1_enabled = kguo_g.if_e1_enabled( )			// interfaccia E1 attiva?
 
 	//--- Estrazione data da cui fare l'estrazione 
 	kuf1_barcode = create kuf_barcode
@@ -721,6 +661,72 @@ end try
 return k_riga_impo
 
 end function
+
+private subroutine importa_trattati_pilota_g3_e1 (long a_riga_pallet, ref ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, ref st_tab_barcode kst_tab_barcode, ref kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014, ref kuf_barcode kuf1_barcode, ref st_tab_meca ast_tab_meca) throws uo_exception;/*
+ Carica i dati nella tabella di appoggio 'e1_wo_f5548014' per scambio con E1
+*/
+long k_riga_impo=0, k_ctr, k_righe_pallet_tot=0
+date k_datainizioanno
+int k_giorniafter, k_anno, k_anno_rid
+long k_rc
+st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
+
+
+
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_e1_wo_f5548014.wo_osdoco = ast_tab_meca.e1doco
+	if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
+
+//--- verifica se è il primo/ultimo barcode del trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
+		kst_tab_e1_wo_f5548014.data_osa801 = string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_carico"), "dd/mm/yy")
+		k_anno = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_carico"), "yyyy"))
+		k_anno_rid = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_carico"), "yy"))
+		k_datainizioanno = date(k_anno,01,01)
+		k_giorniafter = DaysAfter(k_datainizioanno, date(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_carico"))) + 1
+		kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
+		kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_carico")))
+		if kuf1_barcode.get_nr_barcode_lav_ini(kst_tab_barcode) = 0 then
+			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstload
+			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
+			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come prima entrata x E1
+		end if
+		if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
+			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
+			kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode) //kst_tab_meca)  // get del tipo ciclo pianificato
+			kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
+			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
+		end if
+
+//--- verifica se è il primo/ultimo barcode deil trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
+		kst_tab_e1_wo_f5548014.data_osa801 = string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "dd/mm/yy")
+		k_anno = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "yyyy"))
+		k_anno_rid = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "yy"))
+		k_datainizioanno = date(k_anno,01,01)
+		k_giorniafter = DaysAfter(k_datainizioanno, date(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"))) + 1
+		kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
+		kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico")))
+
+		if kuf1_barcode.get_nr_barcode_trattati_x_id_meca(kst_tab_barcode) = 0 then
+			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_firstunload
+			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
+			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi per E1 primo pallet uscito 
+		end if
+		if kuf1_barcode.get_nr_barcode_da_trattare_x_id_meca(kst_tab_barcode) = 1 then
+			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastunload
+			kst_tab_e1_wo_f5548014.tcicli_osmmcu = ""
+			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
+			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi su E1 ultimo pallet uscito 
+		end if
+	end if
+
+						
+
+end subroutine
 
 on kuf_pl_barcode_g3.create
 call super::create

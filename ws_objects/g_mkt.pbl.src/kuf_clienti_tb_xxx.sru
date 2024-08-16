@@ -35,8 +35,8 @@ public function boolean tb_update (st_tab_clienti_mkt ast_tab_clienti_mkt) throw
 public function boolean tb_update_ind_comm (st_tab_ind_comm kst_tab_ind_comm) throws uo_exception
 public function boolean tb_update (st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function boolean tb_update (ref st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception
-private subroutine tb_update_json_field (st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception
 private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception
+private subroutine tb_update_json_field (ref st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception
 end prototypes
 
 public function boolean tb_delete (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception;/*
@@ -1444,77 +1444,20 @@ end try
 return k_return
 end function
 
-private subroutine tb_update_json_field (st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception;//
-//====================================================================
-//=== Aggiorna campo 'modaccompdata' in  ptasks_rows (campo JSON)
-//=== 
-//=== Ritorna ST_ESITO
-//===           	
-//====================================================================
-//
-st_esito kst_esito
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	if ast_tab_clienti_mkt.id_cliente > 0 then
-
-		update clienti_mkt
-				 set data_json = replace(JSON_MODIFY(data_json, :a_json_key, :a_json_val), '\/', '/')
-				where id_cliente = :ast_tab_clienti_mkt.id_cliente
-				using kguo_sqlca_db_magazzino ;
-			
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			if isnull(a_json_val) then a_json_val = "NULLO"
-			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
-							"Fallito Aggiornamento dati Marketing Cliente " + string(ast_tab_clienti_mkt.id_cliente) &
-								+ ", campo: " + a_json_key + "' " &
-								+ "valore: '"+ a_json_val + "' (tab.clienti_mkt). " + trim(kguo_sqlca_db_magazzino.SQLErrText))
-			throw kguo_exception
-		end if
-
-		if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-		
-	end if
-	
-catch	(uo_exception kuo_exception)
-	if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
-		if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-		kuo_exception.scrivi_log( )
-	end if
-	throw kuo_exception
-
-finally
-
-
-end try
-
-end subroutine
-
-private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception;//
-//====================================================================
-//=== Update/Insert the row in  clienti_mkt campo JSON
-//=== 
-//=== Ritorna ST_ESITO
-//===           	
-//====================================================================
-//
-int k_idx, k_idx_max, k_insert
+private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception;/*
+ Update/Insert the row in  clienti_mkt campo JSON
+    Inp: st_tab_clienti_mkt.id_cliente + con i campi jsoc
+*/
+int k_idx, k_idx_max
 string k_json_key[100]
 string k_json_val[100]
-string k_json_all
-st_esito kst_esito
-kuf_utility kuf1_utility
+//string k_json_all
+//kuf_utility kuf1_utility
 
 
 	try
-		kst_esito = kguo_exception.inizializza(this.classname())
-		kuf1_utility = create kuf_utility
+		kguo_exception.inizializza(this.classname())
+//		kuf1_utility = create kuf_utility
 		
 		if ast_tab_clienti_mkt.id_cliente > 0 then
 	
@@ -1572,15 +1515,61 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 	
 	finally
-		if isvalid(kuf1_utility) then destroy kuf1_utility
+//		if isvalid(kuf1_utility) then destroy kuf1_utility
 	
 	end try
 		
 
 
-return kst_esito
+return kguo_exception.kist_esito
 
 end function
+
+private subroutine tb_update_json_field (ref st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception;/*
+ Aggiorna campo JSON in tabella
+	inp: st_tab_clienti_mkt.id_cliente
+		  json_key e json_valore
+*/
+
+try
+	kguo_exception.inizializza(this.classname())
+	
+	if ast_tab_clienti_mkt.id_cliente > 0 then
+
+		update clienti_mkt
+				 set data_json = replace(JSON_MODIFY(data_json, :a_json_key, :a_json_val), '\/', '/')
+				where id_cliente = :ast_tab_clienti_mkt.id_cliente
+				using kguo_sqlca_db_magazzino ;
+			
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallito Aggiornamento dati Marketing Cliente " + string(ast_tab_clienti_mkt.id_cliente) &
+								+ ", campo: " + a_json_key + "' " &
+								+ "valore: '"+ a_json_val + "' (tab.clienti_mkt). ")
+			if isnull(a_json_val) then a_json_val = "NULLO"
+			throw kguo_exception
+		end if
+
+		if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		
+	end if
+	
+catch	(uo_exception kuo_exception)
+	if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
+		if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_rollback( )
+		end if
+		kuo_exception.scrivi_log( )
+	end if
+	throw kuo_exception
+
+finally
+
+
+end try
+
+end subroutine
 
 on kuf_clienti_tb_xxx.create
 call super::create

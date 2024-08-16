@@ -80,33 +80,39 @@ pointer oldpointer  // Declares a pointer variable
 //
 //	end if
 		
-	if k_importa <= 0 then // Nessuna importazione eseguita
-		
-		if len(trim(ki_st_open_w.key1)) > 0 then 
-			kst_tab_sped.clie_2 = long(trim(ki_st_open_w.key1))
-		else
-			kst_tab_sped.clie_2 = 0
-		end if
-		k_righe = dw_lista_0.retrieve(dw_periodo.ki_data_ini, dw_periodo.ki_data_fin, kst_tab_sped.clie_2)
-		if k_righe < 1 then
-			k_return = "1Nessuna Spedizione per il periodo: " + string(dw_periodo.ki_data_ini) + " - " + string(dw_periodo.ki_data_fin)
-
-			SetPointer(oldpointer)
-			messagebox("Elenco ddt", &
-					"Nessuna Spedizione per il periodo: " + string(dw_periodo.ki_data_ini) + " - " + string(dw_periodo.ki_data_fin) &
-					+ ". Indicare un nuovo periodo di ricerca")
-			post smista_funz(KKG_FLAG_RICHIESTA.libero1)
-		else
-			if k_righe = 1 then
-				dw_lista_0.setrow(1)
-				dw_lista_0.selectrow(1, true)
-			end if
-		end if		
+//	if k_importa <= 0 then // Nessuna importazione eseguita
+	
+	if len(trim(ki_st_open_w.key1)) > 0 then 
+		kst_tab_sped.clie_2 = long(trim(ki_st_open_w.key1))
+	else
+		kst_tab_sped.clie_2 = 0
 	end if
 
 	ki_win_titolo_orig = ki_win_titolo_orig_save
 	ki_win_titolo_orig += " dal " + string(dw_periodo.ki_data_ini) + " al " + string(dw_periodo.ki_data_fin)
 	kiw_this_window.title = ki_win_titolo_orig
+
+	k_righe = dw_lista_0.retrieve(dw_periodo.ki_data_ini, dw_periodo.ki_data_fin, kst_tab_sped.clie_2)
+	if k_righe < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in elenco DDT spediti dal " &
+						+ string(dw_periodo.ki_data_ini) + " al " + string(dw_periodo.ki_data_fin))
+		kguo_exception.messaggio_utente( )
+		return "1" + kguo_exception.get_errtext( )
+	end if
+	
+	if k_righe < 1 then
+		k_return = "1Nessuna Spedizione per il periodo: " + string(dw_periodo.ki_data_ini) + " - " + string(dw_periodo.ki_data_fin)
+
+		SetPointer(oldpointer)
+		messagebox("Elenco ddt", &
+				"Nessuna Spedizione per il periodo: " + string(dw_periodo.ki_data_ini) + " - " + string(dw_periodo.ki_data_fin) &
+				+ ". Indicare un nuovo periodo di ricerca")
+		post smista_funz(KKG_FLAG_RICHIESTA.libero1)
+		return "0"
+	end if
+	
+	dw_lista_0.setrow(1)
+	dw_lista_0.selectrow(1, true)
 
 	attiva_tasti()
 
@@ -200,6 +206,7 @@ private subroutine cambia_periodo_elenco ();//---
 
 //dw_periodo.event post ue_visibile
 dw_periodo.event ue_visible( )
+
 end subroutine
 
 public subroutine popola_st_sped_ddt_da_lista ();//---

@@ -3,6 +3,8 @@ global type st_tab_sped from structure
 	st_tab_g_0		st_tab_g_0
 	st_tab_arsp		st_tab_arsp
 	long		id_sped
+	long		id_deposito		descriptor "comment" = "0=standard Minerbio"
+	string		numpref_bolla_out
 	long		num_bolla_out
 	date		data_bolla_out
 	long		id_docprod		descriptor "comment" = "id che punta alla tabella docprod x visualizzare il documento"
@@ -32,6 +34,18 @@ global type st_tab_sped from structure
 	string		porto
 	string		mezzo
 	integer		sv_call_vettore		descriptor "comment" = "1=chiamata vettore da fatturare"
+	integer		id_deposito_anag		descriptor "comment" = "json deposito_anag"
+	string		depo_rag_soc_1		descriptor "comment" = "json deposito_anag"
+	string		depo_rag_soc_2		descriptor "comment" = "json deposito_anag"
+	string		depo_indi				descriptor "comment" = "json deposito_anag"
+	string		depo_cap				descriptor "comment" = "json deposito_anag"
+	string		depo_loc				descriptor "comment" = "json deposito_anag"
+	string		depo_prov				descriptor "comment" = "json deposito_anag"
+	string		depo_nazione			descriptor "comment" = "json deposito_anag"
+	string		depo_contatto1		descriptor "comment" = "json deposito_anag"
+	string		depo_contatto2		descriptor "comment" = "json deposito_anag"
+	string		depo_contatto3		descriptor "comment" = "json deposito_anag"
+	string		depo_contatto4		descriptor "comment" = "json deposito_anag"
 	string		form_di_stampa		descriptor "comment" = "nome del datawindow di stampa"
 	datetime		x_datins
 	string		x_utente

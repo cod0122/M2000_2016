@@ -1332,13 +1332,10 @@ ds_pl_barcode kds_pl_barcode
 uo_exception kuo_exception
 
 
+RETURN FALSE     // ESCO PERCHE' OPERAZIONE VECCHIA MODALITA' 
+
 //=== Puntatore Cursore da attesa..... 
 oldpointer = SetPointer(HourGlass!)
-
-//kst_esito.esito = kkg_esito.ok
-//kst_esito.sqlcode = 0
-//kst_esito.SQLErrText = ""
-//kst_esito.nome_oggetto = this.classname()
 
 try 
 
@@ -1846,8 +1843,8 @@ do while kguo_sqlca_db_pilota.sqlcode = 0
 		case "num_intouchable"
 			if isnumber(k_valore) then
 				kst_tab_pilota_impostazioni.num_intouchable = integer(k_valore)
-				kst_tab_pilota_impostazioni.num_intoccabili_fila1 = integer((kst_tab_pilota_impostazioni.num_intouchable /4) * 3)   // i 3/4 sono di fila 1
-				kst_tab_pilota_impostazioni.num_intoccabili_fila2 = kst_tab_pilota_impostazioni.num_intouchable - kst_tab_pilota_impostazioni.num_intoccabili_fila1   // solo 1/4 sono di fila 2
+				kst_tab_pilota_impostazioni.num_intoccabili_fila1 = kst_tab_pilota_impostazioni.num_intouchable   // i 3/4 sono di fila 1
+				kst_tab_pilota_impostazioni.num_intoccabili_fila2 = 0 //kst_tab_pilota_impostazioni.num_intouchable - kst_tab_pilota_impostazioni.num_intoccabili_fila1   // solo 1/4 sono di fila 2
 			else
 				kst_tab_pilota_impostazioni.num_intouchable = 0
 				kst_tab_pilota_impostazioni.num_intoccabili_fila1 = 0

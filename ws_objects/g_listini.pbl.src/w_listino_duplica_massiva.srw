@@ -550,8 +550,7 @@ try
 				end if
 				
 				kst_tab_prodotti.codice = kst_tab_listino.cod_art
-				kst_esito = kuf1_prodotti.select_riga(kst_tab_prodotti)
-				if kst_esito.esito = kkg_esito.ok then
+				if kuf1_prodotti.select_riga(kst_tab_prodotti) then
 					dw_documenti.setitem(k_riga_ins,"prodotti_des", kst_tab_prodotti.des)
 					dw_documenti.setitem(k_riga_ins,"prodotti_gruppo", kst_tab_prodotti.gruppo)
 				else

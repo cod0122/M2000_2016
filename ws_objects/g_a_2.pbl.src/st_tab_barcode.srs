@@ -55,6 +55,8 @@ global type st_tab_barcode from structure
 	integer		g3lav_ngiri		descriptor "comment" = "Numero giri effetuati in G3"
 	integer		g3lav_ciclo		descriptor "comment" = "CICLO di Trattatamento in G3"
 	integer		g3lav_npass		descriptor "comment" = "2PASS, 4PASS  Trattato in G3"
+	integer		g3lav_cicloin		descriptor "comment" = "Running del Dato Nortrak sul set del Tempo in cella in entrata "
+	integer		g3lav_cicloout		descriptor "comment" = "Running del Dato Nortrak sul set del Tempo in cella in uscita"
 	datetime		x_datins
 	string		x_utente
 end type

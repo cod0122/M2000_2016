@@ -6,7 +6,7 @@ summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gra
 footer(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=96 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" height.autosize=yes )
 table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int" )
- column=(type=long update=yes updatewhereclause=yes name=num_bolla_out dbname="arsp.num_bolla_out" )
+ column=(type=long update=yes updatewhereclause=yes name=num_bolla_out dbname="sped.num_bolla_out" )
  column=(type=long update=yes updatewhereclause=yes name=id_sped dbname="arsp.id_sped" )
  column=(type=date updatewhereclause=yes name=data_int dbname="armo.data_int" )
  column=(type=char(12) update=yes updatewhereclause=yes name=art dbname="armo.art" )
@@ -19,7 +19,7 @@ table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int"
  column=(type=decimal(2) update=yes updatewhereclause=yes name=peso_kg_out dbname="arsp.peso_kg_out" )
  column=(type=char(1) update=yes updatewhereclause=yes name=stampa dbname="arsp.stampa" values="	F/	N/	S" )
  column=(type=decimal(0) update=yes updatewhereclause=yes name=alt_2 dbname="armo.alt_2" )
- column=(type=date update=yes updatewhereclause=yes name=data_bolla_out dbname="arsp.data_bolla_out" )
+ column=(type=date update=yes updatewhereclause=yes name=data_bolla_out dbname="sped.data_bolla_out" )
  column=(type=long update=yes updatewhereclause=yes name=id_meca dbname="armo.id_meca" )
  column=(type=long update=yes updatewhereclause=yes name=k_progressivo dbname="k_progressivo" )
  column=(type=char(80) update=yes updatewhereclause=yes name=note_1 dbname="arsp.note_1" )
@@ -33,7 +33,7 @@ table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int"
  column=(type=char(4) updatewhereclause=yes name=e1srst dbname="e1srst" )
  column=(type=long updatewhereclause=yes name=campionecolli dbname="campionecolli" )
  retrieve="   SELECT armo.num_int,   
-         arsp.num_bolla_out,   
+         sped.num_bolla_out,   
          arsp.id_sped,   
          armo.data_int,   
          armo.art,   
@@ -46,7 +46,7 @@ table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int"
 		arsp.peso_kg_out,
 		arsp.stampa,  
 		armo.alt_2,  
-         arsp.data_bolla_out,   
+         sped.data_bolla_out,   
          armo.id_meca ,
 		0 as k_progressivo ,  
          arsp.note_1 ,
@@ -59,9 +59,10 @@ table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int"
 		  meca.data_ent
 		,COALESCE(meca.e1srst,'NC') as e1srst
       ,coalesce(armo.campionecolli, 0) campionecolli   
-    FROM arsp left outer join armo on arsp.id_armo = armo.id_armo
-              left outer join meca on armo.id_meca = meca.id 
-	          left outer join prodotti on armo.art = prodotti.codice
+    FROM arsp  inner join sped on arsp.id_sped = sped.id_sped 
+	 		 left outer join armo on arsp.id_armo = armo.id_armo
+          left outer join meca on armo.id_meca = meca.id 
+        left outer join prodotti on armo.art = prodotti.codice
    WHERE arsp.id_sped = :k_id   
  ORDER BY arsp.nriga ASC   
 " update="arsp_" updatewhere=0 updatekeyinplace=no arguments=(("k_id", number)) )
@@ -152,4 +153,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

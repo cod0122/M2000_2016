@@ -131,7 +131,7 @@ kuf_sped kuf1_sped
 kuf_certif kuf1_certif
 kuf_menu_window kuf1_menu_window
 uo_exception kuo_exception 
-
+uo_ds_std_1 kds_sped
 
 if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
 
@@ -171,19 +171,22 @@ try
 			end if
 
 		case ki_xplistbar_riga_sped
-			kdsi_elenco_output.reset( )
+			kds_sped = create uo_ds_std_1
+			//kdsi_elenco_output.reset( )
 			kuf1_sped = create kuf_sped
+			kst_tab_sped.id_sped = ki_xplistbar_info_num[ki_xplistbar_riga_sped]
 			kst_tab_sped.num_bolla_out = ki_xplistbar_info_num[ki_xplistbar_riga_sped]
 			kst_tab_sped.data_bolla_out = ki_xplistbar_info_data[ki_xplistbar_riga_sped]
 			if kst_tab_sped.num_bolla_out > 0 then
 				k_call=true
-				kst_esito = kuf1_sped.anteprima( kdsi_elenco_output, kst_tab_sped )
+				kst_esito = kuf1_sped.anteprima(kds_sped, kst_tab_sped)
 				destroy kuf1_sped
 				if kst_esito.esito <> kkg_esito.ok then
 					kuo_exception = create uo_exception
 					kuo_exception.set_esito( kst_esito)
 					throw kuo_exception
 				end if
+				kds_sped.rowscopy(1, kds_sped.rowcount( ), primary!, kdsi_elenco_output, 1, primary!)
 				kst_open_w.key1 = "Documento di Trasporto (num.=" + trim(string(kst_tab_sped.num_bolla_out))  + ") "
 			end if
 
@@ -642,7 +645,7 @@ try
 					k_sped =  " "
 					k_sped_pic = " "
 					if kst_esito.esito = kkg_esito.ok then
-						ki_xplistbar_info_num[ki_xplistbar_riga_sped] = kst_tab_sped.num_bolla_out 
+						ki_xplistbar_info_num[ki_xplistbar_riga_sped] = kst_tab_sped.id_sped  //kst_tab_sped.num_bolla_out 
 						ki_xplistbar_info_data[ki_xplistbar_riga_sped] = kst_tab_sped.data_bolla_out 
 						if kst_tab_sped.num_bolla_out > 0 then
 							k_sped = "ult.Sped.: " + string(kst_tab_sped.num_bolla_out) + "  " +string(kst_tab_sped.data_bolla_out, "dd/mm/yy")

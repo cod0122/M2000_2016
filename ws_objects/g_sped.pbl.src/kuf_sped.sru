@@ -43,12 +43,10 @@ end variables
 
 forward prototypes
 public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped)
-public function st_esito tb_delete_testa (st_tab_sped kst_tab_sped)
 public function st_esito tb_delete_x_rif ()
 public function st_esito select_testa (ref st_tab_sped kst_tab_sped)
 public function st_esito select_riga (ref st_tab_arsp kst_tab_arsp)
 public subroutine if_isnull_riga (ref st_tab_arsp kst_tab_arsp)
-public function st_esito anteprima_elenco (datastore kdw_anteprima, st_tab_armo kst_tab_armo)
 public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function integer u_tree_riempi_listview_righe_sped (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
 public function integer u_tree_riempi_treeview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
@@ -57,7 +55,6 @@ public function integer u_tree_riempi_treeview_x_pagam (ref kuf_treeview kuf1_tr
 public function st_esito get_clie (ref st_tab_sped kst_tab_sped)
 public function st_esito get_righe (ref st_tab_arsp kst_tab_arsp[])
 public function st_esito set_riga_fatturata (st_tab_arsp kst_tab_arsp)
-public function st_esito get_numero_da_id (ref st_tab_arsp kst_tab_arsp)
 public function st_esito get_colli_da_fatt (ref st_tab_arsp kst_tab_arsp)
 public function st_esito set_sped_fatturata (st_tab_sped kst_tab_sped)
 public function st_esito reset_riga_fatturata (st_tab_arsp kst_tab_arsp)
@@ -65,7 +62,6 @@ public function st_esito get_colli_fatt (ref st_tab_arsp kst_tab_arsp)
 public function st_esito reset_sped_fatturata (st_tab_sped kst_tab_sped)
 public function st_esito set_arsp_fatturata_reset (st_tab_arsp kst_tab_arsp)
 public function st_esito get_ultimo_doc (ref st_tab_sped kst_tab_sped)
-public function st_esito anteprima_righe (datastore kdw_anteprima, st_tab_sped kst_tab_sped)
 public function integer u_tree_open (string k_modalita, st_tab_sped kst_tab_sped[], ref datawindow kdw_anteprima)
 public function boolean u_open (st_tab_sped kst_tab_sped[], st_open_w kst_open_w)
 public function boolean u_open_cancellazione (ref st_tab_sped kst_tab_sped)
@@ -73,14 +69,9 @@ public function boolean u_open_inserimento (ref st_tab_sped kst_tab_sped)
 public function boolean u_open_modifica (ref st_tab_sped kst_tab_sped)
 public function boolean u_open_visualizza (ref st_tab_sped kst_tab_sped)
 public function st_esito get_id_riga_da_id_armo (ref st_tab_arsp kst_tab_arsp)
-public function st_esito set_sped_stampata (st_tab_sped kst_tab_sped)
-public function st_esito set_righe_stampata (st_tab_arsp kst_tab_arsp)
 public function integer get_ddt_da_stampare (ref st_sped_ddt kst_sped_ddt[]) throws uo_exception
-public function st_esito anteprima_1 (datastore kdw_anteprima, st_tab_sped kst_tab_sped)
 public function st_esito anteprima_1 (datawindow kdw_anteprima, st_tab_sped kst_tab_sped)
-public function st_esito anteprima (datastore kds_anteprima, st_tab_sped kst_tab_sped)
 public function st_esito anteprima (datawindow kdw_anteprima, st_tab_sped kst_tab_sped)
-public function st_esito anteprima_2 (datastore kdw_anteprima, st_tab_sped kst_tab_sped)
 public function boolean u_open_stampa (st_tab_sped kst_tab_sped[])
 public function st_esito get_sped_stampa (ref st_tab_sped kst_tab_sped)
 public function integer get_sped_camion_caricato (ref st_tab_sped kst_tab_sped) throws uo_exception
@@ -129,12 +120,23 @@ public function boolean if_ddt_allarme_memo (st_tab_sped kst_tab_sped) throws uo
 public function boolean if_stampato (st_tab_sped ast_tab_sped) throws uo_exception
 public function string get_cura_trasp (ref st_tab_sped kst_tab_sped) throws uo_exception
 private function long u_set_ds_d_sped_l_indirizzi (st_tab_sped kst_tab_sped)
+public function boolean set_righe_stampata (ref st_tab_arsp kst_tab_arsp) throws uo_exception
+public function boolean set_sped_stampata (ref st_tab_sped kst_tab_sped) throws uo_exception
+public function boolean tb_delete_testa (st_tab_sped kst_tab_sped) throws uo_exception
+public function st_esito anteprima (ref uo_ds_std_1 kds_anteprima, st_tab_sped kst_tab_sped)
+public function st_esito anteprima_1 (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped)
+public function st_esito anteprima_2 (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped)
+public function st_esito anteprima_elenco (ref uo_ds_std_1 kdw_anteprima, st_tab_armo kst_tab_armo)
+public function st_esito anteprima_righe (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped)
+private function st_esito tb_update_json (ref st_tab_sped ast_tab_sped) throws uo_exception
 end prototypes
 
 public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped);//---
 //--- toglie i NULL ai campi della tabella 
 //---
 
+if isnull(kst_tab_sped.numpref_bolla_out) then kst_tab_sped.numpref_bolla_out = ""
+if isnull(kst_tab_sped.id_deposito) then kst_tab_sped.id_deposito = 0
 if isnull(kst_tab_sped.cura_trasp) then kst_tab_sped.cura_trasp = " "
 if isnull(kst_tab_sped.causale) then kst_tab_sped.causale = " "
 if isnull(kst_tab_sped.aspetto) then kst_tab_sped.aspetto = " "
@@ -161,191 +163,10 @@ if isnull(kst_tab_sped.loc) then kst_tab_sped.loc = ""
 
 end subroutine
 
-public function st_esito tb_delete_testa (st_tab_sped kst_tab_sped);//
-//====================================================================
-//=== Cancella il rek dalla tabella SPED-ARSP (Bolle di spedizione) 
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===   dal 2 char in poi descrizione dell'errore
-//=== 
-//====================================================================
-//
-int k_resp
-boolean k_return
-st_esito kst_esito
-st_tab_arfa kst_tab_arfa
-st_tab_sped kst_tab_sped_1, kst_tab_sped_2[]
-st_tab_docprod kst_tab_docprod
-kuf_docprod kuf1_docprod
-kuf_doctipo kuf1_doctipo
-//kuf_fatt kuf1_fatt
-kuf_sped_ddt kuf1_sped_ddt
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	if if_sicurezza(kkg_flag_modalita.cancellazione) then  // Controllo se utente autorizzato
-
-//--- se manca piglia ID del ddt
- 		if kst_tab_sped.id_sped > 0 then
-		else
-			get_id_sped(kst_tab_sped)
-		end if
-
-//=== Controllo se bolla già fatturata
-		DECLARE c_fattura CURSOR FOR  
-			  SELECT num_fatt, data_fatt
-				 FROM arfa 
-				WHERE num_bolla_out = :kst_tab_sped.num_bolla_out
-						and data_bolla_out = :kst_tab_sped.data_bolla_out
-					using kguo_sqlca_db_magazzino;
-		
-		open c_fattura;
-		if kguo_sqlca_db_magazzino.sqlCode = 0 then
-		
-			fetch c_fattura INTO :kst_tab_arfa.num_fatt, :kst_tab_arfa.data_fatt;
-		
-			if kguo_sqlca_db_magazzino.sqlCode = 0 then
-	
-				if kst_tab_arfa.num_fatt > 0 then
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.SQLErrText = &
-						  "DDT gia' in Fattura n. " &
-							+ string(kst_tab_arfa.num_fatt, "####0") + " del " &
-							+ string(kst_tab_arfa.data_fatt, "dd.mm.yyyy") + " ~n~r" &
-							+ "ddt n. " &
-							+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
-							+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
-							+ " ~n~r "
-					kst_esito.esito = kkg_esito.no_esecuzione
-				
-				end if
-			end if
-			close c_fattura;
-		end if
-		
-			
-		if kst_esito.esito = kkg_esito.ok then
-		
-			try
-				
-				if kst_tab_sped.id_sped > 0 then
-				else
-					get_id_sped(kst_tab_sped)
-				end if
-				
-				kuf1_sped_ddt = create kuf_sped_ddt
-	
-	//--- Ripristina i colli in Prezzi-riga-lotto da fatturare
-				kst_tab_sped_2[1] = kst_tab_sped
-				kst_tab_sped_2[1].st_tab_g_0.esegui_commit	= "N"
-				kuf1_sped_ddt.set_armo_prezzi_righe_all(kst_tab_sped_2[], true)
-	
-	//--- Ripristina il flag di righe WMF 			
-				kst_tab_sped_1 = kst_tab_sped
-				kst_tab_sped_1.st_tab_g_0.esegui_commit	= "N"
-				kuf1_sped_ddt.set_wm_pklist_righe_non_spedito(kst_tab_sped_1)
-				
-				if isvalid(kuf1_sped_ddt) then destroy kuf1_sped_ddt
-		
-		//--- cancella prima tutte le righe
-				delete from arsp
-						WHERE id_sped = :kst_tab_sped.id_sped
-						using kguo_sqlca_db_magazzino;
-						//num_bolla_out = :kst_tab_sped.num_bolla_out
-						//		and data_bolla_out = :kst_tab_sped.data_bolla_out;
-			
-				
-				if kguo_sqlca_db_magazzino.sqlcode < 0 then
-					
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.SQLErrText = &
-			"Errore durante la cancellazione delle righe del DDT " &
-							+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
-							+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
-							+ " id " + string(kst_tab_sped.id_sped) &
-							+ "~n~rErrore-tab.ARSP:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-					kst_esito.esito = kkg_esito.db_ko
-					
-				else
-	
-	//--- se tutto ok cancella la testata
-					delete from sped
-							WHERE id_sped = :kst_tab_sped.id_sped
-							using kguo_sqlca_db_magazzino;
-					
-					if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-						kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-						kst_esito.SQLErrText = &
-			"Errore durante la cancellazione testata del DDT  " &
-							+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
-							+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
-							+ " id " + string(kst_tab_sped.id_sped) &
-							+ " ~n~rErrore-tab.SPED:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-						if kguo_sqlca_db_magazzino.sqlcode = 100 then
-							kst_esito.esito = kkg_esito.not_fnd
-						else
-							if kguo_sqlca_db_magazzino.sqlcode > 0 then
-								kst_esito.esito = kkg_esito.db_wrn
-							else
-								kst_esito.esito = kkg_esito.db_ko
-							end if
-						end if
-					else
-	
-	//--- cancella da docprod	 tutti i riferimenti
-						kst_tab_docprod.id_doc = kst_tab_sped.id_sped 
-						kuf1_docprod = create kuf_docprod
-						kuf1_doctipo = create kuf_doctipo
-						kst_tab_docprod.st_tab_g_0.esegui_commit = "N"
-						kuf1_docprod.tb_delete(kst_tab_docprod, kuf1_doctipo.kki_tipo_ddt )
-	
-					end if
-				end if
-
-				if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_commit( )
-				end if
-			
-			catch 	(uo_exception kuo_exception)
-				kst_esito = kuo_exception.get_st_esito()
-				if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_rollback( )
-				end if
-	
-	
-			finally
-				
-				if isvalid(kuf1_docprod) then destroy kuf1_docprod 
-				if isvalid(kuf1_doctipo) then destroy kuf1_doctipo 
-			
-			end try
-			
-		end if
-	end if
-	
-catch (uo_exception kuo1_exception)
-	kst_esito = kuo1_exception.get_st_esito()
-	
-end try
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_delete_x_rif ();//
-//====================================================================
-//=== Cancella il rek dalla tabella ARSP-SPED (Spedizioni) con i dati del Riferimento
-//=== 
-//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
-//===           		: 2=Altro errore 
-//===                : 3=INFORMAZIONE 
-//=== 
-//====================================================================
-//
+public function st_esito tb_delete_x_rif ();/*
+	Cancella il rek dalla tabella ARSP-SPED (Spedizioni) con i dati del Riferimento
+	impostare kist_tab_arsp.id_armo
+*/
 int k_ctr
 boolean k_return
 string k_errore
@@ -407,14 +228,14 @@ else
 	if kst_esito.esito = kkg_esito.ok then
 
 		DECLARE c_arsp CURSOR FOR  
-		   SELECT num_bolla_out, data_bolla_out
+		   SELECT id_sped
 			   FROM arsp
 			   WHERE id_armo = :kist_tab_arsp.id_armo
 			   using sqlca;
 				
 		open c_arsp;
 		
-		fetch c_arsp into :kist_tab_arsp.num_bolla_out, :kist_tab_arsp.data_bolla_out;
+		fetch c_arsp into :kist_tab_arsp.id_sped;
 	
 		kst_esito1.SQLErrText = " "
 		kst_esito1.esito = kkg_esito.ok
@@ -427,14 +248,13 @@ else
 			if sqlca.sqlcode < 0 then
 				kst_esito.sqlcode = sqlca.sqlcode
 				kst_esito.SQLErrText = &
-		"Errore durante la cancellazione delle righe Bolla di Spedizione ~n~r" &
-						+ string(kist_tab_arsp.num_bolla_out, "####0") + " del " &
-						+ string(kist_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
+		"Errore durante la cancellazione delle righe Bolla di Spedizione id " &
+						+ string(kist_tab_arsp.id_sped, "####0") &	
 						+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
 				kst_esito.esito = kkg_esito.db_ko
 			end if
 
-			fetch c_arsp into :kist_tab_arsp.num_bolla_out, :kist_tab_arsp.data_bolla_out;
+			fetch c_arsp into :kist_tab_arsp.id_sped;
 
 		loop
 
@@ -452,24 +272,21 @@ else
 		k_ctr = 0
 		select count(*) into :k_ctr
 		   from arsp
-		   where arsp.num_bolla_out = :kist_tab_arsp.num_bolla_out
-					and arsp.data_bolla_out = :kist_tab_arsp.data_bolla_out
+		   where arsp.id_sped = :kist_tab_arsp.id_sped
 					using sqlca;
 
 					
 		if sqlca.sqlcode >= 0 and (k_ctr = 0 or isnull(k_ctr)) then
 
 			delete from sped
-			   where num_bolla_out = :kist_tab_arsp.num_bolla_out
-					and data_bolla_out = :kist_tab_arsp.data_bolla_out
+			   where id_sped = :kist_tab_arsp.id_sped
 					using sqlca;
 
 			if sqlca.sqlcode < 0 then 
 				kst_esito.sqlcode = sqlca.sqlcode
 				kst_esito.SQLErrText = &
-		"Errore durante la cancellazione delle Testata Bolla di Spedizione ~n~r" &
-						+ string(kist_tab_arsp.num_bolla_out, "####0") + " del " &
-						+ string(kist_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
+		"Errore durante la cancellazione delle Testata Bolla di Spedizione id " &
+						+ string(kist_tab_arsp.id_sped, "####0") &	
 						+ " ~n~rErrore-tab.SPED:"	+ trim(sqlca.SQLErrText)
 				kst_esito.esito = kkg_esito.db_ko
 				
@@ -603,19 +420,17 @@ return kst_esito
 
 end function
 
-public function st_esito select_riga (ref st_tab_arsp kst_tab_arsp);//
-//--- Leggo Riga di Spedizione  della Bolla e id_armo indicata
-//
+public function st_esito select_riga (ref st_tab_arsp kst_tab_arsp);/*
+ Leggo Riga di Spedizione della Bolla e id_armo indicata
+	inp: st_tab_arsp.id_sped, id_armo
+*/
 long k_codice
 st_esito kst_esito
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
-  SELECT arsp.colli,   
+   SELECT arsp.colli,   
          arsp.note_1,   
          arsp.note_2,   
          arsp.note_3,   
@@ -630,14 +445,13 @@ kst_esito.nome_oggetto = this.classname()
          :kst_tab_arsp.colli_out,   
          :kst_tab_arsp.peso_kg_out  
     FROM arsp  
-   WHERE ( num_bolla_out = :kst_tab_arsp.num_bolla_out ) AND  
-         ( data_bolla_out = :kst_tab_arsp.data_bolla_out)  and 
+   WHERE ( id_sped = :kst_tab_arsp.id_sped ) AND  
          ( id_armo = :kst_tab_arsp.id_armo)   
            ;
 	
 	if sqlca.sqlcode <> 0 then
 		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.d.d.t., riga bolla di sped. (numero=" + string( kst_tab_arsp.num_bolla_out) + " del "+ string( kst_tab_arsp.data_bolla_out)+ " id riga " + string( kst_tab_arsp.id_armo) + ") : " &
+		kst_esito.SQLErrText = "Tab.d.d.t., riga bolla di sped. (id=" + string( kst_tab_arsp.id_sped) + " id riga " + string( kst_tab_arsp.id_armo) + ") : " &
 									 + trim(SQLCA.SQLErrText)
 		if sqlca.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
@@ -676,79 +490,6 @@ if isnull(kst_tab_arsp.peso_kg_out) then	kst_tab_arsp.peso_kg_out = 0
 if isnull(kst_tab_arsp.stampa) then kst_tab_arsp.stampa = kki_sped_flg_stampa_bolla_da_stamp 
 
 end subroutine
-
-public function st_esito anteprima_elenco (datastore kdw_anteprima, st_tab_armo kst_tab_armo);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima (elenco arsp x id_meca)
-//===
-//=== Par. Inut: 
-//===               datawindow su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.not_fnd
-
-else
-
-	if kst_tab_armo.id_meca > 0 then
-
-		kdw_anteprima.dataobject = "d_arsp_l_1"		
-		kdw_anteprima.settransobject(sqlca)
-
-//		kuf1_utility = create kuf_utility
-//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
-//--- retrive dell'attestato 
-		k_rc=kdw_anteprima.retrieve(kst_tab_armo.id_meca)
-
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Riga Lotto da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = "1"
-		
-	end if
-end if
-
-
-return kst_esito
-
-end function
 
 public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto);// 
 //
@@ -1128,42 +869,36 @@ st_profilestring_ini kst_profilestring_ini
 declare kc_treeview cursor for
   SELECT 
          arsp.id_armo,
-			armo.art,
-			prodotti.des,
+         arsp.id_arsp,
+         arsp.id_sped,
+			isnull(armo.art,''),
+			isnull(prodotti.des,''),
 			armo.num_int,
 			armo.data_int,
-  			arsp.num_bolla_out,   
-         arsp.data_bolla_out,   
+  			isnull(sped.numpref_bolla_out,''),   
+  			sped.num_bolla_out,   
+         sped.data_bolla_out,   
          arsp.stampa,   
-         arsp.colli,   
-         arsp.colli_out,   
-         arsp.peso_kg_out,   
-         arsp.note_1,   
-         arsp.note_2,   
-         arsp.note_3,   
-			sped.clie_2,
-			sped.clie_3,
-			c2.rag_soc_10, 
-			c3.rag_soc_10 
-    FROM arsp LEFT OUTER JOIN armo ON 
-            arsp.id_armo = armo.id_armo      
-              LEFT OUTER JOIN sped ON 
-            arsp.num_bolla_out = sped.num_bolla_out      
-            and arsp.data_bolla_out = sped.data_bolla_out      
-               LEFT OUTER JOIN clienti c2 ON 
-			   sped.clie_2 = c2.codice
-              LEFT OUTER JOIN clienti c3 ON 
-			   sped.clie_3 = c3.codice
-              LEFT OUTER JOIN prodotti ON 
-			   armo.art = prodotti.codice
+         isnull(arsp.colli,0),   
+         isnull(arsp.colli_out,0),   
+         isnull(arsp.peso_kg_out,0.0),   
+         isnull(arsp.note_1,''),   
+         isnull(arsp.note_2,''),   
+         isnull(arsp.note_3,''),   
+			isnull(sped.clie_2,0),
+			isnull(sped.clie_3,0),
+			isnull(c2.rag_soc_10,''), 
+			isnull(c3.rag_soc_10,'') 
+    FROM arsp LEFT OUTER JOIN armo ON  arsp.id_armo = armo.id_armo      
+              LEFT OUTER JOIN sped ON  arsp.id_sped = sped.id_sped
+              LEFT OUTER JOIN clienti c2 ON sped.clie_2 = c2.codice
+              LEFT OUTER JOIN clienti c3 ON sped.clie_3 = c3.codice
+              LEFT OUTER JOIN prodotti ON armo.art = prodotti.codice
     WHERE 
-			 (:k_tipo_oggetto = :kuf1_treeview.kist_treeview_oggetto.sped_righe_dett
-			  and 
-		        (arsp.num_bolla_out = :kst_tab_arsp.num_bolla_out 
-		        and arsp.data_bolla_out = :kst_tab_arsp.data_bolla_out )
-			 )	   
+			 :k_tipo_oggetto = :kuf1_treeview.kist_treeview_oggetto.sped_righe_dett
+			  and arsp.id_sped = :kst_tab_arsp.id_sped	   
 	 order by 
-		 arsp.data_bolla_out, arsp.num_bolla_out, arsp.id_armo
+		 sped.data_bolla_out, sped.num_bolla_out, arsp.id_armo
 	 using sqlca;
 
 
@@ -1197,9 +932,9 @@ declare kc_treeview cursor for
 	k_ind++
 	k_campo[k_ind] = "Cliente"
 	k_align[k_ind] = left!
-//	k_ind++
-//	k_campo[k_ind] = "Ulteriori Informazion"
-//	k_align[k_ind] = left!
+	k_ind++
+	k_campo[k_ind] = "Ulteriori Informazioni"
+	k_align[k_ind] = left!
 	k_ind++
 	k_campo[k_ind] = "FINE"
 	k_align[k_ind] = left!
@@ -1253,14 +988,14 @@ declare kc_treeview cursor for
 
 //--- Periodo di estrazione, se la data e' a zero allora anno nel num_bolla_out
 	kst_treeview_data_any = kst_treeview_data.struttura
-	if kst_treeview_data_any.st_tab_arsp.data_bolla_out > date (0) then
-		k_mese = month(kst_treeview_data_any.st_tab_arsp.data_bolla_out) 
+	if kst_treeview_data_any.st_tab_sped.data_bolla_out > date (0) then
+		k_mese = month(kst_treeview_data_any.st_tab_sped.data_bolla_out) 
 		if isnull(k_mese) or k_mese = 0 then
 			k_dataoggi = kguo_g.get_dataoggi( )
-			kst_treeview_data_any.st_tab_arsp.data_bolla_out = k_dataoggi
-			k_mese = month(kst_treeview_data_any.st_tab_arsp.data_bolla_out) 
+			kst_treeview_data_any.st_tab_sped.data_bolla_out = k_dataoggi
+			k_mese = month(kst_treeview_data_any.st_tab_sped.data_bolla_out) 
 		end if
-		k_anno = year(kst_treeview_data_any.st_tab_arsp.data_bolla_out)
+		k_anno = year(kst_treeview_data_any.st_tab_sped.data_bolla_out)
 		k_data_da = date (k_anno, k_mese, 01) 
 		if k_mese = 12 then
 			k_mese = 1
@@ -1270,11 +1005,11 @@ declare kc_treeview cursor for
 		end if
 		k_data_a = date (k_anno, k_mese, 01) 
 	else
-		k_data_da = date(kst_treeview_data_any.st_tab_arsp.num_bolla_out, 01, 01)
-		k_data_a = date(kst_treeview_data_any.st_tab_arsp.num_bolla_out, 12, 31)
+		k_data_da = date(kst_treeview_data_any.st_tab_sped.num_bolla_out, 01, 01)
+		k_data_a = date(kst_treeview_data_any.st_tab_sped.num_bolla_out, 12, 31)
 	end if
 
-	if kst_treeview_data_any.st_tab_arsp.num_bolla_out > 0 then
+	if kst_treeview_data_any.st_tab_sped.num_bolla_out > 0 then
 		kst_tab_arsp = kst_treeview_data_any.st_tab_arsp
 	end if
 		 
@@ -1313,12 +1048,15 @@ declare kc_treeview cursor for
 			fetch kc_treeview 
 				into
 					:kst_tab_arsp.id_armo,
+					:kst_tab_arsp.id_arsp,
+					:kst_tab_arsp.id_sped,
 					:kst_tab_armo.art,   
 					:kst_tab_prodotti.des,
 					:kst_tab_armo.num_int,   
 					:kst_tab_armo.data_int,   
-					:kst_tab_arsp.num_bolla_out,   
-					:kst_tab_arsp.data_bolla_out,   
+					:kst_tab_sped.numpref_bolla_out,   
+					:kst_tab_sped.num_bolla_out,   
+					:kst_tab_sped.data_bolla_out,   
 					:kst_tab_arsp.stampa,   
 					:kst_tab_arsp.colli,   
 					:kst_tab_arsp.colli_out,   
@@ -1359,33 +1097,7 @@ declare kc_treeview cursor for
 						k_stato = "Da stampare"
 				end choose
 
-				if isnull(kst_tab_prodotti.des) then
-					kst_tab_prodotti.des = " "
-				end if
- 				if isnull(kst_tab_arsp.colli) then		
-					kst_tab_arsp.colli = 0
-				end if
-				if isnull(kst_tab_arsp.colli_out) then		
-					kst_tab_arsp.colli_out = 0
-				end if
-				if isnull(kst_tab_arsp.note_1) then		
-					kst_tab_arsp.note_1 = " "
-				end if
-				if isnull(kst_tab_arsp.note_2) then		
-					kst_tab_arsp.note_2 = " "
-				end if
-				if isnull(kst_tab_arsp.note_3) then		
-					kst_tab_arsp.note_3 = " "
-				end if
-				if isnull(kst_tab_clienti.rag_soc_10) then		
-					kst_tab_clienti.rag_soc_10 = " "
-				end if
-				if isnull(kst_tab_clienti.rag_soc_20) then		
-					kst_tab_clienti.rag_soc_20 = " "
-				end if
-				
-				kst_tab_sped.num_bolla_out = kst_tab_arsp.num_bolla_out
-				kst_tab_sped.data_bolla_out = kst_tab_arsp.data_bolla_out
+				kst_tab_sped.id_sped = kst_tab_arsp.id_sped
 	
 				kst_treeview_data_any.st_tab_arsp = kst_tab_arsp
 				kst_treeview_data_any.st_tab_sped = kst_tab_sped
@@ -1394,8 +1106,8 @@ declare kc_treeview cursor for
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 1, trim(kst_tab_armo.art) + " - " &
 				                + trim(kst_tab_prodotti.des))
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 2, trim(k_stato))
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 3, string(kst_tab_arsp.num_bolla_out, "####0") &
-				                    + " - " + string(kst_tab_arsp.data_bolla_out, "dd.mm.yy"))
+				kuf1_treeview.kilv_lv1.setitem(k_ctr, 3, trim(kst_tab_sped.numpref_bolla_out) + string(kst_tab_sped.num_bolla_out, "####0") &
+				                    + " - " + string(kst_tab_sped.data_bolla_out, "dd.mm.yy"))
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 4, string(kst_tab_arsp.colli, "##,##0") &
 											  + " / " + string(kst_tab_arsp.colli_out, "##,##0")) 
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 5, string(kst_tab_armo.peso_kg, "##,##0.00"))
@@ -1407,73 +1119,22 @@ declare kc_treeview cursor for
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_sped.clie_2, "####0") + " " + trim(kst_tab_clienti.rag_soc_10))
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, string(kst_tab_sped.clie_3, "####0") + " " + trim(kst_tab_clienti.rag_soc_20))
 				
+				kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, "Id riga lotto " + string(kst_tab_arsp.id_armo, "#0") &
+																		  + "; ddt " + string(kst_tab_arsp.id_sped, "#0") &
+																		  + "; riga ddt " + string(kst_tab_arsp.id_arsp, "#0"))
 
-//				kst_tab_treeview.voce = trim(kst_tab_armo.art) &
-//				                    + "  (" + string(kst_tab_arsp.num_bolla_out, "####0") &
-//				                    + "/" + string(kst_tab_arsp.data_bolla_out, "yyyy") + ") " 
-//
-//				kst_tab_treeview.descrizione_tipo =  k_stato & 
-//				                    + "  ddt: " + string(kst_tab_arsp.num_bolla_out, "####0") &
-//				                    + " - " + string(kst_tab_arsp.data_bolla_out, "dd.mm.yy") 
-//				if kst_tab_arsp.colli <> kst_tab_arsp.colli_out then
-//					kst_tab_treeview.descrizione_tipo = kst_tab_treeview.descrizione_tipo & 
-//											  + "  Colli scar./sped.: " + string(kst_tab_arsp.colli, "##,##0") &
-//											  + "/" + string(kst_tab_arsp.colli_out, "##,##0") 
-//				else
-//					kst_tab_treeview.descrizione_tipo = kst_tab_treeview.descrizione_tipo & 
-//											  + "  Colli: " + string(kst_tab_arsp.colli, "##,##0") 
-//				end if											  
-//				kst_tab_treeview.descrizione_tipo =  kst_tab_treeview.descrizione_tipo & 
-//											  + "  Peso kg: " + string(kst_tab_arsp.peso_kg_out, "##,##0.00") &
-//				
-//				kst_tab_treeview.descrizione = &
-//											  + "Note: " + trim(kst_tab_arsp.note_1) &
-//											  + " " + trim(kst_tab_arsp.note_2) &
-//											  + " " + trim(kst_tab_arsp.note_3) 
-//											  
-//				kst_tab_treeview.descrizione_ulteriore =  &
-//											  + " Ricev.:" + string(kst_tab_sped.clie_2, "####0") + " " + trim(kst_tab_clienti.rag_soc_10) &
-//											  + " Fatt.:" + string(kst_tab_sped.clie_3, "####0") + " " + trim(kst_tab_clienti.rag_soc_20)
-//											  
-//				kst_treeview_data_any.st_tab_treeview = kst_tab_treeview 
-//				
-//				kst_treeview_data.struttura = kst_treeview_data_any
-//				
-//				kst_treeview_data.label = &
-//				                    string(kst_tab_arsp.num_bolla_out, "####0") &
-//				                    + " - " + string(kst_tab_arsp.data_bolla_out, "dd.mm.yy") &
-//										  + " "  &
-//										  +  &
-//										  + " (" + string(kst_tab_sped.clie_2, "#####") + " -> " &
-//										  + string(kst_tab_sped.clie_3, "#####") + ")"
-//
-//				kst_treeview_data.oggetto = k_tipo_oggetto_figlio 
-//				kst_treeview_data.handle = k_handle_item_padre
-//	
-//				ktvi_treeviewitem.label = kst_treeview_data.label
-//				ktvi_treeviewitem.data = kst_treeview_data
-//										  
-////--- Nuovo Item
-//				ktvi_treeviewitem.selected = false
-//				k_handle_item = kuf1_treeview.kitv_tv1.insertitemlast(k_handle_item_padre, ktvi_treeviewitem)
-//				
-////--- salvo handle del item appena inserito nella stessa struttura
-//				kst_treeview_data.handle = k_handle_item
-//
-////--- inserisco il handle di questa riga tra i dati del item
-//				ktvi_treeviewitem.data = kst_treeview_data
-//
-//				kuf1_treeview.kitv_tv1.setitem(k_handle_item, ktvi_treeviewitem)
-	
 				fetch kc_treeview 
 				into
 					:kst_tab_arsp.id_armo,
+					:kst_tab_arsp.id_arsp,
+					:kst_tab_arsp.id_sped,
 					:kst_tab_armo.art,   
 					:kst_tab_prodotti.des,
 					:kst_tab_armo.num_int,   
 					:kst_tab_armo.data_int,   
-					:kst_tab_arsp.num_bolla_out,   
-					:kst_tab_arsp.data_bolla_out,   
+					:kst_tab_sped.numpref_bolla_out,   
+					:kst_tab_sped.num_bolla_out,   
+					:kst_tab_sped.data_bolla_out,   
 					:kst_tab_arsp.stampa,   
 					:kst_tab_arsp.colli,   
 					:kst_tab_arsp.colli_out,   
@@ -1553,6 +1214,7 @@ kuf_armo kuf1_armo
 	"  SELECT distinct  " &
 	+ "  top 10000 "  &
 	+ "         sped.id_sped,  "  &
+	+ "    trim(sped.numpref_bolla_out) numpref_bolla_out,  "  &
 	+ "         sped.num_bolla_out,  "  &
 	+ "         sped.data_bolla_out, "  &
 	+ "         sped.stampa,   " &
@@ -1560,26 +1222,21 @@ kuf_armo kuf1_armo
 	+ "         sped.data_rit, " & 
 	+ "         sped.data_uscita, " & 
 	+ "         sped.ora_rit,   " &
-	+ "         sped.vett_1,   " &
-	+ "         sped.vett_2,   " &
-	+ "         sped.note_1,   " &
-	+ "         sped.note_2,   " &
-	+ "         sped.causale,   " &
-	+ "         sped.aspetto, " &
-	+ "			sped.clie_2, " &
-	+ "			sped.clie_3, " &
-	+ "			c2.rag_soc_10, " &
-	+ "			c3.rag_soc_10 " &
-	+ "    FROM sped LEFT OUTER JOIN clienti c2 ON " &
-	+ "			 sped.clie_2 = c2.codice " &
-	+ "              LEFT OUTER JOIN clienti c3 ON " &
-	+ "			 sped.clie_3 = c3.codice " &
-	+ "			     inner join arsp on " &
-	+ "	 	    sped.data_bolla_out = arsp.data_bolla_out and sped.num_bolla_out = arsp.num_bolla_out " &
-	+ "			     inner join armo on " &
-	+ "	 	    arsp.id_armo = armo.id_armo " &
-	+ "			     inner join meca on " &
-	+ "	 	    armo.id_meca = meca.id  "
+	+ "         isnull(sped.vett_1,''),   " &
+	+ "         isnull(sped.vett_2,''),   " &
+	+ "         isnull(sped.note_1,''),   " &
+	+ "         isnull(sped.note_2,''),   " &
+	+ "         isnull(sped.causale,''),   " &
+	+ "         isnull(sped.aspetto,''), " &
+	+ "			isnull(sped.clie_2,0), " &
+	+ "			isnull(sped.clie_3,0), " &
+	+ "			isnull(c2.rag_soc_10,''), " &
+	+ "			isnull(c3.rag_soc_10,'') " &
+	+ "    FROM sped LEFT OUTER JOIN clienti c2 ON sped.clie_2 = c2.codice " &
+	+ "              LEFT OUTER JOIN clienti c3 ON sped.clie_3 = c3.codice " &
+	+ "			     inner join arsp on sped.id_sped = arsp.id_sped " &
+	+ "			     inner join armo on arsp.id_armo = armo.id_armo " &
+	+ "			     inner join meca on armo.id_meca = meca.id  "
 
 
 	
@@ -1663,8 +1320,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 			
 		case kuf1_treeview.kist_treeview_oggetto.sped_righe_dett
 			k_query_where = " where " &
-				+ " (sped.data_bolla_out = ? " &
-				+ "  and sped.num_bolla_out = ? ) " 
+				+ " sped.id_sped = ? " 
 	
 		case kuf1_treeview.kist_treeview_oggetto.meca_car_sp_dett, kuf1_treeview.kist_treeview_oggetto.armo_tipo_sp 
 			k_query_where = " where " &
@@ -1707,7 +1363,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 
 	k_query_order = &
 	+ "	 order by " &
-	+ "		 sped.data_bolla_out desc, sped.num_bolla_out desc "
+	+ "		 sped.data_bolla_out desc, numpref_bolla_out, sped.num_bolla_out desc "
 	
 //--- Composizione della Query	
 	if len(trim(k_query_where)) > 0 then
@@ -1722,7 +1378,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 		choose case k_tipo_oggetto
 			
 			case kuf1_treeview.kist_treeview_oggetto.sped_righe_dett
-				open DYNAMIC kc_treeview using :kst_tab_sped.data_bolla_out, :kst_tab_sped.num_bolla_out;
+				open DYNAMIC kc_treeview using :kst_tab_sped.id_sped;  //, :kst_tab_sped.num_bolla_out;
 				
 			case kuf1_treeview.kist_treeview_oggetto.meca_car_sp_dett,  kuf1_treeview.kist_treeview_oggetto.armo_tipo_sp 
 				open DYNAMIC kc_treeview using :kst_tab_meca.id;
@@ -1771,6 +1427,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 			fetch kc_treeview 
 				into
 					:kst_tab_sped.id_sped,   
+					:kst_tab_sped.numpref_bolla_out,   
 					:kst_tab_sped.num_bolla_out,   
 					:kst_tab_sped.data_bolla_out,   
 					:kst_tab_sped.stampa,   
@@ -1813,6 +1470,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 				kst_treeview_data.struttura = kst_treeview_data_any
 				
 				if k_num_rec = 5000 then
+					kst_tab_sped.numpref_bolla_out = ""
 					kst_tab_sped.num_bolla_out = 0
 					kst_tab_sped.data_bolla_out = date(0)
 					kst_tab_sped.clie_2 = 0
@@ -1821,7 +1479,8 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 				
 				else
 					kst_treeview_data.label = &
-				                    string(kst_tab_sped.num_bolla_out, "####0") &
+					                 trim(kst_tab_sped.numpref_bolla_out) &
+				                    + string(kst_tab_sped.num_bolla_out, "####0") &
 				                    + " - " + string(kst_tab_sped.data_bolla_out, "dd.mm.yy") &
 										  + " "  &
 										  +  &
@@ -1853,6 +1512,7 @@ k_dataoggi_meno370 = relativedate(k_dataoggi, -370)
 				fetch kc_treeview 
 				into
 					:kst_tab_sped.id_sped,   
+					:kst_tab_sped.numpref_bolla_out,   
 					:kst_tab_sped.num_bolla_out,   
 					:kst_tab_sped.data_bolla_out,   
 					:kst_tab_sped.stampa,   
@@ -2536,118 +2196,84 @@ st_esito kst_esito
 
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-	
-if kst_tab_arsp.id_arsp > 0 then
-	
-	kst_esito = get_numero_da_id(kst_tab_arsp )
-	if kst_esito.esito = kkg_esito.ok or  kst_esito.esito = kkg_esito.db_wrn then
-			
-		kst_tab_arsp.x_datins = kGuf_data_base.prendi_x_datins()
-		kst_tab_arsp.x_utente = kGuf_data_base.prendi_x_utente()
-
-		kst_tab_arsp1.stampa = kki_sped_flg_stampa_fatturato
-		UPDATE arsp  
-			  SET stampa = :kst_tab_arsp1.stampa  
-		  			,x_datins = :kst_tab_arsp.x_datins
-			  		,x_utente = :kst_tab_arsp.x_utente
-			WHERE arsp.id_arsp = :kst_tab_arsp.id_arsp   
-			using sqlca;
-	
-		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore durante aggiorn. riga d.d.t. ~n~r" &
-						+ " (riga=" + string(kst_tab_arsp.id_arsp, "####0") + ") Sped. nr. " &
-						+ string(kst_tab_arsp.num_bolla_out, "####0") + " del " &
-						+ string(kst_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
-						+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+		
+	if kst_tab_arsp.id_arsp > 0 then
+		
+		if kst_tab_arsp.id_sped > 0 then
 		else
-			
-//--- se non ci sono più colli da fatt x la sped allora aggioro anche la testata dellla SPEDIZIONE 
-			kst_esito = get_colli_da_fatt( kst_tab_arsp ) 
-			if kst_esito.esito = kkg_esito.ok then
-				if kst_tab_arsp.colli = 0 then 
-					kst_tab_sped.num_bolla_out = kst_tab_arsp.num_bolla_out
-					kst_tab_sped.data_bolla_out = kst_tab_arsp.data_bolla_out
-					kst_tab_sped.st_tab_g_0.esegui_commit = kst_tab_arsp.st_tab_g_0.esegui_commit
-					
-					kst_esito = set_sped_fatturata( kst_tab_sped )
-					
+			kst_tab_sped.id_sped = get_id_sped(kst_tab_arsp)
+		end if
+		kst_esito = get_numero_da_id(kst_tab_sped )
+		if kst_esito.esito = kkg_esito.ok or  kst_esito.esito = kkg_esito.db_wrn then
+				
+			kst_tab_arsp.x_datins = kGuf_data_base.prendi_x_datins()
+			kst_tab_arsp.x_utente = kGuf_data_base.prendi_x_utente()
+	
+			kst_tab_arsp1.stampa = kki_sped_flg_stampa_fatturato
+			UPDATE arsp  
+				  SET stampa = :kst_tab_arsp1.stampa  
+						,x_datins = :kst_tab_arsp.x_datins
+						,x_utente = :kst_tab_arsp.x_utente
+				WHERE arsp.id_arsp = :kst_tab_arsp.id_arsp   
+				using sqlca;
+		
+			if sqlca.sqlcode < 0 then
+				kst_esito.sqlcode = sqlca.sqlcode
+				kst_esito.SQLErrText = "Errore durante aggiorn. riga d.d.t. ~n~r" &
+							+ " (riga=" + string(kst_tab_arsp.id_arsp, "####0") + ") Sped. nr. " &
+							+ string(kst_tab_arsp.num_bolla_out, "####0") + " del " &
+							+ string(kst_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
+							+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
+				kst_esito.esito = kkg_esito.db_ko
+			else
+				
+	//--- se non ci sono più colli da fatt x la sped allora aggioro anche la testata dellla SPEDIZIONE 
+				kst_esito = get_colli_da_fatt( kst_tab_arsp ) 
+				if kst_esito.esito = kkg_esito.ok then
+					if kst_tab_arsp.colli = 0 then 
+						kst_tab_sped.num_bolla_out = kst_tab_arsp.num_bolla_out
+						kst_tab_sped.data_bolla_out = kst_tab_arsp.data_bolla_out
+						kst_tab_sped.st_tab_g_0.esegui_commit = kst_tab_arsp.st_tab_g_0.esegui_commit
+						
+						kst_esito = set_sped_fatturata( kst_tab_sped )
+						
+					end if
+				end if
+				
+			end if
+		
+	//---- COMMIT o ROLLBACK....	
+			if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
+				if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
+					kGuf_data_base.db_commit_1( )
+				end if
+			else
+				if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
+					kGuf_data_base.db_rollback_1( )
 				end if
 			end if
-			
+		
 		end if
-	
-//---- COMMIT o ROLLBACK....	
-		if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
-			end if
-		else
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
-			end if
-		end if
-	
-	end if
-else
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore tab. righe d.d.t., Manca il nr. riga (id_arsp) !" 
-	kst_esito.esito = kkg_esito.err_logico
-			
-end if	
-
-
-
-return kst_esito
-
-end function
-
-public function st_esito get_numero_da_id (ref st_tab_arsp kst_tab_arsp);//
-//--- Piglia il NUMERO e DATA spedizione da id_arsp
-//
-//--- inp: st_tab_arsp.id_arsp
-//--- out: st_esito
-//
-//
-long k_codice
-st_esito kst_esito
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-SELECT distinct arsp.num_bolla_out
-  			,arsp.data_bolla_out   
-    INTO :kst_tab_arsp.num_bolla_out,   
-         :kst_tab_arsp.data_bolla_out  
-    FROM arsp  
-   WHERE ( id_arsp = :kst_tab_arsp.id_arsp ) 
-           using sqlca;
-	
-	if sqlca.sqlcode <> 0 then
+	else
 		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore tab. d.d.t., riga bolla di sped. (id=" + string( kst_tab_arsp.id_arsp) + "): ~n~r" &
-									 + trim(SQLCA.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
+		kst_esito.SQLErrText = "Errore tab. righe d.d.t., Manca il nr. riga (id_arsp) !" 
+		kst_esito.esito = kkg_esito.err_logico
+				
+	end if	
 	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	kst_esito = kuo_exception.get_st_esito()
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
 return kst_esito
-
-
 
 end function
 
@@ -2785,70 +2411,79 @@ st_tab_sped kst_tab_sped
 st_esito kst_esito
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
-if kst_tab_arsp.id_arsp > 0 then
-	
-	kst_esito = get_numero_da_id(kst_tab_arsp )
-	if kst_esito.esito = kkg_esito.ok or  kst_esito.esito = kkg_esito.db_wrn then
-			
+	if kst_tab_arsp.id_arsp > 0 then
 		
-		kst_tab_arsp.stampa = kki_sped_flg_stampa_bolla_stampata
-		UPDATE arsp  
-			  SET stampa = :kst_tab_arsp.stampa  
-			WHERE arsp.id_arsp = :kst_tab_arsp.id_arsp   
-			using sqlca;
-	
-		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore durante aggiorn. riga d.d.t. ~n~r" &
-						+ " (riga=" + string(kst_tab_arsp.id_arsp, "####0") + ") Sped. nr. " &
-						+ string(kst_tab_arsp.num_bolla_out, "####0") + " del " &
-						+ string(kst_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
-						+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
+		if kst_tab_arsp.id_sped > 0 then
 		else
+			kst_tab_sped.id_sped = get_id_sped(kst_tab_arsp)
+		end if
+		kst_esito = get_numero_da_id(kst_tab_sped )
+	
+		if kst_esito.esito = kkg_esito.ok or  kst_esito.esito = kkg_esito.db_wrn then
+				
 			
-//--- se non ci sono più colli da fatt x la sped allora aggioro anche la testata dellla SPEDIZIONE 
-			kst_esito = get_colli_fatt( kst_tab_arsp ) 
-			if kst_esito.esito = kkg_esito.ok then
-				if kst_tab_arsp.colli = 0 then 
-					kst_tab_sped.num_bolla_out = kst_tab_arsp.num_bolla_out
-					kst_tab_sped.data_bolla_out = kst_tab_arsp.data_bolla_out
-					kst_tab_sped.st_tab_g_0.esegui_commit = kst_tab_arsp.st_tab_g_0.esegui_commit
-					
-					kst_esito = reset_sped_fatturata( kst_tab_sped )
-					
+			kst_tab_arsp.stampa = kki_sped_flg_stampa_bolla_stampata
+			UPDATE arsp  
+				  SET stampa = :kst_tab_arsp.stampa  
+				WHERE arsp.id_arsp = :kst_tab_arsp.id_arsp   
+				using sqlca;
+		
+			if sqlca.sqlcode < 0 then
+				kst_esito.sqlcode = sqlca.sqlcode
+				kst_esito.SQLErrText = "Errore durante aggiorn. riga d.d.t. ~n~r" &
+							+ " (riga=" + string(kst_tab_arsp.id_arsp, "####0") + ") Sped. nr. " &
+							+ string(kst_tab_arsp.num_bolla_out, "####0") + " del " &
+							+ string(kst_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
+							+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
+				kst_esito.esito = kkg_esito.db_ko
+			else
+				
+	//--- se non ci sono più colli da fatt x la sped allora aggioro anche la testata dellla SPEDIZIONE 
+				kst_esito = get_colli_fatt( kst_tab_arsp ) 
+				if kst_esito.esito = kkg_esito.ok then
+					if kst_tab_arsp.colli = 0 then 
+						kst_tab_sped.num_bolla_out = kst_tab_arsp.num_bolla_out
+						kst_tab_sped.data_bolla_out = kst_tab_arsp.data_bolla_out
+						kst_tab_sped.st_tab_g_0.esegui_commit = kst_tab_arsp.st_tab_g_0.esegui_commit
+						
+						kst_esito = reset_sped_fatturata( kst_tab_sped )
+						
+					end if
+				end if
+				
+			end if
+		
+	//---- COMMIT o ROLLBACK....	
+			if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
+				if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
+					kGuf_data_base.db_commit_1( )
+				end if
+			else
+				if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
+					kGuf_data_base.db_rollback_1( )
 				end if
 			end if
-			
+		
 		end if
+	else
+		kst_esito.sqlcode = sqlca.sqlcode
+		kst_esito.SQLErrText = "Errore tab. righe d.d.t., Manca il nr. riga (id_arsp) !" 
+		kst_esito.esito = kkg_esito.err_logico
+				
+	end if	
 	
-//---- COMMIT o ROLLBACK....	
-		if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
-			end if
-		else
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
-			end if
-		end if
 	
-	end if
-else
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore tab. righe d.d.t., Manca il nr. riga (id_arsp) !" 
-	kst_esito.esito = kkg_esito.err_logico
-			
-end if	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	kst_esito = kuo_exception.get_st_esito()
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-
+end try	
 
 return kst_esito
 
@@ -3064,8 +2699,10 @@ st_esito kst_esito
 	if kst_tab_sped.clie_2 > 0 then
 		
 		select	max(num_bolla_out)
+		        ,max(id_sped)
 				  ,data_bolla_out
 			into :kst_tab_sped.num_bolla_out
+				,:kst_tab_sped.id_sped
 				,:kst_tab_sped.data_bolla_out
 			from sped  
 			where clie_2 = :kst_tab_sped.clie_2 
@@ -3079,8 +2716,10 @@ st_esito kst_esito
 	else
 		
 		select	max(num_bolla_out)
+		        ,max(id_sped)
 				  ,data_bolla_out
 			into :kst_tab_sped.num_bolla_out
+				,:kst_tab_sped.id_sped
 				,:kst_tab_sped.data_bolla_out
 			from sped  
 			where data_bolla_out in (
@@ -3102,79 +2741,6 @@ st_esito kst_esito
 	end if
 	
 return kst_esito	
-
-end function
-
-public function st_esito anteprima_righe (datastore kdw_anteprima, st_tab_sped kst_tab_sped);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima (elenco arsp x num+data sped)
-//===
-//=== Par. Inut: 
-//===               datawindow su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.not_fnd
-
-else
-
-	if kst_tab_sped.num_bolla_out > 0 then
-
-		kdw_anteprima.dataobject = "d_arsp_l_sped"		
-		kdw_anteprima.settransobject(sqlca)
-
-//		kuf1_utility = create kuf_utility
-//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
-//--- retrive dell'attestato 
-		k_rc=kdw_anteprima.retrieve(kst_tab_sped.data_bolla_out, kst_tab_sped.num_bolla_out)
-
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Riga Lotto da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = kkg_esito.err_logico
-		
-	end if
-end if
-
-
-return kst_esito
 
 end function
 
@@ -3511,145 +3077,6 @@ return kst_esito
 
 end function
 
-public function st_esito set_sped_stampata (st_tab_sped kst_tab_sped);//
-//====================================================================
-//=== Imposta a Stampata la Bolla di spedizione
-//=== 
-//=== 
-//=== Input: st_sped.num_bolla_out e data_bolla_out 
-//===           + data_rit e ora_rit 
-//=== Out: ST_ESITO
-//===           		
-//=== 
-//====================================================================
-//
-st_esito kst_esito
-
-	
-
-kst_esito = kguo_exception.inizializza(this.classname())
-	
-if kst_tab_sped.num_bolla_out > 0 then
-
-	kst_tab_sped.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_sped.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_tab_sped.stampa = kki_sped_flg_stampa_bolla_stampata
-	UPDATE sped  
-		  SET stampa = :kst_tab_sped.stampa
-			,data_rit = :kst_tab_sped.data_rit
-			,ora_rit =  :kst_tab_sped.ora_rit
-			,x_datins = :kst_tab_sped.x_datins
-			,x_utente = :kst_tab_sped.x_utente
-		WHERE sped.num_bolla_out = :kst_tab_sped.num_bolla_out
-					and data_bolla_out = :kst_tab_sped.data_bolla_out
-		using sqlca;
-
-	if sqlca.sqlcode < 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore durante aggiorn. d.d.t. a stampato ~n~r" &
-					+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
-					+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
-					+ " ~n~rErrore-tab.SPED:"	+ trim(sqlca.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-	end if
-	
-//---- COMMIT o ROLLBACK....	
-	if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
-		if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_commit_1( )
-		end if
-	else
-		if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-			kGuf_data_base.db_rollback_1( )
-		end if
-	end if
-
-else
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore tab. d.d.t., Manca il nr. Spedizione (num_bolla_out) !" 
-	kst_esito.esito = kkg_esito.err_logico
-			
-end if	
-
-
-
-return kst_esito
-
-end function
-
-public function st_esito set_righe_stampata (st_tab_arsp kst_tab_arsp);//
-//====================================================================
-//=== Imposta a Stampata tutte le Righe della Bolla di spedizione
-//=== 
-//=== 
-//=== Input: st_arsp.num_bolla_out / data_bolla_out
-//=== Out: ST_ESITO
-//===           		
-//=== 
-//====================================================================
-//
-st_esito kst_esito
-
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-	
-	
-if kst_tab_arsp.num_bolla_out > 0 then
-
-	kst_tab_arsp.x_datins = kGuf_data_base.prendi_x_datins()
-	kst_tab_arsp.x_utente = kGuf_data_base.prendi_x_utente()
-
-	kst_tab_arsp.stampa = kki_sped_flg_stampa_bolla_stampata
-	UPDATE arsp
-		  SET stampa = :kst_tab_arsp.stampa
-		  			,x_datins = :kst_tab_arsp.x_datins
-			  		,x_utente = :kst_tab_arsp.x_utente
-		WHERE num_bolla_out = :kst_tab_arsp.num_bolla_out
-					and data_bolla_out = :kst_tab_arsp.data_bolla_out
-		using sqlca;
-	
-		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore durante aggiorn. righe d.d.t. in stampa~n~r" &
-						+ "Sped. nr. " &
-						+ string(kst_tab_arsp.num_bolla_out, "####0") + " del " &
-						+ string(kst_tab_arsp.data_bolla_out, "dd.mm.yyyy") &	
-						+ " ~n~rErrore-tab.ARSP:"	+ trim(sqlca.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			
-			
-		end if
-	
-//---- COMMIT o ROLLBACK....	
-		if kst_esito.esito = kkg_esito.ok or kst_esito.esito = kkg_esito.db_wrn  then
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_commit_1( )
-			end if
-		else
-			if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
-				kGuf_data_base.db_rollback_1( )
-			end if
-		end if
-	
-else
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore tab. righe d.d.t., Manca il nr. riga (id_arsp) !" 
-	kst_esito.esito = kkg_esito.err_logico
-			
-end if	
-
-
-
-return kst_esito
-
-end function
-
 public function integer get_ddt_da_stampare (ref st_sped_ddt kst_sped_ddt[]) throws uo_exception;//
 //--- Cerca i documenti non ancora Stampati (vedi il flag di "STAMPA")
 //--- input:  datastore ds_fatture con l'elenco delle fatture da aggiornare
@@ -3748,86 +3175,6 @@ return k_riga_ddt
 
 end function
 
-public function st_esito anteprima_1 (datastore kdw_anteprima, st_tab_sped kst_tab_sped);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima (Testata Spedizione)
-//===
-//=== Par. Inut: 
-//===               datawindow su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.not_fnd
-
-else
-
-	if kst_tab_sped.num_bolla_out > 0 then
-
-		kdw_anteprima.dataobject = "d_sped_1"		
-		kdw_anteprima.settransobject(sqlca)
-
-//		kuf1_utility = create kuf_utility
-//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
-		try
-//--- get del id_sped se manca
-			if kst_tab_sped.id_sped > 0 then 
-			else
-				this.get_id_sped(kst_tab_sped)
-			end if
-			k_rc=kdw_anteprima.retrieve(kst_tab_sped.id_sped)
-		catch (uo_exception kuo_exception)
-			kst_esito = kuo_exception.get_st_esito()
-		end try
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = kkg_esito.err_logico
-		
-	end if
-end if
-
-
-return kst_esito
-
-end function
-
 public function st_esito anteprima_1 (datawindow kdw_anteprima, st_tab_sped kst_tab_sped);//
 //=== 
 //====================================================================
@@ -3875,7 +3222,7 @@ if not k_return then
 
 else
 
-	if kst_tab_sped.num_bolla_out > 0 then
+	if kst_tab_sped.id_sped > 0 then
 
 		kdw_anteprima.dataobject = "d_sped_1"		
 		kdw_anteprima.settransobject(sqlca)
@@ -3886,11 +3233,6 @@ else
 
 		kdw_anteprima.reset()	
 		try
-//--- get del id_sped se manca
-			if kst_tab_sped.id_sped > 0 then 
-			else
-				this.get_id_sped(kst_tab_sped)
-			end if
 			k_rc=kdw_anteprima.retrieve(kst_tab_sped.id_sped)
 		catch (uo_exception kuo_exception)
 			kst_esito = kuo_exception.get_st_esito()
@@ -3900,107 +3242,6 @@ else
 	else
 		kst_esito.sqlcode = 0
 		kst_esito.SQLErrText = "Nessuna Riga Lotto da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = kkg_esito.err_logico
-		
-	end if
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito anteprima (datastore kds_anteprima, st_tab_sped kst_tab_sped);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima (Testata Spedizione)
-//===
-//=== Par. Inut: 
-//===               datastore su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-long k_n_ddt_stampate=0
-st_open_w kst_open_w
-st_esito kst_esito
-st_ddt_stampa kst_ddt_stampa[]
-kuf_sped_ddt kuf1_sped_ddt
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-datawindow kdw_nullo
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
-
-	if kst_tab_sped.num_bolla_out > 0 then
-
-//--- retrive dell'attestato 
-	
-		try 
-
-//---- inizializza x stampa fattura
-			kuf1_sped_ddt = create kuf_sped_ddt
-//			kuf1_sped_ddt.produci_ddt_inizializza(kst_tab_sped)
-
-			kst_ddt_stampa[1].num_bolla_out = kst_tab_sped.num_bolla_out
-			kst_ddt_stampa[1].data_bolla_out =  kst_tab_sped.data_bolla_out
-			kst_ddt_stampa[1].id_sped =  kst_tab_sped.id_sped
-			
-//--- produce ddt	
-			k_n_ddt_stampate = kuf1_sped_ddt.produci_ddt(kst_ddt_stampa[])
-		
-			if k_n_ddt_stampate > 0 then
-				kds_anteprima.dataobject = kuf1_sped_ddt.kids_stampa_ddt.dataobject  //kuf1_sped_ddt.ki_dw_stampa_ddt		
-				kds_anteprima.settransobject(sqlca)
-		
-				kds_anteprima.reset()	
-
-				kuf1_sped_ddt.produci_ddt_set_dw_loghi(kds_anteprima, kdw_nullo)
-				kuf1_sped_ddt.kids_stampa_ddt.rowscopy(1,kuf1_sped_ddt.kids_stampa_ddt.rowcount(),Primary!,kds_anteprima,1,Primary!)
-			end if
-			
-		catch (uo_exception kuo_exception)
-				kst_esito = kuo_exception.get_st_esito()
-
-		finally
-//--- distrugge oggetti x stampa ddt
-			if isvalid(kuf1_sped_ddt) then destroy kuf1_sped_ddt
-				
-		end try
-		
-
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
 		kst_esito.esito = kkg_esito.err_logico
 		
 	end if
@@ -4037,7 +3278,7 @@ st_esito kst_esito
 kuf_sicurezza kuf1_sicurezza
 kuf_utility kuf1_utility
 kuf_sped_ddt kuf1_sped_ddt
-datastore kds_nullo
+uo_ds_std_1 kds_nullo
 
 
 kst_esito.esito = kkg_esito.ok
@@ -4062,17 +3303,13 @@ if not k_return then
 
 else
 
-	if kst_tab_sped.num_bolla_out > 0 then
+	if kst_tab_sped.id_sped > 0 then
 
 		try 
-
 				
 //---- inizializza x stampa ddt
 			kuf1_sped_ddt = create kuf_sped_ddt
-//			kuf1_sped_ddt.produci_ddt_inizializza(kst_tab_sped)
 			
-			kst_ddt_stampa[1].num_bolla_out = kst_tab_sped.num_bolla_out
-			kst_ddt_stampa[1].data_bolla_out =  kst_tab_sped.data_bolla_out
 			kst_ddt_stampa[1].id_sped =  kst_tab_sped.id_sped
 			
 //--- produci_ddt
@@ -4119,79 +3356,6 @@ return kst_esito
 
 end function
 
-public function st_esito anteprima_2 (datastore kdw_anteprima, st_tab_sped kst_tab_sped);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima (Testata Spedizione)
-//===
-//=== Par. Inut: 
-//===               datawindow su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.not_fnd
-
-else
-
-	if kst_tab_sped.num_bolla_out > 0 then
-
-		kdw_anteprima.dataobject = "d_sped_wm_l"		
-		kdw_anteprima.settransobject(sqlca)
-
-//		kuf1_utility = create kuf_utility
-//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
-//--- retrive dell'attestato 
-		k_rc=kdw_anteprima.retrieve(kst_tab_sped.num_bolla_out, kst_tab_sped.data_bolla_out)
-
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = kkg_esito.err_logico
-		
-	end if
-end if
-
-
-return kst_esito
-
-end function
-
 public function boolean u_open_stampa (st_tab_sped kst_tab_sped[]);//---
 //--- Stampa Sped
 //---
@@ -4213,11 +3377,11 @@ try
 	k_max = UpperBound(kst_tab_sped)
 	for k_ctr = 1 to k_max
 		
-		if kst_tab_sped[k_ctr].num_bolla_out > 0 then
+		if kst_tab_sped[k_ctr].id_sped > 0 then
 			k_riga++
 			kst_sped_ddt[k_riga].kst_tab_sped.id_sped = kst_tab_sped[k_ctr].id_sped
-			kst_sped_ddt[k_riga].kst_tab_sped.num_bolla_out = kst_tab_sped[k_ctr].num_bolla_out
-			kst_sped_ddt[k_riga].kst_tab_sped.data_bolla_out = kst_tab_sped[k_ctr].data_bolla_out
+//			kst_sped_ddt[k_riga].kst_tab_sped.num_bolla_out = kst_tab_sped[k_ctr].num_bolla_out
+//			kst_sped_ddt[k_riga].kst_tab_sped.data_bolla_out = kst_tab_sped[k_ctr].data_bolla_out
 			kst_sped_ddt[k_riga].sel = 1
 				
 		end if								
@@ -4277,7 +3441,6 @@ public function st_esito get_sped_stampa (ref st_tab_sped kst_tab_sped);//
 //
 st_esito kst_esito
 
-	
 
 kst_esito.esito = kkg_esito.ok
 kst_esito.sqlcode = 0
@@ -4290,8 +3453,9 @@ if kst_tab_sped.num_bolla_out > 0 then
 	select distinct stampa 
 			into :kst_tab_sped.stampa
 			from sped  
-		WHERE sped.num_bolla_out = :kst_tab_sped.num_bolla_out
-					and data_bolla_out = :kst_tab_sped.data_bolla_out
+		WHERE sped.num_bolla_out = :kst_tab_sped.id_sped
+//		WHERE sped.num_bolla_out = :kst_tab_sped.num_bolla_out
+//					and data_bolla_out = :kst_tab_sped.data_bolla_out
 		using sqlca;
 
 	if sqlca.sqlcode = 0 then
@@ -4307,9 +3471,8 @@ if kst_tab_sped.num_bolla_out > 0 then
 		
 		if sqlca.sqlcode < 0 then
 			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore durante lettura d.d.t. (flag stampa) ~n~r" &
-						+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
-						+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
+			kst_esito.SQLErrText = "Errore durante lettura flag di STAMPA del DDT Id " &
+						+ string(kst_tab_sped.id_sped, "####0") &
 						+ " ~n~rErrore-tab.SPED:"	+ trim(sqlca.SQLErrText)
 			kst_esito.esito = kkg_esito.db_ko
 		end if
@@ -4317,7 +3480,7 @@ if kst_tab_sped.num_bolla_out > 0 then
 	
 else
 	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Errore tab. d.d.t., Manca il nr. Spedizione (num_bolla_out) !" 
+	kst_esito.SQLErrText = "Errore tab. DDT, Manca ID di Spedizione! " 
 	kst_esito.esito = kkg_esito.err_logico
 			
 end if	
@@ -4338,75 +3501,58 @@ public function integer get_sped_camion_caricato (ref st_tab_sped kst_tab_sped) 
 //--- Lancia uo_exception
 //
 //
-int k_return=0
-int k_rc=0
-datastore kds_1
-st_esito kst_esito
-uo_exception kuo_exception
-
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+int k_return
+long k_row
+uo_ds_std_1 kds_1
 
 try
+	kguo_exception.inizializza(this.classname())
 
-	kds_1 = create datastore
+	kds_1 = create uo_ds_std_1
 
-	if kst_tab_sped.num_bolla_out > 0 then
+	if kst_tab_sped.id_sped > 0 then
 	
 	//--- controlla la presenza del PackingList x questa entrata
 		kds_1.dataobject = "d_sped_wm_presente"
 		kds_1.settransobject(sqlca)
-		k_rc = kds_1.retrieve(kst_tab_sped.num_bolla_out, kst_tab_sped.data_bolla_out )
-		if k_rc >= 0 then
-			if kds_1.rowcount( ) > 0 then
-			
-	
-	//--- Controlla numero colli messi sul camion
-				kds_1.dataobject = "d_sped_wm_camion_caricato"	
-				kds_1.settransobject(sqlca)
-				
-				k_rc = kds_1.retrieve(kst_tab_sped.num_bolla_out, kst_tab_sped.data_bolla_out )
-				
-				if k_rc >= 0 then
-					if kds_1.rowcount( ) > 0 then
-						
-						if kds_1.object.k_colli_arsp >= kds_1.object.k_colli_wm_pklist_righe then
-					
-							k_return = kki_sped_camion_caricato_SI // Tutto OK!!!!
-						else
-							k_return = kki_sped_camion_caricato_NO // ancora merce da caricare sul camion
-						end if
-					end if
-				end if
-			else
-				k_return = kki_sped_camion_caricato_NON_GESTITO // non ho trovato il PK probabilmente è roba non gestita con il WM
-			end if
-		end if
-				
-	//--- se si era verificato un errore.... 			
-		if k_rc < 0 then
-			kst_esito.sqlcode = k_rc
-			kst_esito.SQLErrText = "Errore lettura colli WM (wm_pklist_righe). Num bolla di sped. " + string(kst_tab_sped.num_bolla_out) + ": ~n~r" &
-							+ "dati in lettura da: " + kds_1.dataobject 
-			kst_esito.esito = kkg_esito.db_ko
-				
-			kst_esito.esito = kkg_esito.db_ko
-			kuo_exception = create uo_exception 
-			kuo_exception.set_esito( kst_esito )
-			throw kuo_exception
-				
+		k_row = kds_1.retrieve(kst_tab_sped.id_sped)
+		if k_row < 0 then
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.set_st_esito_err_ds(kds_1, "Errore in verifica Colli da Spedire su tabella WM, id DDT " + string(kst_tab_sped.id_sped))
+			throw kguo_exception
 		end if
 		
+		if k_row > 0 then
+	
+	//--- Controlla numero colli messi sul camion
+			kds_1.dataobject = "d_sped_wm_camion_caricato"	
+			kds_1.settransobject(sqlca)
+			
+			k_row = kds_1.retrieve(kst_tab_sped.id_sped)
+			if k_row < 0 then
+				kguo_exception.inizializza(this.classname())
+				kguo_exception.set_st_esito_err_ds(kds_1, "Errore in verifica Colli da Spedire se caricati su Camion in tabella WM, id DDT " + string(kst_tab_sped.id_sped))
+				throw kguo_exception
+			end if
+				
+			if k_row > 0 then
+				
+				if kds_1.object.k_colli_arsp >= kds_1.object.k_colli_wm_pklist_righe then
+			
+					k_return = kki_sped_camion_caricato_SI // Tutto OK!!!!
+				else
+					k_return = kki_sped_camion_caricato_NO // ancora merce da caricare sul camion
+				end if
+			end if
+		else
+			k_return = kki_sped_camion_caricato_NON_GESTITO // non ho trovato il PK probabilmente è roba non gestita con il WM
+		end if
 		
 	end if
 	
 
 finally
-	destroy kds_1
+	if isvalid(kds_1) then destroy kds_1
 
 end try 
 
@@ -5230,51 +4376,11 @@ public function boolean get_id_sped_anno (ref st_tab_sped kst_tab_sped) throws u
 //---Lancia EXCEPTION
 //---
 //----------------------------------------------------------------------------------------------------------------
-boolean k_return=false
-st_esito kst_esito
-integer k_anno
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
 
+	if get_id_sped(kst_tab_sped) > 0 then return true
 	
-	if kst_tab_sped.num_bolla_out > 0 then
-		
-		k_anno = year(kst_tab_sped.data_bolla_out)
-		
-		SELECT id_sped
-		 INTO 
-		  	:kst_tab_sped.id_sped
-	 	FROM sped  
-		WHERE ( num_bolla_out = :kst_tab_sped.num_bolla_out ) AND  
-						year(data_bolla_out) = :k_anno
-			  using sqlca;
-	
-	end if
-	
-	if sqlca.sqlcode = 0 then
-		if kst_tab_sped.id_sped > 0 then k_return = true
-	else
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore durante lettura ID del ddt di sped., numero/anno=" + string( kst_tab_sped.num_bolla_out) + " / "+ string( kst_tab_sped.data_bolla_out, "yyyy" )+" ~n~r" &
-									 + trim(SQLCA.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else	
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if
-	end if
-	
-return k_return
+return false
 
 
 end function
@@ -5706,13 +4812,14 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
 	// id_sped, 
 	INSERT INTO sped  
          (  
+           numpref_bolla_out,   
            num_bolla_out,   
            data_bolla_out,   
            clie_2,   
            clie_3,   
            cura_trasp,   
            causale,   
-			caus_codice, 
+			  caus_codice, 
            ddt_st_num_data_in,   
            aspetto,   
            porto,   
@@ -5734,12 +4841,14 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
            prov,   
            id_nazione,   
            id_docprod,   
-			sv_call_vettore,
+			  sv_call_vettore,
+           id_deposito,   
            form_di_stampa,   
            x_datins,   
            x_utente 
            )  
   VALUES (    
+  			  :kst_tab_sped.numpref_bolla_out,
            :kst_tab_sped.num_bolla_out,   
            :kst_tab_sped.data_bolla_out,   
            :kst_tab_sped.clie_2,   
@@ -5768,17 +4877,17 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
            :kst_tab_sped.prov,   
            :kst_tab_sped.id_nazione,   
            :kst_tab_sped.id_docprod,   
-			:kst_tab_sped.sv_call_vettore,
-			:kst_tab_sped.form_di_stampa,   
+			  :kst_tab_sped.sv_call_vettore,
+			  :kst_tab_sped.id_deposito,
+			  :kst_tab_sped.form_di_stampa,   
            :kst_tab_sped.x_datins,   
            :kst_tab_sped.x_utente   
            )  
 			using kguo_sqlca_db_magazzino;
-
 	
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in inserim. Tab. DDT. (nr.=" + string(kst_tab_sped.num_bolla_out) + " del "  + string(kst_tab_sped.data_bolla_out) +") : " &
+		kst_esito.SQLErrText = "Errore in inserim. Tab. Ddt (n.=" + trim(kst_tab_sped.numpref_bolla_out) + string(kst_tab_sped.num_bolla_out) + " del "  + string(kst_tab_sped.data_bolla_out) +") : " &
 									 + trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 	else
@@ -6094,7 +5203,7 @@ public function boolean tb_delete_riga (st_tab_arsp kst_tab_arsp) throws uo_exce
 boolean k_return=false
 st_esito kst_esito
 st_tab_armo_prezzi kst_tab_armo_prezzi
-st_tab_arfa kst_tab_arfa
+//st_tab_arfa kst_tab_arfa
 st_tab_wm_pklist_righe kst_tab_wm_pklist_righe
 kuf_armo_prezzi kuf1_armo_prezzi
 kuf_wm_pklist_righe kuf1_wm_pklist_righe
@@ -6111,37 +5220,37 @@ try
 
 	if if_sicurezza(kkg_flag_modalita.cancellazione) then  // Controllo se utente autorizzato
 
-//=== Controllo se riga bolla già fatturata
-		DECLARE c_fattura CURSOR FOR  
-			  SELECT num_fatt, data_fatt
-				 FROM arfa 
-				WHERE arfa.id_arsp = :kst_tab_arsp.id_arsp
-					using kguo_sqlca_db_magazzino;
-		
-		open c_fattura;
-		if kguo_sqlca_db_magazzino.sqlCode = 0 then
-		
-			fetch c_fattura INTO :kst_tab_arfa.num_fatt, :kst_tab_arfa.data_fatt;
-		
-			if kguo_sqlca_db_magazzino.sqlCode = 0 then
-	
-				if kst_tab_arfa.num_fatt > 0 then
-					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-					kst_esito.SQLErrText = &
-						  "Riga DDT gia' in Fattura nr. " &
-							+ string(kst_tab_arfa.num_fatt, "####0") + " del " &
-							+ string(kst_tab_arfa.data_fatt, "dd.mm.yyyy") + " ~n~r" &
-							+ "id riga spedizione nr. " &
-							+ string(kst_tab_arsp.id_arsp, "####0") &	
-							+ " ~n~r "
-					kst_esito.esito = kkg_esito.no_esecuzione
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito(kst_esito)
-					throw kguo_exception
-				end if
-			end if
-			close c_fattura;
-		end if
+////=== Controllo se riga bolla già fatturata
+//		DECLARE c_fattura CURSOR FOR  
+//			  SELECT num_fatt, data_fatt
+//				 FROM arfa 
+//				WHERE arfa.id_arsp = :kst_tab_arsp.id_arsp
+//					using kguo_sqlca_db_magazzino;
+//		
+//		open c_fattura;
+//		if kguo_sqlca_db_magazzino.sqlCode = 0 then
+//		
+//			fetch c_fattura INTO :kst_tab_arfa.num_fatt, :kst_tab_arfa.data_fatt;
+//		
+//			if kguo_sqlca_db_magazzino.sqlCode = 0 then
+//	
+//				if kst_tab_arfa.num_fatt > 0 then
+//					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+//					kst_esito.SQLErrText = &
+//						  "Riga DDT gia' in Fattura nr. " &
+//							+ string(kst_tab_arfa.num_fatt, "####0") + " del " &
+//							+ string(kst_tab_arfa.data_fatt, "dd.mm.yyyy") + " ~n~r" &
+//							+ "id riga spedizione nr. " &
+//							+ string(kst_tab_arsp.id_arsp, "####0") &	
+//							+ " ~n~r "
+//					kst_esito.esito = kkg_esito.no_esecuzione
+//					kguo_exception.inizializza( )
+//					kguo_exception.set_esito(kst_esito)
+//					throw kguo_exception
+//				end if
+//			end if
+//			close c_fattura;
+//		end if
 		
 		kst_tab_arsp.ID_ARMO = get_id_armo(kst_tab_arsp)
 		kst_tab_arsp.colli = get_colli(kst_tab_arsp)
@@ -6554,7 +5663,7 @@ st_tab_sped kst_tab_sped
 st_tab_armo kst_tab_armo
 st_esito kst_esito
 uo_exception kuo_exception
-datastore kdsi_elenco_output   //ds da passare alla windows di elenco
+uo_ds_std_1 kdsi_elenco_output   //ds da passare alla windows di elenco
 st_open_w kst_open_w 
 kuf_menu_window kuf1_menu_window
 pointer kp_oldpointer
@@ -6569,7 +5678,7 @@ kst_esito.SQLErrText = ""
 
 if_sicurezza(kkg_flag_modalita.visualizzazione)
 
-kdsi_elenco_output = create datastore
+kdsi_elenco_output = create uo_ds_std_1
 k_riga = ads_link.getrow()
 
 choose case a_campo_link
@@ -6595,9 +5704,9 @@ choose case a_campo_link
 			kst_tab_sped.id_sped = ads_link.getitemnumber(ads_link.getrow(), "id_sped")
 		end if
 			
-		if kst_tab_sped.num_bolla_out > 0 then
+		if kst_tab_sped.id_sped > 0 then
 			kst_tab_sped.data_bolla_out = ads_link.getitemdate(ads_link.getrow(), "data_bolla_out")
-			kst_open_w.key1 = "DDT di spedizione n. " + trim(string(kst_tab_sped.num_bolla_out)) + " del " + trim(string(kst_tab_sped.data_bolla_out)) 
+			kst_open_w.key1 = "DDT di spedizione id " + string(kst_tab_sped.id_sped) + " n. " + trim(string(kst_tab_sped.num_bolla_out)) + " del " + trim(string(kst_tab_sped.data_bolla_out)) 
 			//k_id_programma = this.get_id_programma(kkg_flag_modalita.visualizzazione)
 		else
 			k_return = false	
@@ -6652,7 +5761,6 @@ if k_return then
 
 	
 	if kdsi_elenco_output.rowcount() > 0 then
-	
 		
 	//--- chiamare la window di elenco
 	//
@@ -7028,7 +6136,7 @@ public function long get_id_sped (ref st_tab_sped kst_tab_sped) throws uo_except
 //--- 
 //--- Torna id_sped da numero/data bolla
 //--- 
-//--- Inp: kst_tab_sped.num_bolla_out/data_bolla_out
+//--- Inp: kst_tab_sped.numpref_bolla_out + num_bolla_out + data_bolla_out
 //--- Out: kst_tab_sped.id_sped
 //---
 //--- Ritorna: Il ID del ddt trovato 
@@ -7041,22 +6149,23 @@ int k_anno = 0
 st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
+	kst_esito =	kguo_exception.inizializza(this.classname())
 	
 	if kst_tab_sped.num_bolla_out > 0 then
 		
+		if kst_tab_sped.numpref_bolla_out > " " then
+		else
+			kst_tab_sped.numpref_bolla_out = ""
+		end if
 		k_anno = year(kst_tab_sped.data_bolla_out)
 		
 		SELECT id_sped
 		 INTO 
 		  	:kst_tab_sped.id_sped
 	 	FROM sped  
-		WHERE ( num_bolla_out = :kst_tab_sped.num_bolla_out ) AND  
-						year(data_bolla_out) = :k_anno  
+		WHERE  num_bolla_out = :kst_tab_sped.num_bolla_out 
+		        and numpref_bolla_out = :kst_tab_sped.numpref_bolla_out 
+				  and year(data_bolla_out) = :k_anno  
 			  using sqlca;
 	
 	end if
@@ -7065,7 +6174,7 @@ st_esito kst_esito
 		if kst_tab_sped.id_sped > 0 then k_return = kst_tab_sped.id_sped
 	else
 		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura ID del ddt di sped., numero  " + string( kst_tab_sped.num_bolla_out) + " del "+ string( kst_tab_sped.data_bolla_out )+" ~n~r" &
+		kst_esito.SQLErrText = "Errore in lettura ID del ddt di sped., numero  " + trim(kst_tab_sped.numpref_bolla_out ) + string( kst_tab_sped.num_bolla_out) + " del "+ string( kst_tab_sped.data_bolla_out )+" ~n~r" &
 									 + trim(SQLCA.SQLErrText)
 		if sqlca.sqlcode = 100 then
 			kst_esito.esito = kkg_esito.not_fnd
@@ -7175,7 +6284,7 @@ end function
 public function long get_num_bolla_out_ultimo (ref st_tab_sped kst_tab_sped) throws uo_exception;//
 //----------------------------------------------------------------------------------------------------------------
 //--- 
-//--- Torna ultimo  numero x anno inseriti
+//--- Torna ultimo numero ddt dell'anno e dello stesso prefisso inseriti
 //--- 
 //--- Inp: kst_tab_sped.data_bolla_out + id_sped da escludere (opt)
 //--- Out: kst_tab_sped.num_bolla_out
@@ -7199,6 +6308,11 @@ st_esito kst_esito
 		k_anno = year(kst_tab_sped.data_bolla_out)
 		k_data_da = date(k_anno,01,01)
 		k_data_a = date(k_anno,12,31)
+
+		if kst_tab_sped.numpref_bolla_out > " " then
+		else
+			kst_tab_sped.numpref_bolla_out = ""
+		end if
 		
 		if isnull(kst_tab_sped.id_sped) then kst_tab_sped.id_sped = 0
 		k_num_bolla_out_extra = kki_num_bolla_out_extra
@@ -7210,6 +6324,7 @@ st_esito kst_esito
 		WHERE  data_bolla_out between :k_data_da and :k_data_a  
 		              and id_sped <> :kst_tab_sped.id_sped
 						  and num_bolla_out < :k_num_bolla_out_extra
+						  and numpref_bolla_out = :kst_tab_sped.numpref_bolla_out
 			  using kguo_sqlca_db_magazzino;
 	
 	end if
@@ -7239,7 +6354,7 @@ public function long get_numero_nuovo (st_tab_sped ast_tab_sped, integer a_ctr) 
 //--- Torna il nuovo numero per un nuovo DDT
 //--- 
 //--- 
-//--- Inp: st_tab_sped.data_bolla_out,  ctr = contatore per il auto-rilancio (max 10 volte) 
+//--- Inp: st_tab_sped.numpref_bolla_out + data_bolla_out
 //--- Rit: numero x fare un nuovo DDT dell'anno
 //---
 //--- Ritorna: TRUE = ddt trovato e id valorizzato
@@ -7255,28 +6370,31 @@ st_tab_sped kst_tab_sped
 kuf_base kuf1_base
 
 try
+	
+	if ast_tab_sped.numpref_bolla_out > " " then
+	else
 
-//--- get numero dal contatore se anno in corso
-	if year(ast_tab_sped.data_bolla_out) = kguo_g.get_anno( ) then
-
-		kuf1_base = create kuf_base
-		k_dato = kuf1_base.prendi_dato_base( "numdata_ddt")
-		if left(k_dato, 1) = "0" then
-			k_num_base = long(mid(k_dato,2,12))  //ultimo numero DDT preso dalla tabella 
-			k_data_base = date(mid(k_dato,15))  //ultima data DDT preso dalla tabella 
-			if isnull(k_num_base) then 
-				k_num_base = 0
-				k_data_base = kkg.data_zero
+//--- get numero dal contatore da tab BASE se PREFISSO a spazio e anno in corso
+		if year(ast_tab_sped.data_bolla_out) = kguo_g.get_anno( ) then
+	
+			kuf1_base = create kuf_base
+			k_dato = kuf1_base.prendi_dato_base( "numdata_ddt")
+			if left(k_dato, 1) = "0" then
+				k_num_base = long(mid(k_dato,2,12))  //ultimo numero DDT preso dalla tabella 
+				k_data_base = date(mid(k_dato,15))  //ultima data DDT preso dalla tabella 
+				if isnull(k_num_base) then 
+					k_num_base = 0
+					k_data_base = kkg.data_zero
+				end if
+			else
+				kguo_exception.inizializza( )
+				kguo_exception.kist_esito.esito = left(k_dato, 1)
+				kguo_exception.kist_esito.sqlerrtext = "Errore in lettura n. ddt da Proprietà Procedura, prego riprovare. ~n~r" + mid(k_dato,2)
+				kguo_exception.kist_esito.nome_oggetto = this.classname()
+				throw kguo_exception
 			end if
-		else
-			kguo_exception.inizializza( )
-			kguo_exception.kist_esito.esito = left(k_dato, 1)
-			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura n. ddt da Proprietà Procedura, prego riprovare. ~n~r" + mid(k_dato,2)
-			kguo_exception.kist_esito.nome_oggetto = this.classname()
-			throw kguo_exception
+			destroy kuf1_base
 		end if
-		destroy kuf1_base
-
 	end if
 
 	kst_tab_sped.id_sped = ast_tab_sped.id_sped  
@@ -7302,11 +6420,11 @@ catch (uo_exception kuo_exception)
 	
 finally
 	
-	//--- il DDT a parte la prima deve essere maggiore di 1 quindi ritenta 10 volte
-	if k_return < 2 and a_ctr < 10 then
-		sleep(1)
-		k_return = get_numero_nuovo(ast_tab_sped, (a_ctr + 1))
-	end if
+//	//--- il DDT a parte la prima deve essere maggiore di 1 quindi ritenta 10 volte
+//	if k_return < 2 and a_ctr < 10 then
+//		sleep(1)
+//		k_return = get_numero_nuovo(ast_tab_sped, (a_ctr + 1))
+//	end if
 	
 end try
 	
@@ -7575,6 +6693,682 @@ long k_return
 
 	
 return k_return
+
+end function
+
+public function boolean set_righe_stampata (ref st_tab_arsp kst_tab_arsp) throws uo_exception;/*
+ Imposta a Stampata tutte le Righe della Bolla di spedizione
+	 Inp: st_arsp.id_sped
+*/
+boolean k_return
+
+
+kguo_exception.inizializza(this.classname())
+	
+if kst_tab_arsp.id_sped > 0 then
+
+	kst_tab_arsp.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_arsp.x_utente = kGuf_data_base.prendi_x_utente()
+
+	kst_tab_arsp.stampa = kki_sped_flg_stampa_bolla_stampata
+	UPDATE arsp
+		  SET stampa = :kst_tab_arsp.stampa
+		  			,x_datins = :kst_tab_arsp.x_datins
+			  		,x_utente = :kst_tab_arsp.x_utente
+		WHERE id_sped = :kst_tab_arsp.id_sped
+		using kguo_sqlca_db_magazzino;
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore durante aggiorn. righe d.d.t. in stampa. Ddt id = " + string(kst_tab_arsp.id_sped))			
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+		if kst_tab_arsp.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_arsp.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	end if
+else
+	kguo_exception.kist_esito.SQLErrText = "Errore tab. righe d.d.t., Manca Id del Ddt (id_sped)!" 
+	kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+end if	
+
+return k_return
+
+end function
+
+public function boolean set_sped_stampata (ref st_tab_sped kst_tab_sped) throws uo_exception;/*
+ Imposta a Stampata la TESTATA della Bolla di spedizione
+	Inp: st_sped.id_sped
+*/
+boolean k_return
+
+	
+kguo_exception.inizializza(this.classname())
+	
+if kst_tab_sped.id_sped > 0 then
+
+	kst_tab_sped.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_sped.x_utente = kGuf_data_base.prendi_x_utente()
+
+	kst_tab_sped.stampa = kki_sped_flg_stampa_bolla_stampata
+	UPDATE sped  
+		  SET stampa = :kst_tab_sped.stampa
+			,data_rit = :kst_tab_sped.data_rit
+			,ora_rit =  :kst_tab_sped.ora_rit
+			,x_datins = :kst_tab_sped.x_datins
+			,x_utente = :kst_tab_sped.x_utente
+		WHERE sped.id_sped = :kst_tab_sped.id_sped
+		using kguo_sqlca_db_magazzino;
+
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in aggiornamento DDT a 'Stampato'. Id = " + string(kst_tab_sped.id_sped))			
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+		if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+	end if
+else
+	kguo_exception.kist_esito.SQLErrText = "Errore in Aggiornamento a Stampato del DDT. Manca Id (id_sped)!" 
+	kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+end if	
+
+return k_return 
+
+end function
+
+public function boolean tb_delete_testa (st_tab_sped kst_tab_sped) throws uo_exception;//
+//====================================================================
+//=== Cancella il rek dalla tabella SPED-ARSP (Bolle di spedizione) 
+//=== 
+//=== Ritorna 1 char : 0=OK; 1=errore grave non eliminato; 
+//===           		: 2=Altro errore 
+//===   dal 2 char in poi descrizione dell'errore
+//=== 
+//====================================================================
+//
+int k_resp
+boolean k_return
+//st_tab_arfa kst_tab_arfa
+st_tab_sped kst_tab_sped_1, kst_tab_sped_2[]
+st_tab_docprod kst_tab_docprod
+kuf_docprod kuf1_docprod
+kuf_doctipo kuf1_doctipo
+//kuf_fatt kuf1_fatt
+kuf_sped_ddt kuf1_sped_ddt
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	if_sicurezza(kkg_flag_modalita.cancellazione)  // Controllo se utente autorizzato
+
+////=== Controllo se bolla già fatturata
+//		DECLARE c_fattura CURSOR FOR  
+//			  SELECT num_fatt, data_fatt
+//				 FROM arfa 
+//				WHERE num_bolla_out = :kst_tab_sped.num_bolla_out
+//						and data_bolla_out = :kst_tab_sped.data_bolla_out
+//					using kguo_sqlca_db_magazzino;
+//		
+//		open c_fattura;
+//		if kguo_sqlca_db_magazzino.sqlCode = 0 then
+//		
+//			fetch c_fattura INTO :kst_tab_arfa.num_fatt, :kst_tab_arfa.data_fatt;
+//		
+//			if kguo_sqlca_db_magazzino.sqlCode = 0 then
+//	
+//				if kst_tab_arfa.num_fatt > 0 then
+//					kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+//					kst_esito.SQLErrText = &
+//						  "DDT gia' in Fattura n. " &
+//							+ string(kst_tab_arfa.num_fatt, "####0") + " del " &
+//							+ string(kst_tab_arfa.data_fatt, "dd.mm.yyyy") + " ~n~r" &
+//							+ "ddt n. " &
+//							+ string(kst_tab_sped.num_bolla_out, "####0") + " del " &
+//							+ string(kst_tab_sped.data_bolla_out, "dd.mm.yyyy") &	
+//							+ " ~n~r "
+//					kst_esito.esito = kkg_esito.no_esecuzione
+//				
+//				end if
+//			end if
+//			close c_fattura;
+//		end if
+//		
+		
+	kuf1_sped_ddt = create kuf_sped_ddt
+
+//--- Ripristina i colli in Prezzi-riga-lotto da fatturare
+	kst_tab_sped_2[1] = kst_tab_sped
+	kst_tab_sped_2[1].st_tab_g_0.esegui_commit	= "N"
+	kuf1_sped_ddt.set_armo_prezzi_righe_all(kst_tab_sped_2[], true)
+
+//--- Ripristina il flag di righe WMF 			
+	kst_tab_sped_1 = kst_tab_sped
+	kst_tab_sped_1.st_tab_g_0.esegui_commit	= "N"
+	kuf1_sped_ddt.set_wm_pklist_righe_non_spedito(kst_tab_sped_1)
+		
+
+//--- cancella prima tutte le righe
+	delete from arsp
+			WHERE id_sped = :kst_tab_sped.id_sped
+			using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in cancellazione righe del DDT id " + string(kst_tab_sped.id_sped))					
+		throw kguo_exception
+	end if
+
+//--- se tutto ok cancella la testata
+	delete from sped
+			WHERE id_sped = :kst_tab_sped.id_sped
+			using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in cancellazione testata del DDT id " + string(kst_tab_sped.id_sped))					
+		throw kguo_exception
+	end if
+
+//--- cancella da docprod	 tutti i riferimenti
+	kst_tab_docprod.id_doc = kst_tab_sped.id_sped 
+	kuf1_docprod = create kuf_docprod
+	kuf1_doctipo = create kuf_doctipo
+	kst_tab_docprod.st_tab_g_0.esegui_commit = "N"
+	kuf1_docprod.tb_delete(kst_tab_docprod, kuf1_doctipo.kki_tipo_ddt )
+
+	if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+
+	k_return = true
+	
+catch (uo_exception kuo1_exception)
+	if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kguo_exception
+
+finally
+	if isvalid(kuf1_sped_ddt) then destroy kuf1_sped_ddt
+	if isvalid(kuf1_docprod) then destroy kuf1_docprod 
+	if isvalid(kuf1_doctipo) then destroy kuf1_doctipo 
+	
+end try
+
+return k_return
+
+end function
+
+public function st_esito anteprima (ref uo_ds_std_1 kds_anteprima, st_tab_sped kst_tab_sped);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima (Testata Spedizione)
+//===
+//=== Par. Inut: 
+//===               datastore su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+long k_n_ddt_stampate=0
+st_open_w kst_open_w
+st_esito kst_esito
+st_ddt_stampa kst_ddt_stampa[]
+kuf_sped_ddt kuf1_sped_ddt
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+datawindow kdw_nullo
+uo_ds_std_1 kds_1
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.no_aut
+
+else
+
+	if kst_tab_sped.id_sped > 0 then
+
+//--- retrive dell'attestato 
+	
+		try 
+
+//---- inizializza x stampa fattura
+			kuf1_sped_ddt = create kuf_sped_ddt
+
+			kst_ddt_stampa[1].id_sped =  kst_tab_sped.id_sped
+			
+//--- produce ddt	
+			k_n_ddt_stampate = kuf1_sped_ddt.produci_ddt(kst_ddt_stampa[])
+		
+			if k_n_ddt_stampate > 0 then
+				kds_anteprima.dataobject = kuf1_sped_ddt.kids_stampa_ddt.dataobject  //kuf1_sped_ddt.ki_dw_stampa_ddt		
+				kds_anteprima.settransobject(sqlca)
+		
+				kds_anteprima.reset()	
+
+				kuf1_sped_ddt.produci_ddt_set_dw_loghi(kds_anteprima, kdw_nullo)
+				kuf1_sped_ddt.kids_stampa_ddt.rowscopy(1,kuf1_sped_ddt.kids_stampa_ddt.rowcount(),Primary!,kds_anteprima,1,Primary!)
+			end if
+			
+		catch (uo_exception kuo_exception)
+			kst_esito = kuo_exception.get_st_esito()
+
+		finally
+//--- distrugge oggetti x stampa ddt
+			if isvalid(kuf1_sped_ddt) then destroy kuf1_sped_ddt
+				
+		end try
+		
+
+	else
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
+		kst_esito.esito = kkg_esito.err_logico
+		
+	end if
+end if
+
+
+return kst_esito
+
+end function
+
+public function st_esito anteprima_1 (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima (Testata Spedizione)
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+st_open_w kst_open_w
+st_esito kst_esito
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.not_fnd
+
+else
+
+	if kst_tab_sped.id_sped > 0 then
+
+		kdw_anteprima.dataobject = "d_sped_1"		
+		kdw_anteprima.settransobject(sqlca)
+
+//		kuf1_utility = create kuf_utility
+//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
+//		destroy kuf1_utility
+
+		kdw_anteprima.reset()	
+		try
+			k_rc=kdw_anteprima.retrieve(kst_tab_sped.id_sped)
+		catch (uo_exception kuo_exception)
+			kst_esito = kuo_exception.get_st_esito()
+		end try
+	else
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
+		kst_esito.esito = kkg_esito.err_logico
+		
+	end if
+end if
+
+
+return kst_esito
+
+end function
+
+public function st_esito anteprima_2 (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima (Testata Spedizione)
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+st_open_w kst_open_w
+st_esito kst_esito
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+
+
+kst_esito.esito = kkg_esito.ok
+kst_esito.sqlcode = 0
+kst_esito.SQLErrText = ""
+kst_esito.nome_oggetto = this.classname()
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.not_fnd
+
+else
+
+	if kst_tab_sped.id_sped > 0 then
+
+		kdw_anteprima.dataobject = "d_sped_wm_l"		
+		kdw_anteprima.settransobject(sqlca)
+
+//		kuf1_utility = create kuf_utility
+//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
+//		destroy kuf1_utility
+
+		kdw_anteprima.reset()	
+//--- retrive dell'attestato 
+		k_rc=kdw_anteprima.retrieve(kst_tab_sped.id_sped)
+
+	else
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Nessuna Riga Spedizione da visualizzare: ~n~r" + "nessun codice indicato"
+		kst_esito.esito = kkg_esito.err_logico
+		
+	end if
+end if
+
+
+return kst_esito
+
+end function
+
+public function st_esito anteprima_elenco (ref uo_ds_std_1 kdw_anteprima, st_tab_armo kst_tab_armo);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima (elenco arsp x id_meca)
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+st_open_w kst_open_w
+st_esito kst_esito
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.not_fnd
+
+else
+
+	if kst_tab_armo.id_meca > 0 then
+
+		kdw_anteprima.dataobject = "d_arsp_l_1"		
+		kdw_anteprima.settransobject(sqlca)
+
+//		kuf1_utility = create kuf_utility
+//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
+//		destroy kuf1_utility
+
+		kdw_anteprima.reset()	
+//--- retrive dell'attestato 
+		k_rc=kdw_anteprima.retrieve(kst_tab_armo.id_meca)
+
+	else
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Nessuna Riga Lotto da visualizzare: ~n~r" + "nessun codice indicato"
+		kst_esito.esito = "1"
+		
+	end if
+end if
+
+
+return kst_esito
+
+end function
+
+public function st_esito anteprima_righe (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima (elenco arsp x num+data sped)
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+st_open_w kst_open_w
+st_esito kst_esito
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.not_fnd
+
+else
+
+	if kst_tab_sped.num_bolla_out > 0 then
+
+		kdw_anteprima.dataobject = "d_arsp_l_sped"		
+		kdw_anteprima.settransobject(sqlca)
+
+//		kuf1_utility = create kuf_utility
+//		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
+//		destroy kuf1_utility
+
+		kdw_anteprima.reset()	
+//--- retrive dell'attestato 
+		k_rc=kdw_anteprima.retrieve(kst_tab_sped.data_bolla_out, kst_tab_sped.num_bolla_out)
+
+	else
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = "Nessuna Riga Lotto da visualizzare: ~n~r" + "nessun codice indicato"
+		kst_esito.esito = kkg_esito.err_logico
+		
+	end if
+end if
+
+
+return kst_esito
+
+end function
+
+private function st_esito tb_update_json (ref st_tab_sped ast_tab_sped) throws uo_exception;/*
+ Update/Insert the row in SPED del campo JSON: deposito_anag
+    Inp: st_tab_sped.id_sped + con i campi jsoc
+*/
+int k_idx, k_idx_max
+string k_json_key[100]
+string k_json_val[100]
+
+
+	try
+		kguo_exception.inizializza(this.classname())
+		
+		if ast_tab_sped.id_sped > 0 then
+	
+	//--- pulizia di tutto il campo JSON
+			update sped
+				 set deposito_anag = '{}'
+						where id_sped = :ast_tab_sped.id_sped and (deposito_anag = '' or deposito_anag is null)
+						using kguo_sqlca_db_magazzino ;
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Fallita pulizia area dati Deposito del DDT di spedizione (sped), Id  " + string(ast_tab_sped.id_sped))
+				throw kguo_exception
+			end if
+
+	//--- compone i campi JSON					
+			k_idx_max = 0
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "id_deposito_anag"; k_json_val[k_idx_max] = string(ast_tab_sped.id_deposito_anag, "#0")
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_rag_soc_1"; k_json_val[k_idx_max] = trim(ast_tab_sped.rag_soc_1)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_rag_soc_2"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_rag_soc_2)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_indi"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_indi)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_cap"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_cap)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_loc"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_loc)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_prov"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_prov)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_nazione"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_nazione)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_contatto1"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_contatto1)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_contatto2"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_contatto2)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_contatto3"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_contatto3)
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "depo_contatto4"; k_json_val[k_idx_max] = trim(ast_tab_sped.depo_contatto4)
+
+			kguo_sqlca_db_magazzino.sqlcode = 0
+			k_idx = 0
+			do while k_idx < k_idx_max and kguo_sqlca_db_magazzino.sqlcode = 0 
+				k_idx ++
+				
+				if not isnull(k_json_val[k_idx]) then
+					update sped
+						 set deposito_anag = replace(JSON_MODIFY(deposito_anag, :k_json_key[k_idx], :k_json_val[k_idx]), '\/', '/')
+						where id_sped = :ast_tab_sped.id_sped
+						using kguo_sqlca_db_magazzino ;
+				end if
+				
+			loop
+			
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Fallito Aggiornamento dati Deposito del DDT di spedizione (sped),  Id " + string(ast_tab_sped.id_sped) &
+								+ ", campo: " + k_json_key[k_idx] &
+								+ " valore: "+ k_json_val[k_idx] + ". ")
+				throw kguo_exception
+			end if
+
+			if ast_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sped.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
+			
+		end if
+		
+	catch	(uo_exception kuo_exception)
+		kuo_exception.scrivi_log( )
+		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
+			if ast_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_sped.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+		end if
+		throw kuo_exception
+	
+	finally
+	
+	end try
+		
+
+
+return kguo_exception.kist_esito
 
 end function
 

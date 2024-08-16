@@ -20,13 +20,12 @@ table(column=(type=long updatewhereclause=yes name=num_int dbname="armo.num_int"
 		arsp.colli  ,count(wm_pklist_righe.insped) as colli_insped, arsp.id_armo
          ,wm_pklist_righe.insped
 		,wm_pklist_righe.sped 
-    FROM arsp left outer join wm_pklist_righe on    
-			arsp.id_armo = wm_pklist_righe.id_armo and wm_pklist_righe.insped = ~"S~"
-					inner join armo on 
-			arsp.id_armo = armo.id_armo
+    FROM arsp  inner join sped on arsp.id_sped = sped.id_sped 
+	            left outer join wm_pklist_righe on arsp.id_armo = wm_pklist_righe.id_armo and wm_pklist_righe.insped = ~"S~"
+					inner join armo on arsp.id_armo = armo.id_armo
    WHERE 
-         ( ( arsp.num_bolla_out = :num_bolla_out ) AND  
-         ( arsp.data_bolla_out = :data_bolla_out ) )    
+         ( ( sped.num_bolla_out = :num_bolla_out ) AND  
+         ( sped.data_bolla_out = :data_bolla_out ) )    
        and (wm_pklist_righe.eliminato <> ~"S~" or wm_pklist_righe.eliminato is null)
 	group by armo.num_int, armo.data_int, armo.id_meca, armo.art, armo.cod_sl_pt, armo.colli_2,arsp.colli, arsp.id_armo
          ,wm_pklist_righe.insped
@@ -73,4 +72,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" )
 export.xhtml()
- 

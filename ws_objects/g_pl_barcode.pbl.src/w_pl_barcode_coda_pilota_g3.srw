@@ -132,7 +132,9 @@ try
 //--- Becca le impostazioni di configurazione del pilota, specie il numero degli intoccabili
 //	kist_tab_pilota_impostazioni = kuf1_pilota_cmd.get_pilota_pilota_impostazioni()
 	if kds_pilota_impostazioni_g3.retrieve("num_intouchable") > 0 then
-		kist_tab_pilota_impostazioni.num_intouchable = kds_pilota_impostazioni_g3.getitemnumber(1, "value")
+		if isnumber(kds_pilota_impostazioni_g3.getitemstring(1, "valore")) then
+			kist_tab_pilota_impostazioni.num_intouchable = integer(kds_pilota_impostazioni_g3.getitemstring(1, "valore"))
+		end if
 	end if
 	if kist_tab_pilota_impostazioni.num_intouchable < 1 then
 		SetPointer(kkg.pointer_default)
@@ -663,7 +665,7 @@ try
 					cancella_toglie_barcode_da_pl()
 				
 //=== Job di generazione della Richiesta  
-					kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode)
+				//	kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode)
 
 //--- Accende il flag di invio andato a buon fine
 					ki_invio_programma_eseguito = true
@@ -686,10 +688,6 @@ try
 				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
 				attiva_tasti()
 	
-	//--- tutto ok sblocca le richieste		
-	//			kuf1_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
-	//			kuf1_pilota_cmd.set_blocca_richieste( kuf1_pilota_cmd.kist_tab_pilota_cfg )
-	
 	//--- poi disabilito le dw di modifica
 				dw_dett_0.u_proteggi_dw("1", 0)
 	
@@ -700,9 +698,6 @@ try
 			timer( 0 )   // Disattivo il timer x non fare più retrieve
 
 			ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
-	//--- tutto KO sblocca le richieste		
-	//		kuf1_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
-	//		kuf1_pilota_cmd.set_blocca_richieste( kuf1_pilota_cmd.kist_tab_pilota_cfg )
 	
 	//--- poi disabilito le dw di modifica
 			dw_dett_0.u_proteggi_dw("1", 0)
@@ -898,7 +893,7 @@ try
 		SELECT 
 				  queue_table.Ordine ,
 				  queue_table.Barcode ,
-				  (ifnull(queue_table.cod_prod,'0')) ,
+				  (ifnull(queue_table.Piano_Lavorazione,0)) ,
 				  (queue_table.id_modo)  ,
 				  (queue_table.ciclo) ,
 				  queue_table.giri  
@@ -1060,7 +1055,7 @@ kuf_artr kuf1_artr
 uo_ds_std_1 kds_figli
 	
 
-try
+try 
 	kuf1_barcode = create kuf_barcode
 	kuf1_artr = create kuf_artr
 	
@@ -1667,6 +1662,9 @@ try
 //	kst_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
 //	kuf1_pilota_cmd.set_blocca_richieste(kst_tab_pilota_cfg)
 //	destroy kuf1_pilota_cmd
+//--- tutto KO sblocca le richieste		
+//		kuf1_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kuf1_pilota_cmd.ki_blocca_richieste_no
+//		kuf1_pilota_cmd.set_blocca_richieste( kuf1_pilota_cmd.kist_tab_pilota_cfg )
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.setmessage("Procedere manualmente con lo SBLOCCO delle Richieste in Archivi->Pilota"&

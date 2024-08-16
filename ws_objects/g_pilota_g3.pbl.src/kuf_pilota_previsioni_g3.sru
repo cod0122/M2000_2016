@@ -195,10 +195,10 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 					 	+ " , n_ordine int " &
 					 	+ " , barcode char(13) " &
 					 	+ " , barcode_figlio char(13) " &
-					 	+ " , ordine_figlio tinyint " &
-					 	+ " , num_int_figlio int " &
+					 	+ " , ordine_figlio int " &
+					 	+ " , num_int_figlio char(16) " &
 					 	+ " , carrier int " &
-					 	+ " , fase tinyint " &
+					 	+ " , fase int " &
 						 + ", id_modo char(2) " &
 						 + ", ciclo varchar(16) " &
 						 + ", giri smallint " &
@@ -216,6 +216,11 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 		kguf_data_base.u_set_ds_change_name_tab(ads_pilota_pallet_workqueue_temp_g3, "vx_MAST_pilota_pallet_workqueue_g3")
 
 		k_righe = kds_pilota_pallet_workqueue_g3.retrieve( )    // get dal db PILOTA tutti i PALLET in lavorazione e in coda 
+		if k_righe < 0 then
+			kguo_exception.set_st_esito_err_ds(kds_pilota_pallet_workqueue_g3, "Errore in lettura Pallet in Coda e in Lavorazione sul Gamma 3. ")
+			kguo_sqlca_db_magazzino.db_rollback( )
+			throw kguo_exception
+		end if		
 
 		for k_riga = 1 to k_righe 
 			k_rigainsert = ads_pilota_pallet_workqueue_temp_g3.insertrow( 0 )
@@ -252,21 +257,21 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "giri_eseguiti", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "giri_eseguiti"))
 		end for
 
-		k_rc = ads_pilota_pallet_workqueue_temp_g3.update() 
-		if k_rc < 0 then
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_esito(ads_pilota_pallet_workqueue_temp_g3.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento tabella temporanea dei Pallet in Coda e in Lavorazione sul Gamma3. " &
-								+ "Ordine: " + string(ads_pilota_pallet_workqueue_temp_g3.getitemnumber(k_riga, "n_ordine")) &
-								+ ", Barcode: " + trim(ads_pilota_pallet_workqueue_temp_g3.getitemstring(k_riga, "barcode")) + ". " &
-								+ kkg.acapo + ads_pilota_pallet_workqueue_temp_g3.kist_esito.sqlerrtext
-			kguo_sqlca_db_magazzino.db_rollback( )
-			throw kguo_exception
+		if ads_pilota_pallet_workqueue_temp_g3.rowcount() > 0 then
+			k_rc = ads_pilota_pallet_workqueue_temp_g3.update() 
+			if k_rc < 0 then
+				kguo_exception.set_st_esito_err_ds(ads_pilota_pallet_workqueue_temp_g3, "Errore in aggiornamento tabella temporanea dei Pallet in Coda e in Lavorazione sul Gamma 3. " &
+									+ ", il primo Barcode da aggiornare era: " + trim(ads_pilota_pallet_workqueue_temp_g3.getitemstring(1, "barcode")) + ". ")
+								//	+ "N.Ordine: " + string(ads_pilota_pallet_workqueue_temp_g3.getitemnumber(k_riga, "n_ordine")) &
+				kguo_sqlca_db_magazzino.db_rollback( )
+				throw kguo_exception
+			end if
+			
+			kguo_sqlca_db_magazzino.db_commit( )
+		
+			k_return = ads_pilota_pallet_workqueue_temp_g3.rowcount()
 		end if
-		
-		kguo_sqlca_db_magazzino.db_commit( )
-		
-		k_return = ads_pilota_pallet_workqueue_temp_g3.rowcount()
+
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.scrivi_log()

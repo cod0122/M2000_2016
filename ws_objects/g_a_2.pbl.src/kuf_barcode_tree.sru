@@ -223,10 +223,7 @@ kuf_sicurezza kuf1_sicurezza
 //kuf_utility kuf1_utility
 
 
-kst_esito.esito = "0"
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
+kst_esito = kguo_exception.inizializza(this.classname())
 
 kst_open_w = kst_open_w
 kst_open_w.flag_modalita = kkg_flag_modalita.anteprima

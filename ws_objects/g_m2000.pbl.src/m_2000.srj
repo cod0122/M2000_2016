@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.24.07.23
-PVN:13,24,7,24
-FVS:13.24.07.23
-FVN:13,24,7,24
+PVS:13.24.08.161
+PVN:13,24,8,161
+FVS:13.24.08.161
+FVN:13,24,8,161
 MAN:2,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -181,10 +181,10 @@ OBJ:C:\Sterigenics\app32\g_wm.pbl,st_tab_wm_receiptgammarad,s
 OBJ:C:\Sterigenics\app32\g_xsmart.pbl,kuf_docpath,u
 OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino_voci,s
 OBJ:C:\Sterigenics\app32\g_sped.pbl,st_sped_ddt,s
+OBJ:C:\Sterigenics\app32\g_prt.pbl,st_stampante,s
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_tab_alarm_instock,s
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_msg_replace_placeholder,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_conn_cfg,u
-OBJ:C:\Sterigenics\app32\g_prt.pbl,st_stampante,s
 OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_prof_utenti,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_contratti_dp_to_listini,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,ds_contratti_doc_select,u
@@ -215,6 +215,7 @@ OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_pilota,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_utility_db,u
 OBJ:C:\Sterigenics\app32\g_sr.pbl,st_tab_sr_settori_profili,s
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_file_lettore_grp,s
+OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,ds_programmi_richieste_inevase,u
 OBJ:C:\Sterigenics\app32\g_xcrm.pbl,kuf_m2000tocrm,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,pbdom_document,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_file_dragdrop,u
@@ -293,8 +294,8 @@ OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_certif_email,s
 OBJ:C:\Sterigenics\app32\g_globals.pbl,kkg_magazzino,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,s_powerfilter_restore_parms,s
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_asn_x_schedule,d
-OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,kuf_plav_conn_cfg,u
 OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,ds_plav_parent,u
+OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,kuf_plav_conn_cfg,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,st_esito,s
 OBJ:C:\Sterigenics\app32\g_globals.pbl,kkg_colore,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_file_explorer,u
@@ -332,6 +333,7 @@ OBJ:C:\Sterigenics\app32\g_globals.pbl,kds_current_datetime,u
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,ust_tab_prof,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_armo_tree,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_asn_f5547013_esiste,d
+OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,ds_programmi_richieste_inevase,d
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_contratti_doc,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,st_tab_db_cfg,s
 OBJ:C:\Sterigenics\app32\g_generic.pbl,pbdom_doctype,u
@@ -401,13 +403,13 @@ OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_contratti_co,u
 OBJ:C:\Sterigenics\app32\g_pilota.pbl,kuf_pilota_previsioni,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_txt_pilota_answer,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,st_tab_contratti_rd,s
+OBJ:C:\Sterigenics\app32\g_sped.pbl,kuf_sped_free,u
 OBJ:C:\Sterigenics\app32\g_parent.pbl,w_g_tab_3,w
 OBJ:C:\Sterigenics\app32\g_web.pbl,kuf_msg_replace_placeholder,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_x_schedule_l,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_pdf,u
 OBJ:C:\Sterigenics\app32\g_projtasks.pbl,st_tab_ptasks_rows,s
 OBJ:C:\Sterigenics\app32\g_memo.pbl,kuf_memo_sr,u
-OBJ:C:\Sterigenics\app32\g_sped.pbl,kuf_sped_free,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,pbdom_element,u
 OBJ:C:\Sterigenics\app32\g_web.pbl,n_cst_outlook,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_iva,s
@@ -443,9 +445,9 @@ OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_dosimpos,s
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_clienti,u
 OBJ:C:\Sterigenics\app32\g_treeview.pbl,st_treeview_file,s
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,st_tab_arfa_pa,s
+OBJ:C:\Sterigenics\app32\g_prt.pbl,kuf_stampe,u
 OBJ:C:\Sterigenics\app32\g_pilota.pbl,kuf_pilota_previsioni_batch,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kds_meca_ready_e1asn,u
-OBJ:C:\Sterigenics\app32\g_prt.pbl,kuf_stampe,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kuf_e1_wo_f5537001,u
 OBJ:C:\Sterigenics\app32\g_globals.pbl,n_string,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_meca_causali_blk_g,u

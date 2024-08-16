@@ -82,7 +82,7 @@ call super::destroy
 end on
 
 event constructor;call super::constructor;//
-	ki_db_descrizione = "DB dati PILOTA Impianto G3"
+	ki_db_descrizione = "DB dati di Lavorazione dal PILOTA Impianto G3"
 	ki_title_id = "db_pilota"
 end event
 
