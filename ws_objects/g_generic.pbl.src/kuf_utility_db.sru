@@ -565,6 +565,8 @@ try
 	if not krc then k_return=false
 	krc = u_crea_view_v_contratti_all_rid()
 	if not krc then k_return=false
+	krc = u_crea_view_v_colli_sped()
+	if not krc then k_return=false
 	krc = u_crea_view_v_sped_free()
 	if not krc then k_return=false
 	krc = u_crea_view_v_sped_deposito_anag()

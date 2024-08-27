@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.24.08.161
-PVN:13,24,8,161
-FVS:13.24.08.161
-FVN:13,24,8,161
+PVS:13.24.08.231
+PVN:13,24,8,231
+FVS:13.24.08.231
+FVN:13,24,8,231
 MAN:2,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -60,6 +60,7 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_accettati_l,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_rows,u
 OBJ:C:\Sterigenics\app32\g_pilota.pbl,kds_pilota_pallet_out,u
 OBJ:C:\Sterigenics\app32\g_asd.pbl,st_tab_asdrackbarcode,s
+OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_pilota_impostazioni_x_variabile,d
 OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,ds_programmi_richieste_update,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,pbdom_processinginstruction,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,st_tab_menu_window,s
@@ -121,6 +122,7 @@ OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_asn_get_barcode,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,kds_e1_f5548014_ifesiste,u
 OBJ:C:\Sterigenics\app32\g_e1.pbl,ds_e1_wo_f5537001_l,d
+OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_storico_mastertimer_g2,d
 OBJ:C:\Sterigenics\app32\g_contratti.pbl,kuf_contratti,u
 OBJ:C:\Sterigenics\app32\g_web.pbl,st_email_address,s
 OBJ:C:\Sterigenics\app32\g_sr.pbl,kuf_sr_sicurezza,u
@@ -244,6 +246,7 @@ OBJ:C:\Sterigenics\app32\g_pilota.pbl,st_tab_pilota_cfg,s
 OBJ:C:\Sterigenics\app32\g_asd.pbl,kuf_asdrackbarcode,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_plav,u
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_contratti_rd,u
+OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_storico_mastertimer_g2,u
 OBJ:C:\Sterigenics\app32\g_generic.pbl,st_dw_guida_estrazione,s
 OBJ:C:\Sterigenics\app32\g_meca.pbl,kuf_armo,u
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,st_tab_pagam,s
@@ -284,6 +287,7 @@ OBJ:C:\Sterigenics\app32\g_fatt.pbl,st_fattura_stampa,s
 OBJ:C:\Sterigenics\app32\g_fatt.pbl,st_prof_trk_fatt_esolver,s
 OBJ:C:\Sterigenics\app32\g_listini.pbl,st_tab_listino,s
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,w_powerfilter_prompt_to_restore,w
+OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_pilota_impostazioni,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_meca_chiudi,s
 OBJ:C:\Sterigenics\app32\g_pilota_g3.pbl,kuf_pilota_prg_g3,u
 OBJ:C:\Sterigenics\app32\g_xsmart.pbl,st_tab_web_folder,s
@@ -627,6 +631,7 @@ OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_qtna,u
 OBJ:C:\Sterigenics\app32\powerfilter.pbl,u_powerfilter_dropdown,u
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_contatti_change_stato,u
 OBJ:C:\Sterigenics\app32\g_pl_barcode.pbl,ds_pl_barcode_dett,u
+OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_pilota_g2_parent,u
 OBJ:C:\Sterigenics\app32\g_op_2.pbl,kuf_stat_invent,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_xweb,u
 OBJ:C:\Sterigenics\app32\g_wm.pbl,st_wm_pkl_file,s

@@ -4268,7 +4268,7 @@ string k_data, k_nome_coltesta
 uo_exception kuo_exception
 
 
-k_filenum=FileOpen(a_file,LineMode!,Write!,LockWrite!,Replace!) //,EncodingUTF8!) 
+k_filenum=FileOpen(a_file, LineMode!, Write!, LockWrite!, Replace!, EncodingANSI!) //EncodingUTF8!) 
 
 if k_filenum > 0 then
 
@@ -4331,9 +4331,10 @@ if k_filenum > 0 then
 	
 else
 	
-	kguo_exception.inizializza()
+	kguo_exception.inizializza(this.classname())
 	kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-	kguo_exception.setmessage("File " + trim(a_file) + " non generato, probabile problema di accesso/autorizzazione di scrittura del file")
+	kguo_exception.setmessage("File " + trim(a_file) + " non generato, probabile problema di accesso/autorizzazione di scrittura del file. " &
+							+kkg.acapo + "Verificare che il file non sia aperto da qualche altra applicazione, come ad esempio Excel.")
 	throw kguo_exception
 	
 end if

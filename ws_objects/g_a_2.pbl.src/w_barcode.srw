@@ -2361,42 +2361,45 @@ choose case dwo.name
 	case "barcode_figli_t" 
 		tab_1.selecttab(2)
 
+	case "barcode_figli" 
 	case "barcode_lav_t" 
-											
-		tab_1.tabpage_1.dw_1.accepttext()
-		
-	//--- ricavo la data di partenza della lista
-//			k_data = tab_1.tabpage_1.dw_1.getitemdate(row, "barcode_data")
-//			k_data = RelativeDate ( k_data, -365 )
-		
-	//--- popolo il datasore (dw non visuale) per appoggio elenco
-		if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
-	
-		kst_tab_barcode.barcode = this.getitemstring(this.getrow(), "barcode_lav")
-	
-		kuf1_barcode = create kuf_barcode_tree
-		kst_esito = kuf1_barcode.anteprima ( kdsi_elenco_output, kst_tab_barcode )
-		destroy kuf1_barcode
-		kst_open_w.key1 = "Dettaglio Barcode : " + trim(string(kst_tab_barcode.barcode,"@@@ @@@@@@@@@")) 
-						
-		if kdsi_elenco_output.rowcount() > 0 then
-	
-			k_window = kGuf_data_base.prendi_win_attiva()
-			kst_open_w.id_programma =kkg_id_programma_elenco
-			kst_open_w.flag_primo_giro = "S"
-			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-			kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
-			kst_open_w.flag_leggi_dw = " "
-			kst_open_w.flag_cerca_in_lista = " "
-			kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
-			kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
-			kst_open_w.key4 = k_window.title    //--- Titolo della Window di chiamata per riconoscerla
-			kst_open_w.key12_any = kdsi_elenco_output
-			kst_open_w.flag_where = " "
-			kuf1_menu_window = create kuf_menu_window 
-			kuf1_menu_window.open_w_tabelle(kst_open_w)
-			destroy kuf1_menu_window
-		end if	
+		super::event clicked(xpos, ypos, row, dwo)
+
+//	case "barcode_lav_t" 
+//		tab_1.tabpage_1.dw_1.accepttext()
+//		
+//	//--- ricavo la data di partenza della lista
+////			k_data = tab_1.tabpage_1.dw_1.getitemdate(row, "barcode_data")
+////			k_data = RelativeDate ( k_data, -365 )
+//		
+//	//--- popolo il datasore (dw non visuale) per appoggio elenco
+//		if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
+//	
+//		kst_tab_barcode.barcode = this.getitemstring(this.getrow(), "barcode_lav")
+//	
+//		kuf1_barcode = create kuf_barcode_tree
+//		kst_esito = kuf1_barcode.anteprima ( kdsi_elenco_output, kst_tab_barcode )
+//		destroy kuf1_barcode
+//		kst_open_w.key1 = "Dettaglio Barcode : " + trim(string(kst_tab_barcode.barcode,"@@@ @@@@@@@@@")) 
+//						
+//		if kdsi_elenco_output.rowcount() > 0 then
+//	
+//			k_window = kGuf_data_base.prendi_win_attiva()
+//			kst_open_w.id_programma =kkg_id_programma_elenco
+//			kst_open_w.flag_primo_giro = "S"
+//			kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+//			kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
+//			kst_open_w.flag_leggi_dw = " "
+//			kst_open_w.flag_cerca_in_lista = " "
+//			kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
+//			kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
+//			kst_open_w.key4 = k_window.title    //--- Titolo della Window di chiamata per riconoscerla
+//			kst_open_w.key12_any = kdsi_elenco_output
+//			kst_open_w.flag_where = " "
+//			kuf1_menu_window = create kuf_menu_window 
+//			kuf1_menu_window.open_w_tabelle(kst_open_w)
+//			destroy kuf1_menu_window
+//		end if	
 		
 	case else
 		super::event clicked(xpos, ypos, row, dwo)

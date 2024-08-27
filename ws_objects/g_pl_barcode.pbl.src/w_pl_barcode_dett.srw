@@ -1081,14 +1081,10 @@ int k_ctr=0
 int k_importa=0
 kuf_utility kuf1_utility
 st_tab_pl_barcode kst_tab_pl_barcode
-//kuf_pl_barcode kuf1_pl_barcode
-pointer oldpointer  // Declares a pointer variable
 
 
-
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
-
+	SetPointer(kkg.pointer_attesa)
+	
 	if isnumber(trim(ki_st_open_w.key1)) then
 		k_key = long(trim(ki_st_open_w.key1))
 		ki_st_open_w.window_title += " ID: " + string(k_key, "#")
@@ -1098,26 +1094,20 @@ pointer oldpointer  // Declares a pointer variable
 	dw_lista_0.reset()
 	dw_groupage.reset()
 	
-//	if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.inserimento then
-//		
-//		k_errore = inserisci()
-//		
-//	else
+	k_rc = dw_dett_0.retrieve(k_key) 
 
-		k_rc = dw_dett_0.retrieve(k_key) 
+	choose case k_rc
 
-		choose case k_rc
-
-			case is < 0				
-				SetPointer(oldpointer)
-				messagebox("Operazione fallita", &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"(Codice cercato :" + string(k_key) + ")~n~r" )
-				cb_ritorna.postevent(clicked!)
+		case is < 0				
+			SetPointer(kkg.pointer_default)
+			messagebox("Operazione fallita", &
+				"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
+				"(Codice cercato :" + string(k_key) + ")~n~r" )
+			ki_exit_si = true
 
 //--- nessun codice trovato
 			case 0
-				SetPointer(oldpointer)
+				SetPointer(kkg.pointer_default)
 				if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 					
 					inserisci( )
@@ -1182,7 +1172,7 @@ pointer oldpointer  // Declares a pointer variable
 			if not kiuf_pl_barcode.if_pl_barcode_aperto(kst_tab_pl_barcode) then
 //--- se ero entrato per modificare ma non si può allora avvertimento				
 				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-					SetPointer(oldpointer)
+					SetPointer(kkg.pointer_default)
 					kguo_exception.inizializza( )
 					kguo_exception.messaggio_utente("Modifica del Piano bloccata", &
 						"Il Piano è già stato chiuso cambio modalità in VISUALIZZAZIONE")
@@ -1230,8 +1220,7 @@ pointer oldpointer  // Declares a pointer variable
 
 	dw_meca.setfocus()
 
-	SetPointer(oldpointer)
-
+	SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -1744,89 +1733,98 @@ end subroutine
 
 private subroutine open_elenco_pilota_coda () throws uo_exception;//
 int k_rc
-long k_riga, k_riga_max_queue, k_riga_max, k_riga_queue
+long k_riga, k_riga_max_queue, k_riga_max, k_riga_queue, k_rows, k_row
 date k_data_int
 string k_rcx
 st_tab_barcode kst_tab_barcode[]
-//st_tab_meca kst_tab_meca
 st_esito kst_esito
 kds_barcode_x_pilota_queue kds1_barcode_x_pilota_queue
-//kuf_armo kuf1_armo
-//kuf_barcode kuf1_barcode
-
-window k_window
+kuf_pilota_cmd kuf1_pilota_cmd
 st_open_w kst_open_w
 kuf_menu_window kuf1_menu_window 
-datawindowchild kdwc_barcode
-uo_exception kuo_exception
 pointer kpointer_old
+st_tab_pilota_impostazioni kst_tab_pilota_impostazioni
 
-
-//--- popolo il datasore (dw non visuale) per appoggio elenco
-if not isvalid(kdsi_elenco_output) then 
-	kdsi_elenco_output = create datastore
-end if
 
 try
+
+	kguo_exception.inizializza(this.classname())
+
+	//--- popolo il datasore (dw non visuale) per appoggio elenco
+	if not isvalid(kdsi_elenco_output) then 
+		kdsi_elenco_output = create datastore
+	end if
 	
 	kpointer_old = setpointer(hourglass!)
+
+	kuf1_pilota_cmd = create kuf_pilota_cmd
 	
 //	kguo_sqlca_db_pilota.db_connetti()
 
 	kdsi_elenco_output.dataobject = "d_pilota_queue_table_h" 
 //	k_rc = kdsi_elenco_output.settransobject ( kguo_sqlca_db_pilota )
 	k_rc = kdsi_elenco_output.settrans ( kguo_sqlca_db_pilota )  // conn/disconn in automatico
-	k_rc = kdsi_elenco_output.retrieve()
+	k_rows = kdsi_elenco_output.retrieve()
 
-	kst_open_w.key1 = "Elenco Barcode in coda di Lavorazione nel Pilota " 
-	
-	if kdsi_elenco_output.rowcount() > 0 then
-	
-//--- piglia la data di consegna	
-//		kuf1_armo = create kuf_armo
-//		kuf1_barcode = create kuf_barcode
-		k_riga_max_queue = kdsi_elenco_output.rowcount() 
-		if k_riga_max_queue > 0 then
-			for k_riga = 1 to k_riga_max_queue 
-				kst_tab_barcode[k_riga].barcode = kdsi_elenco_output.getitemstring( k_riga, "barcode")
-	//			kst_esito = kuf1_barcode.get_padre_id_meca(kst_tab_barcode)
-	//			if kst_esito.esito = kkg_esito.ok then
-	//				kst_tab_meca.id = kst_tab_barcode.id_meca
-	//				kst_esito = kuf1_armo.get_consegna_data(kst_tab_meca)
-	//				if kst_esito.esito = kkg_esito.ok then
-	//					kdsi_elenco_output.setitem(k_riga, "consegna_data", string(kst_tab_meca.consegna_data, "dd/mm/yyyy" ))
-	//				end if
-	//			end if
-			next
-			kds1_barcode_x_pilota_queue = create kds_barcode_x_pilota_queue
-			k_riga_max = kds1_barcode_x_pilota_queue.u_retrieve(kst_tab_barcode[])
-			for k_riga = 1 to k_riga_max 
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#1.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#2.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#3.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#4.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#5.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#6.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#7.name")
-//				k_rcx = kds1_barcode_x_pilota_queue.describe("#8.name")
-				k_riga_queue = kdsi_elenco_output.find("barcode = '" + kds1_barcode_x_pilota_queue.getitemstring(k_riga, "barcode") + "'" , 1, k_riga_max_queue)
-				if kds1_barcode_x_pilota_queue.getitemdate(k_riga, "consegna_data") > kkg.data_zero then
-					kdsi_elenco_output.setitem(k_riga_queue, "consegna_data", string(kds1_barcode_x_pilota_queue.getitemdate(k_riga, "consegna_data"), "dd mmm" ))
-				end if
-				kdsi_elenco_output.setitem(k_riga_queue, "id_meca", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "id_meca"))
-				kdsi_elenco_output.setitem(k_riga_queue, "num_int", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "num_int"))
-				kdsi_elenco_output.setitem(k_riga_queue, "e1ancodrs", kds1_barcode_x_pilota_queue.getitemstring(k_riga, "e1ancodrs"))
-			next
+	if k_rows <= 0 then
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_not_fnd)
+		kguo_exception.setmessage("Nessun Barcode disponibile in Coda di Lavorazione. ")
+		throw kguo_exception
+	end if		
+		
+//--- Screma gli Intoccabili di FILA 1
+	kst_tab_pilota_impostazioni = kuf1_pilota_cmd.get_pilota_num_intoccabili_g2()  // get delle impostazioni compreso gli INTOCCABILI
+	k_row = 1
+	do while kst_tab_pilota_impostazioni.num_intoccabili_fila1 > 0 and k_rows > k_row 
+		if kdsi_elenco_output.getitemnumber(k_row, "ciclifila1") > 0 then
+			kst_tab_pilota_impostazioni.num_intoccabili_fila1 --
+			kst_tab_pilota_impostazioni.num_intoccabili_fila1 --  // ne tolgo 2 perchè levo la coppia H e B
+			k_rows --
+			kdsi_elenco_output.deleterow(k_row)
+		else
+			k_row ++
 		end if
-//		destroy kuf1_armo
-//		destroy kuf1_barcode
+	loop 
+//--- Screma gli Intoccabili di FILA 2 
+	k_row = 1
+	do while kst_tab_pilota_impostazioni.num_intoccabili_fila2 > 0 and k_rows > k_row 
+		if kdsi_elenco_output.getitemnumber(k_row, "ciclifila2") > 0 then
+			kst_tab_pilota_impostazioni.num_intoccabili_fila2 --
+			kst_tab_pilota_impostazioni.num_intoccabili_fila2 --  // ne tolgo 2 perchè levo la coppia H e B
+			k_rows --
+			kdsi_elenco_output.deleterow(k_row)
+		else
+			k_row ++
+		end if
+	loop 
+
+	if k_rows <= 0 then
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_not_fnd)
+		kguo_exception.setmessage("Nessun Barcode disponibile in Coda di Lavorazione oltre alla Riserva (" + string(kst_tab_pilota_impostazioni.num_intoccabili_fila1) + " Intoccabili). ")
+		throw kguo_exception
+	end if		
 		
-		k_window = kGuf_data_base.prendi_win_attiva()
-		
+//--- setta diversi dati dal Magazzino
+	k_riga_max_queue = kdsi_elenco_output.rowcount() 
+	if k_riga_max_queue > 0 then
+		for k_riga = 1 to k_riga_max_queue 
+			kst_tab_barcode[k_riga].barcode = kdsi_elenco_output.getitemstring( k_riga, "barcode")
+		next
+		kds1_barcode_x_pilota_queue = create kds_barcode_x_pilota_queue
+		k_riga_max = kds1_barcode_x_pilota_queue.u_retrieve(kst_tab_barcode[])
+		for k_riga = 1 to k_riga_max 
+			k_riga_queue = kdsi_elenco_output.find("barcode = '" + kds1_barcode_x_pilota_queue.getitemstring(k_riga, "barcode") + "'" , 1, k_riga_max_queue)
+			if kds1_barcode_x_pilota_queue.getitemdate(k_riga, "consegna_data") > kkg.data_zero then
+				kdsi_elenco_output.setitem(k_riga_queue, "consegna_data", string(kds1_barcode_x_pilota_queue.getitemdate(k_riga, "consegna_data"), "dd mmm" ))
+			end if
+			kdsi_elenco_output.setitem(k_riga_queue, "id_meca", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "id_meca"))
+			kdsi_elenco_output.setitem(k_riga_queue, "num_int", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "num_int"))
+			kdsi_elenco_output.setitem(k_riga_queue, "e1ancodrs", kds1_barcode_x_pilota_queue.getitemstring(k_riga, "e1ancodrs"))
+		next
+
 	//--- chiamare la window di elenco
+		kst_open_w.key1 = "Elenco Barcode in coda di Lavorazione nel Pilota " 
 	
-	//=== Parametri : 
-	//=== struttura st_open_w
 		kst_open_w.id_programma = kkg_id_programma_elenco
 		kst_open_w.flag_primo_giro = "S"
 		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
@@ -1835,7 +1833,7 @@ try
 		kst_open_w.flag_cerca_in_lista = " "
 		kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
 		kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
-		kst_open_w.key4 = k_window.title    //--- Titolo della Window di chiamata per riconoscerla
+		kst_open_w.key4 = this.title    //--- Titolo della Window di chiamata per riconoscerla
 		kst_open_w.key12_any = kdsi_elenco_output
 		kst_open_w.flag_where = " "
 		kuf1_menu_window = create kuf_menu_window 
@@ -1844,23 +1842,21 @@ try
 	
 	else
 	
-		kuo_exception = create uo_exception
-		kuo_exception.set_tipo(kuo_exception.KK_st_uo_exception_tipo_not_fnd)
-		kuo_exception.setmessage("Nessun valore disponibile per l'elenco richiesto. ")
-		throw kuo_exception
-		
-		
+		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_not_fnd)
+		kguo_exception.setmessage("Nessun valore disponibile per l'elenco richiesto. ")
+		throw kguo_exception
+				
 	end if
 
 catch (uo_exception k1uo_exception)
 	throw k1uo_exception
 
 finally 
+	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
+	
 	setpointer(kpointer_old)
+	
 end try
-//
-
-
 
 
 
@@ -7358,8 +7354,8 @@ end type
 
 type dw_dett_0 from w_g_tab0`dw_dett_0 within w_pl_barcode_dett
 event ue_mousemove pbm_mousemove
-integer x = 302
-integer y = 584
+integer x = 91
+integer y = 512
 integer width = 3099
 integer height = 1016
 integer taborder = 10

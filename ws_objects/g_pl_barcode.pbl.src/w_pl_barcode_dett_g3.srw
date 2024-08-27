@@ -1888,7 +1888,7 @@ st_tab_pl_barcode kst_tab_pl_barcode
 			messagebox("Operazione fallita", &
 				"Mi spiace, ma si e' verificato un errore interno al programma " &
 				+ kkg.acapo + "Errore: " + string(dw_dett_0.kist_esito.sqlcode) + " - " + dw_dett_0.kist_esito.sqlerrtext)
-			cb_ritorna.postevent(clicked!)
+			ki_exit_si = true
 	
 		case 0
 			SetPointer(kkg.pointer_default)

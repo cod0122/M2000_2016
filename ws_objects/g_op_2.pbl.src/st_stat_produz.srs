@@ -17,5 +17,6 @@ global type st_stat_produz from structure
 	integer		gruppo_flag
 	integer		no_prezzo
 	long		id_listino
+	integer		impianto
 end type
 

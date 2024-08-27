@@ -454,6 +454,7 @@ boolean k_esegui_query  = true
 string k_prezzo_dosim_x
 kuf_utility kuf1_utility
 kuf_listino kuf1_listino
+kuf_impianto kuf1_impianto
 
 
 try
@@ -462,6 +463,7 @@ try
 	
 	kuf1_utility = create kuf_utility
 	kuf1_listino = create kuf_listino
+	kuf1_impianto = create kuf_impianto
 
 //--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
 	get_parametri()
@@ -470,7 +472,7 @@ try
 	k_prezzo_dosim_x = kuf1_utility.u_num_itatousa(k_prezzo_dosim_x)
 
 //--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-	if LenA(trim(tab_1.tabpage_2.st_2_retrieve.text)) > 0 then
+	if trim(tab_1.tabpage_2.st_2_retrieve.text) > " " then
 		k_codice_prec = tab_1.tabpage_2.st_2_retrieve.text
 	else
 		k_codice_prec = " "
@@ -481,11 +483,8 @@ try
 	
 	if tab_1.tabpage_2.st_2_retrieve.text <> k_codice_prec then
 	
-	// if ki_codice_prec_x_crea_view <> tab_1.tabpage_2.st_2_retrieve.text then !!!PECCATO XCHE' LA TEMP TABLE VIENE CANCELLATA ALLA FINE DI QUESTA ROUTINE!!!
-	//--- Salvo i parametri per evitare di rifare le Tabelle se non sono cambiati
-	//      ki_codice_prec_x_crea_view = tab_1.tabpage_2.st_2_retrieve.text
-		crea_view_x_statp_dfatt()
-		crea_view_x_statp_mfat()
+		//crea_view_x_statp_dfatt()
+		//crea_view_x_statp_mfat()
 		crea_view_x_statp_meca()
 		crea_view_x_statp_colli_trattati_x_gru()
 		crea_view_x_statp_artr_x_gru()
@@ -496,7 +495,9 @@ try
 	// k_sql = + &
 	// "CREATE VIEW " + trim(k_view) &
 	//  + " ( gruppo, id_armo, colli_periodo, colli_da_fatt, colli_entrati, colli_fatt, imp_x_collo ) AS   " 
-		k_campi = "gruppo integer, id_armo integer, colli_trattati integer " &
+		k_campi = "gruppo integer" &
+					 + ", id_armo integer" &
+					 + ", colli_trattati integer " &
 					 + ", n_dosimetri integer " &
 					 + ", colli_entrati integer " &
 					 + ", colli_fatturati integer " &
@@ -539,13 +540,16 @@ try
 	//--- costruisco la view con X gruppo
 		k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp1_gruppo "
 		k_sql_w = " "
-		k_campi = "gruppo integer, colli_trattati integer " &
-					 + ", n_dosimetri integer " &
-					 + ", colli_entrati integer, colli_fatturati integer, colli_armo_fatt integer " & 
-				+ " , imp_trattati decimal(12,4) " &
-				+ " , imp_fatturati decimal(12,4) " & 
-				+ " , imp_armo_fatt decimal(12,4) " &
-				+ " , imp_fatt_dosimetri decimal(12,2) " 
+		k_campi = "gruppo integer " &
+				+ ", colli_trattati integer " &
+			   + ", n_dosimetri integer " &
+				+ ", colli_entrati integer " &
+				+ ", colli_fatturati integer " &
+				+ ", colli_armo_fatt integer " & 
+				+ ", imp_trattati decimal(12,4) " &
+				+ ", imp_fatturati decimal(12,4) " & 
+				+ ", imp_armo_fatt decimal(12,4) " &
+				+ ", imp_fatt_dosimetri decimal(12,2) " 
 		k_sql = &
 				 " SELECT  " &
 				 + " gruppo  " &
@@ -591,18 +595,23 @@ try
 	//--- valorizza titolo
 		kist_stampa_dw_2.titolo = 'Merce Trattata per Gruppo'  
 		kist_stampa_dw_2.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a )
-		if kist_stat_produz.magazzino <> 9 then
-			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
+		if kist_stat_produz.impianto > 0 then
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Impianto: ' + kuf1_impianto.get_descr(kist_stat_produz.impianto) + ' '
 		else 
-			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Magazzino: Tutti   ' 
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Impianto: Tutti ' 
+		end if
+		if kist_stat_produz.magazzino <> 9 then
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + ' '
+		else 
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Magazzino: Tutti ' 
 		end if
 		if kist_stat_produz.no_dose = 'S' then
-			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: No   '
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: No '
 		else
 			if kist_stat_produz.dose = 0 then 
-				kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: Tutte   '
+				kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: Tutte '
 			else
-				kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
+				kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + ' ' 
 			end if
 		end if
 		if kist_stat_produz.id_gruppo > 0 then
@@ -612,7 +621,7 @@ try
 				kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
 			end if
 		else
-			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Gruppi: Tutti   ' 
+			kist_stampa_dw_2.titolo_2 = kist_stampa_dw_2.titolo_2 + ' Gruppi: Tutti ' 
 		end if   
 	
 		kist_stampa_dw_2.titolo_2 += '  (' + trim(string(kist_stat_produz.data_estrazione_stat)) + ') '
@@ -636,6 +645,8 @@ catch (uo_exception kuo_exception)
 finally
 	if isvalid(kuf1_utility) then destroy kuf1_utility
 	if isvalid(kuf1_listino) then destroy kuf1_listino
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
+	
 	
 	attiva_tasti()
 	
@@ -1074,14 +1085,13 @@ kist_stat_produz.gruppo_flag = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_fla
 kist_stat_produz.data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da")  
 kist_stat_produz.data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a")  
 kist_stat_produz.no_dose = tab_1.tabpage_1.dw_1.getitemstring(1, "no_dose")  
+kist_stat_produz.impianto = tab_1.tabpage_1.dw_1.getitemnumber(1, "impianto")  
 kist_stat_produz.magazzino = tab_1.tabpage_1.dw_1.getitemnumber(1, "magazzino")  
 kist_stat_produz.tipo_data = tab_1.tabpage_1.dw_1.getitemstring(1, "tipo_data") 
 kist_stat_produz.data_estrazione_stat =	tab_1.tabpage_1.dw_1.getitemstring(1, "estrazione")
 kist_stat_produz.no_prezzo = tab_1.tabpage_1.dw_1.getitemnumber(1, "no_prezzo")  
 
-
 set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-
 
 //=== Controllo date
 	if kist_stat_produz.data_a < kist_stat_produz.data_da then
@@ -1368,6 +1378,9 @@ try
 		end if
 	end if
 	
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
+	end if
 	if kist_stat_produz.magazzino <> 9 then
 		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
 	end if
@@ -1672,6 +1685,9 @@ try
 			k_sql += " and s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
 		end if
 	end if
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
+	end if
 	if kist_stat_produz.magazzino <> 9 then
 		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
 	end if
@@ -1777,6 +1793,9 @@ try
 		else
 			k_sql += " and s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
 		end if
+	end if
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
 	end if
 	if kist_stat_produz.magazzino <> 9 then
 		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
@@ -2133,6 +2152,9 @@ try
 		else
 			k_sql += " and s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
 		end if
+	end if
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
 	end if
 	if kist_stat_produz.magazzino <> 9 then
 		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
@@ -2654,6 +2676,9 @@ event close;call super::close;//
 
 end event
 
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_stat_produz
+end type
+
 type st_ritorna from w_g_tab_3`st_ritorna within w_stat_produz
 end type
 
@@ -2699,6 +2724,8 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_stat_produz
+integer x = 0
+integer y = 0
 end type
 
 on tab_1.create

@@ -2146,9 +2146,6 @@ if sicurezza(kst_open_w) then
 	//===	              : 2=Errore Non grave dati aggiornati
 	//===               : 3=
 		k_errore = aggiorna_dati()		
-		//if left(k_errore, 1) = "0" then 
-		//	inizializza_lista()
-		//end if
 		
 	else
 	
@@ -2238,20 +2235,12 @@ kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
  
  //--- controlla se utente autorizzato alla funzione in atto
 if sicurezza(kst_open_w) then
- 
- 
-//		if tab_1.selectedtab = 1 then
-//			ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
-//		end if
 
  //--- solo se faccio 'inserisci' sul primo tabulatore controlla se ho fatto modifiche
-//	u_get_dw( )
-//	if kidw_selezionata.u_get_tipo( ) = kidw_selezionata.kki_tipo_processing_form then
-		k_esito = dati_modif(parent.title)
-		if len(k_esito) > 0 then 
-			k_errore = left(k_esito, 1)
-		end if
-//	end if
+	k_esito = dati_modif(parent.title)
+	if len(k_esito) > 0 then 
+		k_errore = left(k_esito, 1)
+	end if
    
    //=== Controllo se ho modificato dei dati nella DW DETTAGLIO
 	if k_errore = "1" then //Fare gli aggiornamenti
@@ -2272,8 +2261,8 @@ if sicurezza(kst_open_w) then
 	if left(k_errore, 1) = "0" then 
       
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
-      	inserisci()
-      	u_personalizza_dw ()
+		inserisci()
+		u_personalizza_dw ()
 		if isvalid(kidw_selezionata) then kidw_selezionata.ki_flag_modalita = ki_st_open_w.flag_modalita
       
 	end if

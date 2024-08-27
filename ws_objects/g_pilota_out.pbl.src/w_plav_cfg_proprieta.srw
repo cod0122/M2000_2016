@@ -112,7 +112,7 @@ int k_rc
 
 		kguo_sqlca_db_plav.db_connetti( )
 		tab_1.tabpage_3.dw_3.settransobject(kguo_sqlca_db_plav )
-		k_rc = tab_1.tabpage_3.dw_3.retrieve()
+		k_rc = tab_1.tabpage_3.dw_3.retrieve(date(0))
 
 		attiva_tasti()
 

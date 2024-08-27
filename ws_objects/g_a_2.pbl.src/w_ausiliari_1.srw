@@ -38,6 +38,9 @@ protected subroutine inizializza_8 () throws uo_exception
 public subroutine u_dosimetrie_storicizza ()
 public subroutine u_dosimetrie_h_switch ()
 private subroutine u_ptasks_types_put_descr ()
+protected function integer inserisci ()
+protected subroutine modifica ()
+protected subroutine attiva_tasti_0 ()
 end prototypes
 
 protected subroutine attiva_menu ();//
@@ -200,13 +203,15 @@ choose case tab_1.selectedtab
 			k_key = k_key_1
 		end if
 	case 7
-		k_record = " Tempi Impianto "
-		k_riga = tab_1.tabpage_7.dw_7.getrow()	
-		if k_riga > 0 then
-			k_key_2 = tab_1.tabpage_7.dw_7.getitemnumber(k_riga, 1)
-			k_desc = tab_1.tabpage_7.dw_7.getitemstring(k_riga, 2)
-			k_key = string(k_key_2)
-		end if
+		k_riga = 0  // ESCE
+		messagebox("Tempi Impianto", "Tabella TEMPI IMPIANTO sul PILOTA, rimozione non CONSENTITA", stopsign!)
+//		k_record = " Tempi Impianto "
+//		k_riga = tab_1.tabpage_7.dw_7.getrow()	
+//		if k_riga > 0 then
+//			k_key_2 = tab_1.tabpage_7.dw_7.getitemnumber(k_riga, 1)
+//			k_desc = tab_1.tabpage_7.dw_7.getitemstring(k_riga, 2)
+//			k_key = string(k_key_2)
+//		end if
 	case 8
 		k_record = " Posizione Dosimetro "
 		k_riga = tab_1.tabpage_8.dw_8.getrow()	
@@ -612,74 +617,74 @@ string k_key, k_keyn, k_lotto_dosim, k_dataoggix
 
 	loop
 	
-//=== Controllo altro tab
-	k_nr_righe = tab_1.tabpage_7.dw_7.rowcount()
-	k_riga = tab_1.tabpage_7.dw_7.getnextmodified(0, primary!)
-	do while k_riga > 0 and k_nr_errori = 0
-
-		if tab_1.tabpage_7.dw_7.getitemstatus(k_riga, 0, primary!) = newmodified! then
-			k_data = tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") 
-			select count(id_imptime)
-				into :k_nr_righe
-				from imptime
-				where data_ini = :k_data;
-			if k_nr_righe > 0 then
-				k_return = "Stessa data di inizio gia' in archivio " + "~n~r" 
-				k_errore = "3"
-				k_nr_errori++
-			end if
-
-			if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") > kkg.data_zero then
-				if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") > tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_fin") then
-					k_return += "Data di inizio maggiore della data di fine periodo " + "~n~r" 
-					k_errore = "3"
-					k_nr_errori++
-				end if
-			else
-				k_return += "Indicare la Data di inizio validità " + "~n~r" 
-				k_errore = "3"
-				k_nr_errori++
-			end if
-
-			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "fila_1_tcoeff") > 0 and tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "fila_2_tcoeff") > 0 then
-			else
-				k_return += "Indicare i Coefficienti di moltiplicazione del tempo impianto per Fila 1 e 2 " + "~n~r" 
-				k_errore = "3"
-				k_nr_errori++
-			end if
-		end if
-		if k_nr_errori = 0 then
-			//--- popola valori di default
-			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "id_imptime") > 0 then
-			else
-				tab_1.tabpage_7.dw_7.setitem(k_riga, "id_imptime", 0)
-			end if
-			if trim(tab_1.tabpage_7.dw_7.getitemstring(k_riga, "impianto")) > " " then
-			else
-				tab_1.tabpage_7.dw_7.setitem(k_riga, "impianto", "2")
-			end if
-			if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_fin") > kkg.data_zero then
-			else
-				tab_1.tabpage_7.dw_7.setitem(k_riga, "data_fin", relativedate(tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini"),365))
-			end if
-			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "tminute") > 0 then
-			else
-				tab_1.tabpage_7.dw_7.setitem(k_riga,  "tminute", 0)
-			end if
-			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "tsecond") > 0 then
-			else
-				tab_1.tabpage_7.dw_7.setitem(k_riga,  "tsecond", 0)
-			end if
-		
-			k_riga = tab_1.tabpage_7.dw_7.getnextmodified(k_riga, primary!)
-		else
-			k_return = tab_1.tabpage_7.text + ": " + k_return
-			tab_1.tabpage_7.dw_7.setrow(k_riga)
-			tab_1.tabpage_7.dw_7.selectrow(0, false)
-			tab_1.tabpage_7.dw_7.selectrow(k_riga, true)
-		end if
-	
-	loop
+////=== Controllo altro tab
+//	k_nr_righe = tab_1.tabpage_7.dw_7.rowcount()
+//	k_riga = tab_1.tabpage_7.dw_7.getnextmodified(0, primary!)
+//	do while k_riga > 0 and k_nr_errori = 0
+//
+//		if tab_1.tabpage_7.dw_7.getitemstatus(k_riga, 0, primary!) = newmodified! then
+//			k_data = tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") 
+//			select count(id_imptime)
+//				into :k_nr_righe
+//				from imptime
+//				where data_ini = :k_data;
+//			if k_nr_righe > 0 then
+//				k_return = "Stessa data di inizio gia' in archivio " + "~n~r" 
+//				k_errore = "3"
+//				k_nr_errori++
+//			end if
+//
+//			if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") > kkg.data_zero then
+//				if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini") > tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_fin") then
+//					k_return += "Data di inizio maggiore della data di fine periodo " + "~n~r" 
+//					k_errore = "3"
+//					k_nr_errori++
+//				end if
+//			else
+//				k_return += "Indicare la Data di inizio validità " + "~n~r" 
+//				k_errore = "3"
+//				k_nr_errori++
+//			end if
+//
+//			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "fila_1_tcoeff") > 0 and tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "fila_2_tcoeff") > 0 then
+//			else
+//				k_return += "Indicare i Coefficienti di moltiplicazione del tempo impianto per Fila 1 e 2 " + "~n~r" 
+//				k_errore = "3"
+//				k_nr_errori++
+//			end if
+//		end if
+//		if k_nr_errori = 0 then
+//			//--- popola valori di default
+//			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "id_imptime") > 0 then
+//			else
+//				tab_1.tabpage_7.dw_7.setitem(k_riga, "id_imptime", 0)
+//			end if
+//			if trim(tab_1.tabpage_7.dw_7.getitemstring(k_riga, "impianto")) > " " then
+//			else
+//				tab_1.tabpage_7.dw_7.setitem(k_riga, "impianto", "2")
+//			end if
+//			if tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_fin") > kkg.data_zero then
+//			else
+//				tab_1.tabpage_7.dw_7.setitem(k_riga, "data_fin", relativedate(tab_1.tabpage_7.dw_7.getitemdate(k_riga, "data_ini"),365))
+//			end if
+//			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "tminute") > 0 then
+//			else
+//				tab_1.tabpage_7.dw_7.setitem(k_riga,  "tminute", 0)
+//			end if
+//			if tab_1.tabpage_7.dw_7.getitemnumber(k_riga, "tsecond") > 0 then
+//			else
+//				tab_1.tabpage_7.dw_7.setitem(k_riga,  "tsecond", 0)
+//			end if
+//		
+//			k_riga = tab_1.tabpage_7.dw_7.getnextmodified(k_riga, primary!)
+//		else
+//			k_return = tab_1.tabpage_7.text + ": " + k_return
+//			tab_1.tabpage_7.dw_7.setrow(k_riga)
+//			tab_1.tabpage_7.dw_7.selectrow(0, false)
+//			tab_1.tabpage_7.dw_7.selectrow(k_riga, true)
+//		end if
+//	
+//	loop
 	
 //=== Controllo altro tab DOSIM.POSIZIONI SU PALLET
 	k_nr_righe = tab_1.tabpage_8.dw_8.rowcount()
@@ -1135,19 +1140,19 @@ for k_ctr = k_riga to 1 step -1
 	end if
 next
 	
-//--- Tempi Impianto
-k_riga = tab_1.tabpage_7.dw_7.rowcount ( )
-for k_ctr = k_riga to 1 step -1
-	if tab_1.tabpage_7.dw_7.getitemstatus(k_ctr, 0, primary!) = newmodified! & 
-				or tab_1.tabpage_7.dw_7.getitemstatus(k_ctr, 0, primary!) = new! then 
-		if isnull(tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "tminute")) &  
-				or tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "tminute") <= 0 &
-				or isnull(tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "fila_1_tcoeff")) &  
-				or tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "fila_1_tcoeff") <= 0 then
-			tab_1.tabpage_7.dw_7.deleterow(k_ctr)
-		end if
-	end if
-next
+////--- Tempi Impianto
+//k_riga = tab_1.tabpage_7.dw_7.rowcount ( )
+//for k_ctr = k_riga to 1 step -1
+//	if tab_1.tabpage_7.dw_7.getitemstatus(k_ctr, 0, primary!) = newmodified! & 
+//				or tab_1.tabpage_7.dw_7.getitemstatus(k_ctr, 0, primary!) = new! then 
+//		if isnull(tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "tminute")) &  
+//				or tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "tminute") <= 0 &
+//				or isnull(tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "fila_1_tcoeff")) &  
+//				or tab_1.tabpage_7.dw_7.getitemnumber(k_ctr, "fila_1_tcoeff") <= 0 then
+//			tab_1.tabpage_7.dw_7.deleterow(k_ctr)
+//		end if
+//	end if
+//next
 	
 //--- Posizione Dosimetro
 k_riga = tab_1.tabpage_8.dw_8.rowcount ( )
@@ -1290,9 +1295,38 @@ protected subroutine inizializza_6 () throws uo_exception;//
 //=== Inizializzazione della Windows
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
+
+	//u_retrieve("d_imptime")
+long k_rows, k_row
+int k_rc
+ds_storico_mastertimer_g2 kds_storico_mastertimer_g2
+
+	u_set_dw_selezionata( )
+
+	if tab_1.tabpage_7.dw_7.rowcount() = 0  then
+
+		kds_storico_mastertimer_g2 = create ds_storico_mastertimer_g2
 	
-	u_retrieve("d_imptime")
+		k_rows = kds_storico_mastertimer_g2.u_retrieve( )
+		if k_rows > 0 then
 		
+			kds_storico_mastertimer_g2.rowscopy( 1, k_rows, primary!, tab_1.tabpage_7.dw_7, 1, primary!)
+		
+		else
+
+			messagebox("Operazione conclusa", "Nessun Tempo Trovato in Impianto Pilota G2 tabella 'storico_mastertimer'.")
+			
+		end if
+	end if
+	tab_1.tabpage_7.dw_7.GroupCalc()	
+ 
+	u_proteggi_sproteggi()
+	
+	tab_1.tabpage_7.dw_7.resetupdate( )
+
+	tab_1.tabpage_7.dw_7.setfocus()
+
+
 
 end subroutine
 
@@ -1345,13 +1379,13 @@ choose case tab_1.selectedtab
 			k_riga = tab_1.tabpage_5.dw_5.getnextmodified(k_riga, primary!)
 		loop
 
-	case 7
-		k_riga = tab_1.tabpage_7.dw_7.getnextmodified(0, primary!)
-		do while k_riga > 0  
-			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
-			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
-			k_riga = tab_1.tabpage_7.dw_7.getnextmodified(k_riga, primary!)
-		loop
+//	case 7
+//		k_riga = tab_1.tabpage_7.dw_7.getnextmodified(0, primary!)
+//		do while k_riga > 0  
+//			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_datins", kGuf_data_base.prendi_x_datins())
+//			tab_1.tabpage_7.dw_7.setitem(k_riga, "x_utente", kGuf_data_base.prendi_x_utente())
+//			k_riga = tab_1.tabpage_7.dw_7.getnextmodified(k_riga, primary!)
+//		loop
 
 	case 8
 		k_riga = tab_1.tabpage_8.dw_8.getnextmodified(0, primary!)
@@ -1456,6 +1490,40 @@ end try
 end subroutine
 
 private subroutine u_ptasks_types_put_descr ();
+end subroutine
+
+protected function integer inserisci ();//
+if tab_1.selectedtab  = 7 then
+	messagebox("Tempi Impianto", "Tabella TEMPI IMPIANTO sul PILOTA, inserimento non CONSENTITO", stopsign!)
+	return 0
+else
+	return super::inserisci( )
+end if
+
+end function
+
+protected subroutine modifica ();//
+if tab_1.selectedtab  = 7 then
+	messagebox("Tempi Impianto", "Tabella TEMPI IMPIANTO sul PILOTA, modifica non CONSENTITA", stopsign!)
+else
+	super::modifica( )
+end if
+
+end subroutine
+
+protected subroutine attiva_tasti_0 ();//
+super::attiva_tasti_0( )
+
+if tab_1.selectedtab  = 7 then
+	
+	cb_inserisci.enabled = false
+	cb_aggiorna.enabled = false
+	cb_modifica.enabled = false
+	cb_cancella.enabled = false
+	cb_visualizza.enabled = false
+	
+end if
+
 end subroutine
 
 on w_ausiliari_1.create
@@ -1686,7 +1754,9 @@ type st_7_retrieve from w_ausiliari`st_7_retrieve within tabpage_7
 end type
 
 type dw_7 from w_ausiliari`dw_7 within tabpage_7
-string dataobject = "d_imptime"
+string dataobject = "d_storico_mastertimer_g2"
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
 end type
 
 type st_orizzontal_17 from w_ausiliari`st_orizzontal_17 within tabpage_7

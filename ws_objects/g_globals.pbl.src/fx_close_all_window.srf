@@ -6,40 +6,34 @@ forward prototypes
 global subroutine fx_close_all_window ()
 end prototypes
 
-global subroutine fx_close_all_window ();
-//=== Chiudo tutte le window children
+global subroutine fx_close_all_window ();/*
+ Chiudo tutte le window children tranne il MENU
+*/
 window wSheet, wSheetNEXT
-int k_rc=1
 
-	if not isnull(w_main) then
-		if isvalid(w_main) then
-			wSheet = w_main.GetFirstSheet()
-			do WHILE IsValid(wSheet) and k_rc = 1
-				if wSheet.classname( ) <> "w_menu_tree" then
-					k_rc = close(wSheet)
-					if k_rc = 1 then
-						wSheet = w_main.GetFirstSheet()
-					end if
-				else
-					k_rc = 0
-				end if
-			loop
-			
-			if wSheet.classname( ) = "w_menu_tree" then
-				if isvalid(wsheet) then
-					wSheetNEXT = wsheet
-				end if
-			
-				do while isvalid(wSheet) and k_rc = 1
-					wSheet = w_main.GetNextSheet(wSheetNEXT)
-					if IsValid (wSheet) then
-						k_rc = close(wSheet)
-					end if
-				loop
-			end if
+
+	if isnull(w_main) then return 
+	if not isvalid(w_main) then return 
+	wSheet = w_main.GetFirstSheet()
+	
+	do 
+		if isnull(wSheet) then return
+		if not isvalid(wSheet) then return
+		
+		if wSheet.classname( ) = "w_menu_tree" then
+			wSheetNEXT = wSheet
+			wSheet = w_main.GetNextSheet(wSheetNEXT)
+			if isnull(wSheet) then return
+			if not isvalid(wSheet) then return
 		end if
-	end if
-
+		if close(wSheet) < 1 then exit
+		wSheet = w_main.GetFirstSheet()
+			
+		if isnull(wSheet) then exit
+		if not isvalid(wSheet) then exit
+			
+	loop while true
+			
 
 end subroutine
 

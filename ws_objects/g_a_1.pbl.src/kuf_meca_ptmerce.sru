@@ -654,6 +654,11 @@ try
 		if kiuf_msg_replace_placeholder.u_check_placeholder(kst_msg_replace_placeholder) = 0 then
 //--- Se non ci sono segnaposti, somma alla dicitura del Prototipo il ddt del mandante a anche il Nome del Ricevente quando cliente diverso 
 			kst_tab_email_invio.oggetto = u_get_oggetto_no_placeholder(ast_tab_meca, kst_tab_email_invio)
+		else
+			kst_msg_replace_placeholder.id_meca = ast_tab_meca.id
+			if kst_msg_replace_placeholder.id_meca > 0 then
+				kst_tab_email_invio.oggetto = kiuf_msg_replace_placeholder.u_message_replace_placeholder(kst_msg_replace_placeholder)
+			end if
 		end if
 
 //--- verifica se il cliente ha un pagamento ANTICIPATO xchè è da segnalare

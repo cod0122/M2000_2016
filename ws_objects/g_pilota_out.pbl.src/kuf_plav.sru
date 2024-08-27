@@ -57,7 +57,8 @@ public function string u_prima_del_barcode (integer a_impianto, string a_barcode
 public function long set_id_stato_to_deprecato (long a_id_programma)
 public function boolean if_riapro_si (long a_id_programma)
 public function integer job_genera_piano_lavoro (string a_impianto_gx) throws uo_exception
-public function boolean job_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception
+public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barcode, string a_id_impianto) throws uo_exception
+public function boolean oldjob_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception
 end prototypes
 
 private function boolean job_genera_piano_lavoro_esegui (ref st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception;/*
@@ -823,7 +824,7 @@ try
 		kst_tab_barcode.barcode = trim(ads_pl_barcode.object.barcode[k_row])
 		kst_tab_barcode.barcode_lav = trim(ads_pl_barcode.object.barcode_lav[k_row])
 
-	//--- Se il BARCODE ha ACCOPPIATO un DOSIMETRO allora fingo sia un barcode FIGLIO quindi scrive
+//--- Se il BARCODE ha ACCOPPIATO un DOSIMETRO allora fingo sia un barcode FIGLIO quindi scrive
 		kst_tab_barcode.flg_dosimetro = ads_pl_barcode.object.flg_dosimetro[k_row]
 		if trim(kst_tab_barcode.flg_dosimetro) = kuf1_barcode.ki_flg_dosimetro_si then
 
@@ -831,25 +832,24 @@ try
 			k_nr_meca_dosim = kds_meca_dosim_x_barcode_lav.retrieve(kst_tab_barcode.barcode)
 			for k_ind = 1 to k_nr_meca_dosim
 				
-//--- Se è un barcode Figlio e contiene il dosimetro allora mette il PADRE e POSIZIONE non 'precisa' (DISABILITATA)
+//--- Se è un barcode Figlio e contiene il dosimetro allora mette il PADRE e POSIZIONE        -->con il G2 OBSOLETO: non 'precisa' (DISABILITATA)
 				if trim(kst_tab_barcode.barcode_lav) > " " then
 					k_barcode_pallet = trim(kst_tab_barcode.barcode_lav) 
 					k_barcode_figlio = trim(kst_tab_barcode.barcode)  
-					//--- Posizione FORZATO a disabilitato in quanto barcode figlio 	
-					k_codice_posizione = kuf1_ausiliari.kki_dosimpos_codice_disabilitato99    // POSIZIONE DISABILITATA
+				//-->con il G2 OBSOLETO:   //--- Posizione FORZATO a disabilitato in quanto barcode figlio 	
+				//-->con il G2 OBSOLETO:  	k_codice_posizione = kuf1_ausiliari.kki_dosimpos_codice_disabilitato99    // POSIZIONE DISABILITATA
 				else
 					k_barcode_pallet = trim(kst_tab_barcode.barcode) 
 					k_barcode_figlio = ""
-					
-					//--- Posizione se non indicata FORZA a disabilitato 	
-					k_codice_posizione = kds_meca_dosim_x_barcode_lav.getitemstring(k_ind, "dosimpos_codice")
-					if trim(k_codice_posizione) > " " then
-					else
-						k_codice_posizione = kuf1_ausiliari.kki_dosimpos_codice_disabilitato00    // POSIZIONE DISABILITATA
-					end if
-					
 				end if
-
+				
+//--- Posizione se non indicata FORZA a disabilitato 	
+				k_codice_posizione = kds_meca_dosim_x_barcode_lav.getitemstring(k_ind, "dosimpos_codice")
+				if trim(k_codice_posizione) > " " then
+				else
+					k_codice_posizione = kuf1_ausiliari.kki_dosimpos_codice_disabilitato00    // POSIZIONE DISABILITATA
+				end if
+					
 //						k_record += k_sep + trim(kst_tab_meca_dosim[k_ind].barcode) & 
 //												  + k_sep+trim(kst_tab_clienti.rag_soc_10) + " " &
 //												  + k_sep+trim(string(kst_tab_meca.num_int,"#####0")) 
@@ -1365,7 +1365,151 @@ return k_return
 
 end function
 
-public function boolean job_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
+public function boolean job_sostituzione_piano_lavoro (ds_pl_barcode ads_pl_barcode, string a_id_impianto) throws uo_exception;/*
+   Sostituzione completa Piano di Lavorazione per il Pilota G3
+	inp: ds_pl_barcode  tutti i barcode della Pianificazione compresi gli 'intoccabili'
+   Out: true = richiesta completata
+*/
+
+boolean k_return
+long k_row, k_rows, k_rows_inavase
+int k_rc
+st_plav_programmi kst_plav_programmi
+ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
+ds_programmi_richieste_inevase kds_programmi_richieste_inevase
+uo_ds_std_1 kds_pl_da_inviare
+
+st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
+kuf_plav_conn_cfg kuf1_plav_conn_cfg
+uo_exception kuo1_exception
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	a_id_impianto = trim(a_id_impianto)
+	if a_id_impianto > " " then
+		if a_id_impianto = kki_id_impianto_G2 or a_id_impianto = kki_id_impianto_G3 then
+			// OK
+		else
+			kguo_exception.setmessage("Sostituzione Impianto", "Richiesta non eseguita, codice Impianto " + a_id_impianto + " Errato!")
+			throw kguo_exception
+		end if
+	else
+		kguo_exception.setmessage("Sostituzione Impianto", "Richiesta non eseguita, codice Impianto Non Indicato!")
+		throw kguo_exception
+	end if		
+
+//--- Blocca le richieste		
+	kiuf_pilota_cmd.kist_tab_pilota_cfg.blocca_richieste = kiuf_pilota_cmd.ki_blocca_richieste_SI
+	kiuf_pilota_cmd.set_blocca_richieste( kiuf_pilota_cmd.kist_tab_pilota_cfg )
+	
+//--- Connessione DB Bloccata?
+	kuf1_plav_conn_cfg = create kuf_plav_conn_cfg
+	kuf1_plav_conn_cfg.get_plav_conn_cfg(kst_tab_plav_conn_cfg)
+	if kuf1_plav_conn_cfg.if_conn_bloccata(kst_tab_plav_conn_cfg) then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Connessione al DB '" + kguo_sqlca_db_plav.ki_title_id + "' " &
+													+ kguo_sqlca_db_plav.ki_db_descrizione + " è Bloccata. " &
+													+ kkg.acapo + "Per proseguire, l'operazione di Sostituzione della Pianificazione sul Pilota, disattivare il blocco in Proprietà della Connessione. " 
+		throw kguo_exception
+	end if		
+
+//--- Verifica se ci sono ancora Piani da evadere NON ce ne devono essere!!
+	kds_programmi_richieste_inevase = create ds_programmi_richieste_inevase
+	k_rows_inavase = kds_programmi_richieste_inevase.u_retrieve(0)
+	if k_rows_inavase > 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Fermata la Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
+									+ kkg.acapo + "Attenzione, ci sono ancora " + string(k_rows_inavase) + " " &
+									+ "Richieste nello stato di inevase! " + &
+									+ kkg.acapo + "Come la n." + string(kds_programmi_richieste_inevase.getitemnumber(1, "id_programma")) &
+									+ " inviata il " + string(kds_programmi_richieste_inevase.getitemdatetime(1, "richiesta_data_ora")) & 
+									+ kkg.acapo + "Attendere il loro completamento o forzarle a concluse (stato = " + string(kki_richieste_stato_RICEZIONE_IMPIANTO_OK) &
+									+ ") o errate (stato = " + string(kki_richieste_stato_RICEZIONE_IMPIANTO_KO) + ". " 
+		throw kguo_exception
+	end if
+					
+	kds_programmi_richieste_id_stato_update = create ds_programmi_richieste_id_stato_update
+
+//--- INIZIO PRODUZIONE DATI PER IL PILOTA ------------------------------------------------------------------
+		
+//--- Crea la RICHIESTA		
+	kst_plav_programmi.id_pl_barcode = 0
+	kst_plav_programmi.id_impianto = a_id_impianto
+	kst_plav_programmi.id_modo = ""  // nulla in caso di sostituzione
+	kst_plav_programmi.barcode = ""  // nulla in caso di sostituzione
+	kst_plav_programmi.id_tipo_richiesta = kki_richieste_tipo_richiesta_sostituzione
+	u_pilota_programmi_richieste(kst_plav_programmi)  
+
+//--- Popola tabella barcode PADRI
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	if a_id_impianto = kki_id_impianto_G2 then
+		u_pilota_programmi_dettaglio_g2(kst_plav_programmi, ads_pl_barcode)
+	else
+		u_pilota_programmi_dettaglio_g3(kst_plav_programmi, ads_pl_barcode)
+	end if
+	
+//--- popola il file x il Pilota con i groupage (barcode figli)
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_groupage(kst_plav_programmi, ads_pl_barcode)
+
+//--- popola il file x il Pilota con i DOSIMETRI presenti sui barcode padri 
+	kst_plav_programmi.st_tab_g_0.esegui_commit = "N"
+	u_pilota_programmi_accessori_dosimetri(kst_plav_programmi, ads_pl_barcode)
+
+	kguo_sqlca_db_plav.db_commit( )
+		
+//--- Set nuovo STATO su RICHIESTA a pronto per il PILOTA
+	if kds_programmi_richieste_id_stato_update.retrieve(kst_plav_programmi.id_programma) > 0 then
+		kds_programmi_richieste_id_stato_update.setitem(1, "richiesta_data_ora", kguo_g.get_datetime_current_local( ) )
+		kds_programmi_richieste_id_stato_update.setitem(1, "id_stato", kki_richieste_stato_pronta )
+		
+//---- Update STATO RICHIESTA
+		k_rc = kds_programmi_richieste_id_stato_update.update( )
+		if k_rc < 0 then
+			kguo_exception.inizializza(this.classname())
+			kguo_exception.set_esito(kds_programmi_richieste_id_stato_update.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in Aggiornamento STATO della Richiesta n. " &
+														+ string(kst_plav_programmi.id_programma) &
+														+ " di Sostituzione del Piano di Lavoro del Pilota (update)! " &
+														+ kkg.acapo + "Fare le verifiche della Richiesta del Piano Inviato ed eventualmente " &
+														+ "forzare manualmente lo stato a '" + string(kki_richieste_stato_pronta) + "' " &
+														+ kkg.acapo + kds_programmi_richieste_id_stato_update.kist_esito.sqlerrtext
+			kguo_sqlca_db_plav.db_rollback( )
+			throw kguo_exception
+		end if
+		if k_rc > 0 then
+			kguo_sqlca_db_plav.db_commit( )
+		end if
+		
+	end if
+
+//--- FINE PRODUZIONE FILE PER IL PILOTA ------------------------------------------------------------------
+
+	k_return = true
+		
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_plav_conn_cfg) then destroy kuf1_plav_conn_cfg
+	if isvalid(kds_programmi_richieste_inevase) then destroy kds_programmi_richieste_inevase
+	if isvalid(kds_programmi_richieste_id_stato_update) then destroy kds_programmi_richieste_id_stato_update	
+	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+
+return k_return
+
+end function
+
+public function boolean oldjob_sostituzione_piano_lavoro_g2 (ds_pl_barcode ads_pl_barcode) throws uo_exception;/*
    Sostituzione completa Piano di Lavorazione per il Pilota 
 	inp: ds_pl_barcode  tutti i barcode della Pianificazione compresi gli 'intoccabili'
    Out: true = richiesta completata
@@ -1376,7 +1520,8 @@ long k_row, k_rows, k_rows_inavase
 int k_rc
 st_plav_programmi kst_plav_programmi
 ds_programmi_richieste_id_stato_update kds_programmi_richieste_id_stato_update
-uo_ds_std_1 kds_programmi_richieste_inevase, kds_pl_da_inviare
+ds_programmi_richieste_inevase kds_programmi_richieste_inevase
+uo_ds_std_1 kds_pl_da_inviare
 
 st_tab_plav_conn_cfg kst_tab_plav_conn_cfg
 kuf_plav_conn_cfg kuf1_plav_conn_cfg
@@ -1403,9 +1548,12 @@ try
 	end if		
 
 //--- Verifica se ci sono ancora Piani da evadere NON ce ne devono essere!!
-	kds_programmi_richieste_inevase = create uo_ds_std_1
-	kds_programmi_richieste_inevase.dataobject = "kds_programmi_richieste_inevase"
-	k_rows_inavase = kds_programmi_richieste_inevase.retrieve(0)
+	kds_programmi_richieste_inevase = create ds_programmi_richieste_inevase
+	k_rows_inavase = kds_programmi_richieste_inevase.u_retrieve(0)
+	if k_rows_inavase < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_programmi_richieste_inevase, "Errore in SOSTITUZIONE Piano di Lavoro durante la Ricerca Piani di Lavoro con l'invio al Pilota ancora non concluso.")
+		throw kguo_exception
+	end if
 	if k_rows_inavase > 0 then
 		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 		kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
@@ -1413,15 +1561,7 @@ try
 													+ "Richieste nello stato di inevase! " + &
 													+ kkg.acapo + "Attendere il loro completamento o forzarle a concluse o errate. " 
 		throw kguo_exception
-	else
-		if k_rows_inavase < 0 then
-			kguo_exception.set_esito(kds_programmi_richieste_inevase.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore Generazione Richiesta di SOSTITUZIONE Piano di Lavoro per il Pilota. " &
-														+ kkg.acapo + "Errore: " + kds_programmi_richieste_inevase.kist_esito.sqlerrtext
-			throw kguo_exception
-		end if
 	end if
-	
 					
 	kds_programmi_richieste_id_stato_update = create ds_programmi_richieste_id_stato_update
 

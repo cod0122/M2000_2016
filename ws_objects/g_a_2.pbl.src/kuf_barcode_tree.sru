@@ -2496,8 +2496,9 @@ try
 
 	choose case a_campo_link
 	
-		case "barcode", "barcode_t", "barcode_lav"
+		case "barcode", "barcode_t", "barcode_lav", "barcode_lav_t"
 			if a_campo_link = "barcode_t" then a_campo_link = "barcode"
+			if a_campo_link = "barcode_lav_t" then a_campo_link = "barcode_lav"
 			kst_tab_barcode.barcode = adw_link.getitemstring(adw_link.getrow(), a_campo_link)
 			if len(kst_tab_barcode.barcode) > 0 then
 		

@@ -47,6 +47,8 @@ int k_rc
 		CLOSE u_m2000_0_start_stat;
 	END IF
 
+	kguo_sqlca_db_magazzino.db_commit( )
+	
 return k_return
 end function
 

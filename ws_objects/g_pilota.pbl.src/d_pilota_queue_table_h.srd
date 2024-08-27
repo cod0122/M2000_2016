@@ -5,17 +5,17 @@ header(height=68 color="536870912" transparency="0" gradient.color="8421504" gra
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long update=yes updatewhereclause=yes name=ordine dbname="Ordine" )
+table(column=(type=long update=yes updatewhereclause=yes key=yes name=ordine dbname="queue_table.Ordine" dbalias=".Ordine" )
  column=(type=char(1) updatewhereclause=yes name=consegna_data dbname="consegna_data" )
- column=(type=char(12) update=yes updatewhereclause=yes name=barcode dbname="Barcode" )
- column=(type=char(4) update=yes updatewhereclause=yes name=posizione dbname="Posizione" )
- column=(type=long update=yes updatewhereclause=yes name=ciclifila1 dbname="CicliFila1" )
- column=(type=long update=yes updatewhereclause=yes name=ciclifila2 dbname="CicliFila2" )
- column=(type=long update=yes updatewhereclause=yes name=ciclifila1p dbname="CicliFila1P" )
- column=(type=long update=yes updatewhereclause=yes name=ciclifila2p dbname="CicliFila2P" )
- column=(type=long update=yes updatewhereclause=yes name=work_order dbname="work_order" )
- column=(type=long update=yes updatewhereclause=yes name=codice_lavorazione dbname="codice_lavorazione" )
- column=(type=datetime update=yes updatewhereclause=yes name=data_inserimento dbname="data_inserimento" )
+ column=(type=char(12) update=yes updatewhereclause=yes name=barcode dbname="queue_table.Barcode" dbalias=".Barcode" )
+ column=(type=char(4) update=yes updatewhereclause=yes name=posizione dbname="queue_table.Posizione" dbalias=".Posizione" )
+ column=(type=long update=yes updatewhereclause=yes name=ciclifila1 dbname="queue_table.CicliFila1" dbalias=".CicliFila1" )
+ column=(type=long update=yes updatewhereclause=yes name=ciclifila2 dbname="queue_table.CicliFila2" dbalias=".CicliFila2" )
+ column=(type=long update=yes updatewhereclause=yes name=ciclifila1p dbname="queue_table.CicliFila1P" dbalias=".CicliFila1P" )
+ column=(type=long update=yes updatewhereclause=yes name=ciclifila2p dbname="queue_table.CicliFila2P" dbalias=".CicliFila2P" )
+ column=(type=long update=yes updatewhereclause=yes name=work_order dbname="queue_table.work_order" dbalias=".work_order" )
+ column=(type=long update=yes updatewhereclause=yes name=codice_lavorazione dbname="queue_table.codice_lavorazione" dbalias=".codice_lavorazione" )
+ column=(type=datetime update=yes updatewhereclause=yes name=data_inserimento dbname="queue_table.data_inserimento" dbalias=".data_inserimento" )
  column=(type=decimal(0) update=yes updatewhereclause=yes name=pallet_bilancella dbname="Pallet_Bilancella" )
  column=(type=decimal(0) updatewhereclause=yes name=num_int dbname="num_int" )
  column=(type=char(1) updatewhereclause=yes name=e1ancodrs dbname="e1ancodrs" )
@@ -35,11 +35,10 @@ table(column=(type=long update=yes updatewhereclause=yes name=ordine dbname="Ord
    		  0 num_int,
            ' ' e1ancodrs,
    		  0 id_meca
-        FROM queue_table join impostazioni on
-                      queue_table.ordine > cast(impostazioni.valore as decimal)
+        FROM queue_table  
 		where queue_table.Posizione = 'H'
-			and impostazioni.variabile = 'num_intouchable'
-"  sort="ordine A " )
+  order by ordine asc
+" update="queue_table" updatewhere=0 updatekeyinplace=no  sort="ordine A " )
 text(band=header alignment="0" text=" Ord." border="0" color="8421504" x="9" y="8" height="52" width="247" html.valueishtml="0"  name=ordine_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="32896501" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="1" text="Id Meca" border="0" color="8421504" x="3488" y="8" height="52" width="306" html.valueishtml="0"  name=id_meca_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="32896501" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="0" text=" Bilanc." border="0" color="8421504" x="3264" y="8" height="52" width="215" html.valueishtml="0"  name=pallet_bilancella_t visible="1"  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="32896501" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )

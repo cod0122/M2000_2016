@@ -238,8 +238,11 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto" & 
 					,"k_hyperlink", "url" &
 					,"programmi_richieste_id_programma"
-					
-					
+
+		if k_nome = 'barcode_figli' then
+			sleep (1)
+		end if
+										
 //--- se e' del tipo grid o tabular link sul valore alrimenti sul testo		
 					if adw_1.Object.DataWindow.Type <> "Form" then
 						
@@ -331,6 +334,8 @@ string k_num_colonne, k_nome, k_nome_orig
 		k_ctr = k_ctr + 1 
 
 	loop while k_ctr <= k_num_colonne_nr 
+	
+k_ctr = 0	
 end subroutine
 
 public function boolean link_standard_call_p (ref datawindow adw_link, string a_nome_link) throws uo_exception;//
@@ -365,7 +370,7 @@ k_nome_link = mid(a_nome_link, 1, k_len)
 
 choose case k_nome_link
 		
-	case "barcode", "barcode_t", "barcode_lav" &
+	case "barcode", "barcode_t", "barcode_lav", "barcode_lav_t" &
 		,"barcode_figli", "barcode_figli_t" &
 		,"barcode_lotto" &
 		,"grp"

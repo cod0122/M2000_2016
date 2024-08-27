@@ -20,7 +20,7 @@ uo_ds_std_1 kds_1
 	k_rows_inavase = this.retrieve(a_pl_barcode)
 	if k_rows_inavase < 0 then
 		kds_1 = this
-		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in Ricerca Piani di Lavoro con l'invio al Pilota ancora non concluso, dal Codice PL " + string(a_pl_barcode) + ". ")
+		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in Ricerca Piani di Lavoro Inevasi ovvero l'operazione di invio al Pilota non conclusa, dal Codice PL " + string(a_pl_barcode) + ". ")
 		throw kguo_exception
 	end if
 

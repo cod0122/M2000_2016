@@ -1,16 +1,14 @@
 ﻿$PBExportHeader$w_pl_barcode_l.srw
 forward
-global type w_pl_barcode_l from w_g_tab0
+global type w_pl_barcode_l from w_g_tab_3
 end type
 type dw_data from uo_d_std_1 within w_pl_barcode_l
 end type
 end forward
 
-global type w_pl_barcode_l from w_g_tab0
-integer width = 3072
-integer height = 1444
-string title = "Piani di Lavoro"
-boolean ki_toolbar_window_presente = true
+global type w_pl_barcode_l from w_g_tab_3
+integer width = 3035
+integer height = 5180
 dw_data dw_data
 end type
 global w_pl_barcode_l w_pl_barcode_l
@@ -20,167 +18,39 @@ type variables
 private date ki_data_ini
 private kuf_pl_barcode kiuf_pl_barcode
 private kuf_pl_barcode_g3 kiuf_pl_barcode_g3
+private kuf_plav_programmi kiuf_plav_programmi
 
 end variables
 
 forward prototypes
-private function string leggi_liste ()
-protected subroutine forma_elenco ()
-private function string cancella ()
-private function string inizializza ()
-private subroutine open_notepad_documento (string k_file) throws uo_exception
 protected subroutine open_start_window ()
-protected subroutine attiva_tasti_0 ()
-protected subroutine attiva_menu ()
-public subroutine smista_funz (string k_par_in)
+private subroutine open_notepad_documento (string k_file) throws uo_exception
 private subroutine u_cambia_data ()
+protected subroutine attiva_menu ()
+protected subroutine attiva_tasti_0 ()
+protected function integer cancella ()
+protected function string inizializza () throws uo_exception
+protected subroutine smista_funz (string k_par_in)
+protected function integer visualizza ()
+private subroutine u_open_pl (string a_modalita)
+protected subroutine modifica ()
+protected function integer inserisci ()
+protected subroutine inizializza_1 () throws uo_exception
+protected function boolean sicurezza (st_open_w kst_open_w)
 end prototypes
 
-private function string leggi_liste ();//
-//======================================================================
-//=== Liste Windows
-//=== Ripristino DW; tasti; e retrieve liste
-//=== Ritorna 1 chr : 0=Retrieve OK; 1=Retrieve fallita
-//===    Dal 2 char in poi spiegazione errore
-//======================================================================
-//
-string k_return="0 "
-string k_key
-long k_riga
-
-
-	k_riga = dw_lista_0.getrow()
-	inizializza()
-	
-	if k_riga > dw_lista_0.rowcount() then
-		k_riga = dw_lista_0.rowcount() 
-	end if
-	if k_riga > 0 then
-		dw_lista_0.scrolltorow(k_riga)
-		dw_lista_0.setrow(k_riga)
-		dw_lista_0.selectrow(0 , false)
-		dw_lista_0.selectrow(k_riga , false)
-	end if
-	
-	attiva_tasti( )
-
-	
-return k_return
-
-
-end function
-
-protected subroutine forma_elenco ();
-end subroutine
-
-private function string cancella ();//
-string k_errore = "0 ", k_errore1 = "0 "
-long k_riga
-string k_msg
-st_tab_pl_barcode kst_tab_pl_barcode
-
-
-k_riga = dw_lista_0.getrow()	
-if k_riga > 0 then
-	kst_tab_pl_barcode.codice = dw_lista_0.getitemnumber(k_riga, "codice")
-	kst_tab_pl_barcode.data = dw_lista_0.getitemdate(k_riga, "data")
-	kst_tab_pl_barcode.note_1 = trim(dw_lista_0.getitemstring(k_riga, "note_1"))
-
-	k_msg = "Sei sicuro di voler Cancellare il Piano di Lavoro " &
-	         + kkg.acapo + "codice: " + string(kst_tab_pl_barcode.codice, "#####") + " del " + string(kst_tab_pl_barcode.data, "dd mmm yy") 
-	if kst_tab_pl_barcode.note_1 > " " then
-		k_msg += " note:" + kst_tab_pl_barcode.note_1
-	end if
-	
-//=== Richiesta di conferma della eliminazione del rek
-	if messagebox("Elimina Piano di Lavorazione", k_msg, question!, yesno!, 2) = 1 then
-		
-//=== Cancella la riga dal data windows di lista
-		k_errore = kiuf_pl_barcode.tb_delete(kst_tab_pl_barcode) 
-		if Left(k_errore, 1) = "0" then
-	
-			kguo_sqlca_db_magazzino.db_commit( )
-
-			dw_lista_0.setitemstatus(k_riga, 0, primary!, new!)
-			dw_lista_0.deleterow(k_riga)
-
-		else
-			kguo_sqlca_db_magazzino.db_rollback( )
-
-			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
-							MidA(k_errore, 2) ) 	
-	
-			attiva_tasti()
-
-		end if
-
+protected subroutine open_start_window ();//--- prendo la chiave
+	if isdate(trim(ki_st_open_w.key1)) then
+		ki_data_ini = date(trim(ki_st_open_w.key1))
 	else
-		messagebox("Elimina Piano di Lavorazione", "Operazione Annullata !!")
-
+		ki_data_ini = relativedate(today(),-30)
 	end if
-end if
 
-dw_lista_0.setfocus()
-
-return " "
-end function
-
-private function string inizializza ();//
-//======================================================================
-//=== Inizializzazione della Windows
-//=== Ripristino DW; tasti; e retrieve liste
-//=== Parametro IN : k_id_vettore
-//=== Ritorna 1 chr : 0=Retrieve OK; 1=Retrieve fallita
-//===    Dal 2 char in poi spiegazione errore
-//======================================================================
-//
-string k_return="0 "
-string k_operazione, k_key
-int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
+	kiuf_pl_barcode = create kuf_pl_barcode
+	kiuf_pl_barcode_g3 = create kuf_pl_barcode_g3
+	kiuf_plav_programmi = create kuf_plav_programmi
 	
-	ki_win_titolo_custom = ""
-
-	k_operazione = trim(ki_st_open_w.key2)    //--- tipo mandante/ricevente/fatturato
-	if isnull(k_operazione) then
-		k_operazione = "tutti"
-	end if
-
-//	dw_dett_0.visible = false
-
-
-//=== Legge le righe del dw salvate l'ultima volta (importfile)
-	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
-
-		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), dw_lista_0)
-
-	end if
-		
-	if k_importa <= 0 then // Nessuna importazione eseguita
-
-		if dw_lista_0.retrieve(ki_data_ini, k_operazione) > 0 then
-			ki_win_titolo_custom = "dal " + string(ki_data_ini)
-
-		else
-			k_return = "1Nessun P.L. presente "
-			SetPointer(oldpointer)
-			messagebox("Lista Piani di Lavorazione", &
-					"Elenco vuoto per la richiesta fatta" &
-					+ "  (dalla data del " + string(ki_data_ini, "dd/mm/yyyy") + " - " + k_operazione + ")" )
-		end if		
-	end if
-
-	set_titolo_window_personalizza( )
-
-return k_return
-
-
-
-end function
+end subroutine
 
 private subroutine open_notepad_documento (string k_file) throws uo_exception;//
 kuf_ole kuf1_ole
@@ -214,50 +84,12 @@ uo_exception kuo_exception
 
 end subroutine
 
-protected subroutine open_start_window ();//--- prendo la chiave
-	if isdate(trim(ki_st_open_w.key1)) then
-		ki_data_ini = date(trim(ki_st_open_w.key1))
-	else
-		ki_data_ini = relativedate(today(),-30)
-	end if
-
-	kiuf_pl_barcode = create kuf_pl_barcode
-	kiuf_pl_barcode_g3 = create kuf_pl_barcode_g3
-	
-end subroutine
-
-protected subroutine attiva_tasti_0 ();//
-//=========================================================================
-//=== Attiva/Disattiva i tasti a seconda delle funzioni e dei campi 
-//=== impostati
-//=========================================================================
-long k_nr_righe
+private subroutine u_cambia_data ();//---
+//--- Visualizza il box x il cambio DATA
+//---
 
 
-super::attiva_tasti_0()
-
-cb_ritorna.enabled = true
-cb_inserisci.enabled = true
-cb_visualizza.enabled = true
-
-//cb_aggiorna.enabled = false
-cb_modifica.enabled = false
-cb_cancella.enabled = false
-
-//=== Nr righe ne DW lista
-if dw_lista_0.getrow ( ) > 0 then
-	cb_modifica.enabled = true
-	cb_cancella.enabled = true
-
-end if
-
-//=== Nr righe ne DW lista
-if dw_dett_0.getrow ( ) > 0 and dw_dett_0.enabled = true then
-	cb_cancella.enabled = true
-//	cb_aggiorna.enabled = true
-end if
-            
-
+dw_data.triggerevent("ue_visibile")
 
 end subroutine
 
@@ -283,7 +115,144 @@ protected subroutine attiva_menu ();
 super::attiva_menu()
 end subroutine
 
-public subroutine smista_funz (string k_par_in);//
+protected subroutine attiva_tasti_0 ();//
+//=========================================================================
+//=== Attiva/Disattiva i tasti a seconda delle funzioni e dei campi 
+//=== impostati
+//=========================================================================
+long k_nr_righe
+
+
+super::attiva_tasti_0()
+
+cb_ritorna.enabled = true
+cb_inserisci.enabled = true
+cb_visualizza.enabled = true
+
+cb_modifica.enabled = false
+cb_cancella.enabled = false
+
+//=== Nr righe ne DW lista
+if tab_1.selectedtab = 1 then
+	if tab_1.tabpage_1.dw_1.getrow ( ) > 0 then
+		cb_modifica.enabled = true
+		cb_cancella.enabled = true
+	end if
+end if
+
+end subroutine
+
+protected function integer cancella ();//
+string k_errore = "0 ", k_errore1 = "0 "
+long k_riga
+string k_msg
+st_tab_pl_barcode kst_tab_pl_barcode
+
+
+if tab_1.selectedtab <> 1 then
+	return 0
+end if
+
+k_riga = tab_1.tabpage_1.dw_1.getrow()	
+if k_riga > 0 then
+	kst_tab_pl_barcode.codice = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+	kst_tab_pl_barcode.data = tab_1.tabpage_1.dw_1.getitemdate(k_riga, "data")
+	kst_tab_pl_barcode.note_1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_1"))
+
+	k_msg = "Sei sicuro di voler Cancellare il Piano di Lavoro " &
+	         + kkg.acapo + "codice: " + string(kst_tab_pl_barcode.codice, "#") + " del " + string(kst_tab_pl_barcode.data, "dd mmm yy") 
+	if kst_tab_pl_barcode.note_1 > " " then
+		k_msg += " note:" + kst_tab_pl_barcode.note_1
+	end if
+	
+//=== Richiesta di conferma della eliminazione del rek
+	if messagebox("Elimina Piano di Lavorazione", k_msg, question!, yesno!, 2) = 1 then
+		
+//=== Cancella la riga dal data windows di lista
+		k_errore = kiuf_pl_barcode.tb_delete(kst_tab_pl_barcode) 
+		if Left(k_errore, 1) = "0" then
+	
+			kguo_sqlca_db_magazzino.db_commit( )
+
+			tab_1.tabpage_1.dw_1.setitemstatus(k_riga, 0, primary!, new!)
+			tab_1.tabpage_1.dw_1.deleterow(k_riga)
+
+		else
+			kguo_sqlca_db_magazzino.db_rollback( )
+
+			messagebox("Problemi durante Cancellazione - Operazione fallita !!", &
+							MidA(k_errore, 2) ) 	
+	
+			attiva_tasti()
+
+		end if
+
+	else
+		messagebox("Elimina Piano di Lavorazione", "Operazione Annullata !!")
+
+	end if
+end if
+
+tab_1.tabpage_1.dw_1.setfocus()
+
+return 0
+end function
+
+protected function string inizializza () throws uo_exception;//
+//======================================================================
+//=== Inizializzazione della Windows
+//=== Ripristino DW; tasti; e retrieve liste
+//======================================================================
+//
+string k_return="0 "
+string k_operazione, k_key
+int k_importa = 0
+
+
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	ki_win_titolo_custom = ""
+
+	k_operazione = trim(ki_st_open_w.key2)    //--- tipo mandante/ricevente/fatturato
+	if isnull(k_operazione) then
+		k_operazione = "tutti"
+	end if
+
+
+//=== Legge le righe del dw salvate l'ultima volta (importfile)
+	if ki_st_open_w.flag_primo_giro = "S" then  //solo la prima volta il tasto e' false 
+
+		k_importa = kGuf_data_base.dw_importfile(trim(ki_syntaxquery), tab_1.tabpage_1.dw_1)
+
+	end if
+		
+	if k_importa <= 0 then // Nessuna importazione eseguita
+
+		if tab_1.tabpage_1.dw_1.rowcount() <= 0 then
+
+			if tab_1.tabpage_1.dw_1.retrieve(ki_data_ini, k_operazione) > 0 then
+				ki_win_titolo_custom = "dal " + string(ki_data_ini)
+	
+			else
+				k_return = "1Nessun P.L. presente "
+				SetPointer(kkg.pointer_default)
+				messagebox("Lista Piani di Lavorazione", &
+						"Elenco vuoto per la richiesta fatta" &
+						+ " dal " + string(ki_data_ini, "dd/mm/yyyy") + " (" + k_operazione + ")." )
+			end if		
+		end if		
+	end if
+
+	set_titolo_window_personalizza( )
+
+return k_return
+
+
+
+end function
+
+protected subroutine smista_funz (string k_par_in);//
 //===
 
 choose case k_par_in 
@@ -303,14 +272,103 @@ end choose
 
 end subroutine
 
-private subroutine u_cambia_data ();//---
-//--- Visualizza il box x il cambio DATA
-//---
+protected function integer visualizza ();//
+try
+	
+	if tab_1.selectedtab = 1 then
+	
+		u_open_pl(kkg_flag_modalita.visualizzazione)
+		
+	elseif tab_1.selectedtab = 2 then
+		
+		kiuf_plav_programmi.link_call(tab_1.tabpage_2.dw_2, "programmi_richieste_id_programma")
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+end try
+
+return 0
+
+end function
+
+private subroutine u_open_pl (string a_modalita);//
+long k_row
+st_open_w kst_open_w
 
 
-dw_data.triggerevent("ue_visibile")
+k_row = tab_1.tabpage_1.dw_1.u_getrow(1)
+if k_row > 0 then
+else
+	k_row = 1
+end if
+
+if tab_1.tabpage_1.dw_1.rowcount( ) >= k_row then
+	kst_open_w.key1 = string(tab_1.tabpage_1.dw_1.getitemnumber(k_row, "codice"))
+	kst_open_w.flag_modalita = a_modalita
+	if tab_1.tabpage_1.dw_1.getitemnumber(k_row, "impianto") = 3 then
+		kiuf_pl_barcode_g3.u_open(kst_open_w)
+	else
+		kiuf_pl_barcode.u_open(kst_open_w)
+	end if
+end if
+
 
 end subroutine
+
+protected subroutine modifica ();//
+if tab_1.selectedtab = 1 then
+	u_open_pl(kkg_flag_modalita.modifica)
+end if
+
+
+
+
+end subroutine
+
+protected function integer inserisci ();//
+
+	kiuf_pl_barcode.u_open(kkg_flag_modalita.inserimento)
+
+return 0
+end function
+
+protected subroutine inizializza_1 () throws uo_exception;//
+long k_rows
+ds_programmi_richieste_l kds_programmi_richieste_l
+//datetime k_datetime_ini
+
+
+	if tab_1.tabpage_2.dw_2.rowcount() <= 0 then
+		kds_programmi_richieste_l = create ds_programmi_richieste_l
+		//k_datetime_ini = datetime(ki_data_ini, time(0))  viene formattato male non con yyy-mm-dd .... ma dd/mm/yyyy....
+		k_rows = kds_programmi_richieste_l.u_retrieve(ki_data_ini)
+		if k_rows >0 then
+			kds_programmi_richieste_l.rowscopy(1, k_rows, primary!, tab_1.tabpage_2.dw_2, 1, primary!)
+			tab_1.tabpage_2.dw_2.sort( )
+		else
+			tab_1.tabpage_2.dw_2.reset( )
+		end if
+	end if
+
+
+end subroutine
+
+protected function boolean sicurezza (st_open_w kst_open_w);//
+try
+	kst_open_w.id_programma = "" // lo va a reperire dall'oggetto
+	kiuf_pl_barcode.if_sicurezza(kst_open_w)
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	return false
+	
+end try
+
+return true
+end function
 
 on w_pl_barcode_l.create
 int iCurrent
@@ -329,234 +387,181 @@ end on
 event close;call super::close;//
 if isvalid(kiuf_pl_barcode) then destroy kiuf_pl_barcode
 if isvalid(kiuf_pl_barcode_g3) then destroy kiuf_pl_barcode_g3
+if isvalid(kiuf_plav_programmi) then destroy kiuf_plav_programmi
 
 end event
 
-type dw_print_0 from w_g_tab0`dw_print_0 within w_pl_barcode_l
+type dw_print_0 from w_g_tab_3`dw_print_0 within w_pl_barcode_l
 end type
 
-type st_ritorna from w_g_tab0`st_ritorna within w_pl_barcode_l
+type st_ritorna from w_g_tab_3`st_ritorna within w_pl_barcode_l
 end type
 
-type st_ordina_lista from w_g_tab0`st_ordina_lista within w_pl_barcode_l
-boolean enabled = true
+type st_ordina_lista from w_g_tab_3`st_ordina_lista within w_pl_barcode_l
 end type
 
-type st_aggiorna_lista from w_g_tab0`st_aggiorna_lista within w_pl_barcode_l
+type st_aggiorna_lista from w_g_tab_3`st_aggiorna_lista within w_pl_barcode_l
 end type
 
-type cb_ritorna from w_g_tab0`cb_ritorna within w_pl_barcode_l
-integer x = 2514
-integer y = 1180
-integer height = 92
-integer taborder = 110
-boolean cancel = true
+type cb_ritorna from w_g_tab_3`cb_ritorna within w_pl_barcode_l
 end type
 
-type st_stampa from w_g_tab0`st_stampa within w_pl_barcode_l
-integer x = 37
-integer y = 1112
-integer width = 270
-integer height = 100
+type st_stampa from w_g_tab_3`st_stampa within w_pl_barcode_l
 end type
 
-type cb_visualizza from w_g_tab0`cb_visualizza within w_pl_barcode_l
-integer x = 850
-integer y = 1176
-integer taborder = 30
+type cb_visualizza from w_g_tab_3`cb_visualizza within w_pl_barcode_l
 end type
 
-event cb_visualizza::clicked;//
-long k_riga
-st_open_w kst_open_w
+type cb_modifica from w_g_tab_3`cb_modifica within w_pl_barcode_l
+end type
 
+type cb_aggiorna from w_g_tab_3`cb_aggiorna within w_pl_barcode_l
+end type
 
-k_riga = dw_lista_0.u_getrow(1)
-if k_riga > 0 then
+type cb_cancella from w_g_tab_3`cb_cancella within w_pl_barcode_l
+end type
 
-	kst_open_w.key1 = string(dw_lista_0.getitemnumber( k_riga, "codice" ))
-	kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-	if dw_lista_0.getitemnumber( k_riga, "impianto" ) = 3 then
-		kiuf_pl_barcode_g3.u_open(kst_open_w)
-	else
-		kiuf_pl_barcode.u_open(kst_open_w)
-	end if
+type cb_inserisci from w_g_tab_3`cb_inserisci within w_pl_barcode_l
+end type
 
-end if
-//long k_riga
-//long k_codice
-//st_open_w k_st_open_w
-//kuf_menu_window kuf1_menu_window
-//
-//
-//k_riga = dw_lista_0.getrow()
-//if k_riga > 0 then
-//
-//	dw_lista_0.selectrow( k_riga, true)
-//	k_codice = dw_lista_0.getitemnumber( k_riga, "codice" ) 
-//		
-//	if k_codice  > 0 then
-//		K_st_open_w.id_programma = "pl_barcode"
-//		K_st_open_w.flag_primo_giro = "S"
-//		K_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-//		K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-//		K_st_open_w.flag_leggi_dw = "N"
-//		K_st_open_w.flag_cerca_in_lista = " "
-//		K_st_open_w.key1 = string(k_codice, "0000000000")
-//		K_st_open_w.key2 = " "
-//		K_st_open_w.key3 = " "
-//		K_st_open_w.key4 = " "
-//		K_st_open_w.flag_where = " "
-//		
-//		kuf1_menu_window = create kuf_menu_window 
-//		kuf1_menu_window.open_w_tabelle(k_st_open_w)
-//		destroy kuf1_menu_window
-//		
-//	end if
-//end if
-	
+type tab_1 from w_g_tab_3`tab_1 within w_pl_barcode_l
+event create ( )
+event destroy ( )
+integer x = 0
+integer y = 0
+end type
 
+on tab_1.create
+call super::create
+this.Control[]={this.tabpage_1,&
+this.tabpage_2,&
+this.tabpage_3,&
+this.tabpage_4,&
+this.tabpage_5,&
+this.tabpage_6,&
+this.tabpage_7,&
+this.tabpage_8,&
+this.tabpage_9}
+end on
 
+on tab_1.destroy
+call super::destroy
+end on
+
+event tab_1::u_constructor;call super::u_constructor;//---
+//--- se personalizzi le derivate e vuoi finalizzare i TAB attivi o meno inserisci queste due righe
+ki_tabpage_enabled = {true, true, false, false, false, false, false, false, false} // disabilita alcune tabpage
+super::event u_constructor( )
+
+event u_constructor_main( )
 end event
 
-type cb_modifica from w_g_tab0`cb_modifica within w_pl_barcode_l
-integer x = 1737
-integer y = 1144
-integer height = 96
-integer taborder = 90
+type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+integer y = 176
+integer height = 952
+string text = "Elenco~r~nP.L."
 end type
 
-event cb_modifica::clicked;//
-long k_riga
-st_open_w kst_open_w
-
-
-k_riga = dw_lista_0.u_getrow(1)
-if k_riga > 0 then
-
-	kst_open_w.key1 = string(dw_lista_0.getitemnumber( k_riga, "codice" ))
-	kst_open_w.flag_modalita = kkg_flag_modalita.modifica
-	if dw_lista_0.getitemnumber( k_riga, "impianto" ) = 3 then
-		kiuf_pl_barcode_g3.u_open(kst_open_w)
-	else
-		kiuf_pl_barcode.u_open(kst_open_w)
-	end if
-
-end if
-//long k_riga
-//long k_codice
-//st_open_w k_st_open_w
-//kuf_menu_window kuf1_menu_window
-//
-//
-//k_riga = dw_lista_0.getrow()
-//if k_riga > 0 then
-//
-//	dw_lista_0.selectrow( k_riga, true)
-//	k_codice = dw_lista_0.getitemnumber( k_riga, "codice" ) 
-//		
-//	if k_codice  > 0 then
-//		K_st_open_w.id_programma = "pl_barcode"
-//		K_st_open_w.flag_primo_giro = "S"
-//		K_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-//		K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-//		K_st_open_w.flag_leggi_dw = "N"
-//		K_st_open_w.flag_cerca_in_lista = " "
-//		K_st_open_w.key1 = string(k_codice, "0000000000")
-//		K_st_open_w.key2 = " "
-//		K_st_open_w.key3 = " "
-//		K_st_open_w.key4 = " "
-//		K_st_open_w.flag_where = " "
-//		
-//		kuf1_menu_window = create kuf_menu_window 
-//		kuf1_menu_window.open_w_tabelle(k_st_open_w)
-//		destroy kuf1_menu_window
-//		
-//	end if
-//end if
-
-end event
-
-type cb_aggiorna from w_g_tab0`cb_aggiorna within w_pl_barcode_l
-integer x = 329
-integer y = 1140
-integer height = 96
-integer taborder = 130
-end type
-
-type cb_cancella from w_g_tab0`cb_cancella within w_pl_barcode_l
-integer x = 2121
-integer y = 1144
-integer height = 96
-integer taborder = 100
-end type
-
-type cb_inserisci from w_g_tab0`cb_inserisci within w_pl_barcode_l
-integer x = 1349
-integer y = 1152
-integer height = 96
-integer taborder = 80
-boolean enabled = false
-end type
-
-event cb_inserisci::clicked;//
-
-	kiuf_pl_barcode.u_open(kkg_flag_modalita.inserimento)
-
-end event
-
-type dw_dett_0 from w_g_tab0`dw_dett_0 within w_pl_barcode_l
-integer x = 2030
-integer y = 1032
-integer width = 489
-integer height = 184
-end type
-
-type st_orizzontal from w_g_tab0`st_orizzontal within w_pl_barcode_l
-end type
-
-type dw_lista_0 from w_g_tab0`dw_lista_0 within w_pl_barcode_l
-integer width = 2807
-integer height = 672
+type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 string dataobject = "d_pl_barcode_l"
 end type
 
-event dw_lista_0::clicked;call super::clicked;//
-//=== Premuto Link nella DW ?
-//
-pointer kpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-
-try
-		
-
-	if dwo.name = "k_path_file_pilota" then
-	
-		open_notepad_documento(this.getitemstring(row, "path_file_pilota"))
-	
-	end if
-
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-end try
-
-
-//=== Riprist. il vecchio puntatore :
-SetPointer(kpointer)
-
-
-
-end event
-
-type dw_guida from w_g_tab0`dw_guida within w_pl_barcode_l
+type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
 end type
 
-type st_duplica from w_g_tab0`st_duplica within w_pl_barcode_l
+type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+integer y = 176
+integer height = 952
+string text = "Pilota~r~nProgrammi Inviati"
+end type
+
+type dw_2 from w_g_tab_3`dw_2 within tabpage_2
+boolean visible = true
+boolean enabled = true
+string dataobject = "d_programmi_richieste_l"
+end type
+
+type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2
+end type
+
+type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type dw_3 from w_g_tab_3`dw_3 within tabpage_3
+end type
+
+type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
+end type
+
+type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+end type
+
+type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
+end type
+
+type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type dw_5 from w_g_tab_3`dw_5 within tabpage_5
+end type
+
+type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
+end type
+
+type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
+end type
+
+type dw_6 from w_g_tab_3`dw_6 within tabpage_6
+end type
+
+type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
+end type
+
+type dw_7 from w_g_tab_3`dw_7 within tabpage_7
+end type
+
+type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
+end type
+
+type dw_8 from w_g_tab_3`dw_8 within tabpage_8
+end type
+
+type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+integer y = 176
+integer height = 952
+end type
+
+type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
+end type
+
+type dw_9 from w_g_tab_3`dw_9 within tabpage_9
+end type
+
+type st_duplica from w_g_tab_3`st_duplica within w_pl_barcode_l
 end type
 
 type dw_data from uo_d_std_1 within w_pl_barcode_l
@@ -565,7 +570,7 @@ integer x = 1216
 integer y = 444
 integer width = 827
 integer height = 492
-integer taborder = 90
+integer taborder = 100
 boolean bringtotop = true
 boolean enabled = true
 boolean titlebar = true
@@ -579,12 +584,24 @@ boolean ki_dw_visibile_in_open_window = false
 end type
 
 event u_button_ok();//
-	
+try
+
 	this.visible = false
 	this.accepttext( )
-	ki_data_ini  = this.getitemdate( 1, "kdata")
-	inizializza()
+	if ki_data_ini = this.getitemdate( 1, "kdata") then
+	else
+		ki_data_ini = this.getitemdate( 1, "kdata")
+	
+		tab_1.tabpage_1.dw_1.reset( )
+		tab_1.tabpage_2.dw_2.reset( )
 
+		inizializza_lista()
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+end try
 end event
 
 event buttonclicked;call super::buttonclicked;//
@@ -614,6 +631,11 @@ SetPointer(oldpointer)
 
 end event
 
+event u_pigiato_enter;//
+	this.event u_button_ok()
+
+end event
+
 event ue_visibile;call super::ue_visibile;//
 int k_rc
 
@@ -628,10 +650,5 @@ int k_rc
 	k_rc = this.setitem(1, "kdata", ki_data_ini)
 	this.visible = true
 	this.setfocus()
-end event
-
-event u_pigiato_enter;//
-	this.event u_button_ok()
-
 end event
 

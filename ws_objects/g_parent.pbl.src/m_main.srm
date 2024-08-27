@@ -6522,8 +6522,6 @@ try
 		SetPointer(kkg.pointer_attesa)
 		k_importati_fin = kuf1_pl_barcode.importa_trattati_pilota("0") 
 
-//		kuf1_asdrackcode = create kuf_asdrackcode
- 
 		SetPointer(kkg.pointer_default)
 
 		if (k_importati_ini + k_importati_fin) > 0 then
@@ -6686,10 +6684,9 @@ try
 
 	if messagebox ("Invia dati lavorazione Pallet a E-ONE", &
 						"L'operazione AGGIORNA gli Archivi!!~n~r" &
-						+ "Saranno inviati tutti i dati di lavorazione ancora in sospeso al Sistema E-ONE~n~r" &
-						+ " tabelle e1_wo_f5548014 e e1_wo_f5537001." &
-						+" ~n~r" &
-						+ "Proseguire con l'operazione?" &
+						+ "Saranno inviati tutti i dati di lavorazione ancora in sospeso al Sistema E-ONE. " &
+						+ kkg.acapo + "(tabelle e1_wo_f5548014 e e1_wo_f5537001) " &
+						+ kkg.acapo + "Proseguire con l'operazione?" &
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
@@ -6701,17 +6698,13 @@ try
 		SetPointer(kkg.pointer_default)
 		if k_rows_treatment > 0 or k_rows_nparents > 0 then
 			messagebox ("Inviati dati di lavorazione Pallet a E-ONE", &
-					"Operazione conclusa correttamente.~n~r" &
-					+ "Sono stati inviati " + string(k_rows_treatment)  &
-					+ " record dati di trattamento" &
-					+ " e " + string(k_rows_nparents)  &
-					+ " record dati per 'Cube Interface' (n.giri e padri) di trattamento a E-ONE" &
-					 ,Information!) 
+					"Operazione conclusa correttamente.  " &
+					+  kkg.acapo + "Sono stati inviati " + string(k_rows_treatment)  + " righe dati di trattamento " + " e " + string(k_rows_nparents)  &
+					+ " righe dati per 'Cube Interface' (n.giri e padri) di trattamento a E-ONE. ", Information!) 
 		else
 			messagebox ("Inviati dati lavorazione Pallet a E-ONE", &
-					"Operazione conclusa.~n~rNessun dato disponibile per E-ONE.~n~r" &
-						+ "Nessun Lotto ha iniziato, concluso il Trattamento o è stato Convalidato o Certificato." &
-						+" ~n~r" &
+					"Operazione conclusa.  Nessun dato disponibile per E-ONE. " &
+						+  kkg.acapo + "Nessun Lotto ha iniziato, concluso il Trattamento o è stato Convalidato o Certificato. "  &
 					 ,Information!) 
 		end if
 	
@@ -7485,6 +7478,7 @@ end event
 on m_st_produz_no_imp.create
 call super::create
 this.tag = "st_prod_nimp"
+this.visible = false
 this.text = "Produzione (no imp.)"
 this.microhelp = "Statistici Merce entrata e trattata con esposizione solo movimentazioni e senza importi"
 this.menuimage = "Graph1_2!"

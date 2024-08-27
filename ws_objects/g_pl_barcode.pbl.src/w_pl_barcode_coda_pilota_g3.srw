@@ -68,10 +68,8 @@ protected subroutine stampa ()
 protected subroutine attiva_menu ()
 protected subroutine smista_funz (string k_par_in)
 private subroutine popola_ds_pl_barcode ()
-private subroutine crea_richiesta_pilota () throws uo_exception
 protected function string check_dati ()
 protected function string cancella ()
-private function long retrieve_dw () throws uo_exception
 private subroutine cancella_toglie_barcode_da_pl () throws uo_exception
 private function integer call_window_barcode ()
 private subroutine sposta_barcode (long k_riga_dest) throws uo_exception
@@ -84,6 +82,8 @@ public function boolean u_resize_predefinita ()
 protected function integer u_update_if_dw_modified (string k_titolo)
 private function long leggi_pilota ()
 private subroutine check_pl_barcode_inviati ()
+private function long u_retrieve_dw () throws uo_exception
+private subroutine crea_richiesta_pilota ()
 end prototypes
 
 protected function string inizializza () throws uo_exception;//
@@ -96,9 +96,7 @@ ds_pilota_impostazioni_g3 kds_pilota_impostazioni_g3
 st_tab_pilota_cfg kst_tab_pilota_cfg
 
 
-
 SetPointer(kkg.pointer_attesa)
-
 
 try 
 	kguo_exception.inizializza(this.classname())
@@ -108,10 +106,6 @@ try
 
 	kds_pilota_impostazioni_g3 = create ds_pilota_impostazioni_g3
 
-	//kuf1_pilota_cmd.get_path_file_pl_barcode()  // solo X testare se PATH raggiungibile
-
-//	kguo_sqlca_db_pilota_g3.db_connetti()   28052014 la connessione/disconnessione ci pensa SETTRANS in automatico
-	
 //--- retrieve
 	dw_lista_0.settrans(kguo_sqlca_db_pilota_g3)   // apre/chiude la connessione in automatico ad ogni Operazione tipo Retrieve/Update...
 	dw_dett_0.settrans(kguo_sqlca_db_pilota_g3)   // apre/chiude la connessione in automatico ad ogni Operazione tipo Retrieve/Update...
@@ -146,63 +140,49 @@ try
 		
 	end if	
 
-		k_rc = retrieve_dw() 
+	k_rc = u_retrieve_dw() 
 
-		choose case k_rc
-	
-			case is < 0				
-				SetPointer(kkg.pointer_default)
-				kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_db_ko)
-				kguo_exception.setmessage( "Mi spiace ma si e' verificato un errore interno al programma~n~r" &
-					 + "(RC=" + string (k_rc) + ") " &
-					 )
-				kguo_exception.messaggio_utente( )
-				k_return="2 " // EXIT!
-				//cb_ritorna.postevent("clicked!")
-	
-	//--- nessun codice trovato
-			case 0
-				SetPointer(kkg.pointer_default)
-				kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_not_fnd)
-				kguo_exception.setmessage( "Nessun Bancale in Programmazione (oltre agli intoccabili)  ~n~r" &
-					 )
-				kguo_exception.messaggio_utente( )
+	choose case k_rc
 
-				k_return="2 " // EXIT!
-				//cb_ritorna.postevent("clicked!")
+		case is < 0		// qui non dovrebbe mai!
+			ki_exit_si = true
+
+//--- nessun codice trovato
+		case 0
+			SetPointer(kkg.pointer_default)
+			kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_not_fnd)
+			kguo_exception.setmessage( "Nessun Bancale in Programmazione sul G3 (oltre agli intoccabili). ")
+			throw kguo_exception
 					
 	//--- se codice trovato
-			case is > 0		
-				k_return = "0 "
-				dw_dett_0.resetupdate()
+		case is > 0		
+			k_return = "0 "
+			dw_dett_0.resetupdate()
 	
-				ki_ordine_primo_numero = dw_dett_0.getitemnumber(1, "ordine")
+			ki_ordine_primo_numero = dw_dett_0.getitemnumber(1, "ordine")
 				
-				dw_lista_0.selectrow(0, false)
-				dw_lista_0.scrolltorow(dw_lista_0.rowcount())
-				dw_lista_0.resetupdate()
-					
-				leggi_pilota()
-				screma_intoccabili	()
+			dw_lista_0.selectrow(0, false)
+			dw_lista_0.scrolltorow(dw_lista_0.rowcount())
+			dw_lista_0.resetupdate()
+				
+			leggi_pilota()
+			screma_intoccabili()
 
-				dw_dett_0.bringtotop = true
+			dw_dett_0.bringtotop = true
 
-				if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
+			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
 //					abilita_modifica_giri()
 
 //--- Attivo  il timer ogni tot secondi	
-				//	timer( 15 ) NON FUNZIONA IN MODALITA' DOCKING
-				end if
+			//	timer( 15 ) NON FUNZIONA IN MODALITA' DOCKING
+			end if
 				
-		end choose
+	end choose
 
-//	end if
-	
 //--- Se ERRORE
 catch ( uo_exception k1uo_exception)
 	k1uo_exception.messaggio_utente( )
-	k_return="2 " // EXIT!
-//	cb_ritorna.postevent(clicked!)
+	ki_exit_si = true
 
 finally
 	dw_sposta.visible = false
@@ -243,14 +223,8 @@ if ki_ordine_primo_numero > 0 then
 
 	k_ctr1 = ki_ordine_primo_numero
 	for k_ctr = 1 to dw_dett_0.rowcount()
-	
 		dw_dett_0.setitem(k_ctr, "ordine", k_ctr1)
-		if mod(k_ctr,2) = 0 then
-			dw_dett_0.setitem(k_ctr, "posizione", "B")
-		else
-			dw_dett_0.setitem(k_ctr, "posizione", "H")
-		end if
-		k_ctr1++
+		k_ctr1 ++
 	end for
 
 end if	
@@ -522,18 +496,8 @@ choose case trim(left(k_par_in, 3))
 		end if
 
 	case "l5"		//Crea e Invia al Pilota la coda
-		try
-			crea_richiesta_pilota()
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_ok)
-			kguo_exception.setmessage("Operazione Conclusa, dati Inviati al Pilota.")
-			kguo_exception.messaggio_utente()
+		crea_richiesta_pilota()
 			
-		catch (uo_exception kuo1_exception)
-			kuo1_exception.messaggio_utente()
-			
-		end try
-
 	case "l6"		//dettaglio barcode
 		call_window_barcode()
 
@@ -607,125 +571,6 @@ SetPointer(oldpointer)
 
 end subroutine
 
-private subroutine crea_richiesta_pilota () throws uo_exception;//---
-//--- Crea la richiesta x il Pilota 
-//---
-//---
-//---
-string k_errore
-kuf_pl_barcode kuf1_pl_barcode
-kuf_pilota_cmd kuf1_pilota_cmd
-kuf_plav kuf1_plav   // nuova programmazione G2
-
-st_esito kst_esito
-st_tab_pl_barcode kst_tab_pl_barcode
-
-
-try
-
-	if messagebox ("Invio Programmazione Impianto G3", &
-						"L'operazione SOSTITUISCE la Programmazione ATTUALE del Pilota di GAMMA 3 !! " &
-						+ kkg.acapo	+ "Proseguire con l'invio?" &
-						 ,question!, YesNo!, 2) = 2 then
-
-		kguo_exception.inizializza( )
-		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_generico)
-		kguo_exception.setmessage("Nessun Dato Inviato.~n~r" &
-											+"L'operazione non è stata eseguita.") 
-		throw kguo_exception
-
-	else
-
-		kuf1_plav = create kuf_plav
-		kuf1_pl_barcode = create kuf_pl_barcode
-	
-		ordine_rinumerazione()
-		
-	//--- controlla se il Pilota e' stato inaspettamente aggiornato		
-		kst_esito = controllo_allineamento_pilota() 
-		
-		if kst_esito.esito = kkg_esito.ok then
-				
-	//--- controlla se Programmazione OK		
-			k_errore = check_dati() 
-			if Left(k_errore, 1) <>  "0" then
-			
-				kguo_exception.inizializza(this.classname())
-				kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
-				kguo_exception.setmessage(Mid(k_errore, 2) )
-				throw kguo_exception
-			
-			else
-				
-//=== Crea un nuovo Piano di Lavorazione con i Barcode Padre
-				popola_ds_pl_barcode() 
-				if kids_pl_barcode.rowcount() > 0 then
-
-//--- toglie i barcode cancellati anche dalla Pianificazione
-					cancella_toglie_barcode_da_pl()
-				
-//=== Job di generazione della Richiesta  
-				//	kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode)
-
-//--- Accende il flag di invio andato a buon fine
-					ki_invio_programma_eseguito = true
-
-				else
-					
-					timer( 0 )   // Disattivo il timer x non fare più retrieve
-
-					ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
-					kguo_exception.inizializza( )
-					kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
-					kguo_exception.setmessage("Nessun Bancale estratto. " + kkg.acapo &
-																		 +"L'operazione non e' stata eseguita. Uscire immediatamente dalla Funzione.") //--- errore
-					throw kguo_exception
-					
-				end if
-					
-				timer( 0 )   // Disattivo il timer x non fare più retrieve
-	
-				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
-				attiva_tasti()
-	
-	//--- poi disabilito le dw di modifica
-				dw_dett_0.u_proteggi_dw("1", 0)
-	
-			end if
-			
-		else
-					
-			timer( 0 )   // Disattivo il timer x non fare più retrieve
-
-			ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
-	
-	//--- poi disabilito le dw di modifica
-			dw_dett_0.u_proteggi_dw("1", 0)
-			
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_dati_anomali)
-			kguo_exception.setmessage("La coda del Pilota di Gamma 3 è stata Inaspettatamente Aggiornata! " &
-													+ kkg.acapo + kst_esito.sqlerrtext + " " &
-													+ kkg.acapo + "L'operazione non può essere effettuata. Uscire dalla Funzione.") //--- errore
-	
-			throw kguo_exception
-		end if
-	
-
-	end if
-		
-catch(uo_exception kuo_exception)
-//	kuo_exception.messaggio_utente()  //--- errore
-	throw kuo_exception
-	
-finally
-	if isvalid(kuf1_plav) then destroy kuf1_plav
-	if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
-	
-end try
-
-end subroutine
-
 protected function string check_dati ();//=== Controllo congruenza dei dati caricati. 
 //=== Ritorna 1 char : 0=tutto OK; 1=errore logico; 2=errore formale;
 //===			         : 3=dati insufficienti; 4=OK con degli avvertimenti
@@ -751,17 +596,6 @@ ds_pl_barcode_dett kds_pl_barcode_dett
 
 		k_pl_barcode_progr = dw_dett_0.getitemnumber ( k_riga, "ordine")
 		
-//--- Tolgo valori a null dai giri
-		if isnull(dw_dett_0.getitemnumber ( k_riga, "g3npass")) then
-			dw_dett_0.setitem ( k_riga, "g3npass", 0)
-		end if
-		if isnull(dw_dett_0.getitemnumber ( k_riga, "g3ngiri")) then
-			dw_dett_0.setitem ( k_riga, "g3ngiri", 0)
-		end if
-		if isnull(dw_dett_0.getitemnumber ( k_riga, "g3ciclo")) then
-			dw_dett_0.setitem ( k_riga, "g3ciclo", 0)
-		end if
-	
 	//--- Popolo il Datastore x il controllo della Programmazione
 		k_riga_ds = kds_pl_barcode_dett.insertrow(0)
 		kds_pl_barcode_dett.object.pl_barcode_progr[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "barcode_pl_barcode_progr")
@@ -769,7 +603,6 @@ ds_pl_barcode_dett kds_pl_barcode_dett
 	
 	next
 
-//--- Controllo programmazione (ripristinato il 05/03/2013)
 	try
 		kuf1_pl_barcode = create kuf_pl_barcode 
 		kuf1_pl_barcode.if_pianificazione_ok(kds_pl_barcode_dett, "modifica") 
@@ -871,175 +704,6 @@ dw_dett_0.ki_attiva_standard_select_row = true
 
 
 return "0"
-
-end function
-
-private function long retrieve_dw () throws uo_exception;/*
-Popola le DW dei Bancali (barcode) INTOCCABILI e dei Modificabili
-*/
-long  k_intoccabili, k_riga_intoccabili, k_riga_modificabili 
-boolean k_insert_intoccabili
-st_tab_barcode kst_tab_barcode
-st_tab_meca kst_tab_meca
-st_tab_clienti kst_tab_clienti
-st_tab_sl_pt kst_tab_sl_pt
-st_tab_pilota_queue_g3 kst_tab_pilota_queue_g3
-
-
-try
-	kguo_exception.inizializza(this.classname())	
-
-	declare c_retrieve_dw cursor for
-		SELECT 
-				  queue_table.Ordine ,
-				  queue_table.Barcode ,
-				  (ifnull(queue_table.Piano_Lavorazione,0)) ,
-				  (queue_table.id_modo)  ,
-				  (queue_table.ciclo) ,
-				  queue_table.giri  
-			  FROM queue_table
-			order by ordine asc
-			 using kguo_sqlca_db_pilota_g3;
-	
-	dw_lista_0.reset()
-	dw_dett_0.reset()
-	
-	k_intoccabili = kist_tab_pilota_impostazioni.num_intouchable
-	
-	kguo_sqlca_db_pilota_g3.db_connetti( )
-	
-	open c_retrieve_dw;
-	if kguo_sqlca_db_pilota_g3.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_pilota_g3, "Errore in inizio lettura Coda Pilota Gamma 3. ")	
-		throw kguo_exception
-	end if
-
-	if kguo_sqlca_db_pilota_g3.sqlcode = 0 then
-		fetch c_retrieve_dw into
-				  :kst_tab_pilota_queue_g3.Ordine ,
-				  :kst_tab_pilota_queue_g3.Barcode ,
-				  :kst_tab_pilota_queue_g3.cod_prod ,
-				  :kst_tab_pilota_queue_g3.id_modo,
-				  :kst_tab_pilota_queue_g3.ciclo,
-				  :kst_tab_pilota_queue_g3.giri
-				  ;
-	
-	//--- popola i campi della dw con i pallet intoccabili
-		k_riga_intoccabili = 0
-		k_riga_modificabili = 0
-		do while kguo_sqlca_db_pilota_g3.sqlcode = 0 
-	
-	//--- lettura dati correlati	
-				select distinct
-						isnull(meca.num_int, 0)
-						,isnull(meca.clie_2, 0)
-						,isnull(meca.area_mag, '')
-						,isnull(clienti.rag_soc_10, '')
-						,meca.consegna_data
-					into
-						:kst_tab_meca.num_int
-						,:kst_tab_meca.clie_2
-						,:kst_tab_meca.area_mag
-						,:kst_tab_clienti.rag_soc_10
-						,:kst_tab_meca.consegna_data
-					from 
-						  (barcode
-							inner join meca on
-							 barcode.id_meca = meca.id)
-						 inner join clienti on
-							 meca.clie_2 = clienti.codice 
-					where barcode.barcode = :kst_tab_pilota_queue_g3.barcode 
-					using kguo_sqlca_db_magazzino;
-
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura per visualizzazione Pallet in Coda Gamma 3 dal barcode: " + trim(kst_tab_pilota_queue_g3.barcode))		
-			end if
-		
-			if kguo_sqlca_db_magazzino.sqlcode = 0 then
-				if isnull(kst_tab_meca.consegna_data) then
-					kst_tab_meca.consegna_data = date(0)
-				end if
-			else
-				kst_tab_sl_pt.tipo_cicli = " "
-				kst_tab_meca.clie_2 = 0
-				kst_tab_meca.num_int = 0
-				kst_tab_meca.area_mag = " "
-				kst_tab_clienti.rag_soc_10 = " "
-				kst_tab_meca.consegna_data = date(0)
-			end if
-	
-	
-	//--- Insert tra gli Intoccabili...
-			if k_intoccabili > 0 then
-				
-				k_riga_intoccabili = dw_lista_0.insertrow(0)
-		
-				dw_lista_0.object.Ordine[k_riga_intoccabili] = kst_tab_pilota_queue_g3.Ordine
-				dw_lista_0.object.Barcode[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.Barcode)
-				dw_lista_0.object.id_modo[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.id_modo)
-				dw_lista_0.object.ciclo[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.ciclo)
-				dw_lista_0.object.giri[k_riga_intoccabili] = kst_tab_pilota_queue_g3.giri
-				dw_lista_0.object.k_clie_2[k_riga_intoccabili] = kst_tab_meca.clie_2
-				dw_lista_0.object.k_num_int[k_riga_intoccabili] = kst_tab_meca.num_int
-				dw_lista_0.object.k_area_mag[k_riga_intoccabili] = trim(kst_tab_meca.area_mag)
-				dw_lista_0.object.k_rag_soc_10[k_riga_intoccabili] = trim(kst_tab_clienti.rag_soc_10)
-				if kst_tab_meca.consegna_data > date(0) then
-					dw_lista_0.object.k_consegna_data[k_riga_intoccabili] = string(kst_tab_meca.consegna_data, "dd/mm/yy")
-				end if
-				dw_lista_0.object.k_in_lavorazione[k_riga_intoccabili] = "0"
-
-			else
-	//--- Insert tra i Modificabili...
-	
-				k_riga_modificabili = dw_dett_0.insertrow(0)
-	
-				dw_dett_0.object.Ordine[k_riga_modificabili] = kst_tab_pilota_queue_g3.Ordine
-				dw_dett_0.object.Barcode[k_riga_modificabili] = kst_tab_pilota_queue_g3.Barcode
-				dw_dett_0.object.id_modo[k_riga_modificabili] = kst_tab_pilota_queue_g3.id_modo
-				dw_dett_0.object.ciclo[k_riga_modificabili] = kst_tab_pilota_queue_g3.ciclo
-				dw_dett_0.object.giri[k_riga_modificabili] = kst_tab_pilota_queue_g3.giri
-				dw_dett_0.object.k_clie_2[k_riga_modificabili] = kst_tab_meca.clie_2
-				dw_dett_0.object.k_num_int[k_riga_modificabili] = kst_tab_meca.num_int
-				dw_dett_0.object.k_area_mag[k_riga_modificabili] = kst_tab_meca.area_mag
-				dw_dett_0.object.k_rag_soc_10[k_riga_modificabili] = kst_tab_clienti.rag_soc_10
-				if kst_tab_meca.consegna_data > date(0) then
-					dw_dett_0.object.k_consegna_data[k_riga_modificabili] = string(kst_tab_meca.consegna_data, "dd/mm/yy")
-				end if
-				
-			end if
-			
-			fetch c_retrieve_dw into
-					  :kst_tab_pilota_queue_g3.Ordine ,
-					  :kst_tab_pilota_queue_g3.Barcode ,
-					  :kst_tab_pilota_queue_g3.cod_prod ,
-					  :kst_tab_pilota_queue_g3.id_modo,
-					  :kst_tab_pilota_queue_g3.ciclo,
-					  :kst_tab_pilota_queue_g3.giri
-					  ;
-					  
-			if kguo_sqlca_db_pilota_g3.sqlcode < 0 then
-				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_pilota_g3, "Errore in lettura Coda Pilota Gamma 3. ")	
-		
-				close c_retrieve_dw;
-		
-				throw kguo_exception
-				
-			end if
-		loop
-		
-		close c_retrieve_dw;
-		
-		dw_dett_0.resetupdate()
-		
-	end if
-
-finally
-	kguo_sqlca_db_pilota_g3.db_disconnetti( )
-	
-end try
-
-return k_riga_modificabili 
-
 
 end function
 
@@ -1574,9 +1238,9 @@ try
 									 + "Non e' possibile proseguire con la modifica, la funzione sarà immediatamente terminata. ")
 		else
 			kguo_exception.setmessage("Piani di Lavorazione ancora in Attesa! " + kkg.acapo &
-									 + string(kds_programmi_richieste_get_in_lav.rowcount()) + " Piani come il n. " &
+									 + "Attenzione, ci sono " + string(kds_programmi_richieste_get_in_lav.rowcount()) + " Piani come il n. " &
 									 + string(kds_programmi_richieste_get_in_lav.getitemnumber(1, "id_pl_barcode")) &
-									 +" sono inviati al Pilota Gamma 3 ma sono ancora in attesa di essere esaminati dal Pilota. " + kkg.acapo &
+									 +" che sono stati inviati al Pilota Gamma 3 ma sono ancora in attesa di essere esaminati dal Pilota. " + kkg.acapo &
 									 + "Non e' possibile proseguire con la modifica, la funzione sarà immediatamente terminata. ")
 		end if
 		kguo_exception.messaggio_utente()
@@ -1598,6 +1262,279 @@ catch (uo_exception kuo1_exception)
 finally 
 	
 	destroy kds_programmi_richieste_get_in_lav
+	
+end try
+
+end subroutine
+
+private function long u_retrieve_dw () throws uo_exception;/*
+Popola le DW dei Bancali (barcode) INTOCCABILI e dei Modificabili
+*/
+long  k_intoccabili, k_riga_intoccabili, k_riga_modificabili 
+boolean k_cursor_opened
+string k_lotto
+st_tab_barcode kst_tab_barcode
+st_tab_meca kst_tab_meca
+st_tab_clienti kst_tab_clienti
+st_tab_sl_pt kst_tab_sl_pt
+st_tab_pilota_queue_g3 kst_tab_pilota_queue_g3
+
+
+try
+	kguo_exception.inizializza(this.classname())	
+
+	declare c_retrieve_dw cursor for
+		SELECT 
+				  queue_table.Ordine ,
+				  queue_table.Barcode ,
+				  (ifnull(queue_table.Piano_Lavorazione,0)) ,
+				  (queue_table.id_modo)  ,
+				  (queue_table.ciclo) ,
+				  queue_table.giri  
+					,wo.lotto as k_num_int
+					,ifnull(CONVERT(wo.codice_cliente, UNSIGNED),0) as k_clie_2
+					, (queue_table.Locazione) as k_area_mag
+					, (wo.nome_cliente) as k_rag_soc_10
+		   FROM queue_table left outer join Work_Orders wo on queue_table.work_order = wo.Work_Order
+			order by ordine asc
+  		 using kguo_sqlca_db_pilota_g3;
+	
+	dw_lista_0.reset()
+	dw_dett_0.reset()
+	
+	k_intoccabili = kist_tab_pilota_impostazioni.num_intouchable
+	
+	kguo_sqlca_db_pilota_g3.db_connetti( )
+	
+	open c_retrieve_dw;
+	if kguo_sqlca_db_pilota_g3.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_pilota_g3, "Errore in apertura Coda Pilota Gamma 3 in lettura. ")	
+		throw kguo_exception
+	end if
+
+	if kguo_sqlca_db_pilota_g3.sqlcode = 0 then
+		k_cursor_opened = true
+		
+		fetch c_retrieve_dw into
+				  :kst_tab_pilota_queue_g3.Ordine ,
+				  :kst_tab_pilota_queue_g3.Barcode ,
+				  :kst_tab_pilota_queue_g3.cod_prod ,
+				  :kst_tab_pilota_queue_g3.id_modo,
+				  :kst_tab_pilota_queue_g3.ciclo,
+				  :kst_tab_pilota_queue_g3.giri
+					,:k_lotto
+					,:kst_tab_meca.clie_2
+					,:kst_tab_meca.area_mag
+					,:kst_tab_clienti.rag_soc_10
+				  ;
+				  
+	//--- popola i campi della dw con i pallet intoccabili
+		k_riga_intoccabili = 0
+		k_riga_modificabili = 0
+		do while kguo_sqlca_db_pilota_g3.sqlcode = 0 
+	
+			if kguo_sqlca_db_pilota_g3.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_pilota_g3, "Errore in lettura Coda Pilota Gamma 3. ")	
+				throw kguo_exception
+			end if
+
+	//						isnull(meca.num_int, 0)
+//						,isnull(meca.clie_2, 0)
+//						,isnull(meca.area_mag, '')
+//						,isnull(clienti.rag_soc_10, '')
+//						:kst_tab_meca.num_int
+//						,:kst_tab_meca.clie_2
+//						,:kst_tab_meca.area_mag
+//						,:kst_tab_clienti.rag_soc_10
+
+	//--- lettura dati correlati	
+			select distinct
+						meca.consegna_data
+					into
+						:kst_tab_meca.consegna_data
+					from 
+						  (barcode inner join meca on barcode.id_meca = meca.id)
+						 inner join clienti on
+							 meca.clie_2 = clienti.codice 
+					where barcode.barcode = :kst_tab_pilota_queue_g3.barcode 
+					using kguo_sqlca_db_magazzino;
+
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura dati per visualizzazione Pallet in Coda Gamma 3 del barcode: " + trim(kst_tab_pilota_queue_g3.barcode))		
+				kguo_exception.scrivi_log( )
+			end if
+		
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+				if isnull(kst_tab_meca.consegna_data) then
+					kst_tab_meca.consegna_data = date(0)
+				end if
+			else
+//				kst_tab_meca.clie_2 = 0
+//				kst_tab_meca.num_int = 0
+//				kst_tab_meca.area_mag = " "
+//				kst_tab_clienti.rag_soc_10 = " "
+				kst_tab_meca.consegna_data = date(0)
+			end if
+	
+	//--- Insert tra gli Intoccabili quindi lo tolgo dal conteggio...
+			if k_intoccabili > 0 then
+				k_intoccabili --   
+				
+				k_riga_intoccabili = dw_lista_0.insertrow(0)
+		
+				dw_lista_0.object.Ordine[k_riga_intoccabili] = kst_tab_pilota_queue_g3.Ordine
+				dw_lista_0.object.Barcode[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.Barcode)
+				dw_lista_0.object.id_modo[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.id_modo)
+				dw_lista_0.object.ciclo[k_riga_intoccabili] = trim(kst_tab_pilota_queue_g3.ciclo)
+				dw_lista_0.object.giri[k_riga_intoccabili] = kst_tab_pilota_queue_g3.giri
+				dw_lista_0.object.k_clie_2[k_riga_intoccabili] = kst_tab_meca.clie_2
+				dw_lista_0.object.k_num_int[k_riga_intoccabili] = trim(k_lotto)
+				dw_lista_0.object.k_area_mag[k_riga_intoccabili] = trim(kst_tab_meca.area_mag)
+				dw_lista_0.object.k_rag_soc_10[k_riga_intoccabili] = trim(kst_tab_clienti.rag_soc_10)
+				if kst_tab_meca.consegna_data > date(0) then
+					dw_lista_0.object.k_consegna_data[k_riga_intoccabili] = string(kst_tab_meca.consegna_data, "dd/mm/yy")
+				end if
+				dw_lista_0.object.k_in_lavorazione[k_riga_intoccabili] = "0"
+
+			else
+	//--- Insert tra i Modificabili...
+	
+				k_riga_modificabili = dw_dett_0.insertrow(0)
+	
+				dw_dett_0.object.Ordine[k_riga_modificabili] = kst_tab_pilota_queue_g3.Ordine
+				dw_dett_0.object.Barcode[k_riga_modificabili] = trim(kst_tab_pilota_queue_g3.Barcode)
+				dw_dett_0.object.id_modo[k_riga_modificabili] = trim(kst_tab_pilota_queue_g3.id_modo)
+				dw_dett_0.object.ciclo[k_riga_modificabili] = trim(kst_tab_pilota_queue_g3.ciclo)
+				dw_dett_0.object.giri[k_riga_modificabili] = kst_tab_pilota_queue_g3.giri
+				dw_dett_0.object.k_clie_2[k_riga_modificabili] = kst_tab_meca.clie_2
+				dw_dett_0.object.k_num_int[k_riga_modificabili] = trim(k_lotto)
+				dw_dett_0.object.k_area_mag[k_riga_modificabili] = trim(kst_tab_meca.area_mag)
+				dw_dett_0.object.k_rag_soc_10[k_riga_modificabili] = trim(kst_tab_clienti.rag_soc_10)
+				if kst_tab_meca.consegna_data > date(0) then
+					dw_dett_0.object.k_consegna_data[k_riga_modificabili] = string(kst_tab_meca.consegna_data, "dd/mm/yy")
+				end if
+				
+			end if
+			
+			fetch c_retrieve_dw into
+					  :kst_tab_pilota_queue_g3.Ordine ,
+					  :kst_tab_pilota_queue_g3.Barcode ,
+					  :kst_tab_pilota_queue_g3.cod_prod ,
+					  :kst_tab_pilota_queue_g3.id_modo,
+					  :kst_tab_pilota_queue_g3.ciclo,
+					  :kst_tab_pilota_queue_g3.giri
+					,:k_lotto
+					,:kst_tab_meca.clie_2
+					,:kst_tab_meca.area_mag
+					,:kst_tab_clienti.rag_soc_10
+					  ;
+					  
+		loop
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	if k_cursor_opened then	
+		close c_retrieve_dw;
+	end if
+	throw kguo_exception
+
+finally
+	kguo_sqlca_db_pilota_g3.db_disconnetti( )
+	dw_dett_0.resetupdate()
+	
+end try
+
+return k_riga_modificabili 
+
+
+end function
+
+private subroutine crea_richiesta_pilota ();//---
+//--- Crea la richiesta x il Pilota 
+//---
+string k_errore
+kuf_pl_barcode kuf1_pl_barcode
+kuf_pilota_cmd kuf1_pilota_cmd
+kuf_plav kuf1_plav   // nuova programmazione G2
+
+st_esito kst_esito
+st_tab_pl_barcode kst_tab_pl_barcode
+
+
+try
+
+	if messagebox ("Invio Programmazione Impianto G3", &
+						"L'operazione SOSTITUISCE la Programmazione ATTUALE del Pilota di GAMMA 3 !! " &
+						+ kkg.acapo	+ "Proseguire con l'invio?" &
+						 ,question!, YesNo!, 2) = 2 then
+
+		messagebox("Sostituzione Programmazione Impianto G3", "Operazione Interrotta dall'utente, nessun dato inviato. ", stopsign!)
+		return
+
+	end if
+
+	ordine_rinumerazione()
+		
+	//--- controlla se il Pilota e' stato inaspettamente aggiornato		
+	kst_esito = controllo_allineamento_pilota() 
+		
+	if kst_esito.esito <> kkg_esito.ok then
+		timer( 0 )   // Disattivo il timer x non fare più retrieve
+
+		messagebox("Sostituzione Programmazione Impianto G3", "La coda Pilota del G3 è stata Inaspettatamente Aggiornata " &
+															+ kkg.acapo + kst_esito.sqlerrtext + " " &
+															+ kkg.acapo + "L'operazione non può essere effettuata. Uscire dalla Funzione.", stopsign!) 
+		ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
+		return
+	end if
+	
+//--- controlla se Programmazione OK		
+	k_errore = check_dati() 
+	if Left(k_errore, 1) <>  "0" then
+		messagebox("Sostituzione Programmazione Impianto G3", "Il controllo della Pianificazione ha riscontrato degli errori, impossibile proseguire. " &
+													+ kkg.acapo + MidA(k_errore, 2) , stopsign!) 
+		return
+	end if			
+
+	kuf1_plav = create kuf_plav
+	kuf1_pl_barcode = create kuf_pl_barcode
+				
+//=== Crea un nuovo Piano di Lavorazione con i Barcode Padre
+	popola_ds_pl_barcode() 
+	if kids_pl_barcode.rowcount() <= 0 then
+		timer( 0 )   // Disattivo il timer x non fare più retrieve
+
+		messagebox("Sostituzione Programmazione Impianto G3", "Errore in Generazione del Nuovo Pianoo, nessun Barcode estratto.  L'operazione non e' stata eseguita. Uscire dalla Funzione." , stopsign!) 
+		ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione		
+		return
+		
+	end if
+
+//--- toglie i barcode cancellati anche dalla Pianificazione
+	cancella_toglie_barcode_da_pl()
+				
+//-- SCRIVE Richiesta di SOSTITUZIONE PIANO G3
+	kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode, kuf1_plav.kki_id_impianto_G3)
+
+//--- Accende il flag di invio andato a buon fine
+	ki_invio_programma_eseguito = true
+					
+	timer( 0 )   // Disattivo il timer x non fare più retrieve
+	
+	ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione			
+		
+catch(uo_exception kuo_exception)
+	kuo_exception.messaggio_utente() 
+	
+finally
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
+//--- poi disabilito le dw di modifica
+		dw_dett_0.u_proteggi_dw("1", 0)
+	end if	
+	attiva_tasti()
+	if isvalid(kuf1_plav) then destroy kuf1_plav
+	if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
 	
 end try
 
@@ -2051,6 +1988,7 @@ integer width = 1499
 integer height = 872
 integer taborder = 110
 boolean bringtotop = true
+boolean enabled = true
 boolean titlebar = true
 string title = "Elenco Bancali Rimossi"
 string dataobject = "d_pilota_queue_table_g3_mod"
@@ -2070,6 +2008,7 @@ integer width = 1655
 integer height = 744
 integer taborder = 120
 boolean bringtotop = true
+boolean enabled = true
 boolean titlebar = true
 string title = "Elenco Bancali Modificati dati di origine"
 string dataobject = "d_pilota_queue_table_g3_mod"
@@ -2106,8 +2045,8 @@ type dw_sposta from uo_d_std_1 within w_pl_barcode_coda_pilota_g3
 event u_attiva ( )
 integer x = 293
 integer y = 844
-integer width = 1623
-integer height = 788
+integer width = 1705
+integer height = 832
 integer taborder = 100
 boolean bringtotop = true
 boolean titlebar = true
@@ -2115,7 +2054,12 @@ string title = "Sposta Barcode"
 string dataobject = "d_pl_barcode_coda_pilota_sposta"
 boolean controlmenu = true
 boolean minbox = true
+boolean hscrollbar = false
+boolean vscrollbar = false
 string icon = "Exclamation!"
+boolean hsplitscroll = false
+boolean livescroll = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event u_attiva();//
@@ -2123,10 +2067,10 @@ event u_attiva();//
 		this.visible = false
 		dw_dett_0.setfocus()
 	else
-		if this.height > 0 and this.width > 0 and this.x > 0 and this.y > 0 then
-		else
-			this.height = 788
-			this.width = 1623
+		if not this.enabled then
+			this.enabled = true
+			this.height = 832
+			this.width = 1705
 			if (parent.width / 2) > this.width then
 				this.x = parent.width / 2 - this.width
 			end if
@@ -2138,6 +2082,7 @@ event u_attiva();//
 		this.bringtotop=true
 		this.setfocus( )
 	end if
+
 
 end event
 
@@ -2220,8 +2165,9 @@ if dwo.name = "cb_prima_del_barcode" then
 end if
 
 this.enabled = true
-
-
+this.visible = true
+this.bringtotop=true
+this.post setfocus( )
 
 end event
 

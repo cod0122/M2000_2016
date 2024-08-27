@@ -12,8 +12,8 @@ end forward
 
 global type w_sr_utenti_password from w_super
 boolean visible = true
-integer width = 2400
-integer height = 784
+integer width = 2336
+integer height = 884
 boolean titlebar = false
 boolean controlmenu = false
 boolean minbox = false
@@ -55,13 +55,11 @@ protected function string inizializza ();//
 //======================================================================
 //
 string k_return="0 "
-int k_errore = 0
+int k_errore = 0, k_rc 
 string k_key
 kuf_utility kuf1_utility
 kuf_cripta kuf1_cripta
 
-
-//=== 
 
 	k_key = trim(ki_st_open_w.key1)
 	kist_tab_sr_utenti.id = long(k_key)
@@ -70,7 +68,8 @@ kuf_cripta kuf1_cripta
 	
 	if kist_tab_sr_utenti.id > 0  then
 
-		if dw_pwd.retrieve(kist_tab_sr_utenti.id) < 1 then
+		k_rc = dw_pwd.retrieve(kist_tab_sr_utenti.id)
+		if k_rc < 1 then
 			k_errore = 1
 			k_return = "1Nessuna Informazione trovata "
 	
@@ -78,6 +77,8 @@ kuf_cripta kuf1_cripta
 				"Mi spiace, ma non e' stato Trovato nulla per la richiesta fatta ~n~r" + &
 				"(Dati ricercati :" + k_key + ")" )
 	
+		elseif k_rc = 0 then
+			dw_pwd.insertrow(0)
 		end if
 	else
 		k_errore = 1
@@ -462,8 +463,8 @@ pointer kpointer_orig
 end event
 
 type cb_ritorna from commandbutton within w_sr_utenti_password
-integer x = 1943
-integer y = 600
+integer x = 1765
+integer y = 592
 integer width = 393
 integer height = 100
 string text = "Esci"
@@ -475,8 +476,8 @@ close(parent)
 end event
 
 type cb_aggiorna from commandbutton within w_sr_utenti_password
-integer x = 1385
-integer y = 596
+integer x = 1207
+integer y = 588
 integer width = 471
 integer height = 100
 string text = "Conferma"
@@ -488,10 +489,21 @@ aggiorna( )
 end event
 
 type dw_pwd from uo_d_std_1 within w_sr_utenti_password
-integer x = 5
-integer y = 8
+boolean visible = true
 integer width = 2377
 integer height = 752
+boolean enabled = true
 string dataobject = "d_sr_utenti_password"
+boolean hscrollbar = false
+boolean vscrollbar = false
+boolean hsplitscroll = false
+boolean livescroll = false
+boolean ki_link_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 end type
 
