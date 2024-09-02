@@ -23,6 +23,7 @@ public function long get_id_armo_sl_pt_g3_lav_max () throws uo_exception
 public function long tb_add (ref st_tab_armo_sl_pt_g3_lav ast_tab_armo_sl_pt_g3_lav) throws uo_exception
 public function boolean tb_update (ref st_tab_armo_sl_pt_g3_lav ast_tab_armo_sl_pt_g3_lav) throws uo_exception
 public function long set_armo_sl_pt_g3_lav (ref st_tab_armo_sl_pt_g3_lav ast_tab_armo_sl_pt_g3_lav) throws uo_exception
+public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 end prototypes
 
 public function st_esito u_check_dati (ref datastore ads_inp) throws uo_exception;//------------------------------------------------------------------------------------------------------
@@ -346,6 +347,28 @@ long k_return
 	k_return = ast_tab_armo_sl_pt_g3_lav.id_armo_sl_pt_g3_lav
 
 return k_return
+
+end function
+
+public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//
+boolean k_return 
+kuf_barcode_mod_giri kuf1_barcode_mod_giri
+
+
+try
+	kuf1_barcode_mod_giri = create kuf_barcode_mod_giri
+
+	k_return = kuf1_barcode_mod_giri.if_sicurezza(ast_open_w)
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_barcode_mod_giri) then destroy kuf1_barcode_mod_giri
+
+end try	
+	
+return k_return	
 
 end function
 

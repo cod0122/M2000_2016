@@ -13,6 +13,8 @@ string title = "Anagrafica "
 boolean ki_toolbar_window_presente = true
 boolean ki_sincronizza_window_consenti = false
 boolean ki_fai_nuovo_dopo_update = false
+boolean ki_fai_nuovo_dopo_insert = false
+boolean ki_fai_inizializza_dopo_update = true
 dw_periodo dw_periodo
 end type
 global w_clienti w_clienti
@@ -88,9 +90,11 @@ protected function string aggiorna ();//
 //===					  : 3=Commit fallita
 //===		dal char 2 in poi spiegazione dell'errore
 //======================================================================
-
+//
 string k_return="0 ", k_errore="0 "
 long k_riga
+string k_msg
+int k_rc
 boolean k_new_rec
 st_esito kst_esito
 st_tab_ind_comm kst_tab_ind_comm
@@ -103,9 +107,13 @@ kuf_utility kuf1_utility
 
 
 try
+
 	//=== Aggiorna, se modificato, la TAB_1	
 	if tab_1.tabpage_1.dw_1.getnextmodified(0, primary!) > 0	then
-	
+
+		k_riga = tab_1.tabpage_1.dw_1.getrow()
+		if k_riga = 0 then return "0"  // NON FACCIO NULLA
+
 		if tab_1.tabpage_1.dw_1.GetItemStatus(tab_1.tabpage_1.dw_1.getrow(), 0,  primary!) = NewModified!	then
 			k_new_rec = true
 		else
@@ -115,62 +123,63 @@ try
 		tab_1.tabpage_1.dw_1.setitem(1, "x_datins", kGuf_data_base.prendi_x_datins())
 		tab_1.tabpage_1.dw_1.setitem(1, "x_utente", kGuf_data_base.prendi_x_utente())
 	
-		if tab_1.tabpage_1.dw_1.update() = 1 then
-	
-	//=== Se tutto OK faccio la COMMIT		
-			kst_esito = kguo_sqlca_db_magazzino.db_commit()
-			if kst_esito.esito = kkg_esito.db_ko then
-				k_return = "3" + "Archivio " + tab_1.tabpage_4.text + " " + kst_esito.sqlerrtext
-			else // Tutti i Dati Caricati in Archivio
-				k_return ="0 "
-				k_riga = tab_1.tabpage_1.dw_1.getrow()
-				if k_riga > 0 then
-	
-	//--- Se nuova riga Imposto il campo Contatore CODICE (SERIAL)				
-					if k_new_rec then
-						kiuf_clienti.get_ultimo_id(kst_tab_clienti)
-						tab_1.tabpage_1.dw_1.setitem(tab_1.tabpage_1.dw_1.getrow(), "codice", kst_tab_clienti.codice)
-						tab_1.tabpage_1.dw_1.resetupdate( )
-					end if
-					
-					kst_tab_ind_comm.clie_c = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
-					kst_tab_ind_comm.rag_soc_1_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_rag_soc_1_c")
-					kst_tab_ind_comm.rag_soc_2_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_rag_soc_2_c")
-					kst_tab_ind_comm.indi_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_indi_c")
-					kst_tab_ind_comm.loc_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_loc_c")
-					kst_tab_ind_comm.cap_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_cap_c")
-					kst_tab_ind_comm.prov_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_prov_c")
-					kst_tab_ind_comm.id_nazione_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "id_nazione_c")
-					kiuf_clienti_tb_xxx.tb_update_ind_comm(kst_tab_ind_comm)
-					
-					kst_tab_clienti_fatt.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
-					kst_tab_clienti_fatt.fattura_da = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_da")
-					kst_tab_clienti_fatt.note_1 = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_1")
-					kst_tab_clienti_fatt.note_2 = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_2")
-					kst_tab_clienti_fatt.modo_stampa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "modo_stampa")
-					kst_tab_clienti_fatt.modo_email = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "modo_email")
-					kst_tab_clienti_fatt.email_invio = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email_invio")
-					kst_tab_clienti_fatt.impon_minimo = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "impon_minimo")
-					kst_tab_clienti_fatt.codice_ipa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "codice_ipa")
-					kst_tab_clienti_fatt.fattura_per = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_per")
-					kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_fatt)
-					 
-				end if
-			end if
-			kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
-			kst_tab_clienti_altro.e1_asn_ehvr01 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1_asn_ehvr01")
-			kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)
+		k_rc = tab_1.tabpage_1.dw_1.update() 
+		if k_rc = 1 then
+			kguo_sqlca_db_magazzino.db_commit()  // COMMIT
 		else
-			
-			kst_esito = kguo_sqlca_db_magazzino.db_rollback()
-			k_return="1Fallito aggiornamento archivio '" + &
-						tab_1.tabpage_1.text + "' ~n~r" 
+			if k_rc < 0 then
+				if tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice") > 0 then
+					k_msg = "Errore in Aggiornamento testata Anagrafica, codice " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"))
+				else
+					k_msg = "Errore in inserimento testata della Nuova Anagrafica, nome " + trim(tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10"))
+				end if
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_1.dw_1, k_msg)
+				throw kguo_exception
+			end if
 		end if
+			
+		k_return ="0 "
+		
+	//--- Se nuova riga Imposto il campo Contatore CODICE (SERIAL)				
+		if k_new_rec then
+			kiuf_clienti.get_ultimo_id(kst_tab_clienti)
+			tab_1.tabpage_1.dw_1.setitem(tab_1.tabpage_1.dw_1.getrow(), "codice", kst_tab_clienti.codice)
+			tab_1.tabpage_1.dw_1.resetupdate( )
+		end if
+					
+		kst_tab_ind_comm.clie_c = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+		kst_tab_ind_comm.rag_soc_1_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_rag_soc_1_c")
+		kst_tab_ind_comm.rag_soc_2_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_rag_soc_2_c")
+		kst_tab_ind_comm.indi_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_indi_c")
+		kst_tab_ind_comm.loc_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_loc_c")
+		kst_tab_ind_comm.cap_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_cap_c")
+		kst_tab_ind_comm.prov_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "ind_comm_prov_c")
+		kst_tab_ind_comm.id_nazione_c = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "id_nazione_c")
+		kiuf_clienti_tb_xxx.tb_update_ind_comm(kst_tab_ind_comm)
+		
+		kst_tab_clienti_fatt.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+		kst_tab_clienti_fatt.fattura_da = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_da")
+		kst_tab_clienti_fatt.note_1 = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_1")
+		kst_tab_clienti_fatt.note_2 = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_2")
+		kst_tab_clienti_fatt.modo_stampa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "modo_stampa")
+		kst_tab_clienti_fatt.modo_email = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "modo_email")
+		kst_tab_clienti_fatt.email_invio = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email_invio")
+		kst_tab_clienti_fatt.impon_minimo = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "impon_minimo")
+		kst_tab_clienti_fatt.codice_ipa = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "codice_ipa")
+		kst_tab_clienti_fatt.fattura_per = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_per")
+		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_fatt)
+
+		kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+		kst_tab_clienti_altro.e1_asn_ehvr01 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1_asn_ehvr01")
+		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)
+
 	end if 
 	
 	//=== Aggiorna, se modificato, la TAB_3 MARKETING+WEB
-	if left(k_return,1) = "0" and tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0 	then
-		k_riga = 1
+	if tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0	then
+		
+		k_riga = tab_1.tabpage_3.dw_3.getrow()
+		if k_riga = 0 then return "0"  // NON FACCIO NULLA SUL MKT
 	
 		tab_1.tabpage_3.dw_3.setitem(k_riga, "id_cliente", tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice"))
 		
@@ -217,59 +226,72 @@ try
 		
 	end if
 	
+	//=== Aggiorna, se modificato, la TAB_4 CONTATTI
+	if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0 	then
 	
-	
-	//=== Aggiorna, se modificato, la TAB_4 MANDANTI-RICEVENTI-FATTURATO
-	if left(k_return,1) = "0" and tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0 	then
-	//	tab_1.tabpage_4.dw_4.getnextmodified(0, delete!) > 0 & 
-	
-		if tab_1.tabpage_4.dw_4.update() = 1 then
-	
-	//--- Se tutto OK faccio la COMMIT		
-			kst_esito = kguo_sqlca_db_magazzino.db_commit()
-			if kst_esito.esito = kkg_esito.db_ko then
-				k_return = "3" + "Archivio " + tab_1.tabpage_4.text + " " + kst_esito.sqlerrtext
-			else // Tutti i Dati Caricati in Archivio
-				k_return ="0 "
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_4.dw_4)
-			end if
+		k_rc = tab_1.tabpage_4.dw_4.update() 
+		if k_rc = 1 then
+			kguo_sqlca_db_magazzino.db_commit()  // COMMIT
 		else
-			kst_esito = kguo_sqlca_db_magazzino.db_rollback()
-			k_return="1Fallito aggiornamento archivio '" + &
-						tab_1.tabpage_4.text + "' ~n~r" 
-		end if	
+			if k_rc < 0 then
+				if tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice") > 0 then
+					k_msg = "Errore in Aggiornamento Contatti Anagrafica, codice " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"))				
+				else
+					k_msg = "Errore in inserimento Contatti della nuova Anagrafica, nome " + trim(tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10"))
+				end if
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_1.dw_1, k_msg)
+				throw kguo_exception
+			end if
+		end if
 	end if
 	
-	//=== Aggiorna, se modificato, la TAB_8 DATI ESPORTAZIONE REGISTRO CONTO DEPOSITO
+	//=== Aggiorna, se modificato, la TAB_5 LEGAMI
+	if tab_1.tabpage_5.dw_5.getnextmodified(0, primary!) > 0 	then
+	
+		k_rc = tab_1.tabpage_5.dw_5.update() 
+		if k_rc = 1 then
+			kguo_sqlca_db_magazzino.db_commit()  // COMMIT
+		else
+			if k_rc < 0 then
+				if tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice") > 0 then
+					k_msg = "Errore in Aggiornamento Legami Anagrafica, codice " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"))				
+				else
+					k_msg = "Errore in inserimento Legami della nuova Anagrafica, nome " + trim(tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10"))
+				end if
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_1.dw_1, k_msg)
+				throw kguo_exception
+			end if
+		end if
+	end if
+	
+//=== Aggiorna, se modificato, la TAB_8 DATI ESPORTAZIONE REGISTRO CONTO DEPOSITO
 	if left(k_return,1) = "0" and tab_1.tabpage_8.dw_8.getnextmodified(0, primary!) > 0 	then
 	
 		tab_1.tabpage_8.dw_8.setitem(1, "x_datins", kGuf_data_base.prendi_x_datins())
 		tab_1.tabpage_8.dw_8.setitem(1, "x_utente", kGuf_data_base.prendi_x_utente())
-		if tab_1.tabpage_8.dw_8.update() = 1 then
-	
-	//--- Se tutto OK faccio la COMMIT		
-			kst_esito = kguo_sqlca_db_magazzino.db_commit()
-			if kst_esito.esito = kkg_esito.db_ko then
-				k_return = "3" + "Archivio " + tab_1.tabpage_8.text + " " + kst_esito.sqlerrtext
-			else // Tutti i Dati Caricati in Archivio
-				tab_1.tabpage_8.dw_8.resetupdate( )
-				k_return ="0 "
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_8.dw_8)
-			end if
+		k_rc = tab_1.tabpage_8.dw_8.update() 
+		if k_rc = 1 then
+			kguo_sqlca_db_magazzino.db_commit()  // COMMIT
 		else
-			kst_esito = kguo_sqlca_db_magazzino.db_rollback()
-			k_return="1Fallito aggiornamento archivio '" + &
-						tab_1.tabpage_8.text + "' ~n~r" 
-		end if	
+			if k_rc < 0 then
+				if tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice") > 0 then
+					k_msg = "Errore in Aggiornamento dati Registro Conto Deposito dell'Anagrafica " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"))				
+				else
+					k_msg = "Errore in inserimento dati Registro Conto Deposito della nuova Anagrafica, nome " + trim(tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10"))
+				end if
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_1.dw_1, k_msg)
+				throw kguo_exception
+			end if
+		end if
+	
 	end if
 	
-
-catch(uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	k_return = "1" + kst_esito.sqlerrtext + " ( esito '" + kst_esito.esito + "')"
+	ki_st_open_w.key1 = string(tab_1.tabpage_1.dw_1.getitemnumber(tab_1.tabpage_1.dw_1.getrow(), "codice"))
 	
+catch(uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	kst_esito = kuo_exception.get_st_esito()
+	k_return = "1" + kst_esito.sqlerrtext + " " + kkg.acapo + "(esito '" + kst_esito.esito + "') "	
 
 end try
 	
@@ -278,10 +300,9 @@ end try
 //=== 		 : 2=LIBERO
 //===			 : 3=Commit fallita
 
-if left(k_return, 1) = "1" then
-	messagebox("Operazione di Aggiornamento Non Eseguita !!", &
-		mid(k_return, 2))
-end if
+//if left(k_return, 1) = "1" then
+//	messagebox("Operazione di Aggiornamento Non Eseguita !!", mid(k_return, 2))
+//end if
 
 return k_return
 
@@ -634,10 +655,10 @@ datawindowchild kdwc_iva, kdwc_pag
 kuf_utility kuf1_utility
 datawindowchild kdwc_contatto, kdwc_divisione, kdwc_tipo, kdwc_protocollo
 
-//
+
 
 //=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
+oldpointer = SetPointer(HourGlass!)
 	
 ki_selectedtab = 1
 
@@ -686,9 +707,9 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 			case is < 0		
 				SetPointer(oldpointer)
 				messagebox("Operazione fallita", &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"(ID Anagrafica cercato: " + string(k_key) + ")~n~r" )
-				cb_ritorna.postevent(clicked!)
+					"Mi spiace, si e' verificato un errore interno al programma " + &
+					"(Codice Anagrafica cercato: " + string(k_key) + "). " )
+			   ki_exit_si = true
 
 			case 0
 	
@@ -698,11 +719,10 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 				if k_scelta = kkg_flag_modalita.modifica then
 					SetPointer(oldpointer)
 					messagebox("Ricerca fallita", &
-						"Anagrafica non trovata in archivio ~n~r" + &
-						"(ID cercato: " + string(k_key) + ")~n~r" )
-
-					cb_ritorna.triggerevent("clicked!")
-					
+						"Anagrafica non trovata in archivio " + &
+						"(Codice cercato: " + string(k_key) + "). " )
+				   ki_exit_si = true
+				
 				else
 					k_err_ins = inserisci()
 					tab_1.tabpage_1.dw_1.setfocus()
@@ -710,19 +730,14 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 			case is > 0		
 				if k_scelta = kkg_flag_modalita.inserimento then
 					SetPointer(oldpointer)
-					messagebox("Trovata Anagrafica", &
-						"Anagrafica  gia' in archivio ~n~r" + &
-						"(ID cercato: " + string(k_key) + ")~n~r" )
-			
+					messagebox("Trovata Anagrafica", "Anagrafica " + string(k_key) + " già in archivio. ")
+		
 					ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 
 				end if
 
 				tab_1.tabpage_1.dw_1.setfocus()
 				tab_1.tabpage_1.dw_1.setcolumn("rag_soc_10")
-
-				
-//				attiva_tasti()
 		
 		end choose
 
@@ -733,42 +748,45 @@ else
 //	attiva_tasti()
 end if
 
+if NOT ki_exit_si then
 
-if ki_st_open_w.flag_primo_giro = 'S' then //se giro di prima volta
-
-//--- Inabilita campi alla modifica se Vsualizzazione
-  	kuf1_utility = create kuf_utility 
-	tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
-	destroy kuf1_utility
+	if ki_st_open_w.flag_primo_giro = 'S' then //se giro di prima volta
 	
-	if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento then
-//--- Identifica il tipo Anagrafica
-		try
-			kst_tab_clienti.tipo_mrf = kiuf_clienti.get_tipo(kst_tab_clienti)
-			if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_FATTURATO then
-				tab_1.tabpage_1.dw_1.object.k_tipo.text = "Cliente:" 		
-			else
-				if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_mandante then
-					tab_1.tabpage_1.dw_1.object.k_tipo.text = "Mandante:" 		
+	//--- Inabilita campi alla modifica se Vsualizzazione
+		kuf1_utility = create kuf_utility 
+		tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
+		kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+		destroy kuf1_utility
+		
+		if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento then
+	//--- Identifica il tipo Anagrafica
+			try
+				kst_tab_clienti.tipo_mrf = kiuf_clienti.get_tipo(kst_tab_clienti)
+				if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_FATTURATO then
+					tab_1.tabpage_1.dw_1.object.k_tipo.text = "Cliente:" 		
 				else
-					if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_ricevente then
-						tab_1.tabpage_1.dw_1.object.k_tipo.text = "Ricevente:"
+					if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_mandante then
+						tab_1.tabpage_1.dw_1.object.k_tipo.text = "Mandante:" 		
+					else
+						if kst_tab_clienti.tipo_mrf = kiuf_clienti.kki_tipo_mrf_ricevente then
+							tab_1.tabpage_1.dw_1.object.k_tipo.text = "Ricevente:"
+						end if
 					end if
 				end if
-			end if
-		catch (uo_exception kuo_exception)
-			kuo_exception.messaggio_utente()
-		end try
+			catch (uo_exception kuo_exception)
+				kuo_exception.messaggio_utente()
+			end try
+		end if
+	
 	end if
-
+	
+	//--- attiva eventuale Drag&Drop di files da Windows	Explorer
+	if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
+	kiuf_file_dragdrop.u_attiva(handle(tab_1.tabpage_1.dw_1))
+	
+	//tab_1.tabpage_1.dw_1.resetupdate()
+	
 end if
-
-//--- attiva eventuale Drag&Drop di files da Windows	Explorer
-if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
-kiuf_file_dragdrop.u_attiva(handle(tab_1.tabpage_1.dw_1))
-
-//tab_1.tabpage_1.dw_1.resetupdate()
 
 SetPointer(oldpointer)
 
@@ -861,14 +879,14 @@ if left(k_errore, 1) = "0" then
 //--- prima di tutto disabilito e resetto gli altri tab			
 			if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 			
-				tab_1.tabpage_2.enabled = false
-				tab_1.tabpage_3.enabled = false
+				//tab_1.tabpage_2.enabled = false
+				//tab_1.tabpage_3.enabled = false
 				tab_1.tabpage_4.enabled = false
 				tab_1.tabpage_5.enabled = false
 				tab_1.tabpage_6.enabled = false
 				tab_1.tabpage_7.enabled = false
-				tab_1.tabpage_2.dw_2.reset ()
-				tab_1.tabpage_3.dw_3.reset ()
+				//tab_1.tabpage_2.dw_2.reset ()
+				//tab_1.tabpage_3.dw_3.reset ()
 				tab_1.tabpage_4.dw_4.reset ()
 				tab_1.tabpage_5.dw_5.reset ()
 				tab_1.tabpage_6.dw_6.reset ()
@@ -878,29 +896,44 @@ if left(k_errore, 1) = "0" then
 			
 			if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				tab_1.tabpage_1.dw_1.reset() 
+			else
+				tab_1.tabpage_1.dw_1.insertrow(0)
 			end if
-			
-			tab_1.tabpage_1.dw_1.insertrow(0)
-			
 			tab_1.tabpage_1.dw_1.setitem(1, "codice", 0)
 			tab_1.tabpage_1.dw_1.setcolumn("p_iva")
-			
 			tab_1.tabpage_1.dw_1.SetItemStatus( 1, 0, Primary!, NotModified!)
+
+		// carica anche il MKT
+			if tab_1.tabpage_3.dw_3.rowcount() > 0 then
+				tab_1.tabpage_3.dw_3.reset() 
+			else
+				tab_1.tabpage_3.dw_3.insertrow(0)
+			end if
+			tab_1.tabpage_3.dw_3.setitem(k_riga, "id_cliente", 0)
+			tab_1.tabpage_3.dw_3.SetItemStatus( 1, 0, Primary!, NotModified!)
 
 			ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
 
 			
-		case 2 // allegati
+		case 2 // MEMO
 			try
-				kst_tab_clienti_memo.id_cliente_memo = 0
-				kuf1_sr_sicurezza = create kuf_sr_sicurezza
-				kuf1_memo = create kuf_memo
-				kuf1_memo_inout = create kuf_memo_inout
-				kst_tab_clienti_memo.tipo_sv = kuf1_sr_sicurezza.get_sr_settore(ki_st_open_w.id_programma)
 				kst_tab_clienti_memo.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
-				kst_memo.st_tab_clienti_memo = kst_tab_clienti_memo
-				kuf1_memo_inout.memo_xcliente(kst_memo.st_tab_clienti_memo, kst_memo.st_tab_memo)
-				kuf1_memo.u_attiva_funzione(kst_memo,kkg_flag_modalita.inserimento )   // APRE FUNZIONE
+				if kst_tab_clienti_memo.id_cliente > 0 then
+					kst_tab_clienti_memo.id_cliente_memo = 0
+					kuf1_sr_sicurezza = create kuf_sr_sicurezza
+					kuf1_memo = create kuf_memo
+					kuf1_memo_inout = create kuf_memo_inout
+					kst_tab_clienti_memo.tipo_sv = kuf1_sr_sicurezza.get_sr_settore(ki_st_open_w.id_programma)
+					kst_memo.st_tab_clienti_memo = kst_tab_clienti_memo
+					kuf1_memo_inout.memo_xcliente(kst_memo.st_tab_clienti_memo, kst_memo.st_tab_memo)
+					kuf1_memo.u_attiva_funzione(kst_memo,kkg_flag_modalita.inserimento )   // APRE FUNZIONE
+				else
+					if tab_1.tabpage_2.dw_2.rowcount() > 0 then
+						tab_1.tabpage_2.dw_2.reset() 
+					else
+						tab_1.tabpage_2.dw_2.insertrow(0)
+					end if
+				end if
 			catch (uo_exception kuo_exception)
 				kuo_exception.messaggio_utente()
 			end try
@@ -912,13 +945,10 @@ if left(k_errore, 1) = "0" then
 			end if
 			if tab_1.tabpage_3.dw_3.rowcount() > 0 then
 				tab_1.tabpage_3.dw_3.reset() 
+			else
+				tab_1.tabpage_3.dw_3.insertrow(0)
 			end if
-			
-			tab_1.tabpage_3.dw_3.insertrow(0)
-			
 			tab_1.tabpage_3.dw_3.setitem(k_riga, "id_cliente", k_codice)
-//			tab_1.tabpage_3.dw_3.setcolumn("clienti_mkt_qualifica")
-			
 			tab_1.tabpage_3.dw_3.SetItemStatus( 1, 0, Primary!, NotModified!)
 
 		
@@ -933,8 +963,8 @@ if left(k_errore, 1) = "0" then
 			if k_codice > 0 then
 				k_riga = tab_1.tabpage_5.dw_5.insertrow(0)
 
-			   	kuf1_utility = create kuf_utility 
-		      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_5.dw_5)  //--- Abilita campi alla modifica 
+				kuf1_utility = create kuf_utility 
+				kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_5.dw_5)  //--- Abilita campi alla modifica 
 	
 				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_3", k_codice)
 	
@@ -2044,7 +2074,7 @@ ki_selectedtab = 2
 //=== Se nr.cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
 	if k_codice = 0 then
 		inserisci()
-		k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+		return
 	end if
 
 //--- salvo i parametri cosi come sono stati immessi
@@ -2215,14 +2245,14 @@ ki_sincronizza_window_consenti = false
 if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 
 	if tab_1.tabpage_1.dw_1.getitemnumber(1, "codice") > 0 then
-		tab_1.tabpage_2.enabled = true
+		//tab_1.tabpage_2.enabled = true
 		tab_1.tabpage_4.enabled = true
 		tab_1.tabpage_5.enabled = true
 		tab_1.tabpage_6.enabled = true
 		tab_1.tabpage_7.enabled = true
 		tab_1.tabpage_8.enabled = true
 	else
-		tab_1.tabpage_2.enabled = false
+		//tab_1.tabpage_2.enabled = false
 		tab_1.tabpage_4.enabled = false
 		tab_1.tabpage_5.enabled = false
 		tab_1.tabpage_6.enabled = false
@@ -2251,12 +2281,21 @@ if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				cb_cancella.enabled = true
 			end if
 		case 4  // Contatti
-			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento then
-			  	cb_visualizza.enabled = true
-				cb_modifica.enabled = true
+			st_aggiorna_lista.enabled = true
+			ki_sincronizza_window_ok = true
+			ki_sincronizza_window_consenti = true			
+		  	cb_visualizza.enabled = true
+			if (ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione &
+					or ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione) then
+				cb_inserisci.enabled = false
+				cb_cancella.enabled = false
+				cb_aggiorna.enabled = false
+				cb_modifica.enabled = false
+			else
 				cb_inserisci.enabled = true
-				cb_aggiorna.enabled = true
 				cb_cancella.enabled = true
+				cb_aggiorna.enabled = true
+				cb_modifica.enabled = true
 			end if
 		case 5 //listino
 		  	cb_visualizza.enabled = true
@@ -2577,14 +2616,14 @@ if dati_modif_dw(tab_1.tabpage_1.dw_1) then
 		end if
 	end if
 	
-	if k_errore = "0" or k_errore = "4" or k_errore = "5"  then
-		if isnull(k_key) or k_key = 0 then
-			k_return = tab_1.tabpage_1.text + ": Il Codice verra' assegnato automaticamente. " + "~n~r"
-			k_errore = "5"
-			k_nr_errori++
-		else
-		end if
-	end if
+//	if k_errore = "0" or k_errore = "4" or k_errore = "5"  then
+//		if isnull(k_key) or k_key = 0 then
+//			k_return = tab_1.tabpage_1.text + ": Il Codice verra' assegnato automaticamente. " + "~n~r"
+//			k_errore = "5"
+//			k_nr_errori++
+//		else
+//		end if
+//	end if
 	
 	
 //--- controllo ESENZIONE	
@@ -3065,7 +3104,6 @@ if k_codice = 0 then
 	tab_1.tabpage_5.dw_5.reset()
 else
 
-
 	//--- Acchiappo il codice CLIENTE x evitare la rilettura
 	if IsNumber(tab_1.tabpage_5.st_5_retrieve.Text) then
 		k_codice_5 = long(tab_1.tabpage_5.st_5_retrieve.Text)
@@ -3073,8 +3111,7 @@ else
 		k_codice_5 = 0
 	end if
 	//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
-	tab_1.tabpage_5.st_5_retrieve.Text=string(k_codice, "####0")
-	
+	tab_1.tabpage_5.st_5_retrieve.Text=string(k_codice, "####0")	
 	
 	if tab_1.tabpage_5.dw_5.rowcount() = 0  and k_codice_5 <> k_codice then
 
@@ -3108,15 +3145,17 @@ else
 	
 	if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
 
-      	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
-	
-		if tab_1.tabpage_5.dw_5.retrieve(k_codice)  < 1 then
+		if tab_1.tabpage_5.dw_5.retrieve(k_codice) < 1 then
 			if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
 				inserisci()
 			end if
+		else
+			if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione or ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione then
+			   kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+			end if		
 		end if
 	end if
-	
+
 	attiva_tasti()
 
 		
@@ -3417,9 +3456,8 @@ fontcharset fontcharset = ansi!
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_clienti
-integer x = 0
-integer y = 0
 integer width = 2999
+integer height = 5552
 end type
 
 on tab_1.create
@@ -3453,7 +3491,7 @@ end event
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 string text = " Anagrafica"
 string picturename = "cliente.gif"
 end type
@@ -3747,7 +3785,7 @@ end type
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 string text = " memo"
 string picturename = "Copy!"
 end type
@@ -3780,7 +3818,7 @@ type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 string text = " Marketing~r~n & Web"
 string picturename = "Custom073!"
@@ -3900,7 +3938,7 @@ type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 long backcolor = 32435950
 string text = " Contatti"
@@ -3923,7 +3961,7 @@ type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 long backcolor = 32435950
 string text = " Mandanti~r~n & Riceventi"
@@ -3982,7 +4020,7 @@ type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 string text = " Listino"
 string picturename = "FormatDollar!"
@@ -4005,7 +4043,7 @@ type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 string text = " Movimenti ~r~n Magazzino"
 long tabbackcolor = 32896501
@@ -4040,7 +4078,7 @@ type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 boolean visible = true
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 boolean enabled = true
 string text = "A.C.O.~r~nCto Deposito"
 string powertiptext = "Configura esportazione dati Registro Conto Deposito"
@@ -4104,7 +4142,7 @@ end event
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer y = 176
 integer width = 2962
-integer height = 952
+integer height = 5360
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9

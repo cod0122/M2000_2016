@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kuf_barcode_mod_giri.sru
 forward
-global type kuf_barcode_mod_giri from nonvisualobject
+global type kuf_barcode_mod_giri from kuf_parent0
 end type
 end forward
 
-global type kuf_barcode_mod_giri from nonvisualobject
+global type kuf_barcode_mod_giri from kuf_parent0
 end type
 global kuf_barcode_mod_giri kuf_barcode_mod_giri
 
@@ -39,6 +39,7 @@ public subroutine _readme ()
 public subroutine u_open (st_barcode_mod_giri ast_barcode_mod_giri)
 public function boolean autorizza_modifica_giri (st_tab_barcode ast_tab_barcode, integer a_modifica_giri_pianificati) throws uo_exception
 public function boolean autorizza_modifica_giri (integer a_modifica_giri_pianificati) throws uo_exception
+public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 end prototypes
 
 public subroutine _readme ();//
@@ -144,6 +145,7 @@ kuf_utility kuf1_utility
 st_open_w k_st_open_w
 
 
+try
 	
 	ki_modifica_cicli_enabled = ki_modifica_cicli_enabled_modif
 	
@@ -174,21 +176,34 @@ st_open_w k_st_open_w
 		end if
 	end if
 
-	destroy kuf1_sicurezza
-	destroy kuf1_utility
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_sicurezza) then destroy kuf1_sicurezza
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+
+end try
+
 
 return k_return
 
 
 end function
 
+public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//
+return autorizza_modifica_giri(ki_modifica_giri_pianificati_no)
+
+end function
+
 on kuf_barcode_mod_giri.create
 call super::create
-TriggerEvent( this, "constructor" )
 end on
 
 on kuf_barcode_mod_giri.destroy
-TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 

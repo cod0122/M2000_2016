@@ -120,6 +120,8 @@ end type
 end forward
 
 global type w_g_tab_3 from w_g_tab
+integer width = 37
+integer height = 180
 cb_visualizza cb_visualizza
 cb_modifica cb_modifica
 cb_aggiorna cb_aggiorna
@@ -442,6 +444,7 @@ if left(k_return, 1) = "0" then
 				end if
 				
 			case ki_fai_inizializza_dopo_update			
+				ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 				this.inizializza_lista( )
 				
 			case ki_fai_proteggi_dopo_update
@@ -2279,10 +2282,6 @@ type tab_1 from tab within w_g_tab_3
 event u_constructor ( )
 event u_post_constructor ( )
 event u_constructor_main ( )
-integer x = 30002
-integer y = 30000
-integer width = 1842
-integer height = 1144
 integer taborder = 10
 integer textsize = -10
 integer weight = 400
@@ -2453,8 +2452,8 @@ type tabpage_1 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 long backcolor = 32567536
 string text = "none"
 long tabtextcolor = 134217735
@@ -2551,8 +2550,8 @@ type tabpage_2 from userobject within tab_1
 event rbuttonup ( )
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 long backcolor = 32567536
 string text = "none"
 long tabtextcolor = 33554432
@@ -2641,8 +2640,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2729,8 +2728,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2816,8 +2815,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2903,8 +2902,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2990,8 +2989,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -3076,8 +3075,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -3162,8 +3161,8 @@ event rbuttonup pbm_rbuttonup
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = 1806
-integer height = 1016
+integer width = -37
+integer height = -128
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"

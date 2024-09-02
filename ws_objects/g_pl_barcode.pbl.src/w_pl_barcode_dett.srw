@@ -187,6 +187,7 @@ public function long togli_barcode_figlio (boolean k_esponi_msg)
 public subroutine togli_barcode_padre ()
 public subroutine togli_barcode_figlio_post (long k_id_meca)
 private subroutine riapre_pl_barcode (st_tab_pl_barcode ast_tab_pl_barcode) throws uo_exception
+protected subroutine inizializza_lista_ok (long a_riga_posiziona)
 end prototypes
 
 private function string cancella ();//
@@ -1075,12 +1076,8 @@ protected function string inizializza ();//
 //
 string k_return="0 "
 long k_key
-int  k_rc //, k_errore = 0
-string k_fine_ciclo="", k_rcx
+int  k_rc 
 int k_ctr=0
-int k_importa=0
-kuf_utility kuf1_utility
-st_tab_pl_barcode kst_tab_pl_barcode
 
 
 	SetPointer(kkg.pointer_attesa)
@@ -1117,8 +1114,6 @@ st_tab_pl_barcode kst_tab_pl_barcode
 						"Non e' stato trovato in archivio il Piano di Lavorazione ~n~r" + &
 						"(Codice cercato :" + string(k_key) + ")~n~r" )
 					ki_exit_si = true
-					return "2"   // EXIT!!
-					//cb_ritorna.postevent("clicked!")
 				end if
 				
 //--- se codice trovato
@@ -1159,66 +1154,7 @@ st_tab_pl_barcode kst_tab_pl_barcode
 				dw_groupage.resetupdate()
 				
 
-		end choose
-
-//	end if
-
-
-//--- Se PL gia' chiuso allora nessuna modifica possibile, forza Visualizzazione		
-	try
-		ki_PL_chiuso = false
-		kst_tab_pl_barcode.codice = long(trim(ki_st_open_w.key1))
-		if kst_tab_pl_barcode.codice > 0 then
-			if not kiuf_pl_barcode.if_pl_barcode_aperto(kst_tab_pl_barcode) then
-//--- se ero entrato per modificare ma non si può allora avvertimento				
-				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-					SetPointer(kkg.pointer_default)
-					kguo_exception.inizializza( )
-					kguo_exception.messaggio_utente("Modifica del Piano bloccata", &
-						"Il Piano è già stato chiuso cambio modalità in VISUALIZZAZIONE")
-				end if
-				ki_PL_chiuso = true
-				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-			end if
-		end if
-		
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-		
-	end try
-	
-
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-		
-		u_crash_dw_lista_0_restore() // se uscito con un crash allora tenta il ripristino
-		
-		u_aggiungi_figli_dal_dw_lista(0)
-		dw_lista_0.ki_attiva_dragdrop = true
-		dw_barcode.ki_attiva_dragdrop = true
-		dw_meca.ki_attiva_dragdrop = true
-		dw_groupage.ki_attiva_dragdrop = true
-	else
-		dw_lista_0.ki_attiva_dragdrop = false
-		dw_barcode.ki_attiva_dragdrop = false
-		dw_meca.ki_attiva_dragdrop = false
-		dw_groupage.ki_attiva_dragdrop = false
-	end if
-	
-	if ki_st_open_w.flag_primo_giro = 'S' then
-		ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
-		retrieve_figli_all( )   // verifica i figli
-		leggi_liste()
-		dw_lista_0.resetupdate()
-		ki_lista_0_modifcato=false					
-	end if
-
-	proteggi_campi()
-	
-	//dw_dett_0.bringtotop = true
-	
-	attiva_tasti()
-
-	dw_meca.setfocus()
+	end choose
 
 	SetPointer(kkg.pointer_default)
 
@@ -7006,6 +6942,69 @@ finally
 	if isvalid(kuf1_pilota_cmd) then destroy kuf1_pilota_cmd
 
 end try
+end subroutine
+
+protected subroutine inizializza_lista_ok (long a_riga_posiziona);//
+st_tab_pl_barcode kst_tab_pl_barcode
+
+
+	SetPointer(kkg.pointer_attesa)
+
+//--- Se PL gia' chiuso allora nessuna modifica possibile, forza Visualizzazione		
+	try
+		ki_PL_chiuso = false
+		kst_tab_pl_barcode.codice = long(trim(ki_st_open_w.key1))
+		if kst_tab_pl_barcode.codice > 0 then
+			if not kiuf_pl_barcode.if_pl_barcode_aperto(kst_tab_pl_barcode) then
+//--- se ero entrato per modificare ma non si può allora avvertimento				
+				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+					SetPointer(kkg.pointer_default)
+					kguo_exception.inizializza( )
+					kguo_exception.messaggio_utente("Modifica del Piano bloccata", &
+						"Il Piano è già stato chiuso cambio modalità in VISUALIZZAZIONE")
+				end if
+				ki_PL_chiuso = true
+				ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+			end if
+		end if
+		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+		
+	end try
+
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+		
+		u_crash_dw_lista_0_restore() // se uscito con un crash allora tenta il ripristino
+		
+		u_aggiungi_figli_dal_dw_lista(0)
+		dw_lista_0.ki_attiva_dragdrop = true
+		dw_barcode.ki_attiva_dragdrop = true
+		dw_meca.ki_attiva_dragdrop = true
+		dw_groupage.ki_attiva_dragdrop = true
+	else
+		dw_lista_0.ki_attiva_dragdrop = false
+		dw_barcode.ki_attiva_dragdrop = false
+		dw_meca.ki_attiva_dragdrop = false
+		dw_groupage.ki_attiva_dragdrop = false
+	end if
+	
+	if ki_st_open_w.flag_primo_giro = 'S' then
+		ki_riga_pos_dw_meca = 0  //cattura la riga selezionata
+		retrieve_figli_all( )   // verifica i figli
+		leggi_liste()
+		dw_lista_0.resetupdate()
+		ki_lista_0_modifcato=false					
+	end if
+
+	proteggi_campi()
+	
+	attiva_tasti()
+
+	dw_meca.setfocus()
+
+	SetPointer(kkg.pointer_default)
+
 end subroutine
 
 on w_pl_barcode_dett.create

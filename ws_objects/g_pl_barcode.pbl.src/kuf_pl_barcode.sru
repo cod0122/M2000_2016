@@ -34,7 +34,6 @@ end variables
 forward prototypes
 public function string tb_delete (ref st_tab_pl_barcode kst_tab_pl_barcode)
 public function st_esito tb_update_campo (ref st_tab_pl_barcode kst_tab_pl_barcode, string k_campo)
-public function st_esito anteprima (datawindow kdw_anteprima, ref st_tab_pl_barcode kst_tab_pl_barcode)
 public function st_esito consenti_chiusura ()
 public function boolean set_pl_barcode_stato (string k_tipo_stato, st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
 public function st_tab_pl_barcode get_pl_barcode_da_inviare () throws uo_exception
@@ -82,6 +81,9 @@ public function uo_ds_std_1 get_pl_barcode_da_inviare_g2g3 (integer a_impianto, 
 public subroutine chiudi_lav_barcode_figlio_g2g3 (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 public function boolean set_stato_pl_id_programma (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
 public function boolean set_stato_pl (st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
+public function boolean u_importa_trattati_pilota_update_base (date a_date, time a_time) throws uo_exception
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
+public function long anteprima (ref uo_ds_std_1 kds_anteprima, ref st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception
 end prototypes
 
 public function string tb_delete (ref st_tab_pl_barcode kst_tab_pl_barcode);//
@@ -255,77 +257,6 @@ kuf_base kuf1_base
 	end if
 
 return kst_esito
-end function
-
-public function st_esito anteprima (datawindow kdw_anteprima, ref st_tab_pl_barcode kst_tab_pl_barcode);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima 
-//===
-//=== Par. Inut: 
-//===               datawindow su cui fare l'anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
-//====================================================================
-//
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-
-
-kst_esito.esito = "0"
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = kkg_id_programma_pl_barcode
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = "100"
-
-else
-
-	if kst_tab_pl_barcode.codice > 0 then
-
-		kdw_anteprima.dataobject = "d_pl_barcode_dett_2"		
-		kdw_anteprima.settransobject(sqlca)
-
-		kuf1_utility = create kuf_utility
-		kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-		destroy kuf1_utility
-
-		kdw_anteprima.reset()	
-//--- retrive dell'attestato 
-		k_rc=kdw_anteprima.retrieve(kst_tab_pl_barcode.codice, "%")
-
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessun Riferimento da visualizzare: ~n~r" + "nessun codice ID indicato"
-		kst_esito.esito = "1"
-		
-	end if
-end if
-
-
-return kst_esito
-
 end function
 
 public function st_esito consenti_chiusura ();//
@@ -859,60 +790,27 @@ private subroutine apri_lav_barcode_figlio (ref st_tab_barcode kst_tab_barcode) 
 //---
 //--- Lancia un EXCEPTION se si verificano errore gravi
 //---
-//date k_data_ultima, k_data_da=date(0)
-pointer kpointer_old
 kuf_barcode kuf1_barcode
-kuf_artr kuf1_artr
-kuf_armo kuf1_armo
-kuf_sv_skedula kuf1_sv_skedula
-
-st_esito kst_esito
-st_tab_base kst_tab_base
-st_tab_artr kst_tab_artr, kst_tab_artr_vuota
-st_tab_meca kst_tab_meca
-uo_exception kuo_exception
 
 
-
-//=== Puntatore Cursore da attesa.....
-kpointer_old = SetPointer(HourGlass!)
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-kuo_exception = create uo_exception
+try 
 	
-
+	kguo_exception.inizializza(this.classname())
 
 	kuf1_barcode = create kuf_barcode
-	kuf1_armo = create kuf_armo
 
+	kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
+	kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini")
 
-		
-//--- Aggiorna gli archivi con i dati di Lavorazione ------------------------------------------------------
-//--- se elaborazione NO di simulazione...
-		kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
-		kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini")
-
-//--- se verificato errore					
-		if kst_esito.esito = kkg_esito.db_ko then //--- errore grave
-			kGuf_data_base.db_rollback_1( )
-			kuo_exception.set_esito (kst_esito)
-			destroy kuf1_barcode
-			destroy kuf1_armo 
-			throw kuo_exception
-		end if
 	
-//-------------------------------------------------------------------------------------------------------------
-		
-			
-	destroy kuf1_barcode
-	destroy kuf1_armo
+catch	(uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+
+end try
 	
-
-
 
 end subroutine
 
@@ -1134,7 +1032,6 @@ kuf_armo kuf1_armo
 kuf_sv_skedula kuf1_sv_skedula
 kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014
 uo_ds_std_1 kds_1
-st_esito kst_esito
 st_tab_base kst_tab_base
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_vuota
 st_tab_meca kst_tab_meca
@@ -1148,47 +1045,27 @@ try
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa )
 		
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
-	k_e1_enabled = kguo_g.if_e1_enabled( )			// interfaccia E1 attiva?
-
-	try 
-		kds1_pilota_pallet_in = create kds_pilota_pallet_in
-		kds1_pilota_pallet_in.db_connetti()  // Connessione al DB PILOTA
-		k_Data_Entrata_da = relativedate(kguo_g.get_dataoggi( ), -30)
-		k_righe_pallet_tot = kds1_pilota_pallet_in.retrieve(k_Data_Entrata_da)
-
-	catch (uo_exception kuo7_exception)
-		k_righe_pallet_tot = -99
-
-	finally
-		kds1_pilota_pallet_in.db_disconnetti() // Chiude immediatamente la Connessione al DB PILOTA 
-
-	end try
-
-	if isnull(k_simulazione) then k_simulazione = '1'  //se nullo x sicurezza imposto SIMULAZIONE SI
+	kds1_pilota_pallet_in = create kds_pilota_pallet_in
+	k_Data_Entrata_da = relativedate(kguo_g.get_dataoggi( ), -30)
+	k_righe_pallet_tot = kds1_pilota_pallet_in.u_retrieve(k_Data_Entrata_da)
 
 	if k_righe_pallet_tot < 1 then 
-		if k_righe_pallet_tot < 0 then 
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = k_righe_pallet_tot
-			kst_esito.SQLErrText = "Errore durante ricerca per Importazione Inizio Lavorazione dall'impianto (PILOTA)" //:~n~r" + trim(kguo_sqlca_db_pilota.SQLErrText)
-		else
-			kst_esito.esito = kkg_esito.not_fnd
-			kst_esito.sqlcode = k_righe_pallet_tot
-			kst_esito.SQLErrText = "Nessun Lotto per Importazione Inizio Lavorazione dall'impianto (PILOTA)" //:~n~r" + trim(kguo_sqlca_db_pilota.SQLErrText)
-		end if
-		kguo_exception.inizializza()
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.kist_esito.esito = kkg_esito.not_fnd
+		kguo_exception.kist_esito.SQLErrText = "Nessun Lotto per Importazione Inizio Lavorazione dall'impianto (PILOTA)" //:~n~r" + trim(kguo_sqlca_db_pilota.SQLErrText)
 		throw kguo_exception
 	end if
+
+	SetPointer(kkg.pointer_attesa )
+
+	k_e1_enabled = kguo_g.if_e1_enabled( )			// interfaccia E1 attiva?
+	if isnull(k_simulazione) then k_simulazione = '1'  //se nullo x sicurezza imposto SIMULAZIONE SI
 
 	kuf1_barcode = create kuf_barcode
 	kuf1_armo = create kuf_armo
 	kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
 	
-	SetPointer(kkg.pointer_attesa )
-	 
 	for k_riga_pallet = 1 to k_righe_pallet_tot
 		
 //--- popola struttura da datastore elenco PALLET con data FINE LAVORAZIONE
@@ -1204,7 +1081,8 @@ try
 	
 //--- piccolo lasso di tempo a favore di altre cose usato x  tasto 'interrompi'
 		yield ()
-
+		SetPointer(kkg.pointer_attesa)
+	
 		kst_tab_barcode = kst_tab_barcode_vuota
 
 		kst_tab_barcode.barcode = kst_tab_pilota_pallet.barcode
@@ -1261,16 +1139,10 @@ try
 					if k_simulazione <> "1" then
 			
 						kst_tab_barcode.st_tab_g_0.esegui_commit = "S"    //"N" x temporaltable
-						kst_esito = kuf1_barcode.tb_update_campo(kst_tab_barcode, "data_lav_ini")
+						kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini")
 		
 		//--- inserisce collo in ARTR
 						put_barcode_padre_in_lav(kst_tab_barcode)
-						
-						if kst_esito.esito = kkg_esito.db_ko then //--- errore grave
-							kguo_exception.inizializza()
-							kguo_exception.set_esito (kst_esito)
-							throw kguo_exception
-						end if
 	
 	//--- WM: ricorda che devo movimentare lo carico/scarico barcode
 						if k_e1_enabled then
@@ -1393,8 +1265,7 @@ try
 
 
 catch (uo_exception kuo4_exception) 
-	kst_esito = kuo4_exception.get_st_esito()
-	if kst_esito.esito = kkg_esito.db_ko then
+	if kuo4_exception.kist_esito.esito = kkg_esito.db_ko then
 		throw kuo4_exception
 	end if
 
@@ -1426,22 +1297,16 @@ public function integer importa_trattati_pilota (string k_simulazione) throws uo
 //--- Tabelle PILOTA coinvolte:
 //--- PALLET
 long k_riga_impo=0, k_ctr, k_righe_pallet_tot=0, k_riga_pallet
-date k_data_ultima, k_data_da=date(0)
-boolean k_m2000_errore=false
+date k_data_da=date(0)
 boolean k_e1_enabled=false
 date k_datainizioanno
 int k_giorniafter, k_anno, k_anno_rid
 long k_rc
 kuf_barcode kuf1_barcode
 kuf_artr kuf1_artr
-kuf_base kuf1_base
-//kuf_certif kuf1_certif
 kuf_armo kuf1_armo 
-kuf_sv_skedula kuf1_sv_skedula
 kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014
 uo_ds_std_1 kds_1
-st_esito kst_esito
-st_tab_base kst_tab_base
 st_tab_artr kst_tab_artr, kst_tab_artr_vuota
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_vuota, kst_tab_barcode_figlio
 st_tab_meca kst_tab_meca
@@ -1450,55 +1315,34 @@ st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
 kds_pilota_pallet_out kds1_pilota_pallet_out
 
 
-
 try
 			
-		//=== Puntatore Cursore da attesa.....
 		SetPointer(kkg.pointer_attesa)
 		
-		kst_esito = kguo_exception.inizializza(this.classname())
-
-		kuf1_artr = create kuf_artr
-		kuf1_barcode = create kuf_barcode
-		kuf1_armo = create kuf_armo
-		kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
+		kguo_exception.inizializza(this.classname())
 		
-		k_e1_enabled = kguo_g.if_e1_enabled( )			// interfaccia E1 attiva?
-	
 		//--- Estrazione data da cui fare l'estrazione 
+		kuf1_barcode = create kuf_barcode
 		kst_tab_barcode = kuf1_barcode.get_primo_barcode_in_lav()
 		k_data_da = kst_tab_barcode.data_lav_ini
 
-		k_riga_impo = 0
-		
-		if isnull(k_simulazione) then k_simulazione = '1'  //se nullo x sicurezza imposto SIMULAZIONE SI
-
-		try 
-			kds1_pilota_pallet_out = create kds_pilota_pallet_out
-			kds1_pilota_pallet_out.db_connetti()	// Connessione al DB PILOTA
-			k_righe_pallet_tot = kds1_pilota_pallet_out.retrieve(k_data_da) // LETTURA PALLET CON DATA FINE LAV IMPOSTATA
+		kds1_pilota_pallet_out = create kds_pilota_pallet_out
+		k_righe_pallet_tot = kds1_pilota_pallet_out.u_retrieve(k_data_da) // LETTURA PALLET CON DATA FINE LAV IMPOSTATA
 			
-		catch (uo_exception kuo11_exception)
-			k_righe_pallet_tot = -99
-			
-		finally
-			kds1_pilota_pallet_out.db_disconnetti()	// Immediata disconnessione al DB PILOTA
-		end try
-		
 		if k_righe_pallet_tot < 1 then
-			if k_righe_pallet_tot < 0 then 
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = k_righe_pallet_tot
-				kst_esito.SQLErrText = "Errore durante Importazione dati Trattatamento dal Sistema PILOTA"
-			else
-				kst_esito.esito = kkg_esito.ok
-				kst_esito.sqlcode = k_righe_pallet_tot
-				kst_esito.SQLErrText = "Nessun barcode Trattato da importare dal Sistema PILOTA" //:~n~r" + trim(kguo_sqlca_db_pilota.SQLErrText)
-			end if
-			kguo_exception.inizializza()
-			kguo_exception.set_esito (kst_esito)
+			kguo_exception.kist_esito.esito = kkg_esito.ok
+			kguo_exception.kist_esito.SQLErrText = "Nessun barcode Trattato da importare dal Sistema PILOTA" //:~n~r" + trim(kguo_sqlca_db_pilota.SQLErrText)
 			throw kguo_exception
 		end if
+
+		SetPointer(kkg.pointer_attesa)
+		
+		if isnull(k_simulazione) then k_simulazione = '1'  //se nullo x sicurezza imposto SIMULAZIONE SI
+		k_e1_enabled = kguo_g.if_e1_enabled( )			// interfaccia E1 attiva?
+
+		kuf1_artr = create kuf_artr
+		kuf1_armo = create kuf_armo
+		kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
 		
 		for k_riga_pallet = 1 to k_righe_pallet_tot
 			
@@ -1515,7 +1359,8 @@ try
 	
 	//--- piccolo lasso di tempo a favore di altre cose usato x  tasto 'interrompi'
 			yield ()
-	
+			SetPointer(kkg.pointer_attesa)
+			
 			kst_tab_barcode = kst_tab_barcode_vuota
 	
 	//--- Estrazione del BARCODE 
@@ -1596,10 +1441,12 @@ try
 				//--- Aggiorna gli archivi con i dati di Lavorazione ------------------------------------------------------
 				//--- se elaborazione NO di simulazione...
 						if k_simulazione <> "1" then
-				
+		
+							kuf1_barcode.get_imptime_second_g2(kst_tab_barcode)  // Get Tempi Impianto di trattamento sul BARCODE
+							
 							kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
-							kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini_fin") //AGGIORNA TAB
-				
+							kuf1_barcode.u_update_campo(kst_tab_barcode, "data_lav_ini_fin") //AGGIORNA TAB BARCODE
+
 						end if
 				
 				//--- se Anomalia....
@@ -1615,9 +1462,7 @@ try
 				
 						end if
 								
-				
 				//--- Chiude lavorazione del Barcode su ARTR 
-						kst_esito.esito = kkg_esito.ok 
 						kst_tab_artr = kst_tab_artr_vuota
 						kst_tab_artr.id_armo = kst_tab_barcode.id_armo 
 						kst_tab_artr.pl_barcode = kst_tab_barcode.pl_barcode
@@ -1636,10 +1481,6 @@ try
 							kst_tab_artr.st_tab_g_0.esegui_commit = "S" 
 							kuf1_artr.crea_attestato_dettaglio(kst_tab_artr)
 							
-		//--- Imposta i Tempi Impianto di trattamento sul BARCODE
-							kst_tab_barcode.st_tab_g_0.esegui_commit = "S" 
-							k_rc = kuf1_barcode.set_imptime_second_g2(kst_tab_barcode)
-								
 						end if
 						
 						kguo_sqlca_db_magazzino.db_commit( )  //06072016
@@ -1726,13 +1567,11 @@ try
 										end if
 									end if
 
+									kuf1_barcode.get_imptime_second_g2(kst_tab_barcode_figlio)  // Get Tempi Impianto di trattamento sul BARCODE FIGLIO
+									
 		//--- chiude il Trattamento del Figlio
 									chiudi_lav_barcode_figlio_g2g3(kst_tab_barcode_figlio)
 
-		//--- Imposta i Tempi Impianto di trattamento sul BARCODE figlio
-									kst_tab_barcode_figlio.st_tab_g_0.esegui_commit = "S" 
-									k_rc = kuf1_barcode.set_imptime_second_g2(kst_tab_barcode_figlio)
-			
 									kguo_sqlca_db_magazzino.db_commit( )  
 
 								end for
@@ -1755,7 +1594,6 @@ try
 								
 		//--- provo a chiudere lavorazione sul Lotto MECA
 		//--- se elaborazione NO di simulazione...
-						kst_esito.esito = kkg_esito.ok 
 						if k_simulazione <> "1" then
 							
 							kst_tab_meca.id = kst_tab_barcode.id_meca
@@ -1789,35 +1627,14 @@ try
 	if k_simulazione <> "1" then
 
 		kst_tab_barcode = kuf1_barcode.get_ultimo_barcode_importato( )
-		k_data_ultima = kst_tab_barcode.data_lav_fin
 
-		kuf1_base = create kuf_base
+		u_importa_trattati_pilota_update_base(kst_tab_barcode.data_lav_fin, kst_tab_barcode.ora_lav_fin)   // aggiorna BASE con l'ultima data-ora estratti
 
-		kst_tab_base.st_tab_g_0.esegui_commit = "S"
-		kst_tab_base.key = "data_ultima_estrazione_pilota_out" 
-		kst_tab_base.key1 = string(kst_tab_barcode.data_lav_fin)
-		kst_esito  = kuf1_base.metti_dato_base(kst_tab_base)
-		if kst_esito.esito  = kkg_esito.db_ko then
-			kst_esito.sqlerrtext =  "Archivio Azienda: Aggiornamento Data Fine estrazione dal flusso 'Esiti Pilota' fallito:~n~r" + string(kst_esito.sqlcode) + " - " + trim(kst_esito.sqlerrtext) + "~n~r" 
-			kguo_exception.inizializza()
-			kguo_exception.set_esito (kst_esito)
-		end if
-		kst_tab_base.st_tab_g_0.esegui_commit = "S"
-		kst_tab_base.key = "ora_ultima_estrazione_pilota_out"
-		kst_tab_base.key1 = string(kst_tab_barcode.ora_lav_fin)
-		kst_esito  = kuf1_base.metti_dato_base(kst_tab_base)
-		if kst_esito.esito  = kkg_esito.db_ko then
-			kst_esito.sqlerrtext = "Archivio Azienda: Aggiornamento Ora Fine estrazione dal flusso 'Esiti Pilota' fallito:~n~r" + string(kst_esito.sqlcode) + " - " + trim(kst_esito.sqlerrtext) + "~n~r" 
-			kguo_exception.inizializza()
-			kguo_exception.set_esito (kst_esito)
-		end if
-		destroy kuf1_base
 	end if
 
 //--- Se ERRORE ---------------------------------------------------------------------------
 	catch (uo_exception k2uo_exception)
-		kst_esito = k2uo_exception.get_st_esito()
-		if kst_esito.esito <> kkg_esito.ok then
+		if k2uo_exception.kist_esito.esito <> kkg_esito.ok then
 			throw k2uo_exception
 		end if
 		
@@ -3312,17 +3129,15 @@ kuf_utility kuf1_utility
 pointer oldpointer  // Declares a pointer variable
 
 
-oldpointer = SetPointer(HourGlass!)
-
-kuf1_utility = create kuf_utility
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.sqlerrtext = " "
-kst_esito.nome_oggetto = this.classname()
-	
-	
 try
+
+	
+	oldpointer = SetPointer(HourGlass!)
+	
+	kuf1_utility = create kuf_utility
+	
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
 	k_riga = 0
 	
 	k_file_temp = k_path_temp + k_file_nome 
@@ -5080,6 +4895,194 @@ boolean k_return
 
 return k_return
 
+end function
+
+public function boolean u_importa_trattati_pilota_update_base (date a_date, time a_time) throws uo_exception;/*
+  Aggiorna DATA e ORA ultima elaborazione sul BASE
+	inp: data e ora da impostare
+	out: true = ok
+*/
+boolean k_return
+st_tab_base kst_tab_base
+kuf_base kuf1_base
+
+
+try
+	if a_date > date(0) then
+	
+		kuf1_base = create kuf_base
+
+		kst_tab_base.st_tab_g_0.esegui_commit = "S"
+		kst_tab_base.key = "data_ultima_estrazione_pilota_out" 
+		kst_tab_base.key1 = string(a_date)
+		kguo_exception.kist_esito  = kuf1_base.metti_dato_base(kst_tab_base)
+		if kguo_exception.kist_esito.esito  = kkg_esito.db_ko then
+			kguo_exception.kist_esito.sqlerrtext =  "Errore in aggiornamento Data ultima estrazione dei dati di Fine Lavorazione dal Pilota in archivio Base: " &
+									+ kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext) + " (" + string(kguo_exception.kist_esito.sqlcode) + ") "
+			throw kguo_exception
+		end if
+		kst_tab_base.st_tab_g_0.esegui_commit = "S"
+		kst_tab_base.key = "ora_ultima_estrazione_pilota_out"
+		kst_tab_base.key1 = string(a_time)
+		kguo_exception.kist_esito  = kuf1_base.metti_dato_base(kst_tab_base)
+		if kguo_exception.kist_esito.esito  = kkg_esito.db_ko then
+			kguo_exception.kist_esito.sqlerrtext =  "Errore in aggiornamento Ora ultima estrazione dei dati di Fine Lavorazione dal Pilota in archivio Base: " &
+									+ kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext) + " (" + string(kguo_exception.kist_esito.sqlcode) + ") "
+			throw kguo_exception
+		end if
+	end if
+
+	k_return = true
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+
+finally
+	if isvalid(kuf1_base) then destroy kuf1_base
+
+end try
+
+
+return k_return
+end function
+
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//--------------------------------------------------------------------------------------------------------------
+//--- Attiva LINK cliccato (funzione di ZOOM)
+//---
+//--- Par. Inut: 
+//---               datawindow su cui è stato attivato il LINK
+//---               nome campo di LINK
+//--- 
+//--- Ritorna TRUE tutto OK - FALSE: link non effettuato
+//---
+//--- Lancia EXCEPTION con  ST_ESITO  standard
+//---
+//----------------------------------------------------------------------------------------------------------------
+// 
+long k_rc
+string k_rcx
+boolean k_return
+long k_id
+st_tab_pl_barcode kst_tab_pl_barcode
+uo_ds_std_1 kds_elenco_output   //ds da passare alla windows di elenco
+kuf_elenco kuf1_elenco
+st_open_w kst_open_w 
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	kds_elenco_output = create uo_ds_std_1
+	
+	choose case a_campo_link
+	
+		case "pl_barcode"
+			k_rcx = adw_link.describe("pl_barcode.dbName")
+			if k_rcx <> "!" and k_rcx <> "?" then
+					
+				kst_tab_pl_barcode.codice = adw_link.getitemnumber(adw_link.getrow(), a_campo_link)
+				if kst_tab_pl_barcode.codice > 0 then
+					if this.anteprima(kds_elenco_output, kst_tab_pl_barcode) > 0 then
+						k_return = true
+					end if
+				end if
+			else
+				kguo_exception.set_tipo( kkg_esito_no_esecuzione )
+				kguo_exception.setmessage( "Link Fallito", "Accesso al Piano di Lavorazione fallito per mancanza del codice (campo di link '" + trim(a_campo_link) + "'). " )
+				throw kguo_exception
+			end if
+	
+	end choose
+	
+	if k_return then
+	
+		kuf1_elenco = create kuf_elenco 
+		kuf1_elenco.u_open_zoom("Piano di Lavorazione " + string(kst_tab_pl_barcode.codice), a_campo_link, kds_elenco_output) //CAMPO DI LINK + DATASTORE CON I DATI
+		destroy kuf1_elenco
+	
+	//	kst_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
+	//	kst_open_w.id_programma = this.get_id_programma(kst_open_w.flag_modalita)
+	//	kst_open_w.key1 = string(k_id)
+	//	u_open(kst_open_w)
+	
+	else
+			
+		kguo_exception.inizializza( )
+		kguo_exception.setmessage( "Nessun valore disponibile (" + this.get_id_programma(kst_open_w.flag_modalita) + "). " )
+		throw kguo_exception
+			
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+
+return k_return
+
+end function
+
+public function long anteprima (ref uo_ds_std_1 kds_anteprima, ref st_tab_pl_barcode kst_tab_pl_barcode) throws uo_exception;//
+//====================================================================
+//=== Operazione di Anteprima 
+//===
+//=== Par. Inut: 
+//===               datawindow su cui fare l'anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
+//===                                     2=Errore gestito
+//===                                     3=altro errore
+//===                                     100=Non trovato 
+//=== 
+//====================================================================
+//
+long k_return 
+int k_rc
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	this.if_sicurezza(kkg_flag_modalita.anteprima)
+
+	if kst_tab_pl_barcode.codice > 0 then
+
+		kds_anteprima.dataobject = "d_pl_barcode_dett_2"		
+		kds_anteprima.settransobject(sqlca)
+
+		kds_anteprima.reset()	
+//--- retrive dell'attestato 
+		k_rc=kds_anteprima.retrieve(kst_tab_pl_barcode.codice, "%")
+		if k_rc < 0 then
+			kguo_exception.set_st_esito_err_ds(kds_anteprima, "Errore in lettura Piano di Lavorazione, numero " + string(kst_tab_pl_barcode.codice))
+			throw kguo_exception
+		end if
+		k_return = kds_anteprima.rowcount()
+
+	else
+
+		kguo_exception.kist_esito.SQLErrText = "Nessun Piano di Lavorazione da visualizzare: " + kkg.acapo + "Codice non indicato. "
+		kguo_exception.kist_esito.esito = "1"
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
 end function
 
 on kuf_pl_barcode.create

@@ -237,11 +237,12 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"id_asddevice" &
 					,"b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto" & 
 					,"k_hyperlink", "url" &
-					,"programmi_richieste_id_programma"
+					,"programmi_richieste_id_programma" &
+					,"pl_barcode"
 
-		if k_nome = 'barcode_figli' then
-			sleep (1)
-		end if
+//		if k_nome = 'barcode_figli' then
+//			sleep (1)
+//		end if
 										
 //--- se e' del tipo grid o tabular link sul valore alrimenti sul testo		
 					if adw_1.Object.DataWindow.Type <> "Form" then
@@ -531,6 +532,9 @@ choose case k_nome_link
 		
 	case "programmi_richieste_id_programma"
 		kuf1_parent = create using "kuf_plav_programmi"
+		
+	case "pl_barcode"
+		kuf1_parent = create using "kuf_pl_barcode"
 
 	case else
 		k_return = false

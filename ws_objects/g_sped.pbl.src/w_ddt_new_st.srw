@@ -235,34 +235,31 @@ private subroutine popola_lista_da_st ();//
 //---
 long k_riga, k_riga_ins
 int k_camion_caricato=0
+st_esito kst_esito
 st_tab_sped kst_tab_sped
 st_tab_clienti kst_tab_clienti
 kuf_sped kuf1_sped
 kuf_clienti kuf1_clienti
 kuf_wm_pklist_righe kuf1_wm_pklist_righe
-st_esito kst_esito
-pointer kpointer_orig
 
 
-kpointer_orig = setpointer(hourglass!)
-
-kuf1_sped = create kuf_sped
-kuf1_clienti = create kuf_clienti
-
-dw_documenti.reset()
-
-for k_riga = 1 to upperbound(kist_sped_ddt[])
-
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 	
-	kst_tab_sped.num_bolla_out = kist_sped_ddt[k_riga].kst_tab_sped.num_bolla_out
-	kst_tab_sped.data_bolla_out = kist_sped_ddt[k_riga].kst_tab_sped.data_bolla_out
-	kst_tab_sped.id_sped = kist_sped_ddt[k_riga].kst_tab_sped.id_sped
-
-//--- piglia dati ddt
-	if kst_tab_sped.num_bolla_out > 0 then
+	kuf1_sped = create kuf_sped
+	kuf1_clienti = create kuf_clienti
+	
+	dw_documenti.reset()
+	
+	for k_riga = 1 to upperbound(kist_sped_ddt[])
 		
-		k_riga_ins = dw_documenti.insertrow(0) //--- nuova riga 
+		kst_tab_sped.id_sped = kist_sped_ddt[k_riga].kst_tab_sped.id_sped
 	
+	//--- piglia dati ddt
+		if kst_tab_sped.id_sped = 0 then exit
+			
+		k_riga_ins = dw_documenti.insertrow(0) //--- nuova riga 
 		
 		if kist_sped_ddt[k_riga].sel = 0 then
 			dw_documenti.setitem(k_riga_ins,"sel", 0)
@@ -270,13 +267,12 @@ for k_riga = 1 to upperbound(kist_sped_ddt[])
 			dw_documenti.setitem(k_riga_ins,"sel", 1)
 		end if
 			
-		dw_documenti.setitem(k_riga_ins,"num_bolla_out", kist_sped_ddt[k_riga].kst_tab_sped.num_bolla_out)
-		dw_documenti.setitem(k_riga_ins,"data_bolla_out", kist_sped_ddt[k_riga].kst_tab_sped.data_bolla_out)
 		dw_documenti.setitem(k_riga_ins,"id_sped", kist_sped_ddt[k_riga].kst_tab_sped.id_sped)
 		
-		kst_esito = kuf1_sped.select_testa(kst_tab_sped)
-		if kst_esito.esito = kkg_esito.ok then
+		if kuf1_sped.select_testa(kst_tab_sped) then
 			
+			dw_documenti.setitem(k_riga_ins,"num_bolla_out", kst_tab_sped.num_bolla_out)
+			dw_documenti.setitem(k_riga_ins,"data_bolla_out", kst_tab_sped.data_bolla_out)
 			dw_documenti.setitem(k_riga_ins,"data_rit", kst_tab_sped.data_rit)
 			dw_documenti.setitem(k_riga_ins,"ora_rit", kst_tab_sped.ora_rit)
 			dw_documenti.setitem(k_riga_ins,"clie_2", kst_tab_sped.clie_3)
@@ -295,63 +291,64 @@ for k_riga = 1 to upperbound(kist_sped_ddt[])
 			kst_esito = kuf1_clienti.leggi_rag_soc( kst_tab_clienti )
 			if kst_esito.esito = kkg_esito.ok then
 				dw_documenti.setitem(k_riga_ins,"cliente", string(kst_tab_sped.clie_3) + "  " + trim(kst_tab_clienti.rag_soc_10))
-			
 			else
 				dw_documenti.setitem(k_riga_ins,"cliente", "***non trovato***")
 			end if
 			
-		end if
-
-//--- mette aggiorna data ritiro in automatico se DATA_RIT non impostata
-		if dw_documenti.getitemdate(k_riga_ins,"data_rit") > kkg.DATA_NO then
-			if trim(dw_documenti.getitemstring(k_riga_ins,"ora_rit")) > " " then
-			else
-				dw_documenti.setitem(k_riga_ins,"ora_rit", string(now(), "hh:mm"))
-			end if
-		else
-			dw_documenti.setitem(k_riga_ins,"updst_rit", "S")
-		end if
-
-		dw_documenti.setitem(k_riga_ins,"colli_out", kst_tab_sped.colli )
-		
-//--- valuta se ddt completamente stampato	
-//		if kst_tab_sped.stampa
-		try
-			if kst_tab_sped.stampa <> kuf1_sped.kki_sped_flg_stampa_bolla_da_stamp then
-				if not kuf1_sped.if_stampato(kst_tab_sped) then
-					kst_tab_sped.stampa = kuf1_sped.kki_sped_flg_stampa_bolla_da_stamp
+	//--- mette aggiorna data ritiro in automatico se DATA_RIT non impostata
+			if dw_documenti.getitemdate(k_riga_ins,"data_rit") > kkg.DATA_NO then
+				if trim(dw_documenti.getitemstring(k_riga_ins,"ora_rit")) > " " then
+				else
+					dw_documenti.setitem(k_riga_ins,"ora_rit", string(now(), "hh:mm"))
 				end if
+			else
+				dw_documenti.setitem(k_riga_ins,"updst_rit", "S")
 			end if
-		catch (uo_exception kuo_exception)
-			kst_esito = kuo_exception.get_st_esito()		
-		end try
-		dw_documenti.setitem(k_riga_ins,"stampato", kst_tab_sped.stampa )
-
-//--- Camion Caricato (merce scaricata) da WM?		
-		try
-			k_camion_caricato = kuf1_sped.get_sped_camion_caricato(kst_tab_sped)
-			dw_documenti.setitem(k_riga_ins,"arsp_insped", k_camion_caricato )
-		catch (uo_exception kuo1_exception)
-			kst_esito = kuo1_exception.get_st_esito()		
-		end try
+	
+			dw_documenti.setitem(k_riga_ins,"colli_out", kst_tab_sped.colli )
 			
-//--- se si è verificato un errore			
-		if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
-			
-			kguo_exception.set_esito(kst_esito)
-			kguo_exception.messaggio_utente( )
-
+	//--- valuta se ddt completamente stampato	
+	//		if kst_tab_sped.stampa
+			try
+				if kst_tab_sped.stampa <> kuf1_sped.kki_sped_flg_stampa_bolla_da_stamp then
+					if not kuf1_sped.if_stampato(kst_tab_sped) then
+						kst_tab_sped.stampa = kuf1_sped.kki_sped_flg_stampa_bolla_da_stamp
+					end if
+				end if
+			catch (uo_exception kuo1_exception)
+				kst_esito = kuo1_exception.get_st_esito()		
+			end try
+			dw_documenti.setitem(k_riga_ins,"stampato", kst_tab_sped.stampa )
+	
+	//--- Camion Caricato (merce scaricata) da WM?		
+			try
+				k_camion_caricato = kuf1_sped.get_sped_camion_caricato(kst_tab_sped)
+				dw_documenti.setitem(k_riga_ins,"arsp_insped", k_camion_caricato )
+			catch (uo_exception kuo2_exception)
+				kst_esito = kuo2_exception.get_st_esito()		
+			end try
+				
+	//--- se si è verificato un errore			
+			if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
+				kguo_exception.set_esito(kst_esito)
+				kguo_exception.messaggio_utente( )
+			end if
+				
 		end if
 			
-	end if
-		
-		
-end for
+			
+	end for
+	
+	
+catch (uo_exception kuo_exception)
+	kguo_exception.messaggio_utente( )
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_sped) then destroy kuf1_sped
+	if isvalid(kuf1_clienti) then destroy kuf1_clienti
 
-destroy kuf1_sped
-destroy kuf1_clienti 
-
-setpointer(kpointer_orig)  
+end try	
 
 
 
@@ -495,7 +492,7 @@ try
 	u_personalizza_dw()
  
 	for k_ctr = 1 to UpperBound(kist_sped_ddt[])
-		if kist_sped_ddt [k_ctr].kst_tab_sped.num_bolla_out > 0 then 
+		if kist_sped_ddt [k_ctr].kst_tab_sped.id_sped > 0 then 
 			k_bolla_trovata = true
 			exit
 		end if

@@ -9,6 +9,7 @@ end forward
 global type w_pl_barcode_l from w_g_tab_3
 integer width = 3035
 integer height = 5180
+boolean ki_funz_di_sola_visulizzazione = true
 dw_data dw_data
 end type
 global w_pl_barcode_l w_pl_barcode_l

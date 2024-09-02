@@ -11,8 +11,6 @@ end type
 end forward
 
 global type w_int_artr from w_g_tab_3
-integer width = 37
-integer height = 180
 string title = "Interrogazioni"
 boolean ki_toolbar_window_presente = true
 rte_1 rte_1
@@ -87,6 +85,7 @@ protected int ki_scelta_report=0
 
 protected boolean ki_scegli_report = false
 
+private string ki_colname
 
 end variables
 
@@ -171,8 +170,6 @@ protected subroutine attiva_menu ()
 public subroutine u_close_tab ()
 protected subroutine attiva_tasti_0 ()
 private subroutine report_22 ()
-public subroutine u_dw_selezione_save ()
-public function integer u_dw_selezione_ripri ()
 private subroutine report_0 ()
 public subroutine u_resize_1 ()
 private function long report_22_inizializza (uo_d_std_1 kdw_1) throws uo_exception
@@ -216,6 +213,8 @@ private function long report_28_inizializza (uo_d_std_1 kdw_1) throws uo_excepti
 private subroutine report_29 ()
 private subroutine get_parametri_29 () throws uo_exception
 private function long report_29_inizializza (uo_d_std_1 kdw_1) throws uo_exception
+public function long u_dw_selezione_ripri ()
+public function boolean u_dw_selezione_save ()
 end prototypes
 
 protected function string inizializza () throws uo_exception;////======================================================================
@@ -870,51 +869,40 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_1"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
-//	if u_dw_selezione_ripri( ) = 0 then
-//		tab_1.tabpage_1.dw_1.insertrow(0)
-//	end if
+	try	
+		k_scelta = trim(ki_st_open_w.flag_modalita)
 	
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.visible = true
+		k_key = long(trim(ki_st_open_w.key1)) //mandante
+		k_trattamento = trim(ki_st_open_w.key2) //F=lavorati; I=in lavorazione; N=ancora da trattare
+		k_data_ini = date(trim(ki_st_open_w.key3)) //data inizio lavorazione
+		k_data_ini_1 = date(trim(ki_st_open_w.key4)) //alla data inizio lavorazione
+		k_clie_1 = long(trim(ki_st_open_w.key5)) //Mandante
+		k_clie_2 = long(trim(ki_st_open_w.key6)) //Ricevente
+		k_dose = double(trim(ki_st_open_w.key7))
+		k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
+		k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
+		k_data_fin = date(0)
+		k_data_fin_1 = date(0)
+		k_certificato_dt_st_fin = date(0)
+		k_certificato_dt_st_ini = date(0)
+		if k_key > 0 then  //disabilito l'importazione poichè ho una estr.personalizzata
+			k_importa = "N"
+		end if
 	
-	k_scelta = trim(ki_st_open_w.flag_modalita)
-	k_key = long(trim(ki_st_open_w.key1)) //mandante
-	k_trattamento = trim(ki_st_open_w.key2) //F=lavorati; I=in lavorazione; N=ancora da trattare
-	k_data_ini = date(trim(ki_st_open_w.key3)) //data inizio lavorazione
-	k_data_ini_1 = date(trim(ki_st_open_w.key4)) //alla data inizio lavorazione
-	k_clie_1 = long(trim(ki_st_open_w.key5)) //Mandante
-	k_clie_2 = long(trim(ki_st_open_w.key6)) //Ricevente
-	k_dose = double(trim(ki_st_open_w.key7))
-	k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
-	k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
-	k_data_fin = date(0)
-	k_data_fin_1 = date(0)
-	k_certificato_dt_st_fin = date(0)
-	k_certificato_dt_st_ini = date(0)
-	if k_key > 0 then  //disabilito l'importazione poichè ho una estr.personalizzata
-		k_importa = "N"
-	end if
-//	k_anno = integer(mid(st_parametri.text, 13, 4))
-
-	tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-	tab_1.tabpage_1.dw_1.getchild("clie_2", kdwc_cliente_2)
-	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
-	tab_1.tabpage_1.dw_1.getchild("clie_1_1", kdwc_cliente_c)
-	tab_1.tabpage_1.dw_1.getchild("clie_2_1", kdwc_cliente_2_c)
-	tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
-//	tab_1.tabpage_1.dw_1.getchild("dose", kdwc_dose)
-
-
-	kdwc_cliente.settransobject(sqlca)
-	kdwc_cliente_2.settransobject(sqlca)
-	kdwc_cliente_3.settransobject(sqlca)
-	kdwc_cliente_c.settransobject(sqlca)
-	kdwc_cliente_2_C.settransobject(sqlca)
-	kdwc_cliente_3_c.settransobject(sqlca)
-//	kdwc_dose.settransobject(sqlca)
-
-	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-
+		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+		tab_1.tabpage_1.dw_1.getchild("clie_2", kdwc_cliente_2)
+		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
+		tab_1.tabpage_1.dw_1.getchild("clie_1_1", kdwc_cliente_c)
+		tab_1.tabpage_1.dw_1.getchild("clie_2_1", kdwc_cliente_2_c)
+		tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
+	
+		kdwc_cliente.settransobject(sqlca)
+		kdwc_cliente_2.settransobject(sqlca)
+		kdwc_cliente_3.settransobject(sqlca)
+		kdwc_cliente_c.settransobject(sqlca)
+		kdwc_cliente_2_C.settransobject(sqlca)
+		kdwc_cliente_3_c.settransobject(sqlca)
+	
 		kdwc_cliente.retrieve("%")
 		kdwc_cliente_2.retrieve("%")
 		kdwc_cliente.insertrow(1)
@@ -923,13 +911,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		kdwc_cliente.sharedata(kdwc_cliente_c)
 		kdwc_cliente.sharedata(kdwc_cliente_2_c)
 		kdwc_cliente.sharedata(kdwc_cliente_3_c)
-//		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_2, 1, Primary!)
-//		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_3, 1, Primary!)
-//		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_c, 1, Primary!)
-//		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_2_c, 1, Primary!)
-//		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
-
-
+	
 		tab_1.tabpage_1.dw_1.getchild("id_meca_causale", kdwc_1)
 		tab_1.tabpage_1.dw_1.getchild("id_meca_causale_1", kdwc_2)
 		kdwc_1.settransobject(sqlca)
@@ -937,166 +919,92 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		kdwc_1.insertrow(1)
 		kdwc_1.sharedata(kdwc_2)
 		
-	end if
+	//--- Setta valori di Default
+	//		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
+	//
+	//			if k_importa <> "N" or isnull(k_importa) then
+	//				importa_dati_da_ultima_exit()
+	//			end if
+	//
+	//			if tab_1.tabpage_1.dw_1.rowcount() > 1 then
+	//				tab_1.tabpage_1.dw_1.reset()
+	//			end if
+	//
+	//			if tab_1.tabpage_1.dw_1.rowcount() = 0 then
+	//				tab_1.tabpage_1.dw_1.insertrow(0)
+	//			end if
 	
-
-//		tab_1.tabpage_1.dw_1.setcolumn(1)
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-//	if ki_st_open_w.flag_primo_giro = 'S' then
-
-
-		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-
-			if k_importa <> "N" or isnull(k_importa) then
-				importa_dati_da_ultima_exit()
+		if k_clie_1 > 0 then
+			if kdwc_cliente.rowcount() < 2 then
+				kdwc_cliente.insertrow(0)
 			end if
-
-			if tab_1.tabpage_1.dw_1.rowcount() > 1 then
-				tab_1.tabpage_1.dw_1.reset()
-			end if
-
-			if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-				tab_1.tabpage_1.dw_1.insertrow(0)
-			end if
-
-			if k_clie_1 > 0 then
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.insertrow(0)
-//					k_riga=kdwc_cliente.find("codice = "+string(k_clie_1),&
-//											0, kdwc_cliente.rowcount())
-//					if k_riga > 0 then
-//						tab_1.tabpage_1.dw_1.setitem(1, "clie_1", &
-//										kdwc_cliente.getitemnumber(k_riga, "codice"))
-//					end if
-				end if
-			end if
-			
-			if k_clie_2 > 0 then
-				if kdwc_cliente_2.rowcount() < 2 then
-					kdwc_cliente_2.insertrow(0)
-//					k_riga=kdwc_cliente_2.find("codice = "+string(k_clie_2),&
-//											0, kdwc_cliente_2.rowcount())
-//					if k_riga > 0 then
-//						tab_1.tabpage_1.dw_1.setitem(1, "clie_2", &
-//										kdwc_cliente_2.getitemnumber(k_riga, "codice"))
-//					end if
-				end if
-			end if
-			
-//			if k_dose > 0 then
-//				tab_1.tabpage_1.dw_1.setitem(1, "dose", k_dose) //&
-//			end if	
-
-			
-//---- data ultima impotrtazione dei barcode x data fine lavorazione
-			kuf1_base = create kuf_base
-			k_importato_data  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
-			if not isdate(k_importato_data) then
-				k_importato_data = "** DATA ERRATA ** " 
-			end if
-			k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
-			if not istime(k_importato_ora) then
-				k_importato_ora = "** ORA ERRATA ** " 
-			end if
-			destroy kuf1_base
-
-			try	
-	//--- imposto l'utente (il "terminale") x costruire il nome della view
-				set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-				tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-				
-				tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
-//				tab_1.tabpage_1.dw_1.setitem(1, "impianto", 2)
-//				tab_1.tabpage_1.dw_1.setitem(1, "lavorazione", "*")
-//				tab_1.tabpage_1.dw_1.setitem(1, "certificato_st", "*")
-//				tab_1.tabpage_1.dw_1.setitem(1, "groupage", "*")
-//				tab_1.tabpage_1.dw_1.setitem(1, "barcode", "")
-//				tab_1.tabpage_1.dw_1.setitem(1, "certificato", 0)
-//				tab_1.tabpage_1.dw_1.setitem(1, "num_bolla_in", 0)
-//				tab_1.tabpage_1.dw_1.setitem(1, "anno_bolla_in", 0)
-		//--- prendi data oggi		
-				k_data = kguo_g.get_dataoggi( )
-				if isnull(k_data_da) or k_data_da = date(0) then
-					k_data_da = relativedate(k_data, -120)
-				end if
-				if isnull(k_data_a) or k_data_a = date(0) then
-					k_data_a = k_data
-				end if
-				if k_data_da = date(0) then
-					tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
-				else
-					tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
-				end if
-				if k_data_a = date(0) then
-					tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
-				else
-					tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
-				end if
-				if isnull(k_data_ini) then
-					k_data_ini = date(0)
-				end if
-
-				tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato_data + "  " +k_importato_ora)
-
-//				if k_data_ini = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_ini", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_ini)
-//				end if
-//				if isnull(k_data_ini_1) then
-//					k_data_ini_1 = date(0)
-//				end if
-//				if k_data_ini_1 = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_ini_1", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_ini_1", k_data_ini_1)
-//				end if
-//				if k_data_fin = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_fin", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_fin)
-//				end if
-//				if isnull(k_data_ini_1) then
-//					k_data_ini_1 = date(0)
-//				end if
-//				if k_data_fin_1 = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_fin_1", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "data_fin_1", k_data_fin_1)
-//				end if
-//				if k_certificato_dt_st_ini = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "certificato_dt_st_ini", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "certificato_dt_st_ini", k_certificato_dt_st_ini)
-//				end if
-//				if k_certificato_dt_st_fin = date(0) then
-//					tab_1.tabpage_1.dw_1.setitem(1, "certificato_dt_st_fin", "00/00/00")
-//				else
-//					tab_1.tabpage_1.dw_1.setitem(1, "certificato_dt_st_fin", k_certificato_dt_st_fin)
-//				end if
-//							
-//				tab_1.tabpage_1.dw_1.setitem(1, "dosim_data_i", "00/00/00")
-//				tab_1.tabpage_1.dw_1.setitem(1, "dosim_data_f", "00/00/00")
-//				tab_1.tabpage_1.dw_1.setitem(1, "err_lav_ok", "0")
-				
-			catch (uo_exception kuo_exception)
-				kuo_exception.messaggio_utente()
-				
-			end try
 		end if
-	end if
+		
+		if k_clie_2 > 0 then
+			if kdwc_cliente_2.rowcount() < 2 then
+				kdwc_cliente_2.insertrow(0)
+			end if
+		end if
+		
+	//---- data ultima impotrtazione dei barcode x data fine lavorazione
+		kuf1_base = create kuf_base
+		k_importato_data  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
+		if not isdate(k_importato_data) then
+			k_importato_data = "** DATA ERRATA ** " 
+		end if
+		k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
+		if not istime(k_importato_ora) then
+			k_importato_ora = "** ORA ERRATA ** " 
+		end if
+		destroy kuf1_base
+	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
 				
-	attiva_tasti()
+		//--- prendi data oggi		
+			k_data = kguo_g.get_dataoggi( )
+			if isnull(k_data_da) or k_data_da = date(0) then
+				k_data_da = relativedate(k_data, -120)
+			end if
+			if isnull(k_data_a) or k_data_a = date(0) then
+				k_data_a = k_data
+			end if
+			if k_data_da = date(0) then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
+			end if
+			if k_data_a = date(0) then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
+			end if
+			if isnull(k_data_ini) then
+				k_data_ini = date(0)
+			end if
+		end if
+	
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
+		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato_data + "  " +k_importato_ora)
+
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+		
+	end try
+
+	tab_1.tabpage_1.dw_1.setfocus()
+	tab_1.tabpage_1.dw_1.visible = true
+end if
+
+attiva_tasti()
 		
 //return "0"
 
 	
-
-
-
 end subroutine
 
 private subroutine report_2 ();//======================================================================
@@ -1109,24 +1017,24 @@ string k_scelta, k_importa
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_2" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_2"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	
-	tab_1.tabpage_1.dw_1.visible = true
 
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 	
-		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
-	
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -1300,29 +1208,24 @@ private subroutine report_3 ();//===============================================
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_3" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_3"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-//	if ki_st_open_w.flag_primo_giro = 'S' then
-
-			
 
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 	
-		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.setfocus()
+	tab_1.tabpage_1.dw_1.visible = true
 end if
 
 //	end if
@@ -1434,26 +1337,28 @@ private subroutine report_4 ();//===============================================
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_4" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_4"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
 
 	try	
-		tab_1.tabpage_1.dw_1.setfocus()
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
 
 //--- Setta valori di Default
-		tab_1.tabpage_1.dw_1.setitem(1, "data_dal", relativedate(today(), -30))		
-		tab_1.tabpage_1.dw_1.setitem(1, "barcode", '')		
-
+			tab_1.tabpage_1.dw_1.setitem(1, "data_dal", relativedate(today(), -30))		
+			tab_1.tabpage_1.dw_1.setitem(1, "barcode", '')			
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
+	
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -1635,65 +1540,57 @@ private subroutine report_5 ();//===============================================
 //
 datawindowchild   kdwc_cliente
 date k_data, k_data_da, k_data_a
-//kuf_base kuf1_base
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_5" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_5"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+		kdwc_cliente.settransobject(sqlca)
+		kdwc_cliente.retrieve("%")
+		
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+	
+			k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_da")
+			if isnull(k_data_da) or k_data_da = date(0) then
+			//--- prendi data oggi		
+				k_data = kguo_g.get_dataoggi( )
+				k_data_da = date(year(relativedate(k_data, -25)),month(relativedate(k_data, -25)),01)
+				if isnull(k_data_a) or k_data_a = date(0) then
+					k_data_a = relativedate(date(year(relativedate(k_data_da, 32)), month(relativedate(k_data_da, 32)),01),-1)
+				end if
+				if k_data_da = date(0) then
+					tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
+				else
+					tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
+				end if
+				if k_data_a = date(0) then
+					tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
+				else
+					tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
+				end if
+			end if
+		end if	
+			
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 
-		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-		kdwc_cliente.settransobject(sqlca)
-		kdwc_cliente.retrieve("%")
-
-		k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_da")
-		if isnull(k_data_da) or k_data_da = date(0) then
-		//--- prendi data oggi		
-			k_data = kguo_g.get_dataoggi( )
-			k_data_da = date(year(relativedate(k_data, -25)),month(relativedate(k_data, -25)),01)
-			if isnull(k_data_a) or k_data_a = date(0) then
-				k_data_a = relativedate(date(year(relativedate(k_data_da, 32)), month(relativedate(k_data_da, 32)),01),-1)
-			end if
-			if k_data_da = date(0) then
-				tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
-			else
-				tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
-			end if
-			if k_data_a = date(0) then
-				tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
-			else
-				tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
-			end if
-		end if
-
-			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
-		
-
-	
-
-
 
 end subroutine
 
@@ -1782,42 +1679,33 @@ date k_data, k_data_da, k_data_a
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_6" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_6"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+	
+//--- prendi data oggi		
+			k_data = kguo_g.get_dataoggi( )
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)	
+			tab_1.tabpage_1.dw_1.setitem(1, "periodo", 91)	
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 
-
-//--- prendi data oggi		
-		k_data = kguo_g.get_dataoggi( )
-//			k_data_a = relativedate(date(year(relativedate(k_data, -25)),month(relativedate(k_data, -25)),01), - 1)
-	
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)	
-		tab_1.tabpage_1.dw_1.setitem(1, "periodo", 91)	
-		
-		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
-		
-
-	
-
 
 
 end subroutine
@@ -1884,125 +1772,89 @@ kuf_base kuf1_base
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_7" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_7"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	//tab_1.tabpage_1.dw_1.reset()
-	//tab_1.tabpage_1.dw_1.visible = true
 
-//	if u_dw_selezione_ripri( ) = 0 then
-//		tab_1.tabpage_1.dw_1.insertrow(0)
-//	end if
-
-	k_scelta = trim(ki_st_open_w.flag_modalita)
-	k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
-	k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
-	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
-	tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
-
-	kdwc_cliente_3.settransobject(sqlca)
-	kdwc_cliente_3_c.settransobject(sqlca)
-
-	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-
-		kdwc_cliente_3.retrieve("%")
-		kdwc_cliente_3.insertrow(1)
-		kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
-
-	end if
-	
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
+	try
+		kdwc_cliente_3.settransobject(sqlca)
+		kdwc_cliente_3_c.settransobject(sqlca)
 		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-
-			if k_importa <> "N" or isnull(k_importa) then
-				importa_dati_da_ultima_exit()
-			end if
-
-			if tab_1.tabpage_1.dw_1.rowcount() > 1 then
-				tab_1.tabpage_1.dw_1.reset()
-			end if
-
-			if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-				tab_1.tabpage_1.dw_1.insertrow(0)
-			end if
-			
-			if k_clie_3 > 0 then
-				if kdwc_cliente_3.rowcount() < 2 then
-					kdwc_cliente_3.insertrow(0)
-//					k_riga=kdwc_cliente_3.find("codice = "+string(k_clie_3),&
-//											0, kdwc_cliente_3.rowcount())
-//					if k_riga > 0 then
-//						tab_1.tabpage_1.dw_1.setitem(1, "clie_3", &
-//										kdwc_cliente_3.getitemnumber(k_riga, "codice"))
-//					end if
-				end if
-			end if
-
-//---- data ultima impotrtazione dei barcode x data fine lavorazione
-			kuf1_base = create kuf_base
-			k_importato  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
-			if not isdate(k_importato) then
-				k_importato = "** DATA ERRATA ** " 
-			end if
-			k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
-			if not istime(k_importato_ora) then
-				k_importato_ora = "** ORA ERRATA ** " 
-			end if
-			destroy kuf1_base
-
-			try	
-	//--- imposto l'utente (il "terminale") x costruire il nome della view
-				set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-				tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-				
-				tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
-//--- prendi data oggi		
-				k_data = kguo_g.get_dataoggi( )
-
-				tab_1.tabpage_1.dw_1.setitem(1, "num_int", 0)
-
-				ki_st_int_artr.anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno")
-				if ki_st_int_artr.anno = 0 or isnull(ki_st_int_artr.anno ) then
-					tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kg_dataoggi))
-				end if
-				
-				if isnull(k_data_da) or k_data_da = date(0) then
-					if month(k_data) = 1 then
-						k_data_da = date(year(k_data), 01, 01)
-					else
-						k_data_da = date(year(k_data), month(k_data), 01) //relativedate(k_data, -120)
-					end if
-				end if
-				if isnull(k_data_a) or k_data_a = date(0) then
-					k_data_a = k_data
-				end if
-				if k_data_da = date(0) then
-					tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
-				else
-					tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
-				end if
-				if k_data_a = date(0) then
-					tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
-				else
-					tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
-				end if
-				tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato + "  " +k_importato_ora)
-				
-			catch (uo_exception kuo_exception)
-				kuo_exception.messaggio_utente()
-				
-			end try
+			kdwc_cliente_3.retrieve("%")
+			kdwc_cliente_3.insertrow(1)
+			kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
 		end if
-	end if
-				
-	attiva_tasti()
+
+		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
+		tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
+
+//---- data ultima importazione dei barcode x data fine lavorazione
+		kuf1_base = create kuf_base
+		k_importato  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
+		if not isdate(k_importato) then
+			k_importato = "** DATA ERRATA ** " 
+		end if
+		k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
+		if not istime(k_importato_ora) then
+			k_importato_ora = "** ORA ERRATA ** " 
+		end if
+		destroy kuf1_base
+
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_scelta = trim(ki_st_open_w.flag_modalita)
+			k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
+			k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
+			
+//--- prendi data oggi		
+			k_data = kguo_g.get_dataoggi( )
+
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int", 0)
+
+			ki_st_int_artr.anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno")
+			if ki_st_int_artr.anno = 0 or isnull(ki_st_int_artr.anno ) then
+				tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kg_dataoggi))
+			end if
+			
+			if isnull(k_data_da) or k_data_da = date(0) then
+				if month(k_data) = 1 then
+					k_data_da = date(year(k_data), 01, 01)
+				else
+					k_data_da = date(year(k_data), month(k_data), 01) //relativedate(k_data, -120)
+				end if
+			end if
+			if isnull(k_data_a) or k_data_a = date(0) then
+				k_data_a = k_data
+			end if
+			if k_data_da = date(0) then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
+			end if
+			if k_data_a = date(0) then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
+			end if
+
+		end if
 		
-//return "0"
-
-	
-
-
+		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato + "  " +k_importato_ora)
+		
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
+		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+		
+	end try
+		
+	tab_1.tabpage_1.dw_1.setfocus()
+		
+end if
+				
+attiva_tasti()
 
 end subroutine
 
@@ -2251,53 +2103,48 @@ datawindowchild  kdwc_cliente_3  //kdwc_dose,
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_8" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_8"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
-	try	
 
 //--- cliente
-		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
-		kdwc_cliente_3.settransobject(sqlca)
-		kdwc_cliente_3.retrieve("%")
-		kdwc_cliente_3.insertrow(1)
+	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
+	kdwc_cliente_3.settransobject(sqlca)
+	kdwc_cliente_3.retrieve("%")
+	kdwc_cliente_3.insertrow(1)
 
+	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", kguo_g.get_dataoggi( ))	
+	
+			kuf1_base = create kuf_base	
+			k_dato = mid(kuf1_base.prendi_dato_base("gg_stock_max"), 2)
+			if isnumber(k_dato) then
+				k_giorni = integer(k_dato)
+			else
+				k_giorni = 0
+			end if
+			destroy kuf1_base
+			tab_1.tabpage_1.dw_1.setitem(1, "periodo", k_giorni)
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", string(kguo_utente.get_id_utente( ))) //ki_st_int_artr.utente)
-
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", kguo_g.get_dataoggi( ))	
-
-		kuf1_base = create kuf_base	
-		k_dato = mid(kuf1_base.prendi_dato_base("gg_stock_max"), 2)
-		if isnumber(k_dato) then
-			k_giorni = integer(k_dato)
-		else
-			k_giorni = 0
-		end if
-		destroy kuf1_base
-		tab_1.tabpage_1.dw_1.setitem(1, "periodo", k_giorni)
-
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+
 end if
 
 				
 attiva_tasti()
-		
-
-	
-
-
 
 end subroutine
 
@@ -2387,20 +2234,8 @@ kuf_report_regart50 kuf1_report_regart50
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_9" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_9"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-		tab_1.tabpage_1.dw_1.Object.b_registra.Enabled="No"
-//		k_rcx = tab_1.tabpage_1.dw_1.modify("b_registra.enabled = 0")
 			
 	//--- prendi dati
 		kuf1_report_regart50 = create kuf_report_regart50
@@ -2415,12 +2250,19 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		tab_1.tabpage_1.dw_1.setitem(1, "mesedef", kst_report_regart50.k_mese)
 		tab_1.tabpage_1.dw_1.setitem(1, "nrpag_def", kst_report_regart50.k_nrpagina)
 		tab_1.tabpage_1.dw_1.setitem(1, "nrprot_def", kst_report_regart50.k_nrprotocollo)
-		
+
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+		tab_1.tabpage_1.dw_1.Object.b_registra.Enabled="No"
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -2494,37 +2336,34 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 //		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_c, 1, Primary!)
 	end if
 	
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-	//--- prendi dati
-		kuf1_report_merce_da_sped = create kuf_report_merce_da_sped
-		kuf1_report_merce_da_sped.get_st_report_merce_da_sped(kst_report_merce_da_sped)
-		destroy kuf1_report_merce_da_sped
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
 		
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da", kst_report_merce_da_sped.k_data_da )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_2", kst_report_merce_da_sped.k_clie_2 )
-//		kst_report_merce_da_sped.k_rileva_stato_e1 = "1"
-//		tab_1.tabpage_1.dw_1.setitem(1, "rileva_stato_e1", kst_report_merce_da_sped.k_rileva_stato_e1 )
-
+	//--- imposto l'utente (il "terminale") x costruire il nome della view
+			set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+			tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+				
+		//--- prendi dati
+			kuf1_report_merce_da_sped = create kuf_report_merce_da_sped
+			kuf1_report_merce_da_sped.get_st_report_merce_da_sped(kst_report_merce_da_sped)
+			destroy kuf1_report_merce_da_sped
+			
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da", kst_report_merce_da_sped.k_data_da )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_2", kst_report_merce_da_sped.k_clie_2 )
+			
+		end if
+		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
-		
+			
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
 		
@@ -3128,44 +2967,41 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_14"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
-
-
-//--- Setta valori di Default
-
 	try	
-		tab_1.tabpage_1.dw_1.reset()
-		tab_1.tabpage_1.dw_1.insertrow(0)
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
 
+	//--- prendi dati
+			kuf1_report_etichette_lotti = create kuf_report_etichette_lotti
+			kuf1_report_etichette_lotti.get_st_report_etichette_lotti(kst_report_etichette_lotti)
+			destroy kuf1_report_etichette_lotti
+			
+			if kst_report_etichette_lotti.k_num_da > 10 then
+				kst_report_etichette_lotti.k_num_da -= 10
+			else
+				kst_report_etichette_lotti.k_num_da = 1
+			end if
+			kst_report_etichette_lotti.k_num_a += 10
+			
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int_da", kst_report_etichette_lotti.k_num_da )
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int_a", kst_report_etichette_lotti.k_num_a )
+	
+			tab_1.tabpage_1.dw_1.visible = true
+		
+			tab_1.tabpage_1.dw_1.setfocus()
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-	//--- prendi dati
-		kuf1_report_etichette_lotti = create kuf_report_etichette_lotti
-		kuf1_report_etichette_lotti.get_st_report_etichette_lotti(kst_report_etichette_lotti)
-		destroy kuf1_report_etichette_lotti
-		
-		if kst_report_etichette_lotti.k_num_da > 10 then
-			kst_report_etichette_lotti.k_num_da -= 10
-		else
-			kst_report_etichette_lotti.k_num_da = 1
-		end if
-		kst_report_etichette_lotti.k_num_a += 10
-		
-		tab_1.tabpage_1.dw_1.setitem(1, "num_int_da", kst_report_etichette_lotti.k_num_da )
-		tab_1.tabpage_1.dw_1.setitem(1, "num_int_a", kst_report_etichette_lotti.k_num_a )
-
-		tab_1.tabpage_1.dw_1.visible = true
-	
-		tab_1.tabpage_1.dw_1.setfocus()
-			
+					
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
 end if
-
 				
 attiva_tasti()
 		
@@ -3268,32 +3104,30 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_13"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		
+	//--- imposta dati di default
+			tab_1.tabpage_1.dw_1.setitem(1, "data_pl", kg_dataoggi )
+			
+		end if	
+	
+	//--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-	//--- imposta dati di default
-		tab_1.tabpage_1.dw_1.setitem(1, "data_pl", kg_dataoggi )
-		
-			
+
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
+	
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
-
-				
+			
 attiva_tasti()
 		
 
@@ -3421,39 +3255,37 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 //		kdwc_cliente.RowsCopy(1, kdwc_cliente.RowCount(), Primary!, kdwc_cliente_c, 1, Primary!)
 	end if
 	
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+	
+		//--- prendi dati
+			kuf1_report_etichette_lotti = create kuf_report_etichette_lotti
+			kuf1_report_etichette_lotti.get_st_report_etichette_lotti(kst_report_etichette_lotti)
+			destroy kuf1_report_etichette_lotti
+			
+			tab_1.tabpage_1.dw_1.setitem(1, "anno", kst_report_etichette_lotti.k_anno )
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int_da", kst_report_etichette_lotti.k_num_da )
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int_a", kst_report_etichette_lotti.k_num_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_1", kst_report_etichette_lotti.k_clie_1 )
+			tab_1.tabpage_1.dw_1.setitem(1, "area_dawmf", kst_report_etichette_lotti.k_area_dawmf )
+			
+		end if			
+	
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-	//--- prendi dati
-		kuf1_report_etichette_lotti = create kuf_report_etichette_lotti
-		kuf1_report_etichette_lotti.get_st_report_etichette_lotti(kst_report_etichette_lotti)
-		destroy kuf1_report_etichette_lotti
-		
-		tab_1.tabpage_1.dw_1.setitem(1, "anno", kst_report_etichette_lotti.k_anno )
-		tab_1.tabpage_1.dw_1.setitem(1, "num_int_da", kst_report_etichette_lotti.k_num_da )
-		tab_1.tabpage_1.dw_1.setitem(1, "num_int_a", kst_report_etichette_lotti.k_num_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_1", kst_report_etichette_lotti.k_clie_1 )
-		tab_1.tabpage_1.dw_1.setitem(1, "area_dawmf", kst_report_etichette_lotti.k_area_dawmf )
-		
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
 		
@@ -3490,35 +3322,35 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		kdwc_cliente.retrieve("%")
 		kdwc_cliente.insertrow(1)
 	end if
-	
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+		//--- prendi dati
+			kuf1_report_merce_sped = create kuf_report_merce_sped
+			kuf1_report_merce_sped.get_st_report_merce_sped(kst_report_merce_sped)
+			destroy kuf1_report_merce_sped
+			
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", kst_report_merce_sped.k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da", kst_report_merce_sped.k_data_da )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_2", kst_report_merce_sped.k_clie_2 )
+	
+		end if
+	
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-	//--- prendi dati
-		kuf1_report_merce_sped = create kuf_report_merce_sped
-		kuf1_report_merce_sped.get_st_report_merce_sped(kst_report_merce_sped)
-		destroy kuf1_report_merce_sped
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)		
 		
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", kst_report_merce_sped.k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da", kst_report_merce_sped.k_data_da )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_2", kst_report_merce_sped.k_clie_2 )
-
-			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -3633,43 +3465,42 @@ date k_data, k_data_da, k_data_a
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_15" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_15"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+	//--- prendi data oggi	
+			k_data_a = kguo_g.get_dataoggi()
+	
+	//--- legge dwc mandante
+			tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+			kdwc_cliente.settransobject(sqlca)
+			if kdwc_cliente.rowcount() = 0 then
+				kdwc_cliente.retrieve("%")
+			end if
+		
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)	
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_1", "")	
+			tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1", "")	
+		
+		end if
+
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-
-
-//--- prendi data oggi	
-		k_data_a = kguo_g.get_dataoggi()
-
-//--- legge dwc mandante
-		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-		kdwc_cliente.settransobject(sqlca)
-		if kdwc_cliente.rowcount() = 0 then
-			kdwc_cliente.retrieve("%")
-		end if
 	
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)	
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_1", "")	
-		tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1", "")	
-		
-		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
 		
@@ -3791,43 +3622,34 @@ date k_data_da
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_16" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_16"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+//--- prendi data oggi	
+			k_data_da = date(year(kguo_g.get_dataoggi()), month(kguo_g.get_dataoggi()), 01)
+
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)	
+			tab_1.tabpage_1.dw_1.setitem(1, "art", "")		
+
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-
-
-//--- prendi data oggi	
-		k_data_da = date(year(kguo_g.get_dataoggi()), month(kguo_g.get_dataoggi()), 01)
-
-//--- legge dwc mandante
-//		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-//		kdwc_cliente.settransobject(sqlca)
-//		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-//			kdwc_cliente.retrieve("%")
-//		end if
-	
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)	
-		tab_1.tabpage_1.dw_1.setitem(1, "art", "")	
-		
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+
 end if
 
-				
 attiva_tasti()
 		
 
@@ -4051,50 +3873,39 @@ private subroutine report_17 ();//==============================================
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-//datawindowchild   kdwc_cliente
 date k_data_da
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_17" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_17"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	//tab_1.tabpage_1.dw_1.reset()
-	//tab_1.tabpage_1.dw_1.insertrow(0)
-
-	if u_dw_selezione_ripri( ) = 0 then
-		tab_1.tabpage_1.dw_1.insertrow(0)
-	end if
-	tab_1.tabpage_1.dw_1.visible = true
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+		
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+//--- prendi data oggi	
+			k_data_da = date(year(kguo_g.get_dataoggi()), month(kguo_g.get_dataoggi()), 01)
+
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)	
+			tab_1.tabpage_1.dw_1.setitem(1, "stato", "0")	
+	
+		end if
+
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 
-
-//--- prendi data oggi	
-		k_data_da = date(year(kguo_g.get_dataoggi()), month(kguo_g.get_dataoggi()), 01)
-
-//--- legge dwc mandante
-//		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-//		kdwc_cliente.settransobject(sqlca)
-//		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-//			kdwc_cliente.retrieve("%")
-//		end if
-	
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)	
-		tab_1.tabpage_1.dw_1.setitem(1, "stato", "0")	
-		
-		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+		
 end if
 
 				
@@ -4118,48 +3929,40 @@ datawindowchild   kdwc_cliente
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_18" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_18"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	//tab_1.tabpage_1.dw_1.reset()
-	//tab_1.tabpage_1.dw_1.insertrow(0)
-
-	if u_dw_selezione_ripri( ) = 0 then
-		tab_1.tabpage_1.dw_1.insertrow(0)
-	end if
-	tab_1.tabpage_1.dw_1.visible = true
-
-	tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
-	kdwc_cliente.settransobject(sqlca)
-	kdwc_cliente.retrieve("%")
-	kdwc_cliente.insertrow(1)
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
+		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+		kdwc_cliente.settransobject(sqlca)
+		kdwc_cliente.retrieve("%")
+		kdwc_cliente.insertrow(1)
+
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			tab_1.tabpage_1.dw_1.setitem(1, "x_data", relativedate(kguo_g.get_dataoggi(), -31) )	
+			tab_1.tabpage_1.dw_1.setitem(1, "x_utente", "")	
+			tab_1.tabpage_1.dw_1.setitem(1, "ricerca", "")	
+			tab_1.tabpage_1.dw_1.setitem(1, "settore", "")	
+			tab_1.tabpage_1.dw_1.setitem(1, "memortf", "N")	
+			tab_1.tabpage_1.dw_1.setitem(1, "anno", kguo_g.get_anno( ) )	
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-
-
-		tab_1.tabpage_1.dw_1.setitem(1, "x_data", relativedate(kguo_g.get_dataoggi(), -31) )	
-		tab_1.tabpage_1.dw_1.setitem(1, "x_utente", "")	
-		tab_1.tabpage_1.dw_1.setitem(1, "ricerca", "")	
-		tab_1.tabpage_1.dw_1.setitem(1, "settore", "")	
-		tab_1.tabpage_1.dw_1.setitem(1, "memortf", "N")	
-		tab_1.tabpage_1.dw_1.setitem(1, "anno", kguo_g.get_anno( ) )	
-		
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
+end if
 				
 attiva_tasti()
-		
-
 
 end subroutine
 
@@ -4467,19 +4270,8 @@ date k_data
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_19" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_19"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
 
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 
 //--- legge dwc mandante
 		tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
@@ -4487,22 +4279,33 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		if kdwc_cliente.rowcount() = 0 then
 			k_rc = kdwc_cliente.retrieve("%")
 		end if
-	
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", kguo_g.get_dataoggi( ))	
-		k_data = relativedate(kguo_g.get_dataoggi( ), -270) 
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da", date(year(k_data), month(k_data), 01))
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_1", "")	
-		tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1", "")	
 		
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", kguo_g.get_dataoggi( ))	
+			k_data = relativedate(kguo_g.get_dataoggi( ), -270) 
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da", date(year(k_data), month(k_data), 01))
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_1", "")	
+			tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1", "")	
+			
+		end if
+		
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
-end if
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
-				
+end if
+		
 attiva_tasti()
 		
 
@@ -4526,50 +4329,44 @@ date k_data_da, k_data_a
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_20" then
-	
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_20"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
 	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente)
 	kdwc_cliente.settransobject(sqlca)
-//	kdwc_cliente_c.settransobject(sqlca)
 	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 		kdwc_cliente.retrieve("%")
 		kdwc_cliente.insertrow(1)
 	end if
 	
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	tab_1.tabpage_1.dw_1.visible = true
-
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da",k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_3", 0 )
+			
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-		k_data_a = kguo_g.get_dataoggi( )
-		k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da",k_data_da)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", 0 )
-
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+	
 end if
-
-				
+			
 attiva_tasti()
-		
-
 	
 
 
@@ -4751,75 +4548,54 @@ date k_data_da, k_data_a
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_21" then
-	
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_21"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
 	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente)
 	kdwc_cliente.settransobject(sqlca)
-//	kdwc_cliente_c.settransobject(sqlca)
 	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 		kdwc_cliente.retrieve("%")
 		kdwc_cliente.insertrow(1)
 	end if
-	
-	//tab_1.tabpage_1.dw_1.reset()
-	//tab_1.tabpage_1.dw_1.insertrow(0)
-	if u_dw_selezione_ripri( ) = 0 then
-		tab_1.tabpage_1.dw_1.insertrow(0)
-	end if
-	tab_1.tabpage_1.dw_1.visible = true
-
 //---- dwc dei contratti
 	tab_1.tabpage_1.dw_1.getchild("mc_co", kdwc_contratti_1)
-//	tab_1.tabpage_1.dw_1.getchild("mc_co_1", kdwc_contratti_2)
-//	tab_1.tabpage_1.dw_1.getchild("codice", kdwc_contratti_3)
 	kdwc_contratti_1.settransobject(sqlca)
-//	kdwc_contratti_2.settransobject(sqlca)
-//	kdwc_contratti_3.settransobject(sqlca)
-//	kdwc_contratti_1.sharedata(kdwc_contratti_2)
-//	kdwc_contratti_1.sharedata(kdwc_contratti_3)
 	kdwc_contratti_1.retrieve(0)
 	kdwc_contratti_1.insertrow(1)
 
-
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+			
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_da",k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_3", 0 )
+			tab_1.tabpage_1.dw_1.setitem(1, "mc_co", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "descr", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "idem", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "codice", 0 )
+		end if
+			
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-			
-		k_data_a = kguo_g.get_dataoggi( )
-		k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_da",k_data_da)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", 0 )
-		tab_1.tabpage_1.dw_1.setitem(1, "mc_co", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "descr", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "idem", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "codice", 0 )
-
-			
+		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 		
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+	
 end if
-
 				
 attiva_tasti()
-		
-
-kuf_base kuf1_base
 	
-
-
-
 end subroutine
 
 private function long report_21_inizializza (uo_d_std_1 kdw_1) throws uo_exception;//
@@ -5868,65 +5644,46 @@ date k_data_ini, k_data_fin, k_data
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_22" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_22"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
-	
-	if u_dw_selezione_ripri( ) = 0 then
-		tab_1.tabpage_1.dw_1.insertrow(0)
-	end if
-	k_data_ini = tab_1.tabpage_1.dw_1.getitemdate(1, "data_ini")
-	k_data_fin = tab_1.tabpage_1.dw_1.getitemdate(1, "data_fin")
 
-//--- prendi data oggi		
-	k_data = kguo_g.get_dataoggi( )
-	
-	if k_data_ini > date(0) then
-	else
-		k_data_ini = relativedate(k_data, -120)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_ini)
-	end if
-	if k_data_fin > date(0) then
-	else
-		k_data_fin = k_data
-		tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_fin)
-	end if
+	try
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+			
+			k_data_ini = tab_1.tabpage_1.dw_1.getitemdate(1, "data_ini")
+			k_data_fin = tab_1.tabpage_1.dw_1.getitemdate(1, "data_fin")
 		
+		//--- prendi data oggi		
+			k_data = kguo_g.get_dataoggi( )
+			
+			if k_data_ini > date(0) then
+			else
+				k_data_ini = relativedate(k_data, -120)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_ini)
+			end if
+			if k_data_fin > date(0) then
+			else
+				k_data_fin = k_data
+				tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_fin)
+			end if
+		end if
+
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+	
+	catch (uo_exception kuo_exception)
+		
+	end try				
+	
 end if	
 attiva_tasti()
-		
-//return "0"
 
 	
 
 
 
 end subroutine
-
-public subroutine u_dw_selezione_save ();//---
-//--- Salva i dati del DW di selezione
-//---
-string k_parametri
-
-k_parametri = trim(tab_1.tabpage_1.dw_1.dataobject)
-if k_parametri > " " then
-	kGuf_data_base.dw_salva_righe(k_parametri, tab_1.tabpage_1.dw_1, "")
-end if
-
-end subroutine
-
-public function integer u_dw_selezione_ripri ();//---
-//--- Ripristina i dati del DW di selezione
-//---
-int k_return
-string k_parametri
-datetime k_data_backup
-
-
-k_parametri = trim(tab_1.tabpage_1.dw_1.dataobject)
-if k_parametri > " " then
-	k_return = kGuf_data_base.dw_ripri_righe(k_parametri, "", tab_1.tabpage_1.dw_1, k_data_backup)
-end if
-
-return k_return
-end function
 
 private subroutine report_0 ();//======================================================================
 //=== Inizializzazione della Windows
@@ -6402,88 +6159,89 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_23"
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
-	if u_dw_selezione_ripri( ) = 0 then
-		tab_1.tabpage_1.dw_1.insertrow(0)
-	end if
-
-	k_scelta = trim(ki_st_open_w.flag_modalita)
-	if isdate(trim(ki_st_open_w.key8)) then
-		k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
-	end if
-	if isdate(trim(ki_st_open_w.key9)) then
-		k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
-	end if
-	tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
-	tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
-
-	kdwc_cliente_3.settransobject(sqlca)
-	kdwc_cliente_3_c.settransobject(sqlca)
-
-	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
-
-		kdwc_cliente_3.retrieve("%")
-		kdwc_cliente_3.insertrow(1)
-		kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
-
-	end if
-	
-	tab_1.tabpage_1.dw_1.setfocus()
-
-//--- Setta valori di Default
-
-	if k_clie_3 > 0 then
-		if kdwc_cliente_3.rowcount() < 2 then
-			kdwc_cliente_3.insertrow(0)
-		end if
-	end if
-
-	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", string(kguo_utente.get_id_utente( ))) //ki_st_int_artr.utente)
-		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
-//--- prendi data oggi		
-		k_data = kguo_g.get_dataoggi( )
-
-		tab_1.tabpage_1.dw_1.setitem(1, "num_int", 0)
-
-		ki_st_int_artr.anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno")
-		if ki_st_int_artr.anno = 0 or isnull(ki_st_int_artr.anno ) then
-			tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kg_dataoggi))
-		end if
+	try
 		
-		if k_data_da > kkg.data_zero then
+		if u_dw_selezione_ripri( ) > 0 then
 		else
-			k_data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da")
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_scelta = trim(ki_st_open_w.flag_modalita)
+			if isdate(trim(ki_st_open_w.key8)) then
+				k_data_da = date(trim(ki_st_open_w.key8)) //data riferimento da
+			end if
+			if isdate(trim(ki_st_open_w.key9)) then
+				k_data_a = date(trim(ki_st_open_w.key9)) //data riferimento a
+			end if
+			tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
+			tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
+		
+			kdwc_cliente_3.settransobject(sqlca)
+			kdwc_cliente_3_c.settransobject(sqlca)
+		
+			if tab_1.tabpage_1.dw_1.rowcount() = 0 then
+		
+				kdwc_cliente_3.retrieve("%")
+				kdwc_cliente_3.insertrow(1)
+				kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
+		
+			end if
+			
+			tab_1.tabpage_1.dw_1.setfocus()
+		
+			if k_clie_3 > 0 then
+				if kdwc_cliente_3.rowcount() < 2 then
+					kdwc_cliente_3.insertrow(0)
+				end if
+			end if
+	
+	//--- prendi data oggi		
+			k_data = kguo_g.get_dataoggi( )
+	
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int", 0)
+	
+			ki_st_int_artr.anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno")
+			if ki_st_int_artr.anno = 0 or isnull(ki_st_int_artr.anno ) then
+				tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kg_dataoggi))
+			end if
+			
 			if k_data_da > kkg.data_zero then
 			else
-				k_data_da = relativedate(k_data, -60)
+				k_data_da = tab_1.tabpage_1.dw_1.getitemdate(1, "data_da")
+				if k_data_da > kkg.data_zero then
+				else
+					k_data_da = relativedate(k_data, -60)
+				end if
 			end if
-		end if
-		if k_data_a > kkg.data_zero then
-		else
-			k_data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a")
 			if k_data_a > kkg.data_zero then
 			else
-				k_data_a = k_data
+				k_data_a = tab_1.tabpage_1.dw_1.getitemdate(1, "data_a")
+				if k_data_a > kkg.data_zero then
+				else
+					k_data_a = k_data
+				end if
+			end if
+			if k_data_da > kkg.data_zero then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
+			end if
+			if k_data_a = kkg.data_zero then
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
+			end if
+	
+			ki_st_int_artr.gru_attiva = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_attiva")
+			if ki_st_int_artr.gru_attiva >= 0 then
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "gruppo_attiva", 1)
 			end if
 		end if
-		if k_data_da > kkg.data_zero then
-			tab_1.tabpage_1.dw_1.setitem(1, "data_da", k_data_da)
-		else
-			tab_1.tabpage_1.dw_1.setitem(1, "data_da", "00/00/00")
-		end if
-		if k_data_a = kkg.data_zero then
-			tab_1.tabpage_1.dw_1.setitem(1, "data_a", k_data_a)
-		else
-			tab_1.tabpage_1.dw_1.setitem(1, "data_a", "00/00/00")
-		end if
 
-		ki_st_int_artr.gru_attiva = tab_1.tabpage_1.dw_1.getitemnumber(1, "gruppo_attiva")
-		if ki_st_int_artr.gru_attiva >= 0 then
-		else
-			tab_1.tabpage_1.dw_1.setitem(1, "gruppo_attiva", 1)
-		end if
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", string(kguo_utente.get_id_utente( )))
+		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -6492,12 +6250,6 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 			
 attiva_tasti()
-	
-//return "0"
-
-	
-
-
 
 end subroutine
 
@@ -6771,24 +6523,24 @@ string k_scelta, k_importa
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_24" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_24"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	
-	tab_1.tabpage_1.dw_1.visible = true
 
-	try	
+	try
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		
+
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
-	
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -6966,33 +6718,35 @@ date k_data_da, k_data_a
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_25" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_25"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	
-	tab_1.tabpage_1.dw_1.visible = true
 
-	try	
+	try
+		
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		
+			k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
+			if k_data_da > date(0) then
+			else
+				k_data_a = kguo_g.get_dataoggi( )
+				k_data_da = date(year(k_data_a), month(k_data_a),01)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
+			end if
+		end if
+
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
-		if k_data_da > date(0) then
-		else
-			k_data_a = kguo_g.get_dataoggi( )
-			k_data_da = date(year(k_data_a), month(k_data_a),01)
-			tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
-			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
-		end if
 		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
-
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
 	
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+	
 end if
 
 attiva_tasti()
@@ -7178,6 +6932,8 @@ private function boolean u_scegli_report (integer a_num_report);//
 boolean k_return = true
 
 ki_scelta_report = a_num_report
+
+ki_colname = ""
 
 if ki_scelta_report > 0 then
 	tab_1.tabpage_2.enabled = true
@@ -7660,23 +7416,8 @@ datawindowchild kdwc_1
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_26" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_26"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
-	
-	tab_1.tabpage_1.dw_1.visible = true
 
-	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		k_data_a = kguo_g.get_dataoggi( )
-		k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
-		tab_1.tabpage_1.dw_1.setitem(1, "validation_laboratorio", "" )
+	try
 
 		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_1)
 		kdwc_1.settransobject(sqlca)
@@ -7691,14 +7432,32 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 			kdwc_1.retrieve("")
 			kdwc_1.insertrow(1)
 		end if
+
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+		
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
+			tab_1.tabpage_1.dw_1.setitem(1, "validation_laboratorio", "" )
+
+		end if
+		
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
-
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
 	
 	end try
+
+	tab_1.tabpage_1.dw_1.setfocus()
+	tab_1.tabpage_1.dw_1.visible = true
 
 end if
 
@@ -7864,24 +7623,8 @@ datawindowchild kdwc_1
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_27" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_27"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
 	
-	tab_1.tabpage_1.dw_1.visible = true
-
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		k_data_a = kguo_g.get_dataoggi( )
-		k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
-		tab_1.tabpage_1.dw_1.setitem(1, "id_ptasks_types_grp", 0 )
-		tab_1.tabpage_1.dw_1.setitem(1, "id_ptasks_types", 0 )
 
 		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_1)
 		kdwc_1.settransobject(sqlca)
@@ -7903,15 +7646,34 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 			kdwc_1.retrieve()
 			kdwc_1.insertrow(1)
 		end if
+
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
+			tab_1.tabpage_1.dw_1.setitem(1, "id_ptasks_types_grp", 0 )
+			tab_1.tabpage_1.dw_1.setitem(1, "id_ptasks_types", 0 )
 			
+		end if
+
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+				
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
-	
 	end try
 
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+	
 end if
 
 attiva_tasti()
@@ -8033,37 +7795,38 @@ datawindowchild kdwc_1
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_28" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_28"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
 	
-	tab_1.tabpage_1.dw_1.visible = true
-
 	try	
-//--- imposto l'utente (il "terminale") x costruire il nome della view
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		k_data_a = kguo_g.get_dataoggi( )
-		k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
-		tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
-
 		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_1)
 		kdwc_1.settransobject(sqlca)
 		if kdwc_1.rowcount() < 2 then
 			kdwc_1.retrieve("%")
 			kdwc_1.insertrow(1)
 		end if
+		
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+				
+			k_data_a = kguo_g.get_dataoggi( )
+			k_data_da = date(kguo_g.get_anno( ), kguo_g.get_mese( ), 01)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_ini",k_data_da)
+			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a )
+			tab_1.tabpage_1.dw_1.setitem(1, "clie_3", "" )
+			tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3", 0 )
+		end if
+
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 			
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
-	
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -8156,32 +7919,33 @@ date k_data_da, k_data_a
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_29" then
 	tab_1.tabpage_1.dw_1.dataobject = "d_report_29"
-	tab_1.tabpage_1.dw_1.reset()
-	tab_1.tabpage_1.dw_1.insertrow(0)
 	
-	tab_1.tabpage_1.dw_1.visible = true
-
 	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
+			if k_data_da > date(0) then
+			else
+				k_data_a = kguo_g.get_dataoggi( )
+				k_data_da = date(year(k_data_a), month(k_data_a),01)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
+			end if
+		end if
+		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
-	
-		k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
-		if k_data_da > date(0) then
-		else
-			k_data_a = kguo_g.get_dataoggi( )
-			k_data_da = date(year(k_data_a), month(k_data_a),01)
-			tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
-			tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
-		end if
-		
+
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 
-	finally
-		tab_1.tabpage_1.dw_1.setfocus()
-	
 	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
 
 end if
 
@@ -8288,6 +8052,59 @@ kuf_utility kuf1_utility
 
 return k_righe
 
+end function
+
+public function long u_dw_selezione_ripri ();/*
+   Ripristino righe nel tab_1.tabpage_1.dw_1 
+*/
+long k_rows
+string k_filename
+
+
+	k_filename = kguo_path.get_temp( ) + kkg.path_sep + tab_1.tabpage_1.dw_1.dataobject + ".xml"
+	if fileexists(k_filename) then
+		k_rows = tab_1.tabpage_1.dw_1.ImportFile(XML!,k_filename)
+	end if
+
+return k_rows
+
+////---
+////--- Ripristina i dati del DW di selezione
+////---
+//int k_return
+//string k_parametri
+//datetime k_data_backup
+//
+//
+//k_parametri = trim(tab_1.tabpage_1.dw_1.dataobject)
+//if k_parametri > " " then
+//	k_return = kGuf_data_base.dw_ripri_righe(k_parametri, "", tab_1.tabpage_1.dw_1, k_data_backup)
+//end if
+//
+//return k_return
+end function
+
+public function boolean u_dw_selezione_save ();/*
+   Salve le righe del tab_1.tabpage_1.dw_1 
+*/
+
+if tab_1.tabpage_1.dw_1.saveas(kguo_path.get_temp( ) + kkg.path_sep + tab_1.tabpage_1.dw_1.dataobject + ".xml", XML!, false) = 1 then
+	return true
+else
+	return false
+end if
+
+
+////---
+////--- Salva i dati del DW di selezione
+////---
+//string k_parametri
+//
+//k_parametri = trim(tab_1.tabpage_1.dw_1.dataobject)
+//if k_parametri > " " then
+//	kGuf_data_base.dw_salva_righe(k_parametri, tab_1.tabpage_1.dw_1, "")
+//end if
+//
 end function
 
 on w_int_artr.create
@@ -8479,6 +8296,7 @@ destroy(this.st_report)
 end on
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
+event u_set_clienti ( long k_row,  string k_colname )
 boolean visible = true
 integer x = 1061
 integer y = 160
@@ -8496,53 +8314,43 @@ boolean ki_d_std_1_attiva_cerca = false
 boolean ki_abilita_ddw_proposta = true
 end type
 
-event dw_1::itemchanged;call super::itemchanged;//
-int k_errore=0
+event dw_1::u_set_clienti(long k_row, string k_colname);//
 long  k_id_clie, k_riga
-string k_rag_soc, k_mc_co //, k_indirizzo, k_localita
+string k_rag_soc
 datawindowchild kdwc_cliente
-datawindowchild kdwc_contratti_1
 
-//
-//if ki_scelta_report = ki_scelta_report_generico or ki_scelta_report = ki_scelta_report_lotti_entrati &
-//				or  ki_scelta_report = ki_scelta_report_chk_intra or ki_scelta_report = ki_scelta_report_lotti_da_sped  &  
-//				or ki_scelta_report = ki_scelta_report_lotti_sped or ki_scelta_report = ki_scelta_report_bcode_trattati &
-//				or  ki_scelta_report = ki_scelta_report_memo or ki_scelta_report = ki_scelta_report_lotti_sped_daFatt &
-//				or  ki_scelta_report = ki_scelta_report_attestati &
-//				or  ki_scelta_report = ki_scelta_report_armo_Contratti then
 
-	choose case dwo.name 
+
+	choose case k_colname //dwo.name 
 		
 		case "clie_1" 
-			k_rag_soc = trim(data)
-//			k_rag_soc = trim(this.gettext())
-			if LenA(k_rag_soc) > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+			k_rag_soc = this.getitemstring(k_row, k_colname) //trim(string(dwo))
+			if trim(k_rag_soc) > " " then
+				this.getchild("clie_1", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
-				end if
-				k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", &
-										1, kdwc_cliente.rowcount())
-				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",&
-									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_1",&
-									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
+					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_1","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",0)
+					k_riga = kdwc_cliente.getrow( )
 				end if
-				k_errore = 1
+				if k_riga > 0 then
+					this.setitem(1, "id_clie_1",	kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
+					this.setitem(1, "clie_1",	kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
+				else
+					this.setitem(1, "clie_1","Non trovato")
+					this.setitem(1, "id_clie_1",0)
+				end if
+			//	k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",0)
+				this.setitem(1, "id_clie_1",0)
 			end if
 	
 	
 		case "id_clie_1" 
-			k_id_clie = long(data)
+			k_id_clie = this.getitemnumber(k_row, k_colname)
 			if k_id_clie > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_1", kdwc_cliente)
+				this.getchild("clie_1", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
@@ -8550,48 +8358,49 @@ datawindowchild kdwc_contratti_1
 				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
 										kdwc_cliente.getrow(), kdwc_cliente.rowcount())
 				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",	kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_1",	kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
+					this.setitem(1, "id_clie_1",	kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
+					this.setitem(1, "clie_1",	kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_1","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",0)
+					this.setitem(1, "clie_1","Non trovato")
+					this.setitem(1, "id_clie_1",0)
 				end if
-				k_errore = 1
+//				k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "clie_1","")
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_1",0)
+				this.setitem(1, "clie_1","")
+				this.setitem(1, "id_clie_1",0)
 			end if
 
 	
 		case "clie_2" 
-			k_rag_soc = trim(data)
+			k_rag_soc = this.getitemstring(k_row, k_colname)
 			if LenA(k_rag_soc) > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_2", kdwc_cliente)
+				this.getchild("clie_2", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
+					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
+				else
+					k_riga = kdwc_cliente.getrow( )
 				end if
-				k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'",&
-										1, kdwc_cliente.rowcount())
 				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",&
+					this.setitem(1, "id_clie_2",&
 									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_2",&
+					this.setitem(1, "clie_2",&
 									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_2","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",0)
+					this.setitem(1, "clie_2","Non trovato")
+					this.setitem(1, "id_clie_2",0)
 				end if
-				k_errore = 1
+//				k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",0)
+				this.setitem(1, "id_clie_2",0)
 			end if
 	
 	
 		case "id_clie_2" 
-			k_id_clie = long(trim(data))
+			k_id_clie = this.getitemnumber(k_row, k_colname) //long(trim(string(dwo)))
 			if k_id_clie > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_2", kdwc_cliente)
+				this.getchild("clie_2", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
@@ -8599,50 +8408,51 @@ datawindowchild kdwc_contratti_1
 				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
 										1, kdwc_cliente.rowcount())
 				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",&
+					this.setitem(1, "id_clie_2",&
 									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_2",&
+					this.setitem(1, "clie_2",&
 									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_2","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",0)
+					this.setitem(1, "clie_2","Non trovato")
+					this.setitem(1, "id_clie_2",0)
 				end if
-				k_errore = 1
+//				k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "clie_2","")
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_2",0)
+				this.setitem(1, "clie_2","")
+				this.setitem(1, "id_clie_2",0)
 			end if
 	
 	
 		case "clie_3" 
-			k_rag_soc = trim(data)
+			k_rag_soc = this.getitemstring(k_row, k_colname)
 			if LenA(k_rag_soc) > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente)
+				this.getchild("clie_3", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
+					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
+				else
+					k_riga = kdwc_cliente.getrow( )
 				end if
-				k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'",&
-										1, kdwc_cliente.rowcount())
 				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",&
+					this.setitem(1, "id_clie_3",&
 									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_3",&
+					this.setitem(1, "clie_3",&
 									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_3","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",0)
+					this.setitem(1, "clie_3","Non trovato")
+					this.setitem(1, "id_clie_3",0)
 				end if
-				k_errore = 1
+//				k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",0)
+				this.setitem(1, "id_clie_3",0)
 			end if
 	
 	
 		case "id_clie_3" 
-			k_id_clie = long(trim(data))
+			k_id_clie = this.getitemnumber(k_row, k_colname)
 			if k_id_clie > 0 then
-				tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente)
+				this.getchild("clie_3", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
 					kdwc_cliente.insertrow(1)
@@ -8650,18 +8460,18 @@ datawindowchild kdwc_contratti_1
 				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
 										1, kdwc_cliente.rowcount())
 				if k_riga > 0 then
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",&
+					this.setitem(1, "id_clie_3",&
 									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_3",&
+					this.setitem(1, "clie_3",&
 									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
 				else
-					tab_1.tabpage_1.dw_1.setitem(1, "clie_3","Non trovato")
-					tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",0)
+					this.setitem(1, "clie_3","Non trovato")
+					this.setitem(1, "id_clie_3",0)
 				end if
-				k_errore = 1
+//				k_errore = 1
 			else
-				tab_1.tabpage_1.dw_1.setitem(1, "clie_3","")
-				tab_1.tabpage_1.dw_1.setitem(1, "id_clie_3",0)
+				this.setitem(1, "clie_3","")
+				this.setitem(1, "id_clie_3",0)
 			end if
 	
 		case "id_gruppo"
@@ -8669,55 +8479,6 @@ datawindowchild kdwc_contratti_1
 			
 	end choose 
 //end if
-
-
-//---- se ho cambiato il cliente rileggo il Contratto
-if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
-	if  dwo.name = "id_clie_3" or  dwo.name = "clie_3" then
-		if  dwo.name = "id_clie_3" then
-			k_id_clie =  long(trim(this.gettext()))
-		else
-			k_id_clie = tab_1.tabpage_1.dw_1.getitemnumber(row, "id_clie_3")
-		end if
-		tab_1.tabpage_1.dw_1.getchild("mc_co", kdwc_contratti_1)
-//		if kdwc_contratti_1.rowcount() < 2 then
-			kdwc_contratti_1.retrieve(k_id_clie)
-			kdwc_contratti_1.insertrow(1)
-//		end if
-
-	elseif  dwo.name = "mc_co" then
-		tab_1.tabpage_1.dw_1.setitem(1, "descr", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "idem", "" )
-		tab_1.tabpage_1.dw_1.setitem(1, "codice", 0 )
-		if trim(data) > " " then
-			tab_1.tabpage_1.dw_1.getchild("mc_co", kdwc_contratti_1)
-			//k_riga = kdwc_contratti_1.getrow()
-			k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
-			if k_riga > 0 then
-				tab_1.tabpage_1.dw_1.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
-				tab_1.tabpage_1.dw_1.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
-				tab_1.tabpage_1.dw_1.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
-				k_mc_co = kdwc_contratti_1.getitemstring(k_riga, "mc_co")
-				k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", 1, kdwc_contratti_1.rowcount()) 
-				if k_riga > 0 then
-					k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", k_riga + 1, kdwc_contratti_1.rowcount()) 
-					if k_riga > 0 then
-						tab_1.tabpage_1.dw_1.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(k_mc_co) )
-					end if
-				end if
-			end if
-		end if
-	end if
-end if
-
-if k_errore = 1 then
-	return 2
-end if
-
-	
-
-	
 
 
 
@@ -8733,6 +8494,77 @@ event dw_1::buttonclicked;call super::buttonclicked;////
 //
 //u_button_clicked(dwo.Name, row)
 //
+end event
+
+event dw_1::itemfocuschanged;call super::itemfocuschanged;//
+
+if ki_colname <> dwo.Name then
+	
+	event u_set_clienti(row, ki_colname)
+
+	ki_colname = dwo.Name  // salva il nome colonna con il fuoco 	
+	
+end if
+
+return 0
+
+
+end event
+
+event dw_1::itemchanged;call super::itemchanged;//
+long k_id_clie, k_riga
+string k_rag_soc, k_mc_co 
+datawindowchild kdwc_cliente
+datawindowchild kdwc_contratti_1
+
+ki_colname = dwo.Name  // salva il nome colonna con il fuoco 	
+
+post event u_set_clienti(row, dwo.name)
+
+//---- se ho cambiato il cliente rileggo il Contratto
+if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
+	if dwo.name = "id_clie_3" or dwo.name = "clie_3" then
+		if dwo.name = "id_clie_3" then
+			k_id_clie = long(trim(this.gettext()))
+		else
+			k_id_clie = this.getitemnumber(row, "id_clie_3")
+		end if
+		this.getchild("mc_co", kdwc_contratti_1)
+//		if kdwc_contratti_1.rowcount() < 2 then
+			kdwc_contratti_1.retrieve(k_id_clie)
+			kdwc_contratti_1.insertrow(1)
+//		end if
+	elseif  dwo.name = "mc_co" then
+		this.setitem(1, "descr", "" )
+		this.setitem(1, "scadenza", "" )
+		this.setitem(1, "idem", "" )
+		this.setitem(1, "codice", 0 )
+		if trim(string(dwo)) > " " then
+			this.getchild("mc_co", kdwc_contratti_1)
+			//k_riga = kdwc_contratti_1.getrow()
+			k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
+			if k_riga > 0 then
+				this.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
+				this.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
+				this.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
+				k_mc_co = kdwc_contratti_1.getitemstring(k_riga, "mc_co")
+				k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", 1, kdwc_contratti_1.rowcount()) 
+				if k_riga > 0 then
+					k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", k_riga + 1, kdwc_contratti_1.rowcount()) 
+					if k_riga > 0 then
+						this.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(k_mc_co) )
+					end if
+				end if
+			end if
+		end if
+	end if
+end if
+
+//if k_errore = 1 then
+//	return 2
+//end if
+
+
 end event
 
 type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1

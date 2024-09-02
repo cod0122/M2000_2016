@@ -684,8 +684,8 @@ try
 					kst_tab_sped.ora_rit = kst_ddt_stampa[k_ind_sped].ora_rit 
 					if kuf1_sped.set_sped_stampata(kst_tab_sped)	then
 		//--- Aggiorna le righe
-						kst_tab_arsp.num_bolla_out = kst_ddt_stampa[k_ind_sped].num_bolla_out
-						kst_tab_arsp.data_bolla_out = kst_ddt_stampa[k_ind_sped].data_bolla_out
+						kst_tab_arsp.id_sped = kst_ddt_stampa[k_ind_sped].id_sped
+					//	kst_tab_arsp.data_bolla_out = kst_ddt_stampa[k_ind_sped].data_bolla_out
 						kuf1_sped.set_righe_stampata(kst_tab_arsp)
 					end if
 					

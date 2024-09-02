@@ -44,7 +44,6 @@ end variables
 forward prototypes
 public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped)
 public function st_esito tb_delete_x_rif ()
-public function st_esito select_testa (ref st_tab_sped kst_tab_sped)
 public function st_esito select_riga (ref st_tab_arsp kst_tab_arsp)
 public subroutine if_isnull_riga (ref st_tab_arsp kst_tab_arsp)
 public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, readonly string k_tipo_oggetto)
@@ -129,6 +128,7 @@ public function st_esito anteprima_2 (ref uo_ds_std_1 kdw_anteprima, st_tab_sped
 public function st_esito anteprima_elenco (ref uo_ds_std_1 kdw_anteprima, st_tab_armo kst_tab_armo)
 public function st_esito anteprima_righe (ref uo_ds_std_1 kdw_anteprima, st_tab_sped kst_tab_sped)
 private function st_esito tb_update_json (ref st_tab_sped ast_tab_sped) throws uo_exception
+public function boolean select_testa (ref st_tab_sped kst_tab_sped) throws uo_exception
 end prototypes
 
 public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped);//---
@@ -303,120 +303,6 @@ end if
 
 
 return kst_esito
-
-end function
-
-public function st_esito select_testa (ref st_tab_sped kst_tab_sped);//
-//--- Leggo Contratto specifico
-//
-long k_codice
-st_esito kst_esito
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-	if kst_tab_sped.id_sped > 0 then
-
-	  SELECT 
-				sped.clie_2,   
-				sped.clie_3,   
-				trim(sped.cura_trasp),   
-				sped.causale,   
-				trim(sped.aspetto),   
-				trim(sped.porto),   
-				trim(sped.mezzo),   
-				sped.note_1,   
-				sped.note_2,   
-				sped.data_rit,   
-				trim(sped.ora_rit),   
-				trim(sped.vett_1),   
-				trim(sped.vett_2),   
-				sped.stampa,   
-				sped.colli,   
-				sped.data_uscita  
-		 INTO 
-			  :kst_tab_sped.clie_2,   
-				:kst_tab_sped.clie_3,   
-				:kst_tab_sped.cura_trasp,   
-				:kst_tab_sped.causale,   
-				:kst_tab_sped.aspetto,   
-				:kst_tab_sped.porto,   
-				:kst_tab_sped.mezzo,   
-				:kst_tab_sped.note_1,   
-				:kst_tab_sped.note_2,   
-				:kst_tab_sped.data_rit,   
-				:kst_tab_sped.ora_rit,   
-				:kst_tab_sped.vett_1,   
-				:kst_tab_sped.vett_2,   
-				:kst_tab_sped.stampa,   
-				:kst_tab_sped.colli,   
-				:kst_tab_sped.data_uscita  
-		 FROM sped  
-		WHERE id_sped = :kst_tab_sped.id_sped
-				  ;
-	else	
-
-	  SELECT 
-				sped.clie_2,   
-				sped.clie_3,   
-				trim(sped.cura_trasp),   
-				sped.causale,   
-				trim(sped.aspetto),   
-				trim(sped.porto),   
-				trim(sped.mezzo),   
-				sped.note_1,   
-				sped.note_2,   
-				sped.data_rit,   
-				trim(sped.ora_rit),   
-				trim(sped.vett_1),   
-				trim(sped.vett_2),   
-				sped.stampa,   
-				sped.colli,   
-				sped.data_uscita  
-		 INTO 
-			  :kst_tab_sped.clie_2,   
-				:kst_tab_sped.clie_3,   
-				:kst_tab_sped.cura_trasp,   
-				:kst_tab_sped.causale,   
-				:kst_tab_sped.aspetto,   
-				:kst_tab_sped.porto,   
-				:kst_tab_sped.mezzo,   
-				:kst_tab_sped.note_1,   
-				:kst_tab_sped.note_2,   
-				:kst_tab_sped.data_rit,   
-				:kst_tab_sped.ora_rit,   
-				:kst_tab_sped.vett_1,   
-				:kst_tab_sped.vett_2,   
-				:kst_tab_sped.stampa,   
-				:kst_tab_sped.colli,   
-				:kst_tab_sped.data_uscita  
-		 FROM sped  
-		WHERE ( num_bolla_out = :kst_tab_sped.num_bolla_out ) AND  
-				( data_bolla_out = :kst_tab_sped.data_bolla_out)   
-				  ;
-	end if
-	
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.d.d.t., bolla di sped. (numero=" + string( kst_tab_sped.num_bolla_out) + " del "+ string( kst_tab_sped.data_bolla_out)+") : " &
-									 + trim(SQLCA.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else	
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
-	
-//return string(sqlca.sqlcode, "0000000000") + trim(sqlca.SQLErrText) + " "
-return kst_esito
-
 
 end function
 
@@ -7369,6 +7255,80 @@ string k_json_val[100]
 
 
 return kguo_exception.kist_esito
+
+end function
+
+public function boolean select_testa (ref st_tab_sped kst_tab_sped) throws uo_exception;/*
+   Leggo dati bolla
+	inp: st_tab_sped.id_sped 
+	out: st_tab_sped.*
+	rit: true = trovato
+*/
+boolean k_return
+long k_codice
+
+
+	kguo_exception.inizializza(this.classname())
+
+	if kst_tab_sped.id_sped > 0 then
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_internal_bug
+		kguo_exception.kist_esito.sqlerrtext = "Lettura testata del DDT di spedizione non eseguita! Manca Id del documento. "
+		throw kguo_exception
+	end if
+
+  SELECT 	num_bolla_out,
+	  			data_bolla_out,
+				sped.clie_2,   
+				sped.clie_3,   
+				trim(sped.cura_trasp),   
+				sped.causale,   
+				trim(sped.aspetto),   
+				trim(sped.porto),   
+				trim(sped.mezzo),   
+				sped.note_1,   
+				sped.note_2,   
+				sped.data_rit,   
+				trim(sped.ora_rit),   
+				trim(sped.vett_1),   
+				trim(sped.vett_2),   
+				sped.stampa,   
+				sped.colli,   
+				sped.data_uscita  
+		 INTO :kst_tab_sped.num_bolla_out,
+		 		:kst_tab_sped.data_bolla_out,
+			   :kst_tab_sped.clie_2,   
+				:kst_tab_sped.clie_3,   
+				:kst_tab_sped.cura_trasp,   
+				:kst_tab_sped.causale,   
+				:kst_tab_sped.aspetto,   
+				:kst_tab_sped.porto,   
+				:kst_tab_sped.mezzo,   
+				:kst_tab_sped.note_1,   
+				:kst_tab_sped.note_2,   
+				:kst_tab_sped.data_rit,   
+				:kst_tab_sped.ora_rit,   
+				:kst_tab_sped.vett_1,   
+				:kst_tab_sped.vett_2,   
+				:kst_tab_sped.stampa,   
+				:kst_tab_sped.colli,   
+				:kst_tab_sped.data_uscita  
+		 FROM sped  
+		WHERE id_sped = :kst_tab_sped.id_sped
+		using kguo_sqlca_db_magazzino;
+
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura testata del DDT di spedizione n. " + string(kst_tab_sped.id_sped))		
+		throw kguo_exception
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+	end if
+
+return k_return
+
 
 end function
 

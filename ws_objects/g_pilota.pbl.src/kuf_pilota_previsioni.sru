@@ -861,6 +861,7 @@ long k_rigainsert
 string k_campi, k_stato
 string k_sql_orig, k_string, k_stringn
 int k_ctr
+string k_barcode_figli
 st_tab_pilota_pallet kst_tab_pilota_pallet
 uo_ds_std_1 kds_out, kds_inp
 
@@ -876,8 +877,8 @@ try
 					+ " , ordine_figlio tinyint " &
 					+ " , num_int_figlio int " &
 					+ " , posizione tinyint " &
+				 	+ " , wrkt_fase tinyint " &
 					+ " , fase tinyint " &
-					+ " , nn tinyint " &
 					+ " , fila tinyint " &
 					 + ", ciclifila1 smallint " &
 					 + ", ciclifila1p smallint " &
@@ -921,7 +922,20 @@ try
 		kds_out.setitem( k_rigainsert, "stato", k_stato )
 		kds_out.setitem( k_rigainsert, "n_ordine", kds_inp.getitemnumber(k_riga, "n_ordine") )
 		kds_out.setitem( k_rigainsert, "barcode", kds_inp.getitemstring(k_riga, "barcode") )
-		kds_out.setitem( k_rigainsert, "barcode_figlio", kds_inp.getitemstring(k_riga, "barcode_figlio") )
+
+//--- Raccoglie figli e dosimetri
+		if trim(kds_inp.getitemstring(k_riga, "barcode_figlio")) > " " then
+			k_barcode_figli = trim(kds_inp.getitemstring(k_riga, "barcode_figlio"))
+		end if
+		if trim(kds_inp.getitemstring(k_riga, "padre_barcode_dosimetro")) > " " then
+			k_barcode_figli += " " + trim(kds_inp.getitemstring(k_riga, "padre_barcode_dosimetro"))
+		end if
+		if trim(kds_inp.getitemstring(k_riga, "figlio_barcode_dosimetro")) > " " then
+			k_barcode_figli += " " + trim(kds_inp.getitemstring(k_riga, "figlio_barcode_dosimetro"))
+		end if
+		kds_out.setitem( k_rigainsert, "barcode_figlio", k_barcode_figli )
+
+		//kds_out.setitem( k_rigainsert, "barcode_figlio", kds_inp.getitemstring(k_riga, "barcode_figlio") )
 		kds_out.setitem( k_rigainsert, "ordine_figlio", kds_inp.getitemnumber(k_riga, "ordine_figlio") )
 		kds_out.setitem( k_rigainsert, "num_int_figlio", integer(kds_inp.getitemstring(k_riga, "lotto_figlio") ))
 		kds_out.setitem( k_rigainsert, "posizione", integer(kds_inp.getitemstring(k_riga, "posizione") ))
@@ -935,9 +949,9 @@ try
 			end if
 		end if
 		kds_out.setitem( k_rigainsert, "dataora_lav_ini", kst_tab_pilota_pallet.data_entrata )
-		
 		kds_out.setitem( k_rigainsert, "fase", kds_inp.getitemnumber(k_riga, "fase") )
-		kds_out.setitem( k_rigainsert, "nn", '' )
+		int k_fase 
+		kds_out.setitem( k_rigainsert, "wrkt_fase", kds_inp.getitemnumber(k_riga, "wrkt_fase") )
 		kds_out.setitem( k_rigainsert, "fila", kds_inp.getitemnumber(k_riga, "fila") )
 		kds_out.setitem( k_rigainsert, "ciclifila1", kds_inp.getitemnumber(k_riga, "ciclifila1") )
 		kds_out.setitem( k_rigainsert, "ciclifila1p", kds_inp.getitemnumber(k_riga, "ciclifila1p") )

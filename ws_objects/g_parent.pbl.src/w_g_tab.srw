@@ -79,6 +79,8 @@ private kuf_filtra kiuf_filtra
 //--- premuto il pulsante EXIT
 protected boolean ki_exit_si = false
 
+//--- ospita funzioni di solo elenco o visualzzazione non aggiornamenti su DB
+protected boolean ki_funz_di_sola_visulizzazione=false
 //--- evita la richiesta se aggiornare gli archivi se tutto ok
 protected boolean ki_aggiorna_richiesta_conferma = true
 
@@ -517,6 +519,9 @@ string k_return= "0"
 int k_msg=0
 boolean k_dati_modificati=false
 
+
+//--- se funzioni si solo elenco o visualizzazione nessun controllo -> EXIT
+if ki_funz_di_sola_visulizzazione then return "0"
 
 //---- personalizzazioni varie x i gli oggetti eredi di inzio
 k_return = dati_modif_figlio_inizio(k_titolo)
