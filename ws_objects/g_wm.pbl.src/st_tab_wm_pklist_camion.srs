@@ -1,0 +1,13 @@
+﻿$PBExportHeader$st_tab_wm_pklist_camion.srs
+global type st_tab_wm_pklist_camion from structure
+	st_tab_g_0		st_tab_g_0		descriptor "comment" = "standard"
+	long		id_wm_pklist_camion		descriptor "comment" = "id di questa tabella "
+	long		idpkl		descriptor "comment" = "id indicato nel file json del cliente"
+	date		dataarrivo		descriptor "comment" = "data di carico del camion"
+	long		id_cliente		descriptor "comment" = "cliente del pklist (mandante)"
+	integer		seqcamion		descriptor "comment" = "numero sequenziale del camion"
+	integer		totpallet		descriptor "comment" = "numero colli pallet caricati sul camion"
+	datetime		x_datins		descriptor "comment" = "data ultimo agg"
+	string		x_utente		descriptor "comment" = "utente ultimo agg"
+end type
+

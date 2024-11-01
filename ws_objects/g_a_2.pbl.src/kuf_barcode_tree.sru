@@ -473,10 +473,16 @@ k_query_select = &
 			"		armo.peso_kg,		 " + &
 			"		sl_pt.cod_sl_pt,   " + &
 			"		sl_pt.descr,		 " + &
-			"		barcode.fila_1,	 " + &
-			"		barcode.fila_2,	 " + &
-			"		barcode.fila_1p,   " + &
-			"		barcode.fila_2p,	 " + &
+			"isnull(barcode.fila_1,0), " + &
+			"isnull(barcode.fila_2,0), " + &
+			"isnull(barcode.fila_1p,0), " + &
+			"isnull(barcode.fila_2p,0), " + &
+			"isnull(barcode.lav_fila_1,0), " + &
+			"isnull(barcode.lav_fila_2,0), " + &
+			"isnull(barcode.lav_fila_1p,0), " + &
+			"isnull(barcode.lav_fila_2p,0), " + &
+			"isnull(barcode.g3ngiri,0), " + &
+			"isnull(barcode.g3lav_ngiri,0),	 " + &
 			"		sl_pt.densita,		 " + &
 			"		pl_barcode.data,	 " + &
 			"		pl_barcode.note_1,     " + &
@@ -573,10 +579,13 @@ k_query_select = &
 			k_campo[k_ind] = "Peso"
 			k_align[k_ind] = right!
 			k_ind++
-			k_campo[k_ind] = "F.1"
+			k_campo[k_ind] = "G2-F.1"
 			k_align[k_ind] = center!
 			k_ind++
-			k_campo[k_ind] = "F.2"
+			k_campo[k_ind] = "G2-F.2"
+			k_align[k_ind] = center!
+			k_ind++
+			k_campo[k_ind] = "G3-Giri"
 			k_align[k_ind] = center!
 			k_ind++
 			k_campo[k_ind] = "Piano di Trattamento"
@@ -792,10 +801,16 @@ k_query_select = &
 					 ,:kst_tab_armo.peso_kg
 					 ,:kst_tab_sl_pt.cod_sl_pt 
 					 ,:kst_tab_sl_pt.descr 
-					 ,:kst_tab_sl_pt.fila_1 
-					 ,:kst_tab_sl_pt.fila_2 
-					 ,:kst_tab_sl_pt.fila_1p 
-					 ,:kst_tab_sl_pt.fila_2p 
+					 ,:kst_tab_barcode.fila_1 
+					 ,:kst_tab_barcode.fila_2 
+					 ,:kst_tab_barcode.fila_1p 
+					 ,:kst_tab_barcode.fila_2p 
+					 ,:kst_tab_barcode.lav_fila_1 
+					 ,:kst_tab_barcode.lav_fila_2 
+					 ,:kst_tab_barcode.lav_fila_1p 
+					 ,:kst_tab_barcode.lav_fila_2p 
+					 ,:kst_tab_barcode.g3ngiri 
+					 ,:kst_tab_barcode.g3lav_ngiri 
 					 ,:kst_tab_sl_pt.densita
 					 ,:kst_tab_pl_barcode.data
 					 ,:kst_tab_pl_barcode.note_1
@@ -915,25 +930,37 @@ k_query_select = &
 				if isnull(kst_tab_armo.peso_kg) then kst_tab_armo.peso_kg = 0
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, 6, string(kst_tab_armo.peso_kg, "##,##0.00"))
 
-				if isnull(kst_tab_sl_pt.fila_1) then kst_tab_sl_pt.fila_1 = 0
-				if isnull(kst_tab_sl_pt.fila_1p) then kst_tab_sl_pt.fila_1p = 0
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 7, string(kst_tab_sl_pt.fila_1, "##0") + " - " &
-			                          + string(kst_tab_sl_pt.fila_1p, "##0"))
+				if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_1p > 0 then
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 7, string(kst_tab_barcode.lav_fila_1, "##0") + " - " &
+			                          + string(kst_tab_barcode.lav_fila_1p, "##0"))
+				else
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 7, string(kst_tab_barcode.fila_1, "##0") + " - " &
+			                          + string(kst_tab_barcode.fila_1p, "##0"))
+				end if
 
-				if isnull(kst_tab_sl_pt.fila_2) then kst_tab_sl_pt.fila_2 = 0
-				if isnull(kst_tab_sl_pt.fila_2p) then kst_tab_sl_pt.fila_2p = 0
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_sl_pt.fila_2, "##0") + " - " &
-			                          + string(kst_tab_sl_pt.fila_2p, "##0"))
+				if kst_tab_barcode.lav_fila_2 > 0 or kst_tab_barcode.lav_fila_2p > 0 then
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_barcode.lav_fila_2, "##0") + " - " &
+				                          + string(kst_tab_barcode.lav_fila_2p, "##0"))
+				else
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_barcode.fila_2, "##0") + " - " &
+				                          + string(kst_tab_barcode.fila_2p, "##0"))
+				end if
+
+				if kst_tab_barcode.g3lav_ngiri > 0 then
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, string(kst_tab_barcode.g3lav_ngiri, "##0"))
+				else
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, "")
+				end if
 				
 				if len(trim(kst_tab_sl_pt.cod_sl_pt)) > 0 then
 					if isnull(kst_tab_sl_pt.descr) then kst_tab_sl_pt.descr = " "
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, trim(kst_tab_sl_pt.cod_sl_pt) &
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, trim(kst_tab_sl_pt.cod_sl_pt) &
 										 + " " + trim(kst_tab_sl_pt.descr))
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, "---")
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, "---")
 				end if
 
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, string(kst_tab_barcode.data_int , "dd/mm/yy") + string(kst_tab_barcode.num_int , "  ####0"))
+				kuf1_treeview.kilv_lv1.setitem(k_ctr, 11, string(kst_tab_barcode.data_int , "dd/mm/yy") + string(kst_tab_barcode.num_int , "  ####0"))
 				
 				if isnull(kst_tab_contratti.codice) then kst_tab_contratti.codice = 0
 				if isnull(kst_tab_contratti.sc_cf) then kst_tab_contratti.sc_cf = "NO   "
@@ -942,7 +969,7 @@ k_query_select = &
 				
 				if kst_tab_meca.clie_3 <> kst_tab_meca.clie_2 then
 					
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 11, &
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 12, &
 										   "cap.: " + trim(kst_tab_contratti.sc_cf) &
 										 + "  comm.: " + trim(kst_tab_contratti.mc_co) &
 										 + "  cliente: " + string(kst_tab_meca.clie_3, "#####") &
@@ -954,7 +981,7 @@ k_query_select = &
 										 + "  contratto: " + string(kst_tab_contratti.codice, "#####") & 
 										 + "  " + trim(kst_tab_contratti.descr) )
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 11, &
+					kuf1_treeview.kilv_lv1.setitem(k_ctr, 12, &
 										   "cap.: " + trim(kst_tab_contratti.sc_cf) &
 										 + "  comm.: " + trim(kst_tab_contratti.mc_co) &
 										 + "  cliente: " + string(kst_tab_meca.clie_3, "#####") &
@@ -1000,10 +1027,16 @@ k_query_select = &
 					 ,:kst_tab_armo.peso_kg
 					 ,:kst_tab_sl_pt.cod_sl_pt 
 					 ,:kst_tab_sl_pt.descr 
-					 ,:kst_tab_sl_pt.fila_1 
-					 ,:kst_tab_sl_pt.fila_2 
-					 ,:kst_tab_sl_pt.fila_1p 
-					 ,:kst_tab_sl_pt.fila_2p 
+					 ,:kst_tab_barcode.fila_1 
+					 ,:kst_tab_barcode.fila_2 
+					 ,:kst_tab_barcode.fila_1p 
+					 ,:kst_tab_barcode.fila_2p 
+					 ,:kst_tab_barcode.lav_fila_1 
+					 ,:kst_tab_barcode.lav_fila_2 
+					 ,:kst_tab_barcode.lav_fila_1p 
+					 ,:kst_tab_barcode.lav_fila_2p 
+					 ,:kst_tab_barcode.g3ngiri 
+					 ,:kst_tab_barcode.g3lav_ngiri 
 					 ,:kst_tab_sl_pt.densita
 					 ,:kst_tab_pl_barcode.data
 					 ,:kst_tab_pl_barcode.note_1
@@ -1049,6 +1082,7 @@ integer k_pictureindex, k_pic_list, k_ctr
 string k_label, k_stringa, k_tipo_oggetto_figlio, k_tipo_oggetto_padre, k_tipo_oggetto_nonno, k_stato_magazzino
 integer k_ind
 string k_campo[16]
+string k_giri
 alignment k_align[16]
 alignment k_align_1
 treeviewitem ktvi_treeviewitem
@@ -1175,17 +1209,14 @@ kuf_armo kuf1_armo
 			k_campo[k_ind] = "Peso"
 			k_align[k_ind] = right!
 			k_ind++
-			k_campo[k_ind] = "F.1"
+			k_campo[k_ind] = "Cicli"
 			k_align[k_ind] = center!
-			k_ind++
-			k_campo[k_ind] = "F.2"
-			k_align[k_ind] = center!
+//			k_ind++
+//			k_campo[k_ind] = "F.2"
+//			k_align[k_ind] = center!
 			k_ind++
 			k_campo[k_ind] = "Piano di Trattamento"
 			k_align[k_ind] = left!
-//			k_ind++
-//			k_campo[k_ind] = "Ulteriori Informazion"
-//			k_align[k_ind] = left!
 			k_ind++
 			k_campo[k_ind] = "FINE"
 			k_align[k_ind] = left!
@@ -1368,19 +1399,43 @@ kuf_armo kuf1_armo
 				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_armo.peso_kg, "##,##0.00"))
 			end if
 
-			if isnull(kst_tab_sl_pt.fila_1) then kst_tab_sl_pt.fila_1 = 0
-			if isnull(kst_tab_sl_pt.fila_1p) then kst_tab_sl_pt.fila_1p = 0
-			k_riga_item ++		
-			if kst_tab_sl_pt.fila_1 > 0 or kst_tab_sl_pt.fila_1p > 0 then
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_sl_pt.fila_1, "##0") + " - " + string(kst_tab_sl_pt.fila_1p, "##0"))
+			k_riga_item ++
+			k_giri = ""
+			if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_1p > 0 then
+				k_giri = "F1 lav. in G2=" + string(kst_tab_barcode.lav_fila_1, "##0") + "+" + string(kst_tab_barcode.lav_fila_1p, "##0") + "; "
+			else
+				if kst_tab_barcode.fila_1 > 0 or kst_tab_barcode.fila_1p > 0 then
+					k_giri = "F1 in G2=" + string(kst_tab_barcode.fila_1, "##0") + "+" + string(kst_tab_barcode.fila_1p, "##0") + "; "
+				end if
 			end if
-											  
-			if isnull(kst_tab_sl_pt.fila_2) then kst_tab_sl_pt.fila_2 = 0
-			if isnull(kst_tab_sl_pt.fila_2p) then kst_tab_sl_pt.fila_2p = 0
-			k_riga_item ++		
-			if kst_tab_sl_pt.fila_2 > 0 or kst_tab_sl_pt.fila_2p > 0 then
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_sl_pt.fila_2, "##0") + " - " + string(kst_tab_sl_pt.fila_2p, "##0"))
+			if kst_tab_barcode.lav_fila_2 > 0 or kst_tab_barcode.lav_fila_2p > 0 then
+				k_giri = "F2 lav. in G2=" + string(kst_tab_barcode.lav_fila_2, "##0") + "+" + string(kst_tab_barcode.lav_fila_2p, "##0") + "; "
+			else
+				if kst_tab_barcode.fila_2 > 0 or kst_tab_barcode.fila_2p > 0 then
+					k_giri = "F2 in G2=" + string(kst_tab_barcode.fila_2, "##0") + "+" + string(kst_tab_barcode.fila_2p, "##0") + "; "
+				end if
 			end if
+			if kst_tab_barcode.g3lav_ngiri > 0 then
+				k_giri = "Giri lav. in G3=" + string(kst_tab_barcode.g3lav_ngiri, "##0")
+			else
+				if kst_tab_barcode.g3ngiri > 0 then
+					k_giri = "Giri in G3=" + string(kst_tab_barcode.g3ngiri, "##0")
+				end if
+			end if			
+			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, k_giri)
+			
+//			if isnull(kst_tab_sl_pt.fila_1) then kst_tab_sl_pt.fila_1 = 0
+//			if isnull(kst_tab_sl_pt.fila_1p) then kst_tab_sl_pt.fila_1p = 0
+//			k_riga_item ++
+//			if kst_tab_sl_pt.fila_1 > 0 or kst_tab_sl_pt.fila_1p > 0 then
+				//kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_sl_pt.fila_1, "##0") + " - " + string(kst_tab_sl_pt.fila_1p, "##0"))
+//			end if
+//			if isnull(kst_tab_sl_pt.fila_2) then kst_tab_sl_pt.fila_2 = 0
+//			if isnull(kst_tab_sl_pt.fila_2p) then kst_tab_sl_pt.fila_2p = 0
+			//k_riga_item ++		
+//			if kst_tab_sl_pt.fila_2 > 0 or kst_tab_sl_pt.fila_2p > 0 then
+//				//kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_sl_pt.fila_2, "##0") + " - " + string(kst_tab_sl_pt.fila_2p, "##0"))
+//			end if
 			
 			k_riga_item ++		
 			if trim(kst_tab_sl_pt.cod_sl_pt) > " " then

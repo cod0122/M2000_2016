@@ -49,6 +49,7 @@ private function boolean u_tb_crea_view (string a_viewname, string a_sql) throws
 private function boolean u_crea_view_v_colli_sped () throws uo_exception
 private function boolean u_crea_view_v_sped_deposito_anag () throws uo_exception
 private function boolean u_crea_view_v_barcode_data_json () throws uo_exception
+private function boolean u_crea_view_v_clienti_mkt_web () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -613,6 +614,8 @@ try
 	krc = u_crea_view_v_contatti( )
 	if not krc then k_return=false	
 	krc = u_crea_view_v_meca_artr_impianto( )
+	if not krc then k_return=false	
+	krc = u_crea_view_v_clienti_mkt_web()
 	if not krc then k_return=false	
 	
 	kguo_sqlca_db_magazzino.db_commit( )
@@ -6044,8 +6047,11 @@ string k_sql
 			+" isnull(trim(clienti_web.blog_web1),'')  blog_web1, " & 
 			+" isnull(clienti_mkt.id_cliente_link,0) id_cliente_link," & 
 			+" isnull(clienti_mkt.qualifica,'') qualifica, " & 
-			+" trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')) for_qa_italy, " & 
-			+" trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_cobalt_rload')) for_cobalt_rload " & 
+			+" isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')),'') for_qa_italy, " & 
+			+" isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_cobalt_rload')),'') for_cobalt_rload, " & 
+			+" isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_price_cntct')),'') for_price_cntct, " & 
+			+" isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.cell')),'') cell, " & 
+			+" isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.categ')),'') categ " & 
 		 +" FROM clienti " & 
 			+" left outer join clienti_web on clienti.codice = clienti_web.id_cliente " & 
 			+" left outer join clienti_mkt on clienti.codice = clienti_mkt.id_cliente " &
@@ -6237,6 +6243,71 @@ string k_sql
 	k_return = u_tb_crea_view("v_barcode_data_json", k_sql)
 
 	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_clienti_mkt_web () throws uo_exception;//
+//=== Estemporanea da lanciare una sola volta
+//=== Crae tabella View  'v_clienti_mkt_web' 
+//===
+boolean k_return
+string k_sql
+
+
+	k_sql = "create view v_clienti_mkt_web  " &
+		+ " as " &
+		 +" SELECT  " &
+        +" clienti_mkt.id_cliente,   " &
+        +" trim(clienti_mkt.qualifica) as qualifica,   " &
+        +" isnull(clienti_mkt.id_cliente_link,0) as id_cliente_link,   " &
+        +" trim(isnull(c_link.rag_soc_10,'')) as c_link_rag_soc_10,   " &
+        +" trim(clienti_mkt.altra_sede) as altra_sede,   " &
+        +" trim(isnull(clienti_mkt.cod_atecori,'')) as cod_atecori,   " &
+        +" trim(isnull(clienti_mkt.contatto_5_qualif,'')) as contatto_5_qualif,   " &
+        +" trim(isnull(clienti_mkt.note_attivita,'')) as note_attivita,   " &
+        +" trim(isnull(clienti_mkt.note_prodotti,'')) as note_prodotti,   " &
+        +" trim(isnull(clienti_mkt.tipo_rapporto,'')) as tipo_rapporto,   " &
+        +" trim(isnull(clienti_web.email,'')) as email,   " &
+        +" trim(isnull(clienti_web.email1,'')) as email1,   " &
+        +" trim(isnull(clienti_web.email2,'')) as email2,   " &
+        +" trim(isnull(clienti_web.note,'')) as note,   " &
+        +" trim(isnull(clienti_web.sito_web,'')) as sito_web,   " &
+        +" trim(isnull(clienti_web.sito_web1,'')) as sito_web1,   " &
+        +" trim(isnull(clienti_web.blog_web,'')) as blog_web,   " &
+        +" trim(isnull(clienti_web.blog_web1,'')) as blog_web1,    " &
+        +" clienti_mkt.x_datins,   " &
+        +" clienti_mkt.x_utente,   " &
+        +" clienti_web.x_datins x_datins1,   " &
+        +" clienti_web.x_utente x_utente1,  " &
+        +" isnull(clienti_mkt.gruppo, 0) gruppo,   " &
+        +" trim(isnull(gru.des,'')) as gru_des, " &
+        +" trim(isnull(clienti_mkt.doc_esporta,'')) as doc_esporta,   " &
+        +" trim(isnull(clienti_mkt.doc_esporta_prefpath,'')) as doc_esporta_prefpath, " &
+        +" trim(isnull(clienti_web.email3,'')) as email3,   " &
+        +" isnull(clienti_web.email_prontomerce, 0) as email_prontomerce,   " &
+        +" isnull(clienti_fatt.email_invio, '0') as email_invio   " &
+        +" ,isnull(clienti_web.email_send_certif_off, 0) as email_send_certif_off   " &
+        +" ,trim(isnull(clienti.rag_soc_10,'')) as rag_soc_10   " &
+			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')),'') for_qa_italy " & 
+			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_cobalt_rload')),'') for_cobalt_rload " & 
+			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_price_cntct')),'') for_price_cntct " & 
+			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.cell')),'') cell " & 
+			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.categ')),'') categ " & 
+    +" FROM (clienti left outer join clienti_mkt on  clienti.codice = clienti_mkt.id_cliente" &
+                    +" left outer join clienti as c1 on clienti_mkt.id_contatto_1 = c1.codice" &
+   					  +" left outer join clienti as c2 on clienti_mkt.id_contatto_2 = c2.codice" &
+   					  +" left outer join clienti as c3 on clienti_mkt.id_contatto_3 = c3.codice" &
+   					  +" left outer join clienti as c4 on clienti_mkt.id_contatto_4 = c4.codice" &
+   					  +" left outer join clienti as c5 on clienti_mkt.id_contatto_5 = c5.codice" &
+   					  +" left outer join clienti as c_link on clienti_mkt.id_cliente_link = c_link.codice" &
+   					  +" left outer join gru on clienti_mkt.gruppo = gru.codice)" &
+                    +" left outer join clienti_web on  clienti.codice = clienti_web.id_cliente" &
+                    +" left outer join clienti_fatt on  clienti.codice = clienti_fatt.id_cliente      " 
+
+	k_return = u_tb_crea_view("v_clienti_mkt_web", k_sql)
+
 
 return k_return
 

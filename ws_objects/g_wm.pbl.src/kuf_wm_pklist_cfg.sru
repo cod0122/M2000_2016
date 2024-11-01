@@ -59,8 +59,9 @@ if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then
  
   SELECT wm_pklist_cfg.codice,   
          wm_pklist_cfg.blocca_importa,   
-         wm_pklist_cfg.cartella_pkl_da_web,   
-         wm_pklist_cfg.cartella_pkl_da_txt,   
+         trim(wm_pklist_cfg.cartella_pkl_da_web),   
+         trim(wm_pklist_cfg.cartella_pkl_da_txt),   
+         trim(wm_pklist_cfg.cartella_pkl_camion),   
          wm_pklist_cfg.file_esiti,   
          wm_pklist_cfg.ultimo_idimportazione,   
          wm_pklist_cfg.cfg_dbms_scelta,   
@@ -81,6 +82,7 @@ if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then
          :kst_tab_wm_pklist_cfg.blocca_importa,   
          :kst_tab_wm_pklist_cfg.cartella_pkl_da_web,   
          :kst_tab_wm_pklist_cfg.cartella_pkl_da_txt,   
+         :kst_tab_wm_pklist_cfg.cartella_pkl_camion,   
          :kst_tab_wm_pklist_cfg.file_esiti,   
          :kst_tab_wm_pklist_cfg.ultimo_idimportazione,   
          :kst_tab_wm_pklist_cfg.cfg_dbms_scelta,   
@@ -107,10 +109,19 @@ if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then
 		k_return=true
 		
 		kst_tab_wm_pklist_cfg.file_esiti = trim(kst_tab_wm_pklist_cfg.file_esiti)
-		kst_tab_wm_pklist_cfg.cartella_pkl_da_web = trim(kst_tab_wm_pklist_cfg.cartella_pkl_da_web)
-		if kst_tab_wm_pklist_cfg.cartella_pkl_da_web = "" then kst_tab_wm_pklist_cfg.cartella_pkl_da_web = "."
-		kst_tab_wm_pklist_cfg.cartella_pkl_da_txt = trim(kst_tab_wm_pklist_cfg.cartella_pkl_da_txt)
-		if kst_tab_wm_pklist_cfg.cartella_pkl_da_txt = "" then kst_tab_wm_pklist_cfg.cartella_pkl_da_txt = "."
+		
+		if kst_tab_wm_pklist_cfg.cartella_pkl_da_web > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_da_web = "."
+		end if
+		if kst_tab_wm_pklist_cfg.cartella_pkl_da_txt > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_da_txt = "."
+		end if
+		if kst_tab_wm_pklist_cfg.cartella_pkl_camion > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_camion = "."
+		end if
 
 	else
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode

@@ -3,6 +3,7 @@ global type st_tab_wm_pklist from structure
 	st_tab_g_0		st_tab_g_0		descriptor "comment" = "standard"
 	long		id_wm_pklist		descriptor "comment" = "id di questa tabella TESTATA_PACKING_LIST mandante "
 	string		idpkl		descriptor "comment" = "codice Paking List solitamente uguale al packinglistcode"
+	long		idpkl_in		descriptor "comment" = "idpkl indicato nel file xml"
 	string		packinglistcode		descriptor "comment" = "codice Paking List Mandante"
 	string		stato		descriptor "comment" = "stato: 1=appena caricata, 4=importato nel Riferimento, 9=chiuso, C=cancellato "
 	string		tipo		descriptor "comment" = "tipo: 2=normale dal cliente; 3=solo x uso interno fittizia  "

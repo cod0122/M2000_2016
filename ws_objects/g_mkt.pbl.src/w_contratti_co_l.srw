@@ -2,9 +2,9 @@
 forward
 global type w_contratti_co_l from w_g_tab0
 end type
-type dw_periodo from uo_d_std_1 within w_contratti_co_l
-end type
 type dw_stampa from uo_d_std_1 within w_contratti_co_l
+end type
+type dw_periodo from uo_dw_periodo within w_contratti_co_l
 end type
 end forward
 
@@ -13,8 +13,8 @@ integer width = 2898
 integer height = 2084
 string title = "Contratti Commerciali "
 boolean ki_toolbar_window_presente = true
-dw_periodo dw_periodo
 dw_stampa dw_stampa
+dw_periodo dw_periodo
 end type
 global w_contratti_co_l w_contratti_co_l
 
@@ -294,8 +294,7 @@ private subroutine cambia_periodo_elenco ();//---
 //--- Visualizza il box x il cambio del Periodo di elenco fatture 
 //---
 
-
-dw_periodo.triggerevent("ue_visibile")
+dw_periodo.event ue_visible( )
 
 end subroutine
 
@@ -347,7 +346,10 @@ datawindowchild kdwc_cliente
 	kdwc_cliente.retrieve("%")
 	kdwc_cliente.insertrow(1)
 	
-
+	dw_periodo.kiw_parent = this
+	dw_periodo.ki_data_ini = ki_data_ini
+	dw_periodo.ki_data_fin = ki_data_fin
+	
 
 end subroutine
 
@@ -601,18 +603,18 @@ end subroutine
 on w_contratti_co_l.create
 int iCurrent
 call super::create
-this.dw_periodo=create dw_periodo
 this.dw_stampa=create dw_stampa
+this.dw_periodo=create dw_periodo
 iCurrent=UpperBound(this.Control)
-this.Control[iCurrent+1]=this.dw_periodo
-this.Control[iCurrent+2]=this.dw_stampa
+this.Control[iCurrent+1]=this.dw_stampa
+this.Control[iCurrent+2]=this.dw_periodo
 end on
 
 on w_contratti_co_l.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
-destroy(this.dw_periodo)
 destroy(this.dw_stampa)
+destroy(this.dw_periodo)
 end on
 
 event close;call super::close;//
@@ -1057,73 +1059,6 @@ end event
 type st_duplica from w_g_tab0`st_duplica within w_contratti_co_l
 end type
 
-type dw_periodo from uo_d_std_1 within w_contratti_co_l
-integer x = 91
-integer y = 468
-integer width = 955
-integer height = 504
-integer taborder = 60
-boolean bringtotop = true
-boolean enabled = true
-boolean titlebar = true
-string title = "Periodo di estrazione"
-string dataobject = "d_periodo"
-boolean controlmenu = true
-boolean hsplitscroll = false
-boolean livescroll = false
-end type
-
-event buttonclicked;call super::buttonclicked;//
-st_stampe kst_stampe
-pointer oldpointer  // Declares a pointer variable
-
-	
-//=== Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
-	
-
-if dwo.name = "b_ok" then
-	
-	
-	this.visible = false
-	
-	ki_data_ini  = this.getitemdate( 1, "data_dal")
-	ki_data_fin  = this.getitemdate( 1, "data_al")
-	inizializza()
-
-else
-	if dwo.name = "b_annulla" then
-
-		this.visible = false
-	
-	
-	end if
-end if
-
-SetPointer(oldpointer)
-
-
-end event
-
-event ue_visibile;call super::ue_visibile;//
-int k_rc
-
-	this.width = long(this.object.data_al.x) + long(this.object.data_al.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
-
-	this.x = (kiw_this_window.width  - this.width) / 4
-	this.y = (kiw_this_window.height - this.height) / 4
-
-	this.reset()
-	k_rc = this.insertrow(0)
-	k_rc = this.setitem(1, "data_dal", ki_data_ini)
-	k_rc = this.setitem(1, "data_al", ki_data_fin)
-	this.modify("data_al.protect='1'")
-	this.modify("data_al.background.color='"+string(kkg_colore.grigio)+"'")
-	this.visible = true
-	this.setfocus()
-end event
-
 type dw_stampa from uo_d_std_1 within w_contratti_co_l
 integer x = 261
 integer y = 708
@@ -1188,5 +1123,25 @@ int k_rc
 	
 	this.visible = true
 	this.setfocus()
+end event
+
+type dw_periodo from uo_dw_periodo within w_contratti_co_l
+integer x = 832
+integer y = 1448
+integer width = 681
+integer height = 404
+integer taborder = 50
+boolean bringtotop = true
+date ki_data_ini = Date("1900-01-01")
+date ki_data_fin = Date("1900-01-01")
+end type
+
+event ue_clicked;call super::ue_clicked;//
+	parent.ki_data_ini  = this.get_data_ini()
+	parent.ki_data_fin  = this.get_data_fin()
+	parent.inizializza()
+
+
+
 end event
 

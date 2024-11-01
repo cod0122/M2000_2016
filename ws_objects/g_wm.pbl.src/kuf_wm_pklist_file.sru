@@ -35,7 +35,7 @@ datetime k_data_da, k_data_a, k_data_0, k_data_meno3mesi, k_transmissiondate
 boolean k_x_mese=true
 int k_ind, k_nr_file_xml, k_ctr_file, k_nr_wm_pkl_web, k_nr_file_txt, k_nr_wm_pkl_txt, k_riga, k_righe_tot, k_ctr, k_pallet
 string k_label, k_appo
-datastore kds_1, kds_1_txt
+uo_ds_std_1 kds_1, kds_1_txt
 treeviewitem ktvi_treeviewitem
 st_esito kst_esito
 st_treeview_data kst_treeview_data
@@ -49,7 +49,7 @@ st_wm_pkl_file kst_wm_pkl_file[]
 	k_data_0 = datetime(date(0)	)
 	kiuf_wm_receiptgammarad = create kuf_wm_receiptgammarad
 	kiuf_wm_pklist_web = create kuf_wm_pklist_web
-	kds_1 = create datastore
+	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_receiptgammarad_l"
 		 
 //--- Ricavo l'oggetto figlio dal DB 

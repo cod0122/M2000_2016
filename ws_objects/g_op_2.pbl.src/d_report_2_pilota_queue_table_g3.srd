@@ -44,8 +44,9 @@ table(column=(type=long update=yes updatewhereclause=yes name=ordine dbname="ord
 	   , meca.consegna_data as consegna_data
 	   , meca.num_int as num_int
 	   , (select coalesce(trim(max(armo.note_1)), '')  from armo where armo.id_meca = meca.id  ) as k_note_1
-	   , (select concat(coalesce(trim(max(armo.note_1)), '')
-							,coalesce(trim(max(armo.note_2)), '' ) )  from armo	where armo.id_meca = meca.id  ) as k_note_2
+	   , case when contratti.flg_et_bcode_note_print = 1 then trim(isnull(contratti.et_bcode_note,''))
+             else (select concat(coalesce(trim(max(armo.note_1)), '')
+							,coalesce(trim(max(armo.note_2)), '' ) )  from armo	where armo.id_meca = meca.id) end as k_note_2
 	   , meca.data_int as data_int
 	   , meca.id as id_meca
 	   , meca.clie_2 as k_clie_2
@@ -67,6 +68,7 @@ table(column=(type=long update=yes updatewhereclause=yes name=ordine dbname="ord
         FROM barcode 
 		  					inner join meca on barcode.id_meca = meca.id
 	                  inner join clienti on meca.clie_3 = clienti.codice 
+							left outer join CONTRATTI on MECA.CONTRATTO = CONTRATTI.CODICE 
 	WHERE barcode.barcode_lav = '' and barcode.impianto = 3 and (barcode.data_lav_ini is null or barcode.data_lav_ini < CONVERT(DATETIME, '1990-01-01 00:00:00.001')) 
 	      and barcode.barcode in  
 		( SELECT barcode.barcode
@@ -91,8 +93,9 @@ SELECT  queue_table.n_Ordine as ordine,
 	   , meca.consegna_data as consegna_data
 	   , meca.num_int as num_int
 	   , (select coalesce(trim(max(armo.note_1)), '')  from armo where armo.id_meca = meca.id  ) as k_note_1
-	   , (select concat(coalesce(trim(max(armo.note_1)), '')
-							,coalesce(trim(max(armo.note_2)), '' ) )  from armo	where armo.id_meca = meca.id  ) as k_note_2
+	   , case when contratti.flg_et_bcode_note_print = 1 then trim(isnull(contratti.et_bcode_note,''))
+             else (select concat(coalesce(trim(max(armo.note_1)), '')
+							,coalesce(trim(max(armo.note_2)), '' ) )  from armo	where armo.id_meca = meca.id) end as k_note_2
 	   , meca.data_int as data_int
 	   , meca.id as id_meca
 	   , meca.clie_2 as k_clie_2
@@ -115,11 +118,12 @@ SELECT  queue_table.n_Ordine as ordine,
 	   , meca.data_ent as data_ent
 	   , 0 as k_in_carico
         FROM #vx_MAST_pilota_pallet_workqueue_g3 as queue_table left outer join barcode on queue_table.barcode = barcode.barcode  
-                                                   left outer join meca on barcode.id_meca = meca.id
-	                                              left outer join clienti on meca.clie_3 = clienti.codice 
+                                  left outer join meca on barcode.id_meca = meca.id
+                                  left outer join clienti on meca.clie_3 = clienti.codice 
 											 left outer join barcode as barcode_figlio on queue_table.barcode_figlio = barcode_figlio.barcode
 											 left outer join meca as meca_figlio on barcode_figlio.id_meca = meca_figlio.id
-	                                              left outer join clienti as clienti_figlio on  meca_figlio.clie_3 = clienti_figlio.codice	 
+                                  left outer join clienti as clienti_figlio on  meca_figlio.clie_3 = clienti_figlio.codice	 
+											 left outer join CONTRATTI on MECA.CONTRATTO = CONTRATTI.CODICE 
 		  
 		 -- left outer join groupage
         --         on queue_table.Barcode = groupage.padre

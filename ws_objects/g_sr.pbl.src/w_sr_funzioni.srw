@@ -38,6 +38,7 @@ protected subroutine open_start_window ()
 protected subroutine attiva_tasti_0 ()
 private subroutine u_set_dw_1_default ()
 private subroutine u_mostra_operazioni_disp ()
+protected function boolean dati_modif_dw (ref uo_d_std_1 auo_d_std_1)
 end prototypes
 
 protected subroutine pulizia_righe ();//
@@ -1017,6 +1018,10 @@ end if
 	
 
 end subroutine
+
+protected function boolean dati_modif_dw (ref uo_d_std_1 auo_d_std_1);//
+return super::dati_modif_dw(auo_d_std_1)
+end function
 
 on w_sr_funzioni.create
 call super::create

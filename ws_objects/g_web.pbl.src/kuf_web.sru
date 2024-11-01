@@ -1,10 +1,10 @@
 ﻿$PBExportHeader$kuf_web.sru
 forward
-global type kuf_web from nonvisualobject
+global type kuf_web from kuf_parent
 end type
 end forward
 
-global type kuf_web from nonvisualobject
+global type kuf_web from kuf_parent
 end type
 global kuf_web kuf_web
 
@@ -26,6 +26,7 @@ public subroutine apre_url (st_web kst_web)
 public subroutine url_aggiusta_http (ref st_web kst_web)
 public function st_esito u_start_www (string k_sito) throws uo_exception
 public function boolean u_call_mail_client (string k_mail, string k_oggetto, string k_corpo, string k_allegato)
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 end prototypes
 
 public function boolean if_url_esiste (st_web kst_web);//---
@@ -313,13 +314,68 @@ return k_return
 
 end function
 
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;/*
+ Attiva LINK cliccato 
+	Input:  datawindow su cui è stato attivato il LINK
+           nome campo di LINK
+*/
+long k_rc=0, k_riga=0
+string k_rcx="", k_email, k_sito_web
+boolean k_return=true
+
+
+SetPointer(kkg.pointer_attesa)
+
+kguo_exception.inizializza(this.classname())
+
+k_riga = adw_link.getrow()
+if k_riga > 0 then
+	
+	choose case a_campo_link
+
+		case "email", "email1", "email2", "email3" 
+			k_email = trim(adw_link.getitemstring(k_riga, a_campo_link))
+			if len(k_email) > 0 then
+				if not u_call_mail_client(k_email, "", "", "") then
+					kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+					kguo_exception.kist_esito.sqlerrtext = "Applicazione per l'invio della posta non trovata!"
+					throw kguo_exception
+				end if
+				k_return = false
+			else
+				k_return = false
+			end if
+			
+		case "sito_web", "sito_web1" 
+			k_sito_web = trim(adw_link.getitemstring(k_riga, a_campo_link))
+			if len(k_sito_web) > 0 then
+				try 
+					u_start_www(k_sito_web) 
+				catch (uo_exception kuo_exception1)
+					throw kuo_exception1
+				finally
+
+				end try
+				k_return = false
+			else
+				k_return = false
+			end if
+			
+	end choose
+	
+end if
+
+SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
 on kuf_web.create
 call super::create
-TriggerEvent( this, "constructor" )
 end on
 
 on kuf_web.destroy
-TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 

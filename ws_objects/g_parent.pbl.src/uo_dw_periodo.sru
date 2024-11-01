@@ -53,7 +53,7 @@ public subroutine inizializza (window a_window_parent)
 end prototypes
 
 event ue_clicked();//
-//--- inserire qui le personalizzazioni su cosa fare quando click sulla voce di dettaglio 
+//--- inserire qui le personalizzazioni su cosa fare quando click su OK
 //
 
 end event
@@ -124,7 +124,7 @@ end if
 end event
 
 event u_pigiato_enter;//
-//--- Premuto ENTER: simulo come il clicked su ITEM_PICTURE
+//--- Premuto ENTER: simulo come il clicked su OK
 //
 	THIS.Trigger Event ue_clicked_0(1, "b_ok") 
 

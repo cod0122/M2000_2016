@@ -2,6 +2,7 @@
 global type st_tab_wm_receiptgammarad from structure
 	st_tab_g_0		st_tab_g_0		descriptor "comment" = "standard"
 	long		id		descriptor "comment" = "Chiave univoca "
+	long		idpkl		descriptor "comment" = "id indicato nel file di packing list (non è univoco)"
 	datetime		transmissiondate		descriptor "comment" = "data di caricamento della riga (insert)"
 	datetime		receiptdate		descriptor "comment" = "Data ricezione"
 	long		transmissioncode		descriptor "comment" = "Numero Progressivo Trasmissione "

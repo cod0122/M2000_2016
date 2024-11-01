@@ -2514,10 +2514,12 @@ st_treeview_data_any kst_treeview_data_any
 st_tab_treeview kst_tab_treeview
 st_esito kst_esito
 st_open_w kst_open_w
+uo_ds_std_1 kds_1
 //kuf_menu_window kuf1_menu_window
 kuf_pl_barcode kuf1_pl_barcode
 
 
+try
 //--- 
 //--- ricavo il barcode e richiamo la windows				
 //	choose case kGuf_data_base.u_getfocus_typeof()
@@ -2565,10 +2567,12 @@ kuf_pl_barcode kuf1_pl_barcode
 					if k_rc > 0 then 
 	
 						kuf1_pl_barcode = create kuf_pl_barcode
-					
-						kst_esito = kuf1_pl_barcode.anteprima ( kidw_1, kst_tab_pl_barcode )
-					
-						destroy kuf1_pl_barcode
+						kds_1 = create uo_ds_std_1
+						
+						if kuf1_pl_barcode.anteprima ( kds_1, kst_tab_pl_barcode ) > 0 then
+							kidw_1.dataobject = kds_1.dataobject
+							kds_1.rowscopy(1, kds_1.rowcount(), primary!, kidw_1, 1, primary!) 
+						end if
 						
 					else
 						k_return = 1
@@ -2612,6 +2616,13 @@ kuf_pl_barcode kuf1_pl_barcode
 //		k_return = 1
 //	end if
  
+catch (uo_exception kuo_exception)
+	k_return = 1
+	if isvalid(kds_1) then destroy kds_1
+	if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
+	kuo_exception.messaggio_utente()
+	
+end try	
  
 return k_return
 
@@ -7074,12 +7085,7 @@ treeviewitem ktvi_treeviewitem
 listviewitem klvi_listviewitem
 
 
-//=== Puntatore Cursore da attesa.....
-//oldpointer = SetPointer(HourGlass!)
-
-	kst_esito_return.esito = kkg_esito.ok
-	kst_esito_return.sqlcode = 0
-	kst_esito_return.SQLErrText = ""
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
 //--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
 	kst_treeview_data = u_get_st_treeview_data ()
@@ -7093,22 +7099,6 @@ listviewitem klvi_listviewitem
 	end if
 
 	k_str = kguo_g.get_descrizione(k_modalita)
-//	choose case k_modalita
-//		case kkg_flag_modalita.inserimento
-//			k_str = "Inserimento"
-//		case kkg_flag_modalita.modifica
-//			k_str = "Modifica"
-//		case kkg_flag_modalita.cancellazione
-//			k_str = "Cancellazione"
-//		case kkg_flag_modalita.visualizzazione
-//			k_str = "Visualizzazione"
-//		case kkg_flag_modalita.stampa
-//			k_str = "Stampa"
-//		case else
-//			k_str = k_modalita
-//	end choose
-
-//	k_tipo_oggetto = trim(kst_treeview_data.oggetto)
 
 //--- legge i dati della tabella TREEVIEW
 	kst_tab_treeview.id = trim(kst_treeview_data.oggetto)

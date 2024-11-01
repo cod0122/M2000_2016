@@ -256,7 +256,7 @@ long richtexteditx64type = 5
 long richtexteditversion = 3
 string richtexteditkey = ""
 string appicon = "main.ico"
-string appruntimeversion = "22.2.0.3356"
+string appruntimeversion = "22.2.0.3391"
 boolean manualsession = false
 boolean unsupportedapierror = false
 boolean ultrafast = false
@@ -268,6 +268,7 @@ boolean webview2checkx64 = false
 string webview2url = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/"
 event ue_open ( )
 event u_halt ( )
+integer highdpimode = 0
 end type
 global m_2000 m_2000
 
@@ -324,26 +325,10 @@ try
 //--- connessione al DB
 	kguo_sqlca_db_magazzino.db_connetti( )
 
-	//--- set la path centrale sul SERVER
+//--- set le path Principali del SERVER
 	kGuo_path.set_path_base_del_server( ) 
 	kGuo_path.get_base_del_server( )
 	kGuo_path.get_base_del_server_job( )
-	
-	//--- set la path BASE ovvero dove risiedono ad esempio gli errori (spesso c:\at_m2000)
-	kGuo_path.set_path_base( )
-	//kGuo_path.get_base()
-	//if kst_esito.esito = kkg_esito.not_fnd then
-	//	kuf1_file_explorer.u_directory_create(kg_path_base)
-	//end if
-	
-	//--- path per reperire il grafico del LOGO 
-	//k_path_risorse = kGuo_path.get_risorse()
-	
-	//--- Imposta il PATH dove gira il programma
-	kGuo_path.set_path()
-	//KG_path_risorse = kGuo_path.get_risorse()
-	//KG_path_help = kGuo_path.get_help()
-
 	
 	kguo_g.set_idprocedura(longlong(string(now(),"yymmddhhss")))
 	kguo_g.set_nome_computer(kuf1_utility.u_nome_computer())
@@ -465,6 +450,12 @@ KG_application = this
 //--- Creo oggetto userobject GLOBALE x gestione ECCEZIONI
 kGuo_exception = create uo_exception 
 
+//--- set le path Principali 
+kGuo_path.set_path_locali( )
+
+//--- Oggetto per trattare le stringhe
+kgn_string = create n_string
+
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-MAGAZZINO (KGuo_sqlca_db_magazzino)
 try
 	kGuf_data_base.u_set_uo_sqlca_db_magazzino()  // Imposta Connessione al DB Principale
@@ -495,8 +486,6 @@ KGuf_memo_allarme = create Kuf_memo_allarme
 //KGuf_base_docking = create Kuf_base_docking
 //--- Creo oggetto  x la Gestione degli ALLERT 
 KGuf_memo_allarme = create Kuf_memo_allarme
-//--- Oggetto per trattare le stringhe
-kgn_string = create n_string
 
 ////--- Controllo se procedura gia' lanciata se si .....
 //if kGuf_data_base.if_is_running( )  then
@@ -504,6 +493,7 @@ kgn_string = create n_string
 //end if
 
 //kuf1_utility.u_toolbar_set_toolbartext()
+
 
 //--- Lancia il Logo iniziale x Connessione Autorizzazione Utente
 	kst_open_w.flag_modalita = kkg_flag_modalita.inserimento

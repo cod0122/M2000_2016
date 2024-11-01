@@ -2,9 +2,9 @@
 forward
 global type w_meca_l from w_g_tab0
 end type
-type dw_data from uo_d_std_1 within w_meca_l
+type dw_stampa from uo_d_std_1 within w_meca_l
 end type
-type dw_stampa from datawindow within w_meca_l
+type dw_data from uo_d_std_1 within w_meca_l
 end type
 end forward
 
@@ -16,8 +16,8 @@ boolean ki_toolbar_window_presente = true
 boolean ki_esponi_msg_dati_modificati = false
 boolean ki_sincronizza_window_consenti = false
 boolean ki_reset_dopo_save_ok = false
-dw_data dw_data
 dw_stampa dw_stampa
+dw_data dw_data
 end type
 global w_meca_l w_meca_l
 
@@ -79,7 +79,7 @@ if k_riga > 0 then
 	kst_tab_meca.data_int = dw_lista_0.getitemdate(k_riga, "data_int")
 	kst_tab_meca.num_int = dw_lista_0.getitemnumber(k_riga, "num_int")
 	kst_tab_meca.clie_1 = dw_lista_0.getitemnumber(k_riga, "clie_1")
-	k_rag_soc = dw_lista_0.getitemstring(k_riga, "rag_soc_10")
+	k_rag_soc = dw_lista_0.getitemstring(k_riga, "clienti_a_rag_soc_10")
 	
 	if isnull(k_rag_soc) then k_rag_soc = "*senza nome* "
 	
@@ -143,11 +143,9 @@ string k_return="0 "
 string k_key
 long  k_riga=0
 int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
 
 
-//=== Puntatore Cursore da attesa.....
-	oldpointer = SetPointer(HourGlass!)
+	SetPointer(kkg.pointer_attesa)
 
 //--- Se non ho richiesto un codice particolare mi fermo x chiedere
 	if ki_st_open_w.flag_primo_giro = "S" and kist_tab_meca.id = 0 and kist_tab_meca.clie_1 = 0 then
@@ -287,14 +285,7 @@ datawindowchild kdwc_cliente
 
 	dw_guida.insertrow(0)
 
-
-//	dw_guida.getchild("codice", kdwc_cliente)
-//	kdwc_cliente.settransobject( sqlca)
-//	kdwc_cliente.retrieve("%")
-//	kdwc_cliente.insertrow(1)
-
 //--- box di stampa
-	dw_stampa.move((this.width - dw_stampa.width) / 3, (this.height - dw_stampa.height) / 3)
 	dw_stampa.insertrow(1)
 	
 
@@ -451,7 +442,8 @@ end try
 end subroutine
 
 protected subroutine stampa ();//
-dw_stampa.visible = true
+	dw_stampa.move((this.width - dw_stampa.width) / 3, (this.height - dw_stampa.height) / 3)
+	dw_stampa.visible = true
 
 end subroutine
 
@@ -549,18 +541,18 @@ end subroutine
 on w_meca_l.create
 int iCurrent
 call super::create
-this.dw_data=create dw_data
 this.dw_stampa=create dw_stampa
+this.dw_data=create dw_data
 iCurrent=UpperBound(this.Control)
-this.Control[iCurrent+1]=this.dw_data
-this.Control[iCurrent+2]=this.dw_stampa
+this.Control[iCurrent+1]=this.dw_stampa
+this.Control[iCurrent+2]=this.dw_data
 end on
 
 on w_meca_l.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
-destroy(this.dw_data)
 destroy(this.dw_stampa)
+destroy(this.dw_data)
 end on
 
 event u_open;call super::u_open;//
@@ -642,6 +634,9 @@ type st_orizzontal from w_g_tab0`st_orizzontal within w_meca_l
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_meca_l
+boolean visible = true
+integer x = 18
+integer y = 24
 integer width = 2807
 integer height = 708
 string dataobject = "d_meca_l"
@@ -893,14 +888,50 @@ end event
 type st_duplica from w_g_tab0`st_duplica within w_meca_l
 end type
 
+type dw_stampa from uo_d_std_1 within w_meca_l
+integer x = 20000
+integer y = 20000
+integer width = 1522
+integer height = 824
+integer taborder = 60
+boolean enabled = true
+boolean titlebar = true
+string title = "Stampa dati Lotto in elenco"
+string dataobject = "d_meca_l_tipo_stampa"
+boolean hscrollbar = false
+boolean vscrollbar = false
+boolean hsplitscroll = false
+boolean livescroll = false
+borderstyle borderstyle = stylebox!
+boolean ki_link_standard_attivi = false
+boolean ki_button_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
+boolean ki_dw_visibile_in_open_window = false
+end type
+
+event buttonclicked;//
+if dwo.name = "b_ok" then
+	stampa_choose_run()
+else
+	if dwo.name = "b_annulla" then
+		this.visible = false
+	end if
+end if
+end event
+
 type dw_data from uo_d_std_1 within w_meca_l
 event u_cb_ok ( )
-integer x = 2382
-integer y = 256
+integer x = 20000
+integer y = 20000
 integer width = 887
 integer height = 580
 integer taborder = 80
-boolean bringtotop = true
 boolean enabled = true
 boolean titlebar = true
 string title = "estrae dal"
@@ -909,6 +940,16 @@ boolean controlmenu = true
 boolean resizable = true
 boolean hsplitscroll = false
 boolean livescroll = false
+boolean ki_link_standard_attivi = false
+boolean ki_button_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
+boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event u_cb_ok();//
@@ -968,29 +1009,5 @@ end event
 event u_pigiato_enter;//
 event u_cb_ok( )
 
-end event
-
-type dw_stampa from datawindow within w_meca_l
-boolean visible = false
-integer x = 974
-integer y = 700
-integer width = 1522
-integer height = 824
-integer taborder = 60
-boolean bringtotop = true
-boolean titlebar = true
-string title = "Stampa dati Lotto in elenco"
-string dataobject = "d_meca_l_tipo_stampa"
-boolean border = false
-end type
-
-event buttonclicked;//
-if dwo.name = "b_ok" then
-	stampa_choose_run()
-else
-	if dwo.name = "b_annulla" then
-		this.visible = false
-	end if
-end if
 end event
 

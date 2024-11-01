@@ -147,6 +147,7 @@ FROM  v_meca_pl_v1 as v_meca_pl inner join armo on v_meca_pl.id_armo = armo.id_a
         v_meca_pl.data_int >= :k_data_int  
 	     and armo.magazzino = 2  
 		  and armo.colli_2 > 0
+        and v_meca_pl.impianto = 3
         and (:k_g3npass = 0 or :k_g3npass = sl_pt_g3_lav.g3npass)
         and ((armo_sl_pt_g3_lav.id_armo_sl_pt_g3_lav > 0 
                            and (:k_ciclo = 0 or :k_ciclo = armo_sl_pt_g3_lav.ciclo_target)

@@ -54,6 +54,7 @@ public function integer u_retrieve_dw_lista ()
 private subroutine u_modifica_massiva_data_scad ()
 private function long u_modifica_massiva_data_scad_esegue () throws uo_exception
 private subroutine call_logtrace ()
+protected subroutine u_set_dw_guida ()
 end prototypes
 
 public function string inizializza ();//
@@ -73,6 +74,9 @@ int k_rc
 
 	choose case true
 		case ki_st_open_w.flag_primo_giro = "S" 
+
+			u_set_dw_guida( )
+
 			choose case true
 				case ki_st_tab_contratti_arg.codice > 0 &
 						,ki_st_tab_contratti_arg.cod_cli > 0 &
@@ -83,6 +87,10 @@ int k_rc
 						ki_st_tab_contratti_arg.codice = dw_lista_0.getitemnumber(1, "codice")
 						post posiziona_su_codice( )   // si posizione e apre il CODICE indicato
 					end if
+					
+				case else
+					dw_guida.bringtotop = true
+					dw_guida.setfocus( )
 						
 			end choose
 			
@@ -96,9 +104,7 @@ int k_rc
 		k_return = "1Nessun Contratto Trovato "
 
 	end if		
-		
-	dw_guida.event u_dwc_retrieve()
-		
+				
 	SetPointer(kkg.pointer_default)
 
 return k_return
@@ -925,63 +931,12 @@ end subroutine
 
 protected subroutine open_start_window ();//---
 int k_rc
-datawindowchild  kdwc_clienti_d, kdwc_sc_cf_d, kdwc_sl_pt_d 
-kuf_elenco kuf1_elenco
 
 
 	kiuf_contratti = create  kuf_contratti
 	kiuf_clienti = create kuf_clienti
-	
-	kuf1_elenco = create kuf_elenco
-
-	SetPointer(kkg.pointer_attesa)
 
 	dw_guida.insertrow(0)
-	dw_guida.setitem(1, "rag_soc_1", "")
-
-	if trim(ki_st_open_w.id_programma_chiamante) = kuf1_elenco.get_id_programma(kkg_flag_modalita.elenco ) then
-		
-		ki_data_scad = kkg.data_zero
-		ki_st_tab_contratti_arg.mc_co  = trim(ki_st_open_w.key1) // CODICE CONTRATTO COMMERCIALE
-		dw_guida.event u_put_codice("CO", ki_st_tab_contratti_arg.mc_co)
-		
-	else
-
-//--- Salva Argomenti programma chiamante
-		if isnumber(trim(ki_st_open_w.key1)) then // CODICE CLIENTE
-			ki_st_tab_contratti_arg.cod_cli = long(trim(ki_st_open_w.key1))
-			dw_guida.event u_put_codice("CLIENTE", string(ki_st_tab_contratti_arg.cod_cli))
-		else
-			ki_st_tab_contratti_arg.cod_cli = 0
-		end if
-		if trim(ki_st_open_w.key2) > " "  then  // CODICE CONTRATTO COMMERCIALE
-			ki_st_tab_contratti_arg.mc_co  = trim(ki_st_open_w.key2)
-			dw_guida.event u_put_codice("CO", ki_st_tab_contratti_arg.mc_co)
-		else
-			ki_st_tab_contratti_arg.mc_co = ""
-		end if
-		if trim(ki_st_open_w.key3) > " " or isnull(trim(ki_st_open_w.key3)) then  // CODICE CONTRATTO ID
-			ki_st_tab_contratti_arg.codice  = long(trim(ki_st_open_w.key3))
-			dw_guida.event u_put_codice("ID", string(ki_st_tab_contratti_arg.codice))
-		else
-			ki_st_tab_contratti_arg.codice = 0
-		end if
-		if trim(ki_st_open_w.key5) > " " then				// DA QUALE DATA SCADENZA?
-			if isdate(trim(ki_st_open_w.key5)) then
-				ki_data_scad = date(trim(ki_st_open_w.key5))
-			else
-				ki_data_scad = date(0) //relativedate(kg_dataoggi, -365)
-			end if
-		else
-			ki_data_scad = date(0) //relativedate(kg_dataoggi, -365)
-		end if
-		dw_guida.event u_put_codice("DATASCAD", string(ki_data_scad))
-		
-	end if
-
-	if isvalid(kuf1_elenco) then destroy kuf1_elenco
-
-	SetPointer(kkg.pointer_default)
 
 
 
@@ -1339,6 +1294,59 @@ finally
 		
 end try
 	
+
+
+end subroutine
+
+protected subroutine u_set_dw_guida ();//---
+int k_rc
+//datawindowchild  kdwc_clienti_d, kdwc_sc_cf_d, kdwc_sl_pt_d 
+kuf_elenco kuf1_elenco
+
+
+	SetPointer(kkg.pointer_attesa)
+
+	kuf1_elenco = create kuf_elenco
+
+	ki_st_tab_contratti_arg.cod_cli = 0
+	ki_st_tab_contratti_arg.mc_co = ""
+	ki_st_tab_contratti_arg.codice = 0
+	ki_data_scad = kkg.data_zero
+
+	if trim(ki_st_open_w.id_programma_chiamante) = kuf1_elenco.get_id_programma(kkg_flag_modalita.elenco ) then
+
+		ki_st_tab_contratti_arg.mc_co  = trim(ki_st_open_w.key1) // CODICE CONTRATTO COMMERCIALE
+		dw_guida.event u_put_codice("CO", ki_st_tab_contratti_arg.mc_co)
+		
+	else
+		if isnumber(trim(ki_st_open_w.key1)) then // CODICE CLIENTE
+			ki_st_tab_contratti_arg.cod_cli = long(trim(ki_st_open_w.key1))
+			dw_guida.event u_put_codice("CLIENTE", string(ki_st_tab_contratti_arg.cod_cli))
+		end if
+		if trim(ki_st_open_w.key2) > " "  then  // CODICE CONTRATTO COMMERCIALE
+			ki_st_tab_contratti_arg.mc_co  = trim(ki_st_open_w.key2)
+			dw_guida.event u_put_codice("CO", ki_st_tab_contratti_arg.mc_co)
+		end if
+		if trim(ki_st_open_w.key3) > " " or isnull(trim(ki_st_open_w.key3)) then  // CODICE CONTRATTO ID
+			ki_st_tab_contratti_arg.codice  = long(trim(ki_st_open_w.key3))
+			dw_guida.event u_put_codice("ID", string(ki_st_tab_contratti_arg.codice))
+		end if
+		if trim(ki_st_open_w.key5) > " " then				// DA QUALE DATA SCADENZA?
+			if isdate(trim(ki_st_open_w.key5)) then
+				ki_data_scad = date(trim(ki_st_open_w.key5))
+			end if
+		end if
+		dw_guida.event u_put_codice("DATASCAD", string(ki_data_scad))
+		
+	end if
+
+	if isvalid(kuf1_elenco) then destroy kuf1_elenco
+
+	dw_guida.event u_dwc_retrieve()
+	dw_guida.setitem(1, "rag_soc_1", "")
+
+	SetPointer(kkg.pointer_default)
+
 
 
 end subroutine
@@ -1891,7 +1899,9 @@ datawindowchild kdwc_1
 if this.getchild("rag_soc_1", kdwc_1) > 0 then 
 	if kdwc_1.rowcount( ) = 0 then
 		kdwc_1.settransobject(kguo_sqlca_db_magazzino)
-		kdwc_1.retrieve( )
+		if kdwc_1.retrieve() > 0 then
+			kdwc_1.insertrow(0)
+		end if
 	end if
 end if
 
@@ -2021,8 +2031,8 @@ end type
 type dw_data_change from uo_d_std_1 within w_contratti
 integer x = 814
 integer y = 360
-integer width = 2601
-integer height = 668
+integer width = 2610
+integer height = 700
 integer taborder = 80
 boolean bringtotop = true
 boolean enabled = true
@@ -2086,9 +2096,14 @@ end event
 
 event ue_visibile;call super::ue_visibile;//
 int k_rc
+	
+	if this.visible then
+		this.visible = false
+		return
+	end if
 
 	this.width = long(this.object.k_titolo_t.x) + long(this.object.k_titolo_t.width) + 100
-	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) * 1.5 + 260
+	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) * 1.5 + 160
 
 	this.x = (kiw_this_window.width  - this.width) / 4
 	this.y = (kiw_this_window.height - this.height) / 4

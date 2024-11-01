@@ -1754,8 +1754,8 @@ return (k_return)
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_convalida_dosim
-integer x = 0
-integer y = 0
+integer width = 3000
+integer height = 5000
 end type
 
 on tab_1.create
@@ -1793,13 +1793,13 @@ super::event u_constructor( )
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+integer width = 2962
+integer height = 4872
 string text = "Rilevazione Dosimetrica"
 end type
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 event u_dropfiles pbm_dropfiles
-integer x = 1
-integer y = 1
 integer width = 2752
 integer height = 1352
 string dataobject = "d_convalida_dosim"
@@ -2048,6 +2048,8 @@ long bordercolor = 16777215
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+integer width = 2962
+integer height = 4872
 string text = "Convalidati"
 end type
 
@@ -2068,6 +2070,8 @@ end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
+integer width = 2962
+integer height = 4872
 boolean enabled = true
 string text = "Anomalie"
 end type
@@ -2088,6 +2092,8 @@ type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
 end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
@@ -2097,6 +2103,8 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
@@ -2106,6 +2114,8 @@ type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5
 end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
@@ -2115,6 +2125,8 @@ type dw_6 from w_g_tab_3`dw_6 within tabpage_6
 end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
@@ -2124,6 +2136,8 @@ type dw_7 from w_g_tab_3`dw_7 within tabpage_7
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
@@ -2133,6 +2147,8 @@ type dw_8 from w_g_tab_3`dw_8 within tabpage_8
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+integer width = 2962
+integer height = 4872
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9

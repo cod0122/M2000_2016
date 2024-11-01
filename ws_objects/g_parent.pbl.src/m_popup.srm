@@ -1934,7 +1934,9 @@ end event
 
 on m_memo.create
 call super::create
+this.visible = false
 this.text = "Memo"
+this.enabled = false
 this.microhelp = "Allarmi Memo"
 this.menuimage = "Custom019_2!"
 this.menustyle = contemporarymenu!

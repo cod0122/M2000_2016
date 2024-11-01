@@ -83,6 +83,7 @@ private subroutine u_genera_lotto ()
 private subroutine set_st_tab_wm_pklist_righe_da_dw4 (long k_riga, ref st_tab_wm_pklist_righe kst_tab_wm_pklist_righe)
 private subroutine set_st_tab_wm_pklist_da_dw1 (long k_riga, ref st_tab_wm_pklist kst_tab_wm_pklist)
 protected function st_esito u_genera_lotto_check_dati () throws uo_exception
+protected subroutine inizializza_6 () throws uo_exception
 end prototypes
 
 protected function string aggiorna ();//
@@ -2074,16 +2075,6 @@ st_tab_wm_pklist kst_tab_wm_pklist
 
 
 kst_tab_wm_pklist.id_wm_pklist  = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_wm_pklist") 
-//if kst_tab_wm_pklist.id_wm_pklist > 0 then 
-//
-//	kst_tab_wm_pklist.packinglistcode  = tab_1.tabpage_1.dw_1.getitemstring(1, "packinglistcode")  
-//	if trim(kst_tab_wm_pklist.packinglistcode) > " " then 
-//	else
-//// x retrocompatibilità: una volta era solo in idpkl, ma da maggio/2020 è nel campo packinglistcode	
-//		kst_tab_wm_pklist.packinglistcode  = tab_1.tabpage_1.dw_1.getitemstring(1, "idpkl")  
-//	end if
-//
-//end if
 if kst_tab_wm_pklist.id_wm_pklist > 0 then //or trim(kst_tab_wm_pklist.packinglistcode) > " " then
 
 	if tab_1.tabpage_6.dw_6.rowcount() < 1 then
@@ -2097,8 +2088,6 @@ if kst_tab_wm_pklist.id_wm_pklist > 0 then //or trim(kst_tab_wm_pklist.packingli
 	tab_1.tabpage_6.dw_6.SetItemStatus( 1, 0, Primary!, NotModified!)
 
 else
-
-//	inserisci()
 	
 end if
 
@@ -2371,6 +2360,7 @@ private subroutine set_st_tab_wm_pklist_da_dw1 (long k_riga, ref st_tab_wm_pklis
 		kst_tab_wm_pklist.dtddt = tab_1.tabpage_1.dw_1.getitemdate(k_riga, "dtddt")
 		
 		kst_tab_wm_pklist.idpkl = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "idpkl"))
+		kst_tab_wm_pklist.idpkl_in = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "idpkl_in")
 		kst_tab_wm_pklist.stato = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "stato"))
 		kst_tab_wm_pklist.nrord = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "nrord"))
 		kst_tab_wm_pklist.nrddt = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "nrddt"))
@@ -2661,6 +2651,36 @@ return kst_esito
 
 end function
 
+protected subroutine inizializza_6 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 7 controllandone i valori se gia' presenti
+//======================================================================
+//
+st_tab_wm_pklist kst_tab_wm_pklist
+
+
+kst_tab_wm_pklist.idpkl_in  = tab_1.tabpage_1.dw_1.getitemnumber(1, "idpkl_in") 
+if kst_tab_wm_pklist.idpkl_in > 0 then 
+
+	if tab_1.tabpage_7.dw_7.rowcount() < 1 then
+
+		tab_1.tabpage_7.dw_7.retrieve(kst_tab_wm_pklist.idpkl_in ) 
+		
+	end if
+
+//---- azzera il flag delle modifiche
+	tab_1.tabpage_7.dw_7.SetItemStatus( 1, 0, Primary!, NotModified!)
+
+else
+	
+end if
+
+tab_1.tabpage_7.dw_7.setfocus()
+
+attiva_tasti()
+	
+
+end subroutine
+
 on w_wm_pklist.create
 int iCurrent
 call super::create
@@ -2855,7 +2875,7 @@ end on
 
 event tab_1::u_constructor;//
 							// 1     2     3     4     5     6      7      8     9   
-ki_tabpage_enabled = {true, false, false, true, true, true, false, false, false} // disabilita alcune tabpage
+ki_tabpage_enabled = {true, false, false, true, true, true, true, false, false} // disabilita alcune tabpage
 super::event u_constructor( )
  
 end event
@@ -3121,14 +3141,21 @@ end if
 end event
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+boolean visible = true
 integer width = 4965
 integer height = 4872
+boolean enabled = true
+string text = "Camion"
+string picturename = "camion32.png"
 end type
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
 end type
 
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
+boolean visible = true
+boolean enabled = true
+string dataobject = "d_wm_pklist_camion"
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1

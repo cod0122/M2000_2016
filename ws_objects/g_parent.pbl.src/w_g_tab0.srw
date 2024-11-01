@@ -91,7 +91,6 @@ protected function string inizializza_post ()
 protected subroutine fine_primo_giro ()
 protected function string leggi_riga ()
 protected function boolean aggiorna_tabelle_altre () throws uo_exception
-protected subroutine leggi_liste_reset ()
 protected subroutine dati_modif_accept ()
 protected subroutine stampa_esegui (st_stampe ast_stampe)
 protected subroutine inizializza_lista_ok (long a_riga_posiziona)
@@ -122,6 +121,8 @@ public function string u_lancia_funzione_if_modificato ()
 protected subroutine u_personalizza_dw (string a_flag_modalita)
 protected function long u_visualizza_modifica_open (string a_modalita, long k_key_n, string k_key_x)
 protected subroutine u_get_key_from_dw_row (ref long k_key_n, ref string k_key_x)
+protected subroutine leggi_liste_reset (ref datawindow adw_reset)
+protected subroutine refresh_dati ()
 end prototypes
 
 protected function string check_dati ();//======================================================================
@@ -768,9 +769,8 @@ choose case k_par_in
 	case KKG_FLAG_RICHIESTA.refresh_row		//Aggiorna la riga se riesce altrimenti rilegge tutto: leggi_liste()
 		leggi_riga()
 
-	case KKG_FLAG_RICHIESTA.refresh		//Aggiorna Liste
-		leggi_liste_reset()
-		leggi_liste()
+	case KKG_FLAG_RICHIESTA.refresh		//Rilegge dati da DB
+		refresh_dati( )
 
 	case KKG_FLAG_RICHIESTA.inserimento		//richiesta inserimento
 		if cb_inserisci.enabled = true then
@@ -1202,29 +1202,6 @@ return k_return
 
 
 end function
-
-protected subroutine leggi_liste_reset ();//
-//======================================================================
-//=== Resetta elenco 
-//======================================================================
-//
-
-	if dw_lista_0.visible then 
-		ki_riga_selezionata = dw_lista_0.getrow()
-		//dw_lista_0.reset()
-	else
-		if dw_dett_0.visible then 
-			ki_riga_selezionata = dw_dett_0.getrow()
-			//dw_dett_0.reset()   // dava un errore strano di tipo not selected
-		end if
-	end if
-		
-
-
-
-
-
-end subroutine
 
 protected subroutine dati_modif_accept ();//
 
@@ -2235,6 +2212,44 @@ uo_d_std_1 kdw_1
 		case else
 			k_key_n = kdw_1.getitemnumber(k_row, trim(kdw_1.Describe(k_campo_key + ".Name")))
 	end choose
+
+end subroutine
+
+protected subroutine leggi_liste_reset (ref datawindow adw_reset);// Resetta elenco 
+
+if isvalid(adw_reset) then
+	ki_riga_selezionata = adw_reset.getrow()
+	adw_reset.reset()
+end if
+
+//	if dw_lista_0.visible then 
+//		ki_riga_selezionata = dw_lista_0.getrow()
+//		//dw_lista_0.reset()
+//	else
+//		if dw_dett_0.visible then 
+//			ki_riga_selezionata = dw_dett_0.getrow()
+//			//dw_dett_0.reset()   // dava un errore strano di tipo not selected
+//		end if
+//	end if
+		
+
+
+
+
+
+end subroutine
+
+protected subroutine refresh_dati ();//--- Rilegge dati dal DB
+
+	if dw_lista_0.visible then 
+		leggi_liste_reset(dw_lista_0)
+	elseif dw_dett_0.visible then 
+		leggi_liste_reset(dw_dett_0)
+	else
+		leggi_liste_reset( kidw_selezionata )
+	end if
+		
+	leggi_liste()
 
 end subroutine
 

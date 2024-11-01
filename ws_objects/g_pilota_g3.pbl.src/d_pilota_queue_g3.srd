@@ -23,7 +23,7 @@ table(column=(type=long updatewhereclause=yes name=ordine dbname="queue_table.Or
    		 , queue_table.Work_Order as e1doco
           , ' ' e1ancodrs
    		 , 0 id_meca
-      FROM queue_table inner join Work_Orders wo on queue_table.Work_Order = wo.Work_Order
+      FROM queue_table inner join wo on queue_table.Work_Order = wo.wo
 		where queue_table.ordine > 
          coalesce((select cast(impostazioni.valore as decimal)
               from impostazioni

@@ -11,7 +11,7 @@ global uo_path uo_path
 type variables
 //--- PATH generali
 private:
-string ki_PROCEDURA = "."  // path utente di lavoro della procedura dove sta il confdb.ini
+string ki_PATH_APP = "."  // path utente di lavoro della procedura dove sta il confdb.ini
 string ki_BASE_DEL_SERVER="" //path dove risiede il server, di solito la CONSOLE
 string ki_BASE_DEL_SERVER_JOB="" //path dove risiedono i batch da lanciare dal Server (di solito li lancia la CONSOLE)
 string ki_TEMP_SERVER=""   //path Temporanea sul Server
@@ -39,8 +39,7 @@ constant string kki_nome_file_errori = KKG.PATH_SEP + "m2000_errori_1"
 end variables
 
 forward prototypes
-public subroutine set_path ()
-public function string get_procedura ()
+public function string get_path_app ()
 public function string get_base_del_server ()
 public function string get_base_del_server_job ()
 public function string get_base ()
@@ -54,9 +53,7 @@ public function string get_doc_root ()
 public function string get_doc_root_interno ()
 public function string get_doc_root_esterno ()
 public subroutine set_doc_root ()
-public subroutine set_arch_saveas ()
 public function string get_app_extract_certif_e1_pdf ()
-public function st_esito set_path_base ()
 public function string get_temp_server ()
 public function string get_email_companyattachments ()
 public function string get_nome_path_file_errori_xml_noext ()
@@ -68,48 +65,16 @@ public function string get_path_dbaccess ()
 public subroutine set_server_name ()
 public subroutine set_file_access_name ()
 private subroutine set_path_risorse ()
+public function string set_path_base ()
+public function string set_path_app ()
+public function string set_path_help ()
+public function string set_arch_saveas ()
+public function string get_path_arch_saveas ()
+public subroutine set_path_locali ()
 end prototypes
 
-public subroutine set_path ();//
-string k_esito
-st_esito kst_esito
-uo_exception kuo_exception
-
-
-kuo_exception = create uo_exception
-kst_esito = kuo_exception.inizializza(this.classname())
-
-ki_PROCEDURA = kGuf_data_base.prendi_path_corrente()
-if trim(ki_procedura) > " " then
-	if not DirectoryExists(ki_procedura) then
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.SQLErrText = "La cartella Principale della Procedura non è raggiungibile: " + ki_PROCEDURA
-	end if
-else
-	kst_esito.esito = kkg_esito.ko
-	kst_esito.SQLErrText = "La cartella Principale non è stata indicata in Proprietà della Procedura!!!  " 
-end if
-
-ki_help = trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "path_help", " "))
-if trim(ki_help) > " " then
-	if not DirectoryExists(ki_help) then
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.SQLErrText += "La cartella del documento di aiuto della Procedura non è raggiungibile: " + ki_help
-	end if
-end if
-
-//if kst_esito.esito <> kkg_esito.ok then
-//	kuo_exception.inizializza()
-//	kuo_exception.set_esito(kst_esito)
-//	kuo_exception.messaggio_utente( )
-//end if
-
-if isvalid(kuo_exception) then destroy kuo_exception
-
-end subroutine
-
-public function string get_procedura ();//
-return trim(ki_procedura)
+public function string get_path_app ();//
+return trim(ki_PATH_APP)
 
 end function
 
@@ -272,80 +237,8 @@ if isvalid(kuf1_base) then destroy kuf1_base
 
 end subroutine
 
-public subroutine set_arch_saveas ();//
-//--- Imposta il PATH di salvataggio dei dati della DW es. c:\at_m2000\save_dw
-//
-//
-st_esito kst_esito
-uo_exception kuo_exception
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-	kuo_exception = create uo_exception
-
-
-	ki_arch_saveas = kGuf_data_base.profilestring_leggi_scrivi (1, "arch_saveas", "")
-
-	if trim(ki_arch_saveas) > " " then
-		if not DirectoryExists(ki_arch_saveas) then
-			kst_esito.esito = kkg_esito.not_fnd
-			kst_esito.SQLErrText = "La cartella 'Salvataggio dati generici' non è raggiungibile: " + ki_base
-//			if not u_drectory_create(ki_arch_saveas) then
-//				kst_esito.esito = kkg_esito.ko
-//				kst_esito.SQLErrText = "La cartella di salvatggio 'dati elenco' (DW) della Procedura non è raggiungibile: " + ki_arch_saveas
-//			end if
-		end if
-	else
-		ki_arch_saveas = "."
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.SQLErrText = "Manca nel file di configurazione '" + trim(kGuf_data_base.kki_nome_profile_base) + "' la chiave 'arch_saveas' dove indicare la cartella di 'Salvataggio dati generici' !!  " 
-	end if
-
-
-
-end subroutine
-
 public function string get_app_extract_certif_e1_pdf ();//
 return trim(ki_BASE_DEL_SERVER_JOB) + KKG.PATH_SEP + "mCertE1ChangeName" + KKG.PATH_SEP + "mCertE1ChangeName.exe"
-
-end function
-
-public function st_esito set_path_base ();//
-//--- Imposta il PATH dell'utente (in cui è installato M2000) es. c:\at_m2000\db
-//
-//
-st_esito kst_esito
-
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	
-	ki_base = kGuf_data_base.profilestring_leggi_scrivi (1, "arch_base", "")
-
-	if trim(ki_base) > " " then
-		if not DirectoryExists(ki_base) then
-			kst_esito.esito = kkg_esito.not_fnd
-			kst_esito.SQLErrText = "La cartella 'Archivi Base' non è raggiungibile: " + ki_base
-//			if not u_drectory_create(ki_base) then
-//				kst_esito.esito = kkg_esito.ko
-//				kst_esito.SQLErrText = "La cartella 'Archivi Base' (DB) della Procedura non è raggiungibile: " + ki_base
-//			end if
-		end if
-	else
-		ki_base = "."
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.SQLErrText = "Manca nel file di configurazione '" + trim(kGuf_data_base.kki_nome_profile_base) + "' la chiave 'arch_base' dove indicare la cartella 'Archivi Base' !!  " 
-	end if
-
-
-return kst_esito
-
 
 end function
 
@@ -408,7 +301,7 @@ public function string get_nome_file_errori_txt_all_user ();//---
 //---
 string k_path = ""
 
-k_path = get_procedura( )
+k_path = get_path_app( )
 if not directoryexists(k_path) then 
 	k_path = get_base( )
 end if
@@ -447,7 +340,7 @@ uo_exception kuo_exception
 
 	ki_SERVER_NAME = trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "ServerName", " "))
 	if trim(ki_SERVER_NAME) > " " then
-	else
+	else 
 		kst_esito.esito = kkg_esito.ko
 		kst_esito.SQLErrText += "Nome del SERVER DATI ('ServerName') non indicato nel file di Configurazione '" + kGuf_data_base.KKi_NOME_PROFILE_BASE + "'! "
 	end if
@@ -488,7 +381,6 @@ private subroutine set_path_risorse ();//
 st_esito kst_esito
 uo_exception kuo_exception
 
-
 	
 	kst_esito.esito = kkg_esito.ok
 	kst_esito.sqlcode = 0
@@ -518,6 +410,137 @@ uo_exception kuo_exception
 	end if
 
 if isvalid(kuo_exception) then destroy kuo_exception
+
+end subroutine
+
+public function string set_path_base ();/*
+ Imposta il PATH dei dati generici ovvero il path dell'utente + \db
+*/
+st_esito kst_esito
+
+	
+	kst_esito.esito = kkg_esito.ok
+	kst_esito.sqlcode = 0
+	kst_esito.SQLErrText = ""
+	kst_esito.nome_oggetto = this.classname()
+	
+	ki_base = ki_path_app + kkg.path_sep + "db" //trim(kGuf_data_base.profilestring_leggi_scrivi (1, "arch_base", ""))
+
+	if ki_base > " " then
+		if not DirectoryExists(ki_base) then
+			kst_esito.esito = kkg_esito.not_fnd
+			kst_esito.SQLErrText = "La cartella dei dati generici ('Archivi Base') non è raggiungibile: " + ki_base
+//			if not u_drectory_create(ki_base) then
+//				kst_esito.esito = kkg_esito.ko
+//				kst_esito.SQLErrText = "La cartella 'Archivi Base' (DB) della Procedura non è raggiungibile: " + ki_base
+//			end if
+		end if
+	else
+		ki_base = "."
+		kst_esito.esito = kkg_esito.ko
+		kst_esito.SQLErrText = "Manca nel file di configurazione '" + trim(kGuf_data_base.kki_nome_profile_base) + "' la chiave 'arch_base' dove indicare la cartella 'Archivi Base' !!  " 
+	end if
+
+
+return ki_base
+
+
+end function
+
+public function string set_path_app ();/*
+ Imposta il PATH dell'aplicazione
+*/
+string k_esito
+st_esito kst_esito
+uo_exception kuo_exception
+
+
+kuo_exception = create uo_exception
+kst_esito = kuo_exception.inizializza(this.classname())
+
+ki_PATH_APP = trim(GetCurrentDirectory ( )) //trim(kGuf_data_base.prendi_path_corrente())
+if trim(ki_PATH_APP) > " " then
+	if not DirectoryExists(ki_PATH_APP) then
+		kst_esito.esito = kkg_esito.ko
+		kst_esito.SQLErrText = "La cartella dell'Applicazione non è raggiungibile: " + ki_PATH_APP
+	end if
+else
+	kst_esito.esito = kkg_esito.ko
+	kst_esito.SQLErrText = "La cartella dell'Applicazione non è stata caricata, accesso negato!!!  " 
+end if
+
+if isvalid(kuo_exception) then destroy kuo_exception
+
+return ki_PATH_APP
+end function
+
+public function string set_path_help ();/*
+ Imposta il PATH dell'aplicazione
+*/
+string k_esito
+st_esito kst_esito
+uo_exception kuo_exception
+
+
+kuo_exception = create uo_exception
+kst_esito = kuo_exception.inizializza(this.classname())
+
+ki_help = ki_PATH_APP + kkg.path_sep + "help"
+if trim(ki_help) > " " then
+	if not DirectoryExists(ki_help) then
+		kst_esito.esito = kkg_esito.ko
+		kst_esito.SQLErrText += "La cartella del documento di aiuto della Procedura non è raggiungibile: " + ki_help
+	end if
+end if
+
+if isvalid(kuo_exception) then destroy kuo_exception
+
+return ki_help
+end function
+
+public function string set_arch_saveas ();//
+//--- Imposta il PATH di salvataggio dei dati della DW es. c:\at_m2000\save_dw
+//
+//
+st_esito kst_esito
+uo_exception kuo_exception
+
+
+	kst_esito.esito = kkg_esito.ok
+	kst_esito.sqlcode = 0
+	kst_esito.SQLErrText = ""
+	kst_esito.nome_oggetto = this.classname()
+	
+	kuo_exception = create uo_exception
+
+
+	ki_arch_saveas = ki_path_app + kkg.path_sep + "save_dw"
+
+	if trim(ki_arch_saveas) > " " then
+		if not DirectoryExists(ki_arch_saveas) then
+			kst_esito.esito = kkg_esito.not_fnd
+			kst_esito.SQLErrText = "La cartella 'Salvataggio dati generici' non è raggiungibile: " + ki_base
+		end if
+	else
+		ki_arch_saveas = "."
+		kst_esito.esito = kkg_esito.ko
+		kst_esito.SQLErrText = "Manca nel file di configurazione '" + trim(kGuf_data_base.kki_nome_profile_base) + "' la chiave 'arch_saveas' dove indicare la cartella di 'Salvataggio dati generici' !!  " 
+	end if
+
+return ki_arch_saveas
+
+end function
+
+public function string get_path_arch_saveas ();//
+return ki_arch_saveas
+
+end function
+
+public subroutine set_path_locali ();//
+set_path_app( )
+set_arch_saveas( )
+set_path_base( )
+set_path_help( )
 
 end subroutine
 

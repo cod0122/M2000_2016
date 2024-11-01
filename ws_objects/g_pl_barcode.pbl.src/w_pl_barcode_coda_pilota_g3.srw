@@ -67,7 +67,6 @@ private subroutine allerta_chiudi ()
 protected subroutine stampa ()
 protected subroutine attiva_menu ()
 protected subroutine smista_funz (string k_par_in)
-private subroutine popola_ds_pl_barcode ()
 protected function string check_dati ()
 protected function string cancella ()
 private subroutine cancella_toglie_barcode_da_pl () throws uo_exception
@@ -84,6 +83,8 @@ private function long leggi_pilota ()
 private subroutine check_pl_barcode_inviati ()
 private function long u_retrieve_dw () throws uo_exception
 private subroutine crea_richiesta_pilota ()
+private subroutine popola_ds_pl_barcode () throws uo_exception
+private subroutine popola_ds_pl_barcode_1 (ref uo_d_std_1 adw_inp) throws uo_exception
 end prototypes
 
 protected function string inizializza () throws uo_exception;//
@@ -335,12 +336,9 @@ boolean k_attiva
 	st_aggiorna_lista.enabled  = false
 	m_main.m_finestra.m_aggiornalista.enabled = st_aggiorna_lista.enabled 
 
-
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
 				or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento  then
 		k_attiva = true
-	else
-		k_attiva = false
 	end if
 	
 	if m_main.m_strumenti.m_fin_gest_libero1.enabled <> k_attiva then
@@ -399,12 +397,6 @@ boolean k_attiva
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemname = "DeleteRow2!"
 	end if	
 
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
-				or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento  then
-		k_attiva = true
-	else
-		k_attiva = false
-	end if
 	if m_main.m_strumenti.m_fin_gest_libero5.enabled <> k_attiva then
 		m_main.m_strumenti.m_fin_gest_libero5.text = "&Invia Programmazione al Pilota Gamma 3"
 		m_main.m_strumenti.m_fin_gest_libero5.microhelp = &
@@ -431,7 +423,6 @@ boolean k_attiva
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemname = "barcode.bmp"
 	end if
-
 
 	super::attiva_menu()
 
@@ -509,68 +500,6 @@ end choose
 
 end subroutine
 
-private subroutine popola_ds_pl_barcode ();
-//---
-//--- Popola il ds x generare il file Pilota 
-//---
-//---
-long k_riga, k_riga_ds
-kuf_pl_barcode kuf1_pl_barcode
-pointer oldpointer  // Declares a pointer variable
-
-
-
-//=== Puntatore Cursore da attesa.....
-oldpointer = SetPointer(HourGlass!)
-
-
-k_riga_ds=0
-kids_pl_barcode.reset()
-
-//--- popola la prima parte del ds con i dati intoccabili
-for k_riga = 1 to dw_lista_0.rowcount()
-	k_riga_ds = kids_pl_barcode.insertrow(0)
-	kids_pl_barcode.object.pl_barcode_progr[k_riga_ds] = k_riga_ds
-	kids_pl_barcode.object.barcode[k_riga_ds] = dw_lista_0.object.barcode[k_riga]
-	kids_pl_barcode.object.groupage[k_riga_ds] = kuf1_pl_barcode.k_groupage_no
-	kids_pl_barcode.object.g3npass[k_riga_ds] = dw_lista_0.object.id_modo[k_riga]
-	kids_pl_barcode.object.g3ciclo[k_riga_ds] = dw_lista_0.object.ciclo[k_riga]
-	kids_pl_barcode.object.g3ngiri[k_riga_ds] = dw_lista_0.object.giri[k_riga]
-	kids_pl_barcode.object.num_int[k_riga_ds] = dw_lista_0.object.k_num_int[k_riga]
-	kids_pl_barcode.object.clie_2[k_riga_ds] = dw_lista_0.object.k_clie_2[k_riga]
-	kids_pl_barcode.object.area_mag[k_riga_ds] = dw_lista_0.object.k_area_mag[k_riga]
-	kids_pl_barcode.object.rag_soc_10[k_riga_ds] = dw_lista_0.object.k_rag_soc_10[k_riga]
-	if len(trim(dw_lista_0.object.k_consegna_data[k_riga])) > 0 then
-		kids_pl_barcode.object.consegna_data[k_riga_ds] = date(dw_lista_0.object.k_consegna_data[k_riga])
-	end if
-	kids_pl_barcode.object.impianto[k_riga_ds] = 3
-end for
-
-//--- popola la parte dei dati toccabili 
-for k_riga = 1 to dw_dett_0.rowcount()
-	k_riga_ds = kids_pl_barcode.insertrow(0)
-	kids_pl_barcode.object.pl_barcode_progr[k_riga_ds] = k_riga_ds
-	kids_pl_barcode.object.barcode[k_riga_ds] = dw_dett_0.object.barcode[k_riga]
-	kids_pl_barcode.object.groupage[k_riga_ds] =kuf1_pl_barcode.k_groupage_no
-	kids_pl_barcode.object.g3npass[k_riga_ds] = dw_dett_0.object.id_modo[k_riga]
-	kids_pl_barcode.object.g3ciclo[k_riga_ds] = dw_dett_0.object.ciclo[k_riga]
-	kids_pl_barcode.object.g3ngiri[k_riga_ds] = dw_dett_0.object.giri[k_riga]
-	kids_pl_barcode.object.num_int[k_riga_ds] = dw_dett_0.object.k_num_int[k_riga]
-	kids_pl_barcode.object.clie_2[k_riga_ds] = dw_dett_0.object.k_clie_2[k_riga]
-	kids_pl_barcode.object.area_mag[k_riga_ds] = dw_dett_0.object.k_area_mag[k_riga]
-	kids_pl_barcode.object.rag_soc_10[k_riga_ds] = dw_dett_0.object.k_rag_soc_10[k_riga]
-	if len(trim(dw_dett_0.object.k_consegna_data[k_riga])) > 0 then
-		kids_pl_barcode.object.consegna_data[k_riga_ds] = date(dw_dett_0.object.k_consegna_data[k_riga])
-	end if
-	kids_pl_barcode.object.impianto[k_riga_ds] = 3
-end for
-
-
-SetPointer(oldpointer)
-
-
-end subroutine
-
 protected function string check_dati ();//=== Controllo congruenza dei dati caricati. 
 //=== Ritorna 1 char : 0=tutto OK; 1=errore logico; 2=errore formale;
 //===			         : 3=dati insufficienti; 4=OK con degli avvertimenti
@@ -598,8 +527,8 @@ ds_pl_barcode_dett kds_pl_barcode_dett
 		
 	//--- Popolo il Datastore x il controllo della Programmazione
 		k_riga_ds = kds_pl_barcode_dett.insertrow(0)
-		kds_pl_barcode_dett.object.pl_barcode_progr[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "barcode_pl_barcode_progr")
-		kds_pl_barcode_dett.object.barcode[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "barcode_barcode")
+		kds_pl_barcode_dett.object.pl_barcode_progr[k_riga_ds] = dw_dett_0.getitemnumber ( k_riga, "ordine")
+		kds_pl_barcode_dett.object.barcode[k_riga_ds] = dw_dett_0.getitemstring ( k_riga, "barcode")
 	
 	next
 
@@ -610,7 +539,7 @@ ds_pl_barcode_dett kds_pl_barcode_dett
 	catch (uo_exception kuo_exception)
 		kst_esito = kuo_exception.get_st_esito()
 		if kst_esito.esito <> kkg_esito.ok then
-			k_return = k_return + trim(kst_esito.sqlerrtext) + "~n~r"
+			k_return = k_return + trim(kst_esito.sqlerrtext) + " " + kkg.acapo
 			k_errore = "3"
 		end if
 
@@ -1287,15 +1216,15 @@ try
 		SELECT 
 				  queue_table.Ordine ,
 				  queue_table.Barcode ,
-				  (ifnull(queue_table.Piano_Lavorazione,0)) ,
+				  (ifnull(queue_table.Codice_Lavorazione,0)) ,
 				  (queue_table.id_modo)  ,
 				  (queue_table.ciclo) ,
 				  queue_table.giri  
 					,wo.lotto as k_num_int
-					,ifnull(CONVERT(wo.codice_cliente, UNSIGNED),0) as k_clie_2
+					,ifnull(CONVERT(wo.codice, UNSIGNED),0) as k_clie_2
 					, (queue_table.Locazione) as k_area_mag
-					, (wo.nome_cliente) as k_rag_soc_10
-		   FROM queue_table left outer join Work_Orders wo on queue_table.work_order = wo.Work_Order
+					, (wo.cliente) as k_rag_soc_10
+		   FROM queue_table left outer join wo on queue_table.work_order = wo.wo
 			order by ordine asc
   		 using kguo_sqlca_db_pilota_g3;
 	
@@ -1304,7 +1233,7 @@ try
 	
 	k_intoccabili = kist_tab_pilota_impostazioni.num_intouchable
 	
-	kguo_sqlca_db_pilota_g3.db_connetti( )
+	kguo_sqlca_db_pilota_g3.db_connetti( ) 
 	
 	open c_retrieve_dw;
 	if kguo_sqlca_db_pilota_g3.sqlcode < 0 then
@@ -1457,7 +1386,7 @@ string k_errore
 kuf_pl_barcode kuf1_pl_barcode
 kuf_pilota_cmd kuf1_pilota_cmd
 kuf_plav kuf1_plav   // nuova programmazione G2
-
+st_plav_programmi kst_plav_programmi
 st_esito kst_esito
 st_tab_pl_barcode kst_tab_pl_barcode
 
@@ -1515,7 +1444,7 @@ try
 	cancella_toglie_barcode_da_pl()
 				
 //-- SCRIVE Richiesta di SOSTITUZIONE PIANO G3
-	kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode, kuf1_plav.kki_id_impianto_G3)
+	kst_plav_programmi.id_programma = kuf1_plav.job_sostituzione_piano_lavoro(kids_pl_barcode, kuf1_plav.kki_id_impianto_G3)
 
 //--- Accende il flag di invio andato a buon fine
 	ki_invio_programma_eseguito = true
@@ -1523,13 +1452,14 @@ try
 	timer( 0 )   // Disattivo il timer x non fare più retrieve
 	
 	ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione			
+
+	messagebox("Sostituzione Programmazione Impianto G3", "Operazione conclusa, è stato generato il Programma per il Pilota n. " + string(kst_plav_programmi.id_programma) + ", prego  verificare.") 
 		
 catch(uo_exception kuo_exception)
 	kuo_exception.messaggio_utente() 
 	
 finally
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
-//--- poi disabilito le dw di modifica
 		dw_dett_0.u_proteggi_dw("1", 0)
 	end if	
 	attiva_tasti()
@@ -1537,6 +1467,75 @@ finally
 	if isvalid(kuf1_pl_barcode) then destroy kuf1_pl_barcode
 	
 end try
+
+end subroutine
+
+private subroutine popola_ds_pl_barcode () throws uo_exception;//---
+//--- Popola il ds x generare il file Pilota 
+//---
+
+kids_pl_barcode.reset()
+
+//--- popola la prima parte del ds con i dati intoccabili
+popola_ds_pl_barcode_1(dw_lista_0)
+
+//--- popola la parte dei dati toccabili 
+popola_ds_pl_barcode_1(dw_dett_0)
+
+
+
+end subroutine
+
+private subroutine popola_ds_pl_barcode_1 (ref uo_d_std_1 adw_inp) throws uo_exception;//---
+//--- Popola il ds x generare il file Pilota 
+//---
+//---
+long k_row, k_rows_inp,  k_row_ds
+kuf_pl_barcode kuf1_pl_barcode
+
+
+
+SetPointer(kkg.pointer_attesa)
+
+kguo_exception.inizializza(this.classname())
+
+k_rows_inp = adw_inp.rowcount()
+
+//--- popola la prima parte del ds con i dati intoccabili
+for k_row = 1 to k_rows_inp
+	k_row_ds = kids_pl_barcode.insertrow(0)
+	kids_pl_barcode.object.pl_barcode_progr[k_row_ds] = k_row_ds
+	kids_pl_barcode.object.barcode[k_row_ds] = adw_inp.object.barcode[k_row]
+	kids_pl_barcode.object.groupage[k_row_ds] = kuf1_pl_barcode.k_groupage_no
+	if isnumber(trim(adw_inp.object.id_modo[k_row])) then
+		kids_pl_barcode.object.g3npass[k_row_ds] = integer(trim(adw_inp.object.id_modo[k_row]))
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione dati per Sostituzione della Programmazione Impianto G3, il N.PASS è dato non Numerico: '" &
+							+ 	trim(adw_inp.object.id_modo[k_row]) + "'. Operazione Interrotta! "
+		throw kguo_exception
+	end if
+	if isnumber(trim(adw_inp.object.ciclo[k_row])) then
+		kids_pl_barcode.object.g3ciclo[k_row_ds] = integer(trim(adw_inp.object.ciclo[k_row]))
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.kist_esito.sqlerrtext = "Errore in preparazione dati per Sostituzione della Programmazione Impianto G3, il N.CICLI è dato non Numerico: '" &
+							+ 	trim(adw_inp.object.ciclo[k_row]) + "'. Operazione Interrotta! "
+		throw kguo_exception
+	end if
+	kids_pl_barcode.object.g3ngiri[k_row_ds] = adw_inp.object.giri[k_row]
+	kids_pl_barcode.object.num_int[k_row_ds] = 0 //adw_inp.object.k_num_int[k_row] è un alfanumerico es. 501/2024
+	kids_pl_barcode.object.clie_2[k_row_ds] = adw_inp.object.k_clie_2[k_row]
+	kids_pl_barcode.object.area_mag[k_row_ds] = adw_inp.object.k_area_mag[k_row]
+	kids_pl_barcode.object.rag_soc_10[k_row_ds] = adw_inp.object.k_rag_soc_10[k_row]
+	if len(trim(adw_inp.object.k_consegna_data[k_row])) > 0 then
+		kids_pl_barcode.object.consegna_data[k_row_ds] = date(adw_inp.object.k_consegna_data[k_row])
+	end if
+	kids_pl_barcode.object.impianto[k_row_ds] = 3
+end for
+
+SetPointer(kkg.pointer_default)
+
 
 end subroutine
 
@@ -2088,54 +2087,66 @@ end event
 
 event buttonclicked;
 //
-long k_riga, k_riga1
+long k_riga, k_sposta_alla_riga
 string k_msg
 
 this.enabled = false
 
-if dwo.name = "cb_prima_del_barcode" then
-
-	this.accepttext( )
+if dwo.name = "cb_prima_del_barcode" then // Pulsante di SPOSTA
 	
-	if this.rowcount( ) > 0 then 
-		if this.object.posizione_tipo[1] = 1 then
-			k_riga = 1
-			k_msg = " OK!  Barcode spostato all'inizio. ~n~r Operazione conclusa correttamente. " 
-		else
-			if this.object.posizione_tipo[1] = 3 then
+	if this.rowcount( ) <= 0 then return 0
+
+	if dw_dett_0.getselectedrow(0) <= 0 then
+		k_msg = " Selezionare almeno un barcode da spostare. "
+		k_riga = 0  // chiudo spostamento
+	else
+
+		this.accepttext( )
+					
+		k_sposta_alla_riga = this.object.posizione_numero[1]  
+		
+		choose case this.object.posizione_tipo[1]
+				
+			case 1 // SPOSTA ALL'INIZIO
+				k_riga = 1
+				k_msg = " OK!  Barcode spostato all'inizio. ~n~r Operazione conclusa correttamente. " 
+				if k_sposta_alla_riga > 1 then
+					if messagebox("Richiesta di Spostamento in Testa", "Attenzione è stato indicato il numero di riga " + string(k_sposta_alla_riga) + " sei sicuro di volere spostare a Inizio Lista?", stopsign!, yesno!, 2)  = 2 then
+						k_riga = 0  // chiudo spostamento
+						k_msg = " Operazione Interrotta dall'utente nessuno spostamento eseguito. " 
+					end if
+				end if
+	
+			case 3 // SPOSTA ALLA FINE
 				k_riga = dw_dett_0.rowcount() + 1
 				k_msg = " OK!  Barcode spostato alla Fine. ~n~r Operazione conclusa correttamente. " 
+				if k_sposta_alla_riga > 1 then
+					if messagebox("Richiesta di Spostamento in Coda", "Attenzione è stato indicato il numero di riga " + string(k_sposta_alla_riga) + " sei sicuro di volere spostare a Fine Lista?", stopsign!, yesno!, 2)  = 2 then
+						k_riga = 0  // chiudo spostamento
+						k_msg = " Operazione Interrotta dall'utente nessuno spostamento eseguito. " 
+					end if
+				end if
 				
-			else
-				
-//				k_riga1 = this.object.posizione_numero[1] 
-				if this.object.posizione_numero[1] > 1 then
-
+			case else
+				if k_sposta_alla_riga > 1 then
+	
 					k_riga = dw_dett_0.find("ordine = "+string(this.object.posizione_numero[1] )+" ", 1, dw_dett_0.rowcount())
-		//--- se non trova l'ordine allora cerca il piu' vicino salendo		
+	//--- se non trova l'ordine allora cerca il piu' vicino salendo		
 					if k_riga <= 0 then
-//						k_riga = dw_dett_0.find("ordine >= "+string(this.object.posizione_numero[1] )+" ", 1, dw_dett_0.rowcount())
-//		//--- se ancora non trova l'ordine allora mi posiziono sull'ultimo + 1
-//		
-//						if k_riga <= 0 then
-							k_riga = 0
-							k_msg = " ERRORE:  Numero " + string (this.object.posizione_numero[1] ) + " non Trovato! ~n~r Prego, riprovare. " 
-//						else
-//							k_msg = " OK!  Barcode mossi al numero: " + string (k_riga) + " (diverso da quello indicato). ~n~r Operazione conclusa correttamente. " 
-//						end if
+						k_riga = 0
+						k_msg = " ERRORE:  Numero " + string (this.object.posizione_numero[1] ) + " non Trovato! ~n~r Prego, riprovare. " 
 					else
-						k_msg = " OK!  Barcode mossi al numero Indicato, riga nr.: " +string (this.object.posizione_numero[1] )+ ". ~n~r Operazione conclusa correttamente. " 
+						k_msg = " OK!  Barcode mossi al numero posizione " +string (k_sposta_alla_riga)+ " Indicato. ~n~r Operazione conclusa correttamente. " 
 					end if
 				
 				else
-					k_riga = 1
-					k_msg = " OK!  Barcode spostato all'inizio (meglio selezionare la prima scelta) . ~n~r Operazione conclusa correttamente. " 
+					k_riga = 0
+					k_msg = " Nessun numero di Posizione Indicato per spostarlo a Inizio Lista selezionare la scelta opportuna . ~n~r Operazione Interrotta, nessuno spostamento eseguito. " 
 				end if
-			end if
-			
-		end if
+				
+		end choose
 	end if
-
+			
 //--- effettua lo spostamento			
 	if k_riga > 0  then
 	
@@ -2156,8 +2167,8 @@ if dwo.name = "cb_prima_del_barcode" then
 		
 	end if
 
-	if len(trim(this.object.msg[1])) > 0 then
-		this.object.msg[1] = k_msg +  "  ~n~r  ~n~r" +  this.object.msg[1]
+	if trim(this.object.msg[1]) > " " then
+		this.object.msg[1] = k_msg +  kkg.acapo + kkg.acapo  +  this.object.msg[1]
 	else
 		this.object.msg[1] = k_msg 
 	end if

@@ -31,7 +31,6 @@ public function boolean get_id_da_idwmpkl (ref st_tab_wm_receiptgammarad kst_tab
 public function boolean if_barcode_int_gia_impostato (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
 public function st_esito tb_delete (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad)
 public function boolean get_area_magazzino (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception
-public function st_esito tb_add (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad)
 public subroutine set_null (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_null)
 public function st_esito get_idwmpkl_readed (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad)
 public function st_esito toglie_internalpalletcode (st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad)
@@ -40,9 +39,7 @@ public function boolean set_accept_true (ref st_tab_wm_receiptgammarad kst_tab_w
 public function boolean set_accept_false (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function boolean if_sicurezza (string aflag_modalita) throws uo_exception
-public function transaction set_connessione (boolean a_connetti) throws uo_exception
 public function long get_wm_pklist_file_txt (ref st_wm_pkl_file kst_wm_pkl_file[]) throws uo_exception
-public function datastore get_wm_pklist_txt (st_wm_pkl_file kst_wm_pkl_file) throws uo_exception
 public function long importa_wm_pklist_txt () throws uo_exception
 public function boolean set_id_meca (st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
@@ -51,10 +48,14 @@ public function st_esito anteprima_tree (ref datastore kdw_anteprima, st_tab_wm_
 public function st_esito tb_delete_x_packinglistcode (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad)
 public function long get_id_meca (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
 public function boolean if_barcode_cliente_exists (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
-public function int add (long k_nr_ws_receiptgammarad, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception
+public function integer add (long k_nr_ws_receiptgammarad, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception
 private function long set_wm_pklist_txt_to_wm_tab (ref datastore kds_receiptgammarad_l, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception
 public function long if_exists_packinglistcode (readonly st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
+public function long tb_add (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception
+public function long get_id_max () throws uo_exception
+public function transaction old_set_connessione (boolean a_connetti) throws uo_exception
 public function integer get_file_wm_pklist_txt (ref st_wm_pkl_file kst_wm_pkl_file[]) throws uo_exception
+public function uo_ds_std_1 get_wm_pklist_txt (st_wm_pkl_file kst_wm_pkl_file) throws uo_exception
 end prototypes
 
 public function st_esito set_idwmpklist (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
@@ -70,7 +71,7 @@ st_esito kst_esito
 boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
@@ -98,7 +99,7 @@ else
 	if NOT isnull(kst_tab_wm_receiptgammarad.idwmpklist) then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
+//			kuo1_sqlca_db_0 = set_connessione(true)
 
 //		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
 //		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
@@ -106,19 +107,19 @@ else
 			update receiptgammarad
 					set idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
 					WHERE packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino ;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante aggiornamento tabella Magazzino Packing-List  (idwmpklist di receiptgammarad)~n~r" &
 						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -130,13 +131,13 @@ else
 			if kst_esito.esito = kkg_esito.db_ko then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
 
-					kuo1_sqlca_db_0.db_rollback( ) ;
+					kguo_sqlca_db_magazzino.db_rollback( ) ;
 					
 				end if
 			else
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
 
-					kuo1_sqlca_db_0.db_commit( ) ;
+					kguo_sqlca_db_magazzino.db_commit( ) ;
 					if sqlca.sqlcode <> 0 then
 						kst_esito.esito = kkg_esito.db_ko
 						kst_esito.sqlcode = sqlca.sqlcode
@@ -151,7 +152,7 @@ else
 	
 	
 		finally
-			set_connessione(false)
+			//set_connessione(false)
 	
 		end try
 		
@@ -197,13 +198,13 @@ int k_rcn
 long k_ind
 st_esito kst_esito
 datastore kds_wm_receiptgammarad, kds_wm_receiptgammarad_note_lotto
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
 try
 
-	kuo1_sqlca_db_0 = set_connessione(true)
+//	kuo1_sqlca_db_0 = set_connessione(true)
 
 	kds_wm_receiptgammarad = create datastore
 	kds_wm_receiptgammarad_note_lotto = create datastore
@@ -212,7 +213,7 @@ try
 
 //--- datastore del Pklist x IMPORTAZIONE!
 	kds_wm_receiptgammarad.dataobject = "d_wm_receiptgammarad_inout"
-	k_rcn = kds_wm_receiptgammarad.settransobject(kuo1_sqlca_db_0)
+	k_rcn = kds_wm_receiptgammarad.settransobject(kguo_sqlca_db_magazzino)
 	if k_rcn >= 0 then
 		k_rcn = kds_wm_receiptgammarad.retrieve(kst_tab_wm_receiptgammarad_input.packinglistcode)
 	end if
@@ -226,7 +227,7 @@ try
 
 //--- datastore che serve SOLO per IMPORTARE le note_1/3 
 	kds_wm_receiptgammarad_note_lotto.dataobject = "d_wm_receiptgammarad_inout_note_lotto"
-	k_rcn = kds_wm_receiptgammarad_note_lotto.settransobject(kuo1_sqlca_db_0)
+	k_rcn = kds_wm_receiptgammarad_note_lotto.settransobject(kguo_sqlca_db_magazzino)
 	if k_rcn >= 0 then
 		k_rcn = kds_wm_receiptgammarad_note_lotto.retrieve(kst_tab_wm_receiptgammarad_input.packinglistcode)
 	end if
@@ -238,6 +239,7 @@ try
 		for k_ind = 1 to  kds_wm_receiptgammarad.rowcount( )
 			
 			kst_tab_wm_receiptgammarad[k_ind].packinglistcode = kds_wm_receiptgammarad.getitemstring( k_ind, "packinglistcode")  // codice Lotto
+			kst_tab_wm_receiptgammarad[k_ind].idpkl = kds_wm_receiptgammarad.getitemnumber( k_ind, "idpkl")  // ID indicato nel pklinst importato
 			kst_tab_wm_receiptgammarad[k_ind].ddtcode = kds_wm_receiptgammarad.getitemstring( k_ind, "ddtcode")
 			kst_tab_wm_receiptgammarad[k_ind].ddtdate = kds_wm_receiptgammarad.getitemdatetime( k_ind, "ddtdate")
 			kst_tab_wm_receiptgammarad[k_ind].externalpalletcode = kds_wm_receiptgammarad.getitemstring( k_ind, "externalpalletcode") // Barcode-Cliente
@@ -272,7 +274,7 @@ catch (uo_exception kuo_exception)
 
 finally
 	if isvalid(kds_wm_receiptgammarad) then destroy kds_wm_receiptgammarad
-	set_connessione(false)
+//	set_connessione(false)
 	
 end try
 
@@ -298,16 +300,16 @@ long k_ind
 st_esito kst_esito
 st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_input
 datastore kds_wm_receiptgammarad
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
-	kuo1_sqlca_db_0 = set_connessione(true)
+	//kuo1_sqlca_db_0 = set_connessione(true)
 
 	kds_wm_receiptgammarad = create datastore
 
 //--- datasore del Pklist xml IMPORTAZIONE!
 	kds_wm_receiptgammarad.dataobject = "d_wm_receiptgammarad_idpkl_inout"
-	k_rcn = kds_wm_receiptgammarad.settransobject(kuo1_sqlca_db_0)
+	k_rcn = kds_wm_receiptgammarad.settransobject(kguo_sqlca_db_magazzino)
 	kst_tab_wm_receiptgammarad_input.packinglistcode = ""
 	k_rcn = kds_wm_receiptgammarad.retrieve(kst_tab_wm_receiptgammarad_input.packinglistcode)
 	if k_rcn < 0 then
@@ -333,7 +335,7 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 	destroy kds_wm_receiptgammarad
 
-	set_connessione(false)
+//	set_connessione(false)
 
 return k_return
 
@@ -363,14 +365,14 @@ st_tab_clienti kst_tab_clienti
 //st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
 kuf_clienti kuf1_clienti
 //kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 	try 
 
 		k_data_0 = datetime(date(0)	)
 
-		kuo1_sqlca_db_0 = set_connessione(true)
+	//	kuo1_sqlca_db_0 = set_connessione(true)
 		 
 	//--- Ricavo l'oggetto figlio dal DB 
 		kst_tab_treeview.id = k_tipo_oggetto
@@ -508,7 +510,7 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 			if len(trim(k_query_where)) > 0 then
 				declare kc_treeview dynamic cursor for SQLSA ;
 				k_query_select = k_query_select + k_query_where + k_query_order
-				prepare SQLSA from :k_query_select using kuo1_sqlca_db_0;
+				prepare SQLSA from :k_query_select using kguo_sqlca_db_magazzino;
 			end if		
 	
 			 
@@ -522,12 +524,12 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 	//				open dynamic kc_treeview using :k_data_meno3mesi;
 	
 				case else
-					kuo1_sqlca_db_0.sqlcode = 100
+					kguo_sqlca_db_magazzino.sqlcode = 100
 	
 			end choose
 	
 
-			if kuo1_sqlca_db_0.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
 				
 				kuf1_clienti = create kuf_clienti
 				
@@ -546,7 +548,7 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 					  ;
 		
 				
-				do while kuo1_sqlca_db_0.sqlcode = 0
+				do while kguo_sqlca_db_magazzino.sqlcode = 0
 					
 					kst_treeview_data.handle = 0
 					kst_treeview_data.oggetto = k_tipo_oggetto_figlio
@@ -632,7 +634,7 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 	finally 
 		if isvalid(kuf1_clienti) then	destroy kuf1_clienti
-		set_connessione(false)
+	//	set_connessione(false)
 
 		
 	end try
@@ -694,6 +696,7 @@ if isnull(kst_tab_wm_receiptgammarad.PesoNetto ) then kst_tab_wm_receiptgammarad
 if isnull(kst_tab_wm_receiptgammarad.PesoLordo ) then kst_tab_wm_receiptgammarad.PesoLordo = 0
 //if isnull(kst_tab_wm_receiptgammarad.PalletQuantita ) then kst_tab_wm_receiptgammarad.PalletQuantita = 0
 if isnull(kst_tab_wm_receiptgammarad.QuantitaSacchi ) then kst_tab_wm_receiptgammarad.QuantitaSacchi = 0
+if isnull(kst_tab_wm_receiptgammarad.idpkl) then kst_tab_wm_receiptgammarad.idpkl = 0
 
 
 end subroutine
@@ -1019,7 +1022,7 @@ st_open_w kst_open_w
 st_esito kst_esito
 kuf_sicurezza kuf1_sicurezza
 kuf_utility kuf1_utility
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 kst_esito.esito = kkg_esito.ok
@@ -1044,7 +1047,7 @@ if not k_return then
 else
 
 	try
-		kuo1_sqlca_db_0 = set_connessione(true)
+//		kuo1_sqlca_db_0 = set_connessione(true)
 	
 		if isvalid(kdw_anteprima)  then
 			if kdw_anteprima.dataobject = "d_wm_receiptgammarad"  then
@@ -1067,7 +1070,7 @@ else
 		if kst_tab_wm_receiptgammarad.idwmpklist > 0 or trim(kst_tab_wm_receiptgammarad.packinglistcode) > " " then
 		
 			kdw_anteprima.dataobject = "d_wm_receiptgammarad"		
-			kdw_anteprima.settransobject(kuo1_sqlca_db_0)
+			kdw_anteprima.settransobject(kguo_sqlca_db_magazzino)
 		
 //			kuf1_utility = create kuf_utility
 //			kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
@@ -1087,7 +1090,7 @@ else
 		kst_esito = kuo_exception.get_st_esito()
 		
 	finally
-		set_connessione(false)
+//		set_connessione(false)
 		
 		
 	end try
@@ -1183,7 +1186,7 @@ st_esito kst_esito
 boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
@@ -1211,7 +1214,7 @@ else
 	if kst_tab_wm_receiptgammarad.id > 0 then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
+//			kuo1_sqlca_db_0 = set_connessione(true)
 //			kGuo_sqlca_db_wm.db_connetti()
 //		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
 //		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
@@ -1220,19 +1223,19 @@ else
 					set internalpalletcode = :kst_tab_wm_receiptgammarad.internalpalletcode
 					,Id_meca = :kst_tab_wm_receiptgammarad.id_meca
 					WHERE id = :kst_tab_wm_receiptgammarad.id
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante aggiornamento tabella di Magazzino Packing-List  (internalpalletcode in receiptgammarad) ~n~r" &
 						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -1243,11 +1246,11 @@ else
 		//---- COMMIT....	
 			if kst_esito.esito = kkg_esito.db_ko then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 			else
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_commit()
 					if sqlca.sqlcode <> 0 then
 						kst_esito.esito = kkg_esito.db_ko
 						kst_esito.sqlcode = sqlca.sqlcode
@@ -1260,7 +1263,7 @@ else
 			kst_esito = kuo_exception.get_st_esito()
 	
 		finally
-			set_connessione(false)
+//			set_connessione(false)
 			//kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
 			
 		end try
@@ -1291,18 +1294,18 @@ int k_rcn
 long k_ind
 st_esito kst_esito
 datastore kds_wm_receiptgammarad
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 try
 	//kGuo_sqlca_db_wm.db_connetti()
-	kuo1_sqlca_db_0 = set_connessione(true)
+//	kuo1_sqlca_db_0 = set_connessione(true)
 
 	kds_wm_receiptgammarad = create datastore
 	
 //--- datasore del Pklist xml IMPORTAZIONE!
 	kds_wm_receiptgammarad.dataobject = "d_wm_receiptgammarad_id_inout"
-	k_rcn = kds_wm_receiptgammarad.settransobject(kuo1_sqlca_db_0)
+	k_rcn = kds_wm_receiptgammarad.settransobject(kguo_sqlca_db_magazzino)
 	k_rcn = kds_wm_receiptgammarad.retrieve(kst_tab_wm_receiptgammarad[1].idwmpklist)
 	if k_rcn < 0 then
 		kst_esito.esito = kkg_esito.bug
@@ -1330,7 +1333,7 @@ catch (uo_exception kuo_exception)
 
 finally
 	if isvalid(kds_wm_receiptgammarad) then destroy kds_wm_receiptgammarad
-	set_connessione(false)
+	//set_connessione(false)
 
 end try
 
@@ -1353,30 +1356,29 @@ public function boolean if_barcode_int_gia_impostato (ref st_tab_wm_receiptgamma
 boolean k_return=false
 long k_trovato
 st_esito kst_esito
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 try
 	
 	kst_esito = kguo_exception.inizializza(this.classname())
-	kuo1_sqlca_db_0 = set_connessione(true)
-	//kGuo_sqlca_db_wm.db_connetti()
+//	kuo1_sqlca_db_0 = set_connessione(true)
 
 	select distinct 1
 		into :k_trovato
 	   from receiptgammarad
 		where idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist 
 			and (readed like 'True%' or readed like 'TRUE%') 
-			using kuo1_sqlca_db_0;
+			using kguo_sqlca_db_magazzino;
 	
-	if kuo1_sqlca_db_0.sqlcode = 0 and k_trovato > 0 then
+	if kguo_sqlca_db_magazzino.sqlcode = 0 and k_trovato > 0 then
 		k_return = true
 	else
-		if kuo1_sqlca_db_0.sqlcode < 0 then
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
 			
 			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
-			kst_esito.SQLErrText = "Estrazione campo 'READED' x controllo Barcode su 'Packing-List' fallito!  ~n~r " + trim(kuo1_sqlca_db_0.SQLErrText) 
+			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+			kst_esito.SQLErrText = "Estrazione campo 'READED' x controllo Barcode su 'Packing-List' fallito!  ~n~r " + trim(kguo_sqlca_db_magazzino.SQLErrText) 
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
@@ -1386,7 +1388,7 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 	
 finally
-	set_connessione(false)
+//	set_connessione(false)
 
 end try
 
@@ -1438,13 +1440,12 @@ int k_rcn
 long k_ind
 st_esito kst_esito
 datastore kds_wm_receiptgammarad
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
-	kuo1_sqlca_db_0 = set_connessione(true)
-	//if NOT kGuo_sqlca_db_wm.db_connetti() then
-	if not isvalid(kuo1_sqlca_db_0) then
+	//kuo1_sqlca_db_0 = set_connessione(true)
+	if not isvalid(kguo_sqlca_db_magazzino) then
 		kst_esito.esito = kkg_esito.bug
 		kst_esito.sqlcode = 0
 		kst_esito.SQLErrText = "Connessione al WM non riuscita, impossibile reperire Area_Magazzino per il Lotto (id_meca= " + string(kst_tab_wm_receiptgammarad[1].id_meca) + ") !  ~n~r "  
@@ -1458,11 +1459,11 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 		
 		if kst_tab_wm_receiptgammarad[1].id_meca > 0 then	
 			kds_wm_receiptgammarad.dataobject = "d_wm_receiptgammarad_area_mag"
-			k_rcn = kds_wm_receiptgammarad.settransobject(kuo1_sqlca_db_0)
+			k_rcn = kds_wm_receiptgammarad.settransobject(kguo_sqlca_db_magazzino)
 			k_rcn = kds_wm_receiptgammarad.retrieve(kst_tab_wm_receiptgammarad[1].id_meca )
 		else
 			kds_wm_receiptgammarad.dataobject = "d_wm_receiptgammarad_area_mag_1"
-			k_rcn = kds_wm_receiptgammarad.settransobject(kuo1_sqlca_db_0)
+			k_rcn = kds_wm_receiptgammarad.settransobject(kguo_sqlca_db_magazzino)
 			k_rcn = kds_wm_receiptgammarad.retrieve(trim(kst_tab_wm_receiptgammarad[1].externalpalletcode) )
 		end if
 		if k_rcn < 0 then
@@ -1490,194 +1491,11 @@ kuo_sqlca_db_0 kuo1_sqlca_db_0
 	
 		destroy kds_wm_receiptgammarad
 		
-		set_connessione(false)
+		//set_connessione(false)
 	end if
 
 return k_return
 
-
-end function
-
-public function st_esito tb_add (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
-//====================================================================
-//=== Insert in tabella ReceiptGammarad
-//=== 
-//=== Input: st_tab_wm_receiptgammarad
-//=== Ritorna:       ST_ESITO 
-//=== 
-//====================================================================
-//
-st_esito kst_esito
-boolean k_pkldam2000
-boolean k_sicurezza
-st_open_w kst_open_w
-kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
-kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.inserimento) 
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_sicurezza = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-
-if not k_sicurezza then
-
-	kst_esito.SQLErrText = "Inserimento in Tabella di Magazzino Packing-List (ReceiptGammarad) non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
-
-	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
-
-		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-//		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
-//		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
-
-//--- se attivo E1 allora alcuni flag che impstava il WMF ora li forza sempre a True come ACCETTATO/LETTO/....
-			kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-			k_pkldam2000 = kuf1_wm_pklist_cfg.if_importadam2000()
-			if k_pkldam2000 then
-				kst_tab_wm_receiptgammarad.accept = "True"
-				kst_tab_wm_receiptgammarad.readed = "True"
-				kst_tab_wm_receiptgammarad.stored = "True"
-				kst_tab_wm_receiptgammarad.registered = "True"
-			end if			
-		
-//--- Inizializza campi non impostati		
-			if_isnull(kst_tab_wm_receiptgammarad)
-		
-			INSERT INTO receiptgammarad  
-					(    
-					  transmissiondate,   
-					  receiptdate,   
-					  transmissioncode,   
-					  packinglistcode,   
-					  ddtcode,   
-					  ddtdate,   
-					  palletlength,   
-					  externalpalletcode,   
-					  internalpalletcode,   
-					  palletquantity,   
-					  mandatorcustomercode,   
-					  receivercustomercode,   
-					  invoicecustomercode,   
-					  specification,   
-					  contract,   
-					  readed,   
-					  stored,   
-					  idwmpklist,   
-					  ordercode,   
-					  orderrow,   
-					  orderdate,   
-					  customeritem,   
-					  customerlot,   
-					  accept,   
-					  quarantine,   
-					  Id_meca,
-					  note_1,
-					  note_2,
-					  note_3,
-					  PesoNetto,
-					  PesoLordo,
-					  QuantitaSacchi,
-					  barcodewo
-					  )  
-		  VALUES ( 
-					  :kst_tab_wm_receiptgammarad.transmissiondate,   
-					  :kst_tab_wm_receiptgammarad.receiptdate,   
-					  :kst_tab_wm_receiptgammarad.transmissioncode,   
-					  :kst_tab_wm_receiptgammarad.packinglistcode,   
-					  :kst_tab_wm_receiptgammarad.ddtcode,   
-					  :kst_tab_wm_receiptgammarad.ddtdate,   
-					  :kst_tab_wm_receiptgammarad.palletlength,   
-					  :kst_tab_wm_receiptgammarad.externalpalletcode,   
-					  :kst_tab_wm_receiptgammarad.internalpalletcode,   
-					  :kst_tab_wm_receiptgammarad.palletquantity,   
-					  :kst_tab_wm_receiptgammarad.mandatorcustomercode,   
-					  :kst_tab_wm_receiptgammarad.receivercustomercode,   
-					  :kst_tab_wm_receiptgammarad.invoicecustomercode,   
-					  :kst_tab_wm_receiptgammarad.specification,   
-					  :kst_tab_wm_receiptgammarad.contract,   
-					  :kst_tab_wm_receiptgammarad.readed,   
-					  :kst_tab_wm_receiptgammarad.stored,   
-					  :kst_tab_wm_receiptgammarad.idwmpklist,   
-					  :kst_tab_wm_receiptgammarad.ordercode,   
-					  :kst_tab_wm_receiptgammarad.orderrow,   
-					  :kst_tab_wm_receiptgammarad.orderdate,   
-					  :kst_tab_wm_receiptgammarad.customeritem,   
-					  :kst_tab_wm_receiptgammarad.customerlot,   
-					  :kst_tab_wm_receiptgammarad.accept,   
-					  :kst_tab_wm_receiptgammarad.quarantine,   
-					  :kst_tab_wm_receiptgammarad.Id_meca,
-					  :kst_tab_wm_receiptgammarad.note_1,  
-					  :kst_tab_wm_receiptgammarad.note_2,  
-					  :kst_tab_wm_receiptgammarad.note_3,
-					  :kst_tab_wm_receiptgammarad.PesoNetto,
-					  :kst_tab_wm_receiptgammarad.PesoLordo,
-					  :kst_tab_wm_receiptgammarad.QuantitaSacchi,
-					  :kst_tab_wm_receiptgammarad.BarcodeWO
-					  )  
-			using kuo1_sqlca_db_0;
-
-//					  PalletQuantita,
-//					  :kst_tab_wm_receiptgammarad.PalletQuantita,
-		
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
-					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
-				kst_esito.SQLErrText = &
-		"Errore durante Inserimento in tabella di Magazzino Packing-List  (ReceiptGammarad) ~n~r" &
-						+ " codice=" + trim(kst_tab_wm_receiptgammarad.packinglistcode) + " " &
-						+ " ~n~rErrore-tab.'ReceiptGammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
-					kst_esito.esito = kkg_esito.not_fnd
-				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
-						kst_esito.esito = kkg_esito.db_wrn
-					else
-						kst_esito.esito = kkg_esito.db_ko
-					end if
-				end if
-			end if
-			
-		//---- COMMIT....	
-			if kst_esito.esito = kkg_esito.db_ko then
-				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					kuo1_sqlca_db_0.db_rollback()
-				end if
-			else
-				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					kst_esito = kuo1_sqlca_db_0.db_commit()
-				end if
-			end if
-
-//--- se richiesto di fare Commit dopo disconnetto
-			if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-				set_connessione(false)
-				//kGuo_sqlca_db_wm.db_disconnetti()
-			end if
-
-		catch (uo_exception kuo_exception)
-			kst_esito = kuo_exception.get_st_esito()
-	
-		end try
-		
-	end if
-	
-end if
-
-
-
-return kst_esito
 
 end function
 
@@ -1731,7 +1549,7 @@ st_esito kst_esito
 boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 kst_esito = kguo_exception.inizializza(this.classname())
@@ -1755,8 +1573,7 @@ else
 	if NOT isnull(kst_tab_wm_receiptgammarad.idwmpklist) then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
+//			kuo1_sqlca_db_0 = set_connessione(true)
 //		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
 //		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
 		
@@ -1764,19 +1581,19 @@ else
 					into :kst_tab_wm_receiptgammarad.readed
 					from receiptgammarad
 					WHERE idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante lettura tabella di Magazzino Packing-List  (idwmpklist) ~n~r" &
 						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -1789,7 +1606,7 @@ else
 			kst_esito = kuo_exception.get_st_esito()
 	
 		finally
-			set_connessione(false)
+		//	set_connessione(false)
 			
 		end try
 		
@@ -1815,7 +1632,7 @@ st_esito kst_esito
 boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
@@ -1840,27 +1657,26 @@ else
 	if kst_tab_wm_receiptgammarad.id_meca > 0 then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
+//			kuo1_sqlca_db_0 = set_connessione(true)
 //		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
 //		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
 		
 			update receiptgammarad
 					set internalpalletcode = ""
 					where Id_meca = :kst_tab_wm_receiptgammarad.id_meca
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante pulizia tabella di Magazzino Packing-List  (internalpalletcode) ~n~r" &
 						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -1871,11 +1687,11 @@ else
 		//---- COMMIT....	
 			if kst_esito.esito = kkg_esito.db_ko then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 			else
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_commit()
 					if sqlca.sqlcode <> 0 then
 						kst_esito.esito = kkg_esito.db_ko
 						kst_esito.sqlcode = sqlca.sqlcode
@@ -1888,8 +1704,7 @@ else
 			kst_esito = kuo_exception.get_st_esito()
 	
 		finally
-			set_connessione(false)
-			//kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
+			//set_connessione(false)
 			
 	
 		end try
@@ -1917,7 +1732,7 @@ st_esito kst_esito
 boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 
@@ -1942,27 +1757,24 @@ else
 	if kst_tab_wm_receiptgammarad.id_meca > 0 then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-//		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
-//		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
+			//kuo1_sqlca_db_0 = set_connessione(true)
 		
 			update receiptgammarad
 					set Id_meca = 0
 					where Id_meca = :kst_tab_wm_receiptgammarad.id_meca
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante pulizia tabella di Magazzino Packing-List  (id meca di receiptgammarad) ~n~r" &
 						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -1973,11 +1785,11 @@ else
 		//---- COMMIT....	
 			if kst_esito.esito = kkg_esito.db_ko then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 			else
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_commit()
 					if sqlca.sqlcode <> 0 then
 						kst_esito.esito = kkg_esito.db_ko
 						kst_esito.sqlcode = sqlca.sqlcode
@@ -1990,8 +1802,7 @@ else
 			kst_esito = kuo_exception.get_st_esito()
 	
 		finally
-			set_connessione(false)
-			//kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
+			//set_connessione(false)
 	
 		end try
 		
@@ -2020,7 +1831,7 @@ boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
 uo_exception kuo_exception
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 kst_esito.esito = kkg_esito.ok
@@ -2047,27 +1858,24 @@ else
 	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-//		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
-//		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
+			//kuo1_sqlca_db_0 = set_connessione(true)
 		
 			update receiptgammarad
 					set accept = "True"
 					WHERE packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante aggiornamento tabella di Magazzino Packing-List  (accept) ~n~r" &
 						+ " id del pkl =" + trim(kst_tab_wm_receiptgammarad.packinglistcode) + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -2075,7 +1883,7 @@ else
 				end if
 	
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 				
 				kuo_exception = create uo_exception
@@ -2085,18 +1893,16 @@ else
 			
 		
 	//---- COMMIT....	
-			if kuo1_sqlca_db_0.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_commit()
 				end if
 			end if
 
 //--- se richiesto di fare Commit dopo disconnetto
 			if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-				set_connessione(false)
-				//kGuo_sqlca_db_wm.db_disconnetti()
+				//set_connessione(false)
 			end if
-		
 		
 			 k_return=true
 		
@@ -2130,7 +1936,7 @@ boolean k_sicurezza
 st_open_w kst_open_w
 kuf_sicurezza kuf1_sicurezza
 uo_exception kuo_exception
-kuo_sqlca_db_0 kuo1_sqlca_db_0
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 kst_esito.esito = kkg_esito.ok
@@ -2157,27 +1963,24 @@ else
 	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
 
 		try 
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-//		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
-//		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
+			//kuo1_sqlca_db_0 = set_connessione(true)
 		
 			update receiptgammarad
 					set accept = "False"
 					WHERE packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
-					using kuo1_sqlca_db_0;
+					using kguo_sqlca_db_magazzino;
 				
-			if kuo1_sqlca_db_0.sqlcode <> 0 then
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
 					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 				kst_esito.SQLErrText = &
 		"Errore durante aggiornamento tabella di Magazzino Packing-List  (accept) ~n~r" &
 						+ " id del pkl =" + trim(kst_tab_wm_receiptgammarad.packinglistcode) + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				if kuo1_sqlca_db_0.sqlcode = 100 then
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				if kguo_sqlca_db_magazzino.sqlcode = 100 then
 					kst_esito.esito = kkg_esito.not_fnd
 				else
-					if kuo1_sqlca_db_0.sqlcode > 0 then
+					if kguo_sqlca_db_magazzino.sqlcode > 0 then
 						kst_esito.esito = kkg_esito.db_wrn
 					else
 						kst_esito.esito = kkg_esito.db_ko
@@ -2185,7 +1988,7 @@ else
 				end if
 	
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_rollback()
 				end if
 				
 				kuo_exception = create uo_exception
@@ -2195,17 +1998,16 @@ else
 			
 		
 	//---- COMMIT....	
-			if kuo1_sqlca_db_0.sqlcode = 0 then
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
 				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
+					kguo_sqlca_db_magazzino.db_commit()
 				end if
 			end if
 
 //--- se richiesto di fare Commit dopo disconnetto
-			if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-				set_connessione(false)
-				//kGuo_sqlca_db_wm.db_disconnetti()
-			end if
+			//if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+				//set_connessione(false)
+			//end if
 		
 			 k_return=true
 		
@@ -2240,49 +2042,6 @@ return kuf1_wm_pklist.if_sicurezza(aflag_modalita)
 
 end function
 
-public function transaction set_connessione (boolean a_connetti) throws uo_exception;//-------------------------------------------------------------------------------------------
-//--- Connette/Disconnette DB del WMF o M2000
-//--- inp: true = connette; false = disconnette (solo se WM)
-//--- rit: transaction connessa sqlca
-//-------------------------------------------------------------------------------------------
-//
-boolean k_pkldam2000=false
-st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-
-
-	try
-		
-		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-		k_pkldam2000 = kuf1_wm_pklist_cfg.if_importadam2000(kst_tab_wm_pklist_cfg)
-		
-		if a_connetti then
-			if not k_pkldam2000 then
-				kguo_sqlca_db_wm.db_connetti( ) // se non connesso connette!
-				kuo1_sqlca_db_0 = kguo_sqlca_db_wm
-			else
-				kuo1_sqlca_db_0 = kguo_sqlca_db_magazzino
-			end if
-		else
-			if not k_pkldam2000 then
-				kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
-			end if
-		end if
-
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-
-	finally
-		if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
-
-	end try
-	
-	
-return kuo1_sqlca_db_0
-
-end function
-
 public function long get_wm_pklist_file_txt (ref st_wm_pkl_file kst_wm_pkl_file[]) throws uo_exception;//
 //------------------------------------------------------------------------------------------------------------------------------------
 //---
@@ -2298,10 +2057,7 @@ long k_return=0, k_ctr_pkl=0
 int k_righe, k_record, k_colli
 st_esito kst_esito
 st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-//st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]
-datastore kds_1
-//st_tab_contratti kst_tab_contratti
-//kuf_contratti kuf1_contratti
+uo_ds_std_1 kds_1
 
   
 	try
@@ -2371,10 +2127,6 @@ datastore kds_1
 //----------------------------------------------------------------------------------------------------------------------------------------------------------	
 	
 	catch (uo_exception kuo_exception)
-//		kst_esito.esito = kkg_esito.bug
-//		kst_esito.sqlcode = 0
-//		kst_esito.SQLErrText = "Impostazione dati file 'Packing-List' TXT fallito!  ~n~r "  
-//		kguo_exception.set_esito(kst_esito)
 		throw kuo_exception
 		
 		
@@ -2388,7 +2140,1236 @@ return k_return
 
 end function
 
-public function datastore get_wm_pklist_txt (st_wm_pkl_file kst_wm_pkl_file) throws uo_exception;//
+public function long importa_wm_pklist_txt () throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//--- 	Importa Packing-List grezzo da file TXT nella Tabella del DB di MAGAZZINO-WAREHOUSE-MANAGEMENT
+//---	ReceiptGammarad
+//---
+//---	inp: kst_tab_wm_receiptgammarad. 
+//---	out: 
+//---	rit: nr. dei Pcking Importati 
+//---   Lancia EXCEPTION se errore
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+long k_return=0
+long k_id_wm_pklist_importato=0, k_nr_file_txt=0, k_ind_file=0, k_nr_ws_receiptgammarad=0, k_ctr_ws_receiptgammarad=0, k_nr_wm_pkl_txt=0
+long k_rc
+string k_nome_file="", k_x
+st_esito kst_esito
+st_wm_pklist kst_wm_pklist
+st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
+st_wm_pkl_file kst_wm_pkl_file, kst_wm_pkl_file_txt[]
+st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[], kst_tab_wm_receiptgammarad_NULLA[]
+kuf_utility kuf1_utility
+kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
+//kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
+uo_ds_std_1 kds_1_da_imp
+					
+
+try
+
+	kuf1_utility = create kuf_utility
+	kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
+	//kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
+	kds_1_da_imp = create uo_ds_std_1
+			
+//--- leggo configurazione x lo scambio dati
+	if kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg) then
+		
+//--- parte l'importazione solo se Operazione di Importazione PACKING-LIST Attiva
+		if kst_tab_wm_pklist_cfg.blocca_importa = kuf1_wm_pklist_cfg.ki_blocca_importa_dam2000 then
+
+//--- Leggo i nomi dei file da importare
+			kst_wm_pkl_file_txt[100].nome_file = " "   // x sicurezza crea intanto una tabellina grande 100 elementi 
+			k_nr_file_txt = get_file_wm_pklist_txt(kst_wm_pkl_file_txt[]) 
+
+			for k_ind_file = 1 to k_nr_file_txt 
+				
+				kst_wm_pkl_file.nome_file = kst_wm_pkl_file_txt[k_ind_file].nome_file
+				kst_wm_pkl_file.path_file = kst_wm_pkl_file_txt[k_ind_file].path_file
+	
+				if len(trim(kst_wm_pkl_file.nome_file)) > 0 then   // se c'e' un file....
+				
+		//--- muove il file TXT nella cartella dei flussi 'IN LAVORAZIONE'
+					if not DirectoryExists (kst_wm_pkl_file.path_file+"\inLav") then CreateDirectory (kst_wm_pkl_file.path_file+"\inLav") 
+					kuf1_utility.u_filemovereplace( kst_wm_pkl_file.path_file +"\"+  kst_wm_pkl_file.nome_file,  &
+																				 kst_wm_pkl_file.path_file+"\inLav\"+kst_wm_pkl_file.nome_file)
+					kst_wm_pkl_file.path_file = kst_wm_pkl_file.path_file+"\inLav"
+					
+		//--- Legge le Packing-list in formato TXT 
+					kds_1_da_imp = get_wm_pklist_txt(kst_wm_pkl_file) 
+					k_nr_wm_pkl_txt = kds_1_da_imp.rowcount( )
+					if k_nr_wm_pkl_txt > 0 then
+					
+	//--- Imposta area ReceiptGammarad il Packing-list in formato TXT 
+						kst_tab_wm_receiptgammarad[] = kst_tab_wm_receiptgammarad_NULLA[]
+						k_nr_ws_receiptgammarad = set_wm_pklist_txt_to_wm_tab(kds_1_da_imp, kst_tab_wm_receiptgammarad[]) 
+				
+						if k_nr_ws_receiptgammarad = 0 then
+							kuf1_utility.u_filemovereplace( kst_wm_pkl_file_txt[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_file_txt[k_ind_file].nome_file,  &
+																						 kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_file_txt[k_ind_file].nome_file)
+							kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
+							if UpperBound(kst_tab_wm_receiptgammarad[]) > 0 then
+								k_x = trim(kst_tab_wm_receiptgammarad[1].packinglistcode)
+							else
+								k_x = "***NON RILEVATO***"
+							end if
+							kguo_exception.kist_esito.sqlerrtext = "Packing List: " + k_x &
+																		+ " SCARTATO perchè non è stata estratta alcuna riga di dettaglio dal file " &
+																		+ ".~n~rFile scartato: " + trim(kst_wm_pkl_file_txt[k_ind_file].nome_file)
+							throw kguo_exception
+						end if
+						
+//--- Verifica, se Esiste già, SCARTA
+						k_rc = if_exists_packinglistcode(kst_tab_wm_receiptgammarad[1])
+						if k_rc > 0 then
+	
+//--- muove il file nella cartella dei flussi SCARTATI			
+							if not DirectoryExists (kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati") then CreateDirectory (kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati") 
+							kuf1_utility.u_filemovereplace( kst_wm_pkl_file_txt[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_file_txt[k_ind_file].nome_file,  &
+																						 kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_file_txt[k_ind_file].nome_file)
+			
+							kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
+							kguo_exception.kist_esito.sqlerrtext = "Packing List: " + kst_tab_wm_receiptgammarad[1].packinglistcode &
+																		+ " SCARTATO perchè già Presente con ID " + string(k_rc) &
+																		+ ".~n~rFile scartato: " + kst_wm_pkl_file_txt[k_ind_file].nome_file
+							throw kguo_exception
+						end if
+				
+//--- INSERT nella tabella di PACKING-LIST
+						//k_return = kuf1_wm_receiptgammarad.crea( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
+						k_rc = add( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
+						if k_rc > 0 then
+							k_return ++
+						end if
+						
+//--- muove il file TXT nella cartella dei flussi IMPORTATI	
+						kst_wm_pkl_file.path_file = kst_wm_pkl_file_txt[k_ind_file].path_file
+						if not DirectoryExists (kst_wm_pkl_file.path_file+"\importato") then CreateDirectory (kst_wm_pkl_file.path_file+"\importato") 
+						kuf1_utility.u_filemovereplace( kst_wm_pkl_file.path_file +"\inLav\"+kst_wm_pkl_file.nome_file,  &
+																				 kst_wm_pkl_file.path_file+"\importato\"+kst_wm_pkl_file.nome_file)
+	
+					end if
+				end if
+						
+			end for
+		else
+			kguo_exception.inizializza( )
+			kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
+			kguo_exception.setmessage( "NON eseguito. Se si vuole importare i Pkl del Cliente, Attivare le Operazioni in Proprietà Packing-List da Proprietà della Procedura.")
+			throw kguo_exception
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+//	kst_esito = kuo_exception.get_st_esito( )
+//	
+//	kGuf_data_base.errori_scrivi_esito ("I", kst_esito)
+////	if len(trim(kst_tab_wm_pklist_cfg.file_esiti )) > 0 then
+////		kGuf_data_base.errori_scrivi_esito ("I", kst_esito, kst_tab_wm_pklist_cfg.file_esiti )
+////	end if
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
+	//if isvalid(kuf1_wm_receiptgammarad) then destroy kuf1_wm_receiptgammarad
+	if isvalid(kds_1_da_imp) then destroy kds_1_da_imp
+	
+end try
+
+
+return k_return
+
+
+end function
+
+public function boolean set_id_meca (st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
+//====================================================================
+//=== Add ID_MECA in tabella RECEIPTGAMMARAD
+//=== 
+//=== Input: st_tab_wm_receiptgammarad.id_meca / idwmpklist
+//=== Ritorna:  TRUE = OK
+//=== 
+//====================================================================
+//
+boolean k_return=false
+boolean k_sicurezza
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
+st_esito kst_esito
+
+kst_esito.esito = kkg_esito.ok
+kst_esito.sqlcode = 0
+kst_esito.SQLErrText = ""
+kst_esito.nome_oggetto = this.classname()
+
+try
+	k_sicurezza = if_sicurezza(kkg_flag_modalita.modifica)
+	if not k_sicurezza then
+	
+		kst_esito.SQLErrText = "Modifica Tabella Magazzino Packing-List (receiptgammarad) non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
+		kst_esito.esito = kkg_esito.no_aut
+	
+	else
+	
+		if kst_tab_wm_receiptgammarad.id_meca > 0 and kst_tab_wm_receiptgammarad.idwmpklist > 0 then
+	
+			//kuo1_sqlca_db_0 = set_connessione(true)
+		
+			update receiptgammarad
+					set Id_meca = :kst_tab_wm_receiptgammarad.id_meca
+					where idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
+					using kguo_sqlca_db_magazzino;
+				
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+					
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.SQLErrText = &
+		"Errore durante pulizia tabella di Magazzino Packing-List  (id meca di receiptgammarad) ~n~r" &
+						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
+						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+				kst_esito.esito = kkg_esito.db_ko
+
+				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_rollback()
+				end if				
+				kguo_exception.inizializza( )
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception				
+				
+			end if
+
+			if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		//---- COMMIT....	
+				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+					kguo_sqlca_db_magazzino.db_commit()
+					if sqlca.sqlcode <> 0 then
+						kst_esito.esito = kkg_esito.db_ko
+						kst_esito.sqlcode = sqlca.sqlcode
+						kst_esito.SQLErrText = trim(sqlca.SQLErrText)
+					end if
+				end if
+				k_return = true
+			end if
+		
+		else
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = &
+		"Manca il codice Packing-List o ID Lotto per aggiornare tabella Magazzino Packing-List  (id meca di receiptgammarad) ~n~r" &
+						+ " id PkList=" + string(kst_tab_wm_receiptgammarad.idwmpklist, "####0") + " " &
+						+ " id Lotto=" + string(kst_tab_wm_receiptgammarad.id_meca, "####0") + " " &
+						+ " ~n~r"
+			kst_esito.esito = kkg_esito.no_esecuzione
+			kguo_exception.inizializza( )
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception				
+		end if
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally
+	//set_connessione(false)
+
+end try
+
+return k_return
+
+
+end function
+
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//
+//--- 
+//--------------------------------------------------------------------------------------------------------------
+//--- Attiva LINK cliccato (funzione di ZOOM)
+//---
+//--- Par. Inut: 
+//---               datawindow su cui è stato attivato il LINK
+//---               nome campo di LINK
+//--- 
+//--- Ritorna TRUE tutto OK - FALSE: link non effettuato
+//---
+//--- Lancia EXCEPTION con  ST_ESITO  standard
+//---
+//----------------------------------------------------------------------------------------------------------------
+// 
+long k_rc
+boolean k_return=true
+
+st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad
+st_esito kst_esito
+datastore kdsi_elenco_output   //ds da passare alla windows di elenco
+st_open_w kst_open_w 
+
+
+
+SetPointer(kkg.pointer_attesa)
+
+
+kdsi_elenco_output = create datastore
+
+kst_esito.esito = kkg_esito.ok
+kst_esito.sqlcode = 0
+kst_esito.SQLErrText = ""
+kst_esito.nome_oggetto = this.classname()
+
+
+choose case a_campo_link
+
+	case "packinglistcode"
+		kst_tab_wm_receiptgammarad.packinglistcode = trim(adw_link.getitemstring(adw_link.getrow(), a_campo_link))
+		if kst_tab_wm_receiptgammarad.packinglistcode > " " then
+			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_wm_receiptgammarad )
+			if kst_esito.esito <> kkg_esito.ok then
+				kguo_exception.inizializza( )
+				kguo_exception.set_esito( kst_esito)
+				throw kguo_exception
+			end if
+			kst_open_w.key1 = "Packing-list Mandante " + kst_tab_wm_receiptgammarad.packinglistcode + " " 
+		else
+			k_return = false
+		end if
+
+//
+//	case "b_certif_lotto"
+//		kst_tab_wm_receiptgammarad.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
+//		if kst_tab_wm_receiptgammarad.id_meca > 0 then
+//			get_num_certif (kst_tab_wm_receiptgammarad)   //  piglia il NUMERO CERTIFICATO
+//			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_wm_receiptgammarad )
+//			if kst_esito.esito <> kkg_esito.ok then
+//				kguo_exception.inizializza( )
+//				kguo_exception.set_esito( kst_esito)
+//				throw kguo_exception
+//			end if
+//			kst_open_w.key1 = "Attestato di Trattamento  (nr.=" + trim(string(kst_tab_wm_receiptgammarad.num_certif)) + ") " 
+//		else
+//			k_return = false
+//		end if
+
+end choose
+
+if k_return then
+
+	if kdsi_elenco_output.rowcount() > 0 then
+	
+		
+	//--- chiamare la window di elenco
+	//
+	//--- Parametri : 
+	//--- struttura st_open_w
+		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
+		kst_open_w.id_programma = kkg_id_programma_elenco //get_id_programma( kst_open_w.flag_modalita ) //kkg_id_programma.elenco
+		kst_open_w.flag_primo_giro = "S"
+		kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
+		kst_open_w.flag_leggi_dw = " "
+		kst_open_w.flag_cerca_in_lista = " "
+		kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
+		kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
+		kst_open_w.key4 = kGuf_data_base.prendi_win_attiva_titolo()    //--- Titolo della Window di chiamata per riconoscerla
+		kst_open_w.key12_any = kdsi_elenco_output
+		kst_open_w.flag_where = " "
+		kGuf_menu_window.open_w_tabelle(kst_open_w)
+
+	else
+		
+		kguo_exception.inizializza( )
+		kguo_exception.setmessage(u_get_errmsg_nontrovato(kst_open_w.flag_modalita) )
+		throw kguo_exception
+		
+		
+	end if
+
+end if
+//
+//SetPointer(kp_oldpointer)
+//
+
+
+return k_return
+
+end function
+
+public function boolean tb_delete_x_idwmpklist (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
+//--------------------------------------------------------------------------
+//--- Cancella il rek dalla tabella Receiptgammarad x codice del idwmpklist
+//--- 
+//--- Ritorna TRUE = delete OK
+//---           	
+//--------------------------------------------------------------------------
+//
+boolean k_return = false
+st_esito kst_esito
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+	//if_sicurezza(kkg_flag_modalita.CANCELLAZIONE)
+	
+	if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
+	
+		delete from  receiptgammarad 
+					where idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
+					using kguo_sqlca_db_magazzino;
+		
+		
+		if sqlca.sqlcode < 0 then
+			kst_esito.sqlcode = sqlca.sqlcode
+			kst_esito.SQLErrText = "Errore in Cancellazione Packing List 'grezzo' cod.pkl= " + string(kst_tab_wm_receiptgammarad.idwmpklist) &
+										+ " (wm_receiptgammarad). Errore:" + trim(sqlca.SQLErrText)
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception
+		end if
+				
+		//---- COMMIT....	
+		if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+
+		k_return = true
+
+	end if
+	
+catch(uo_exception kuo_exception)
+	if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+
+	throw kuo_exception
+
+finally
+
+end try
+
+return k_return
+
+end function
+
+public function st_esito anteprima_tree (ref datastore kdw_anteprima, st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
+//=== 
+//====================================================================
+//=== Operazione di Anteprima 
+//===
+//=== Par. Inut: 
+//===               datastore  di  anteprima
+//===               dati tabella per estrazione dell'anteprima
+//=== 
+//=== Ritorna tab. ST_ESITO, Esiti: come Standard
+//=== 
+//====================================================================
+//
+//=== 
+long k_rc
+boolean k_return
+st_open_w kst_open_w
+st_esito kst_esito
+kuf_sicurezza kuf1_sicurezza
+kuf_utility kuf1_utility
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
+
+
+kst_esito.esito = kkg_esito.ok
+kst_esito.sqlcode = 0
+kst_esito.SQLErrText = ""
+
+kst_open_w = kst_open_w
+kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
+kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.anteprima) 
+
+//--- controlla se utente autorizzato alla funzione in atto
+kuf1_sicurezza = create kuf_sicurezza
+k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
+destroy kuf1_sicurezza
+
+if not k_return then
+
+	kst_esito.sqlcode = sqlca.sqlcode
+	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
+	kst_esito.esito = kkg_esito.no_aut
+
+else
+
+	try
+		//kuo1_sqlca_db_0 = set_connessione(true)
+	
+		if isvalid(kdw_anteprima)  then
+			if kdw_anteprima.dataobject = "d_wm_receiptgammarad" then //"d_wm_receiptgammarad_l"  then
+				if kdw_anteprima.object.packinglistcode [1] = kst_tab_wm_receiptgammarad.packinglistcode   then
+					kst_tab_wm_receiptgammarad.packinglistcode  = "" 
+				end if
+			end if
+		end if
+
+		if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
+		else
+			kst_tab_wm_receiptgammarad.idwmpklist = 0
+		end if
+			
+		if trim(kst_tab_wm_receiptgammarad.packinglistcode) > " " then
+		else
+			kst_tab_wm_receiptgammarad.packinglistcode = ""
+		end if
+	
+		if kst_tab_wm_receiptgammarad.idwmpklist > 0 or trim(kst_tab_wm_receiptgammarad.packinglistcode) > " " then
+		
+			kdw_anteprima.dataobject = "d_wm_receiptgammarad"		
+			kdw_anteprima.settransobject(kguo_sqlca_db_magazzino)
+		
+//			kuf1_utility = create kuf_utility
+//			kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
+//			destroy kuf1_utility
+	
+			kdw_anteprima.reset()	
+	//--- retrive dell'attestato 
+			k_rc=kdw_anteprima.retrieve(kst_tab_wm_receiptgammarad.packinglistcode, kst_tab_wm_receiptgammarad.idwmpklist)
+	
+		else
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = "Nessun Packing-List Mandante da visualizzare: ~n~r" + "nessun Codice indicato"
+			kst_esito.esito = kkg_esito.bug
+			
+		end if
+	catch (uo_exception kuo_exception)
+		kst_esito = kuo_exception.get_st_esito()
+		
+	finally
+		//set_connessione(false)
+		
+		
+	end try
+end if
+
+
+return kst_esito
+
+end function
+
+public function st_esito tb_delete_x_packinglistcode (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
+//====================================================================
+//=== Cancella il rek dalla tabella Receiptgammarad 
+//=== 
+//=== Ritorna ST_ESITO
+//===           	
+//====================================================================
+//
+st_esito kst_esito
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
+
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+
+	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
+
+		try
+	
+			//kuo1_sqlca_db_0 = set_connessione(true)
+	
+			delete from  receiptgammarad 
+				where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode
+				using kguo_sqlca_db_magazzino;
+	
+			
+			if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+				kst_esito.sqlcode = sqlca.sqlcode
+				kst_esito.SQLErrText = "Cancellazione 'Packing List WM' cod.=" +trim(kst_tab_wm_receiptgammarad.packinglistcode) + " (wm_receiptgammarad):" + trim(sqlca.SQLErrText)
+				if sqlca.sqlcode = 100 then
+					kst_esito.esito = kkg_esito.not_fnd
+				else
+					if sqlca.sqlcode > 0 then
+						kst_esito.esito = kkg_esito.db_wrn
+					else
+						kst_esito.esito = kkg_esito.db_ko
+						if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+							kguo_sqlca_db_magazzino.db_rollback( )
+						end if
+					end if
+				end if
+			
+			else
+		
+	//---- COMMIT....	
+				if kst_esito.esito = kkg_esito.db_ko then
+					if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+						kguo_sqlca_db_magazzino.db_rollback( )
+					end if
+				else
+					if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+						kguo_sqlca_db_magazzino.db_commit( )
+					end if
+				end if
+			end if
+	
+//	//--- se richiesto di fare Commit dopo disconnetto
+//			if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+//				set_connessione(false			
+//			end if
+			
+		catch (uo_exception kuo_exception)
+				kst_esito = kuo_exception.get_st_esito()
+			
+		finally
+			
+		end try
+		
+	end if
+
+
+return kst_esito
+
+end function
+
+public function long get_id_meca (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
+//====================================================================
+//=== Piglia  il ID Lotto
+//=== 
+//=== Input: st_tab_wm_receiptgammarad.idwmpklist
+//=== Ouy: st_tab_wm_receiptgammarad.id_meca
+//=== 
+//=== 
+//====================================================================
+//
+long k_return
+st_esito kst_esito
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
+
+		select max(id_meca)
+			into :kst_tab_wm_receiptgammarad.id_meca
+			from receiptgammarad
+				WHERE idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
+				using kguo_sqlca_db_magazzino ;
+				
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+					
+			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+			kst_esito.SQLErrText = &
+				"Errore in lettura Id Lotto dalla tabella di Magazzino Packing-List, " &
+					+ " id=" + string(kst_tab_wm_receiptgammarad.idwmpklist, "####0") + " " &
+					+ " ~n~rErrore-tab.'receiptgammarad': " &
+					+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+			kst_esito.esito = kkg_esito.db_ko
+			kguo_exception.set_esito(kst_esito)
+			throw kguo_exception
+		end if
+		
+		if kst_tab_wm_receiptgammarad.id_meca > 0 then 
+			k_return = kst_tab_wm_receiptgammarad.id_meca
+		end if				
+	end if
+		
+catch (uo_exception kuo_exception)
+	kst_esito = kuo_exception.get_st_esito()
+	throw kuo_exception
+	
+finally
+
+			
+end try
+		
+return k_return
+
+end function
+
+public function boolean if_barcode_cliente_exists (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Controllo se Barcode Cliente gia' Caricato per lo stesso PKL
+//---	inp: 
+//---	out: st_wm_receiptgammarad.packinglistcode + externalpalletcode + idwmpklist
+//---	rit: true=Barcode gia' caricato
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+boolean k_return=false
+long k_trovato
+st_esito kst_esito
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+	if kst_tab_wm_receiptgammarad.externalpalletcode > " " then
+		//kuo1_sqlca_db_0 = set_connessione(true)
+		
+		if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
+		else
+			kst_tab_wm_receiptgammarad.idwmpklist = 0
+		end if
+	
+		select distinct 1
+			into :k_trovato
+			from receiptgammarad
+			where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
+				and externalpalletcode = :kst_tab_wm_receiptgammarad.externalpalletcode 
+				and idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist 
+				using kguo_sqlca_db_magazzino;
+		
+		if kguo_sqlca_db_magazzino.sqlcode = 0 and k_trovato > 0 then
+			k_return = true
+		else
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kst_esito.esito = kkg_esito.db_ko
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.SQLErrText = "Lettura 'externalpalletcode' (" + trim(kst_tab_wm_receiptgammarad.externalpalletcode) & 
+										+ "dalla tabella 'Packing-List' (Codice: '" + trim(kst_tab_wm_receiptgammarad.packinglistcode)  &
+										+ "', id: '" + string(kst_tab_wm_receiptgammarad.idwmpklist) + "') fallito!" &
+										+ " ~n~r " + trim(kguo_sqlca_db_magazzino.SQLErrText) 
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		end if			
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	//set_connessione(false)
+
+end try
+
+return k_return
+
+
+end function
+
+public function integer add (long k_nr_ws_receiptgammarad, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//---
+//--- Crea Nuova Packing-List 
+//--- Inp: numero delle righe
+//--- 		tabella st_tab_wm_receiptgammarad[]
+//--- Out: numero righe elaborate
+//---
+long k_return = 0
+long k_ctr_ws_receiptgammarad = 0
+st_esito kst_esito
+
+
+kst_esito = kguo_exception.inizializza(this.classname())
+
+if k_nr_ws_receiptgammarad > 0 then
+	
+//--- INSERT nella tabella di PACKING-LIST
+	for k_ctr_ws_receiptgammarad = 1 to k_nr_ws_receiptgammarad
+			
+//--- Faccio la Commit sull'ultimo record				
+		if k_ctr_ws_receiptgammarad = k_nr_ws_receiptgammarad then
+			kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].st_tab_g_0.esegui_commit = "S"
+		else
+			kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].st_tab_g_0.esegui_commit = "N"
+		end if
+			
+//--- verifica se Barcode cliente già caricato (NO BUONO!)
+		if if_barcode_cliente_exists(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad])  then
+			
+			kst_esito.esito = kkg_esito_no_esecuzione
+			kst_esito.sqlerrtext = "Packing List '" + trim(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].packinglistcode) &
+										+ "'. Scartato il barcode cliente '" + trim(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].externalpalletcode) &
+										+ "' perchè doppio! "
+			kGuo_exception.set_esito(kst_esito)
+			kguo_exception.scrivi_log( )
+			
+		else
+
+//--- INSERT			
+			tb_add (kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad]) 
+				
+			k_return ++
+
+		end if
+	end for
+			
+end if
+
+return k_return
+
+end function
+
+private function long set_wm_pklist_txt_to_wm_tab (ref datastore kds_receiptgammarad_l, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Converte il Packing-List TXT nalla struct array kst_tab_wm_receiptgammarad []
+//---	inp: datastore ds_receiptgammarad_l che contiene i dati del pkl copiati dal file 
+//---	out: kst_tab_wm_receiptgammarad[]: array con le righe del packing-list 
+//---	rit: nr pkl trovati
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+long k_return=0
+string k_rc, k_file=""
+int k_rcn, k_file_ind, k_anno, k_mese, k_giorno
+long k_ind=0, k_max_row, k_ctr
+datetime k_datetime_current
+st_esito kst_esito
+st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_null
+ 
+ 
+	try
+		k_max_row = kds_receiptgammarad_l.rowcount()
+
+		k_datetime_current = kguo_g.get_datetime_current( )
+
+		//--- ordino per codice barcode cliente
+		kds_receiptgammarad_l.setsort("externalpalletcode A")
+		kds_receiptgammarad_l.sort( )
+				
+//--- preparo la struct a NULL		
+		set_null(kst_tab_wm_receiptgammarad_null)
+		
+		for k_file_ind = 1 to k_max_row
+
+			if trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) > " " &
+															and trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) > " " then
+
+				if k_ind > 1 and trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) &
+																= trim(kds_receiptgammarad_l.getitemstring(k_file_ind - 1, "externalpalletcode")) then
+					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoNetto") > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].PesoNetto += kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoNetto")
+					end if
+					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoLordo") > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].PesoLordo += kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoLordo")
+					end if
+					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "QuantitaSacchi") > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].QuantitaSacchi += kds_receiptgammarad_l.getitemnumber(k_file_ind, "QuantitaSacchi")
+					end if
+				end if
+				
+				if k_file_ind = 1 or trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) &
+											<> trim(kds_receiptgammarad_l.getitemstring(k_file_ind - 1, "externalpalletcode")) then
+											
+					k_ind++
+
+//--- inizializzo la riga				
+					kst_tab_wm_receiptgammarad[k_ind] = kst_tab_wm_receiptgammarad_null
+				
+//--- codice packing-list
+					kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "txt_" + trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) 
+//--- converte la data di invio
+					kst_tab_wm_receiptgammarad[k_ind].transmissiondate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "transmissiondate")
+
+					kst_tab_wm_receiptgammarad[k_ind].receiptdate = k_datetime_current //datetime(date(today()),time(now()))
+					kst_tab_wm_receiptgammarad[k_ind].ddtcode	= upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "ddtcode")) )
+					kst_tab_wm_receiptgammarad[k_ind].ddtdate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "ddtdate")
+
+					kst_tab_wm_receiptgammarad[k_ind].ordercode	= upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "ordercode")) )
+					kst_tab_wm_receiptgammarad[k_ind].orderdate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "orderdate")
+					if date(kst_tab_wm_receiptgammarad[k_ind].orderdate) > kkg.data_no then 
+					else
+						kst_tab_wm_receiptgammarad[k_ind].orderdate = k_datetime_current //datetime(date(today()),time(now()))
+					end if
+					
+					kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "mandatorcustomercode")) )
+					kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "receivercustomercode")) )
+					if trim(kst_tab_wm_receiptgammarad[k_ind].receivercustomercode) > " " then
+					else
+						kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode
+					end if
+					kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "invoicecustomercode")) )
+					if trim(kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode) > " " then
+					else
+						kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode
+					end if
+					kst_tab_wm_receiptgammarad[k_ind].specification = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "specification")) )
+					kst_tab_wm_receiptgammarad[k_ind].contract = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "contract")) )
+					kst_tab_wm_receiptgammarad[k_ind].externalpalletcode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) )
+					kst_tab_wm_receiptgammarad[k_ind].palletlength = len(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")))
+					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "palletquantity") > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].palletquantity = kds_receiptgammarad_l.getitemnumber(k_file_ind, "palletquantity")
+					else
+						kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
+					end if
+
+					if trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerlot")) > " " then
+						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerlot")) )
+					else
+						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) )
+					end if
+
+//--- altri dati circa il singolo barcode
+					kst_tab_wm_receiptgammarad[k_ind].customerItem = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerItem")) )
+
+					kst_tab_wm_receiptgammarad[k_ind].barcodeWO = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "barcodewo")) )
+
+					kst_tab_wm_receiptgammarad[k_ind].note_3 = ""
+					kst_tab_wm_receiptgammarad[k_ind].note_2 = ""
+					kst_tab_wm_receiptgammarad[k_ind].note_1 = ""
+					
+				end if					
+			end if				
+		end for
+	
+		k_return = k_ind
+		
+	catch (uo_exception kuo_exception)
+//		kst_esito.esito = kkg_esito.bug
+//		kst_esito.sqlcode = k_rcn
+//		kst_esito.SQLErrText = "Importazione Nuovi 'Packing-List' fallito!  ~n~r "  
+//		kguo_exception.set_esito(kst_esito)
+		throw kuo_exception
+		
+		
+	finally
+
+		
+	end try
+			
+
+
+return k_return
+
+
+end function
+
+public function long if_exists_packinglistcode (readonly st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Controllo se Packing List gia' Caricato per lo stesso packinglistcode
+//---	inp: st_wm_receiptgammarad.packinglistcode
+//---	out:
+//---	rit: idwmpklist > 0  = gia' caricato
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+long k_return, k_rc
+st_esito kst_esito
+//kuo_sqlca_db_0 kuo1_sqlca_db_0
+
+
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+	
+	if kst_tab_wm_receiptgammarad.packinglistcode > " " then
+		//kuo1_sqlca_db_0 = set_connessione(true)
+		
+		select max(idwmpklist)
+			into :k_rc
+			from receiptgammarad
+			where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
+				using kguo_sqlca_db_magazzino;
+		
+		if kguo_sqlca_db_magazzino.sqlcode = 0 and k_rc > 0 then
+			k_return = k_rc
+		else
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kst_esito.esito = kkg_esito.db_ko
+				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
+				kst_esito.SQLErrText = "Errore in verifica esistenza Packing List grezzo. Codice '" + trim(kst_tab_wm_receiptgammarad.packinglistcode) & 
+										+ "'"&
+										+ "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText) 
+				kguo_exception.set_esito(kst_esito)
+				throw kguo_exception
+			end if
+		end if			
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	//set_connessione(false)
+
+end try
+
+return k_return
+
+
+end function
+
+public function long tb_add (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;/*
+ Insert in tabella ReceiptGammarad
+ 	Inp: st_tab_wm_receiptgammarad
+	Rit: id
+*/
+long k_return
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if_sicurezza(kkg_flag_modalita.inserimento)
+
+	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
+	else
+		return 0
+	end if
+
+//--- Alcuni flag per retrocompatibilità sono sempre settati a TRUE
+	kst_tab_wm_receiptgammarad.accept = "True"
+	kst_tab_wm_receiptgammarad.readed = "True"
+	kst_tab_wm_receiptgammarad.stored = "True"
+	kst_tab_wm_receiptgammarad.registered = "True"
+		
+//--- Inizializza campi non impostati		
+	if_isnull(kst_tab_wm_receiptgammarad)
+		
+	INSERT INTO receiptgammarad  
+					(    
+					  transmissiondate,   
+					  receiptdate,   
+					  transmissioncode,   
+					  packinglistcode,   
+					  ddtcode,   
+					  ddtdate,   
+					  palletlength,   
+					  externalpalletcode,   
+					  internalpalletcode,   
+					  palletquantity,   
+					  mandatorcustomercode,   
+					  receivercustomercode,   
+					  invoicecustomercode,   
+					  specification,   
+					  contract,   
+					  readed,   
+					  stored,   
+					  idwmpklist,   
+					  ordercode,   
+					  orderrow,   
+					  orderdate,   
+					  customeritem,   
+					  customerlot,   
+					  accept,   
+					  quarantine,   
+					  Id_meca,
+					  note_1,
+					  note_2,
+					  note_3,
+					  PesoNetto,
+					  PesoLordo,
+					  QuantitaSacchi,
+					  barcodewo,
+					  idpkl
+					  )  
+		  VALUES ( 
+					  :kst_tab_wm_receiptgammarad.transmissiondate,   
+					  :kst_tab_wm_receiptgammarad.receiptdate,   
+					  :kst_tab_wm_receiptgammarad.transmissioncode,   
+					  :kst_tab_wm_receiptgammarad.packinglistcode,   
+					  :kst_tab_wm_receiptgammarad.ddtcode,   
+					  :kst_tab_wm_receiptgammarad.ddtdate,   
+					  :kst_tab_wm_receiptgammarad.palletlength,   
+					  :kst_tab_wm_receiptgammarad.externalpalletcode,   
+					  :kst_tab_wm_receiptgammarad.internalpalletcode,   
+					  :kst_tab_wm_receiptgammarad.palletquantity,   
+					  :kst_tab_wm_receiptgammarad.mandatorcustomercode,   
+					  :kst_tab_wm_receiptgammarad.receivercustomercode,   
+					  :kst_tab_wm_receiptgammarad.invoicecustomercode,   
+					  :kst_tab_wm_receiptgammarad.specification,   
+					  :kst_tab_wm_receiptgammarad.contract,   
+					  :kst_tab_wm_receiptgammarad.readed,   
+					  :kst_tab_wm_receiptgammarad.stored,   
+					  :kst_tab_wm_receiptgammarad.idwmpklist,   
+					  :kst_tab_wm_receiptgammarad.ordercode,   
+					  :kst_tab_wm_receiptgammarad.orderrow,   
+					  :kst_tab_wm_receiptgammarad.orderdate,   
+					  :kst_tab_wm_receiptgammarad.customeritem,   
+					  :kst_tab_wm_receiptgammarad.customerlot,   
+					  :kst_tab_wm_receiptgammarad.accept,   
+					  :kst_tab_wm_receiptgammarad.quarantine,   
+					  :kst_tab_wm_receiptgammarad.Id_meca,
+					  :kst_tab_wm_receiptgammarad.note_1,  
+					  :kst_tab_wm_receiptgammarad.note_2,  
+					  :kst_tab_wm_receiptgammarad.note_3,
+					  :kst_tab_wm_receiptgammarad.PesoNetto,
+					  :kst_tab_wm_receiptgammarad.PesoLordo,
+					  :kst_tab_wm_receiptgammarad.QuantitaSacchi,
+					  :kst_tab_wm_receiptgammarad.BarcodeWO,
+					  :kst_tab_wm_receiptgammarad.idpkl
+					  )  
+			using kguo_sqlca_db_magazzino;
+		
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore durante Inserimento in tabella dati Packing-List importati (ReceiptGammarad). " &
+											+ kkg.acapo + "Codice pkl: " + trim(kst_tab_wm_receiptgammarad.packinglistcode) + ". ")
+		throw kguo_exception
+	end if
+	
+//---- COMMIT....	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit()
+		end if
+		
+		k_return = get_id_max( )
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+
+return k_return 
+
+end function
+
+public function long get_id_max () throws uo_exception;/*
+ Piglia ID ultimo
+	Inp: 
+	Rit: st_tab_wm_receiptgammarad.id ultimo caricato
+*/
+long k_id
+long k_return
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	select max(id)
+			into :k_id
+			from receiptgammarad
+			using kguo_sqlca_db_magazzino ;
+				
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura ultimo Id caricato in tabella dati Packing-List (receiptgammarad).")
+		throw kguo_exception
+	end if
+	
+	if k_id > 0 then 
+		k_return = k_id
+	end if				
+		
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log()
+	throw kuo_exception
+	
+finally
+
+end try
+		
+return k_return
+
+end function
+
+public function transaction old_set_connessione (boolean a_connetti) throws uo_exception;//-------------------------------------------------------------------------------------------
+//--- Connette/Disconnette DB del WMF o M2000
+//--- inp: true = connette; false = disconnette (solo se WM)
+//--- rit: transaction connessa sqlca
+//-------------------------------------------------------------------------------------------
+//
+boolean k_pkldam2000=false
+st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
+kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
+kuo_sqlca_db_0 kuo1_sqlca_db_0
+
+
+	try
+		
+		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
+		k_pkldam2000 = kuf1_wm_pklist_cfg.if_importadam2000(kst_tab_wm_pklist_cfg)
+		
+		if a_connetti then
+			if not k_pkldam2000 then
+				kguo_sqlca_db_wm.db_connetti( ) // se non connesso connette!
+				kuo1_sqlca_db_0 = kguo_sqlca_db_wm
+			else
+				kuo1_sqlca_db_0 = kguo_sqlca_db_magazzino
+			end if
+		else
+			if not k_pkldam2000 then
+				kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
+			end if
+		end if
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+		if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
+
+	end try
+	
+	
+return kuo1_sqlca_db_0
+
+end function
+
+public function integer get_file_wm_pklist_txt (ref st_wm_pkl_file kst_wm_pkl_file[]) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Trova i nomi file di Packing-List formato testo lineare presenti nella cartella di importazione
+//---	inp: st_wm_pkl_file vuoto
+//---	out: st_wm_pkl_file array con il path e il nome da importare
+//---	rit: nr file trovati nella cartella
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+integer k_return=0
+boolean k_b=false
+string k_rc
+int k_rcn, k_file_ind, k_max_array
+int k_ind, k_nr_file_dirlist
+datastore kds_dirlist
+st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
+kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
+kuf_file_explorer kuf1_file_explorer
+ 
+ 
+	try
+		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
+		kuf1_file_explorer = create kuf_file_explorer
+
+//--- piglia il path di dove sono i Packing-list Web
+		kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg)
+
+//--- piglia l'elenco dei file xml contenuti nella cartella
+		kds_dirlist = kuf1_file_explorer.DirList(trim(kst_tab_wm_pklist_cfg.cartella_pkl_da_txt)+"\*.txt")
+		k_nr_file_dirlist = kds_dirlist.rowcount()
+
+		k_max_array = upperbound(kst_wm_pkl_file[])
+		if k_max_array = 0 then k_max_array = 100
+		if k_nr_file_dirlist > k_max_array then k_nr_file_dirlist = k_max_array // meglio non superare la dim dell'array
+		
+		for k_file_ind = 1 to k_nr_file_dirlist
+		
+			kst_wm_pkl_file[k_file_ind].nome_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
+			kst_wm_pkl_file[k_file_ind].path_file = kst_tab_wm_pklist_cfg.cartella_pkl_da_txt
+			
+		end for
+
+		k_return = k_nr_file_dirlist
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+		
+		
+		finally
+			if isvalid(kds_dirlist) then destroy kds_dirlist
+			if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
+			if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+		
+	end try
+			
+
+
+return k_return
+
+
+end function
+
+public function uo_ds_std_1 get_wm_pklist_txt (st_wm_pkl_file kst_wm_pkl_file) throws uo_exception;//
 //------------------------------------------------------------------------------------------------------------------------------------
 //---
 //---	Importa packing-list TXT e popola il ds 'ds_receiptgammarad_l'
@@ -2673,1034 +3654,6 @@ datastore kds_1
 			
 
 return kds_1
-
-
-end function
-
-public function long importa_wm_pklist_txt () throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//--- 	Importa Packing-List grezzo da file TXT nella Tabella del DB di MAGAZZINO-WAREHOUSE-MANAGEMENT
-//---	ReceiptGammarad
-//---
-//---	inp: kst_tab_wm_receiptgammarad. 
-//---	out: 
-//---	rit: nr. dei Pcking Importati 
-//---   Lancia EXCEPTION se errore
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-long k_return=0
-long k_id_wm_pklist_importato=0, k_nr_file_txt=0, k_ind_file=0, k_nr_ws_receiptgammarad=0, k_ctr_ws_receiptgammarad=0, k_nr_wm_pkl_txt=0
-long k_rc
-string k_nome_file="", k_x
-st_esito kst_esito
-st_wm_pklist kst_wm_pklist
-st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-st_wm_pkl_file kst_wm_pkl_file, kst_wm_pkl_file_txt[]
-st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[], kst_tab_wm_receiptgammarad_NULLA[]
-kuf_utility kuf1_utility
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-//kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
-datastore kds_1_da_imp
-					
-
-try
-
-	kuf1_utility = create kuf_utility
-	kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-	//kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
-	kds_1_da_imp = create datastore
-			
-//--- leggo configurazione x lo scambio dati
-	if kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg) then
-		
-//--- parte l'importazione solo se PACKING-LIST da M2000 e non più da WM		
-		if kst_tab_wm_pklist_cfg.blocca_importa = kuf1_wm_pklist_cfg.ki_blocca_importa_dam2000 then
-
-//--- Leggo i nomi dei file da importare
-			kst_wm_pkl_file_txt[100].nome_file = " "   // x sicurezza crea intanto una tabellina grande 100 elementi 
-			k_nr_file_txt = get_file_wm_pklist_txt(kst_wm_pkl_file_txt[]) 
-
-			for k_ind_file = 1 to k_nr_file_txt 
-				
-				kst_wm_pkl_file.nome_file = kst_wm_pkl_file_txt[k_ind_file].nome_file
-				kst_wm_pkl_file.path_file = kst_wm_pkl_file_txt[k_ind_file].path_file
-	
-				if len(trim(kst_wm_pkl_file.nome_file)) > 0 then   // se c'e' un file....
-				
-		//--- muove il file TXT nella cartella dei flussi 'IN LAVORAZIONE'
-					if not DirectoryExists (kst_wm_pkl_file.path_file+"\inLav") then CreateDirectory (kst_wm_pkl_file.path_file+"\inLav") 
-					kuf1_utility.u_filemovereplace( kst_wm_pkl_file.path_file +"\"+  kst_wm_pkl_file.nome_file,  &
-																				 kst_wm_pkl_file.path_file+"\inLav\"+kst_wm_pkl_file.nome_file)
-					kst_wm_pkl_file.path_file = kst_wm_pkl_file.path_file+"\inLav"
-					
-		//--- Legge le Packing-list in formato TXT 
-					kds_1_da_imp = get_wm_pklist_txt(kst_wm_pkl_file) 
-					k_nr_wm_pkl_txt = kds_1_da_imp.rowcount( )
-					if k_nr_wm_pkl_txt > 0 then
-					
-	//--- Imposta area ReceiptGammarad il Packing-list in formato TXT 
-						kst_tab_wm_receiptgammarad[] = kst_tab_wm_receiptgammarad_NULLA[]
-						k_nr_ws_receiptgammarad = set_wm_pklist_txt_to_wm_tab(kds_1_da_imp, kst_tab_wm_receiptgammarad[]) 
-				
-						if k_nr_ws_receiptgammarad = 0 then
-							kuf1_utility.u_filemovereplace( kst_wm_pkl_file_txt[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_file_txt[k_ind_file].nome_file,  &
-																						 kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_file_txt[k_ind_file].nome_file)
-							kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-							if UpperBound(kst_tab_wm_receiptgammarad[]) > 0 then
-								k_x = trim(kst_tab_wm_receiptgammarad[1].packinglistcode)
-							else
-								k_x = "***NON RILEVATO***"
-							end if
-							kguo_exception.kist_esito.sqlerrtext = "Packing List: " + k_x &
-																		+ " SCARTATO perchè non è stata estratta alcuna riga di dettaglio dal file " &
-																		+ ".~n~rFile scartato: " + trim(kst_wm_pkl_file_txt[k_ind_file].nome_file)
-							throw kguo_exception
-						end if
-						
-//--- Verifica, se Esiste già, SCARTA
-						k_rc = if_exists_packinglistcode(kst_tab_wm_receiptgammarad[1])
-						if k_rc > 0 then
-	
-//--- muove il file nella cartella dei flussi SCARTATI			
-							if not DirectoryExists (kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati") then CreateDirectory (kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati") 
-							kuf1_utility.u_filemovereplace( kst_wm_pkl_file_txt[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_file_txt[k_ind_file].nome_file,  &
-																						 kst_wm_pkl_file_txt[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_file_txt[k_ind_file].nome_file)
-			
-							kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-							kguo_exception.kist_esito.sqlerrtext = "Packing List: " + kst_tab_wm_receiptgammarad[1].packinglistcode &
-																		+ " SCARTATO perchè già Presente con ID " + string(k_rc) &
-																		+ ".~n~rFile scartato: " + kst_wm_pkl_file_txt[k_ind_file].nome_file
-							throw kguo_exception
-						end if
-				
-//--- INSERT nella tabella di PACKING-LIST
-						//k_return = kuf1_wm_receiptgammarad.crea( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
-						k_rc = add( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
-						if k_rc > 0 then
-							k_return ++
-						end if
-						
-//--- muove il file TXT nella cartella dei flussi IMPORTATI	
-						kst_wm_pkl_file.path_file = kst_wm_pkl_file_txt[k_ind_file].path_file
-						if not DirectoryExists (kst_wm_pkl_file.path_file+"\importato") then CreateDirectory (kst_wm_pkl_file.path_file+"\importato") 
-						kuf1_utility.u_filemovereplace( kst_wm_pkl_file.path_file +"\inLav\"+kst_wm_pkl_file.nome_file,  &
-																				 kst_wm_pkl_file.path_file+"\importato\"+kst_wm_pkl_file.nome_file)
-	
-					end if
-				end if
-						
-			end for
-		else
-			kguo_exception.inizializza( )
-			kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-			kguo_exception.setmessage( "NON eseguito. Se si vuole importare PKL-WEB,  RIATTIVARE da Proprietà della proceura.")
-			throw kguo_exception
-		end if
-	end if
-	
-catch (uo_exception kuo_exception)
-//	kst_esito = kuo_exception.get_st_esito( )
-//	
-//	kGuf_data_base.errori_scrivi_esito ("I", kst_esito)
-////	if len(trim(kst_tab_wm_pklist_cfg.file_esiti )) > 0 then
-////		kGuf_data_base.errori_scrivi_esito ("I", kst_esito, kst_tab_wm_pklist_cfg.file_esiti )
-////	end if
-	throw kuo_exception
-	
-finally
-	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
-	//if isvalid(kuf1_wm_receiptgammarad) then destroy kuf1_wm_receiptgammarad
-	if isvalid(kds_1_da_imp) then destroy kds_1_da_imp
-	
-end try
-
-
-return k_return
-
-
-end function
-
-public function boolean set_id_meca (st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
-//====================================================================
-//=== Add ID_MECA in tabella RECEIPTGAMMARAD
-//=== 
-//=== Input: st_tab_wm_receiptgammarad.id_meca / idwmpklist
-//=== Ritorna:  TRUE = OK
-//=== 
-//====================================================================
-//
-boolean k_return=false
-boolean k_sicurezza
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-st_esito kst_esito
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-try
-	k_sicurezza = if_sicurezza(kkg_flag_modalita.modifica)
-	if not k_sicurezza then
-	
-		kst_esito.SQLErrText = "Modifica Tabella Magazzino Packing-List (receiptgammarad) non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-		kst_esito.esito = kkg_esito.no_aut
-	
-	else
-	
-		if kst_tab_wm_receiptgammarad.id_meca > 0 and kst_tab_wm_receiptgammarad.idwmpklist > 0 then
-	
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-//		kst_tab_wm_receiptgammarad.x_datins = kGuf_data_base.prendi_x_datins()
-//		kst_tab_wm_receiptgammarad.x_utente = kGuf_data_base.prendi_x_utente()
-		
-			update receiptgammarad
-					set Id_meca = :kst_tab_wm_receiptgammarad.id_meca
-					where idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
-					using kuo1_sqlca_db_0;
-				
-			if kuo1_sqlca_db_0.sqlcode < 0 then
-					
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
-				kst_esito.SQLErrText = &
-		"Errore durante pulizia tabella di Magazzino Packing-List  (id meca di receiptgammarad) ~n~r" &
-						+ " id=" + string(kst_tab_wm_receiptgammarad.id, "####0") + " " &
-						+ " ~n~rErrore-tab.'receiptgammarad':"	+ trim(kuo1_sqlca_db_0.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-
-				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					rollback using kuo1_sqlca_db_0;
-				end if				
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception				
-				
-			end if
-
-			if kuo1_sqlca_db_0.sqlcode = 0 then
-		//---- COMMIT....	
-				if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-					commit using kuo1_sqlca_db_0;
-					if sqlca.sqlcode <> 0 then
-						kst_esito.esito = kkg_esito.db_ko
-						kst_esito.sqlcode = sqlca.sqlcode
-						kst_esito.SQLErrText = trim(sqlca.SQLErrText)
-					end if
-				end if
-				k_return = true
-			end if
-		
-		else
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = &
-		"Manca il codice Packing-List o ID Lotto per aggiornare tabella Magazzino Packing-List  (id meca di receiptgammarad) ~n~r" &
-						+ " id PkList=" + string(kst_tab_wm_receiptgammarad.idwmpklist, "####0") + " " &
-						+ " id Lotto=" + string(kst_tab_wm_receiptgammarad.id_meca, "####0") + " " &
-						+ " ~n~r"
-			kst_esito.esito = kkg_esito.no_esecuzione
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception				
-		end if
-		
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally
-	set_connessione(false)
-	//kguo_sqlca_db_wm.db_disconnetti( ) // meglio disconnettere
-
-end try
-
-return k_return
-
-
-end function
-
-public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//
-//--- 
-//--------------------------------------------------------------------------------------------------------------
-//--- Attiva LINK cliccato (funzione di ZOOM)
-//---
-//--- Par. Inut: 
-//---               datawindow su cui è stato attivato il LINK
-//---               nome campo di LINK
-//--- 
-//--- Ritorna TRUE tutto OK - FALSE: link non effettuato
-//---
-//--- Lancia EXCEPTION con  ST_ESITO  standard
-//---
-//----------------------------------------------------------------------------------------------------------------
-// 
-long k_rc
-boolean k_return=true
-
-st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad
-st_esito kst_esito
-datastore kdsi_elenco_output   //ds da passare alla windows di elenco
-st_open_w kst_open_w 
-
-
-
-SetPointer(kkg.pointer_attesa)
-
-
-kdsi_elenco_output = create datastore
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-choose case a_campo_link
-
-	case "packinglistcode"
-		kst_tab_wm_receiptgammarad.packinglistcode = trim(adw_link.getitemstring(adw_link.getrow(), a_campo_link))
-		if kst_tab_wm_receiptgammarad.packinglistcode > " " then
-			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_wm_receiptgammarad )
-			if kst_esito.esito <> kkg_esito.ok then
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito( kst_esito)
-				throw kguo_exception
-			end if
-			kst_open_w.key1 = "Packing-list Mandante " + kst_tab_wm_receiptgammarad.packinglistcode + " " 
-		else
-			k_return = false
-		end if
-
-//
-//	case "b_certif_lotto"
-//		kst_tab_wm_receiptgammarad.id_meca = adw_link.getitemnumber(adw_link.getrow(), "id_meca")
-//		if kst_tab_wm_receiptgammarad.id_meca > 0 then
-//			get_num_certif (kst_tab_wm_receiptgammarad)   //  piglia il NUMERO CERTIFICATO
-//			kst_esito = this.anteprima( kdsi_elenco_output, kst_tab_wm_receiptgammarad )
-//			if kst_esito.esito <> kkg_esito.ok then
-//				kguo_exception.inizializza( )
-//				kguo_exception.set_esito( kst_esito)
-//				throw kguo_exception
-//			end if
-//			kst_open_w.key1 = "Attestato di Trattamento  (nr.=" + trim(string(kst_tab_wm_receiptgammarad.num_certif)) + ") " 
-//		else
-//			k_return = false
-//		end if
-
-end choose
-
-if k_return then
-
-	if kdsi_elenco_output.rowcount() > 0 then
-	
-		
-	//--- chiamare la window di elenco
-	//
-	//--- Parametri : 
-	//--- struttura st_open_w
-		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
-		kst_open_w.id_programma = kkg_id_programma_elenco //get_id_programma( kst_open_w.flag_modalita ) //kkg_id_programma.elenco
-		kst_open_w.flag_primo_giro = "S"
-		kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
-		kst_open_w.flag_leggi_dw = " "
-		kst_open_w.flag_cerca_in_lista = " "
-		kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
-		kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
-		kst_open_w.key4 = kGuf_data_base.prendi_win_attiva_titolo()    //--- Titolo della Window di chiamata per riconoscerla
-		kst_open_w.key12_any = kdsi_elenco_output
-		kst_open_w.flag_where = " "
-		kGuf_menu_window.open_w_tabelle(kst_open_w)
-
-	else
-		
-		kguo_exception.inizializza( )
-		kguo_exception.setmessage(u_get_errmsg_nontrovato(kst_open_w.flag_modalita) )
-		throw kguo_exception
-		
-		
-	end if
-
-end if
-//
-//SetPointer(kp_oldpointer)
-//
-
-
-return k_return
-
-end function
-
-public function boolean tb_delete_x_idwmpklist (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
-//--------------------------------------------------------------------------
-//--- Cancella il rek dalla tabella Receiptgammarad x codice del idwmpklist
-//--- 
-//--- Ritorna TRUE = delete OK
-//---           	
-//--------------------------------------------------------------------------
-//
-boolean k_return = false
-st_esito kst_esito
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	//if_sicurezza(kkg_flag_modalita.CANCELLAZIONE)
-	
-	if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
-	
-		delete from  receiptgammarad 
-					where idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
-					using kguo_sqlca_db_magazzino;
-		
-		
-		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in Cancellazione Packing List 'grezzo' cod.pkl= " + string(kst_tab_wm_receiptgammarad.idwmpklist) &
-										+ " (wm_receiptgammarad). Errore:" + trim(sqlca.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-				
-		//---- COMMIT....	
-		if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
-		end if
-
-		k_return = true
-
-	end if
-	
-catch(uo_exception kuo_exception)
-	if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-		kguo_sqlca_db_magazzino.db_rollback( )
-	end if
-
-	throw kuo_exception
-
-finally
-
-end try
-
-return k_return
-
-end function
-
-public function st_esito anteprima_tree (ref datastore kdw_anteprima, st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
-//=== 
-//====================================================================
-//=== Operazione di Anteprima 
-//===
-//=== Par. Inut: 
-//===               datastore  di  anteprima
-//===               dati tabella per estrazione dell'anteprima
-//=== 
-//=== Ritorna tab. ST_ESITO, Esiti: come Standard
-//=== 
-//====================================================================
-//
-//=== 
-long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
-kuf_utility kuf1_utility
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.anteprima) 
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
-
-	try
-		kuo1_sqlca_db_0 = set_connessione(true)
-	
-		if isvalid(kdw_anteprima)  then
-			if kdw_anteprima.dataobject = "d_wm_receiptgammarad" then //"d_wm_receiptgammarad_l"  then
-				if kdw_anteprima.object.packinglistcode [1] = kst_tab_wm_receiptgammarad.packinglistcode   then
-					kst_tab_wm_receiptgammarad.packinglistcode  = "" 
-				end if
-			end if
-		end if
-
-		if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
-		else
-			kst_tab_wm_receiptgammarad.idwmpklist = 0
-		end if
-			
-		if trim(kst_tab_wm_receiptgammarad.packinglistcode) > " " then
-		else
-			kst_tab_wm_receiptgammarad.packinglistcode = ""
-		end if
-	
-		if kst_tab_wm_receiptgammarad.idwmpklist > 0 or trim(kst_tab_wm_receiptgammarad.packinglistcode) > " " then
-		
-			kdw_anteprima.dataobject = "d_wm_receiptgammarad"		
-			kdw_anteprima.settransobject(kuo1_sqlca_db_0)
-		
-//			kuf1_utility = create kuf_utility
-//			kuf1_utility.u_dw_toglie_ddw(1, kdw_anteprima)
-//			destroy kuf1_utility
-	
-			kdw_anteprima.reset()	
-	//--- retrive dell'attestato 
-			k_rc=kdw_anteprima.retrieve(kst_tab_wm_receiptgammarad.packinglistcode, kst_tab_wm_receiptgammarad.idwmpklist)
-	
-		else
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Nessun Packing-List Mandante da visualizzare: ~n~r" + "nessun Codice indicato"
-			kst_esito.esito = kkg_esito.bug
-			
-		end if
-	catch (uo_exception kuo_exception)
-		kst_esito = kuo_exception.get_st_esito()
-		
-	finally
-		set_connessione(false)
-		
-		
-	end try
-end if
-
-
-return kst_esito
-
-end function
-
-public function st_esito tb_delete_x_packinglistcode (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad);//
-//====================================================================
-//=== Cancella il rek dalla tabella Receiptgammarad 
-//=== 
-//=== Ritorna ST_ESITO
-//===           	
-//====================================================================
-//
-st_esito kst_esito
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-
-	if len(trim(kst_tab_wm_receiptgammarad.packinglistcode)) > 0 then
-
-		try
-	
-			kuo1_sqlca_db_0 = set_connessione(true)
-			//kGuo_sqlca_db_wm.db_connetti()
-	
-			delete from  receiptgammarad 
-				where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode
-				using kuo1_sqlca_db_0;
-	
-			
-			if sqlca.sqlcode <> 0 then
-				kst_esito.sqlcode = sqlca.sqlcode
-				kst_esito.SQLErrText = "Cancellazione 'Packing List WM' cod.=" +trim(kst_tab_wm_receiptgammarad.packinglistcode) + " (wm_receiptgammarad):" + trim(sqlca.SQLErrText)
-				if sqlca.sqlcode = 100 then
-					kst_esito.esito = kkg_esito.not_fnd
-				else
-					if sqlca.sqlcode > 0 then
-						kst_esito.esito = kkg_esito.db_wrn
-					else
-						kst_esito.esito = kkg_esito.db_ko
-						if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-							kuo1_sqlca_db_0.db_rollback( )
-						end if
-					end if
-				end if
-			
-			else
-		
-	//---- COMMIT....	
-				if kst_esito.esito = kkg_esito.db_ko then
-					if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-						kuo1_sqlca_db_0.db_rollback( )
-					end if
-				else
-					if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-						kuo1_sqlca_db_0.db_commit( )
-					end if
-				end if
-			end if
-	
-	//--- se richiesto di fare Commit dopo disconnetto
-			if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
-				
-				set_connessione(false)
-				//kGuo_sqlca_db_wm.db_disconnetti()
-			
-			end if
-			
-		catch (uo_exception kuo_exception)
-				kst_esito = kuo_exception.get_st_esito()
-			
-		finally
-			
-		end try
-		
-	end if
-
-
-return kst_esito
-
-end function
-
-public function long get_id_meca (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
-//====================================================================
-//=== Piglia  il ID Lotto
-//=== 
-//=== Input: st_tab_wm_receiptgammarad.idwmpklist
-//=== Ouy: st_tab_wm_receiptgammarad.id_meca
-//=== 
-//=== 
-//====================================================================
-//
-long k_return
-st_esito kst_esito
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
-
-		select max(id_meca)
-			into :kst_tab_wm_receiptgammarad.id_meca
-			from receiptgammarad
-				WHERE idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist
-				using kguo_sqlca_db_magazzino ;
-				
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-					
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = &
-				"Errore in lettura Id Lotto dalla tabella di Magazzino Packing-List, " &
-					+ " id=" + string(kst_tab_wm_receiptgammarad.idwmpklist, "####0") + " " &
-					+ " ~n~rErrore-tab.'receiptgammarad': " &
-					+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-		
-		if kst_tab_wm_receiptgammarad.id_meca > 0 then 
-			k_return = kst_tab_wm_receiptgammarad.id_meca
-		end if				
-	end if
-		
-catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	throw kuo_exception
-	
-finally
-
-			
-end try
-		
-return k_return
-
-end function
-
-public function boolean if_barcode_cliente_exists (ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Controllo se Barcode Cliente gia' Caricato per lo stesso PKL
-//---	inp: 
-//---	out: st_wm_receiptgammarad.packinglistcode + externalpalletcode + idwmpklist
-//---	rit: true=Barcode gia' caricato
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-boolean k_return=false
-long k_trovato
-st_esito kst_esito
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	if kst_tab_wm_receiptgammarad.externalpalletcode > " " then
-		kuo1_sqlca_db_0 = set_connessione(true)
-		
-		if kst_tab_wm_receiptgammarad.idwmpklist > 0 then
-		else
-			kst_tab_wm_receiptgammarad.idwmpklist = 0
-		end if
-	
-		select distinct 1
-			into :k_trovato
-			from receiptgammarad
-			where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
-				and externalpalletcode = :kst_tab_wm_receiptgammarad.externalpalletcode 
-				and idwmpklist = :kst_tab_wm_receiptgammarad.idwmpklist 
-				using kuo1_sqlca_db_0;
-		
-		if kuo1_sqlca_db_0.sqlcode = 0 and k_trovato > 0 then
-			k_return = true
-		else
-			if kuo1_sqlca_db_0.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
-				kst_esito.SQLErrText = "Lettura 'externalpalletcode' (" + trim(kst_tab_wm_receiptgammarad.externalpalletcode) & 
-										+ "dalla tabella 'Packing-List' (Codice: '" + trim(kst_tab_wm_receiptgammarad.packinglistcode)  &
-										+ "', id: '" + string(kst_tab_wm_receiptgammarad.idwmpklist) + "') fallito!" &
-										+ " ~n~r " + trim(kuo1_sqlca_db_0.SQLErrText) 
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if			
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	set_connessione(false)
-
-end try
-
-return k_return
-
-
-end function
-
-public function int add (long k_nr_ws_receiptgammarad, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//---
-//--- Crea Nuova Packing-List 
-//--- Inp: numero delle righe
-//--- 		tabella st_tab_wm_receiptgammarad[]
-//--- Out: numero righe elaborate
-//---
-long k_return = 0
-long k_ctr_ws_receiptgammarad = 0
-st_esito kst_esito
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if k_nr_ws_receiptgammarad > 0 then
-	
-//--- INSERT nella tabella di PACKING-LIST
-	for k_ctr_ws_receiptgammarad = 1 to k_nr_ws_receiptgammarad
-			
-//--- Faccio la Commit sull'ultimo record				
-		if k_ctr_ws_receiptgammarad = k_nr_ws_receiptgammarad then
-			kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].st_tab_g_0.esegui_commit = "S"
-		else
-			kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].st_tab_g_0.esegui_commit = "N"
-		end if
-			
-//--- verifica se Barcode cliente già caricato (NO BUONO!)
-		if if_barcode_cliente_exists(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad])  then
-			
-			kst_esito.esito = kkg_esito_no_esecuzione
-			kst_esito.sqlerrtext = "Packing List '" + trim(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].packinglistcode) &
-										+ "'. Scartato il barcode cliente '" + trim(kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad].externalpalletcode) &
-										+ "' perchè doppio! "
-			kGuo_exception.set_esito(kst_esito)
-			kguo_exception.scrivi_log( )
-			
-		else
-
-//--- INSERT			
-			kst_esito = tb_add (kst_tab_wm_receiptgammarad[k_ctr_ws_receiptgammarad]) 
-				
-			if kst_esito.esito <> kkg_esito.ok and kst_esito.esito <> kkg_esito.db_wrn then
-//--- Se KO allora disconnetto e lancio EXCEPTION	
-				set_connessione(false)
-
-				kGuo_exception.set_esito( kst_esito)
-				throw kGuo_exception
-			
-			else
-				k_return ++
-			end if	
-		end if
-	end for
-			
-end if
-
-
-return k_return
-
-end function
-
-private function long set_wm_pklist_txt_to_wm_tab (ref datastore kds_receiptgammarad_l, ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Converte il Packing-List TXT nalla struct array kst_tab_wm_receiptgammarad []
-//---	inp: datastore ds_receiptgammarad_l che contiene i dati del pkl copiati dal file 
-//---	out: kst_tab_wm_receiptgammarad[]: array con le righe del packing-list 
-//---	rit: nr pkl trovati
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-long k_return=0
-string k_rc, k_file=""
-int k_rcn, k_file_ind, k_anno, k_mese, k_giorno
-long k_ind=0, k_max_row, k_ctr
-datetime k_datetime_current
-st_esito kst_esito
-st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_null
- 
- 
-	try
-		k_max_row = kds_receiptgammarad_l.rowcount()
-
-		k_datetime_current = kguo_g.get_datetime_current( )
-
-		//--- ordino per codice barcode cliente
-		kds_receiptgammarad_l.setsort("externalpalletcode A")
-		kds_receiptgammarad_l.sort( )
-				
-//--- preparo la struct a NULL		
-		set_null(kst_tab_wm_receiptgammarad_null)
-		
-		for k_file_ind = 1 to k_max_row
-
-			if trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) > " " &
-															and trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) > " " then
-
-				if k_ind > 1 and trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) &
-																= trim(kds_receiptgammarad_l.getitemstring(k_file_ind - 1, "externalpalletcode")) then
-					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoNetto") > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].PesoNetto += kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoNetto")
-					end if
-					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoLordo") > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].PesoLordo += kds_receiptgammarad_l.getitemnumber(k_file_ind, "PesoLordo")
-					end if
-					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "QuantitaSacchi") > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].QuantitaSacchi += kds_receiptgammarad_l.getitemnumber(k_file_ind, "QuantitaSacchi")
-					end if
-				end if
-				
-				if k_file_ind = 1 or trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) &
-											<> trim(kds_receiptgammarad_l.getitemstring(k_file_ind - 1, "externalpalletcode")) then
-											
-					k_ind++
-
-//--- inizializzo la riga				
-					kst_tab_wm_receiptgammarad[k_ind] = kst_tab_wm_receiptgammarad_null
-				
-//--- codice packing-list
-					kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "txt_" + trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) 
-//--- converte la data di invio
-					kst_tab_wm_receiptgammarad[k_ind].transmissiondate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "transmissiondate")
-
-					kst_tab_wm_receiptgammarad[k_ind].receiptdate = k_datetime_current //datetime(date(today()),time(now()))
-					kst_tab_wm_receiptgammarad[k_ind].ddtcode	= upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "ddtcode")) )
-					kst_tab_wm_receiptgammarad[k_ind].ddtdate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "ddtdate")
-
-					kst_tab_wm_receiptgammarad[k_ind].ordercode	= upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "ordercode")) )
-					kst_tab_wm_receiptgammarad[k_ind].orderdate = kds_receiptgammarad_l.getitemdatetime(k_file_ind, "orderdate")
-					if date(kst_tab_wm_receiptgammarad[k_ind].orderdate) > kkg.data_no then 
-					else
-						kst_tab_wm_receiptgammarad[k_ind].orderdate = k_datetime_current //datetime(date(today()),time(now()))
-					end if
-					
-					kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "mandatorcustomercode")) )
-					kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "receivercustomercode")) )
-					if trim(kst_tab_wm_receiptgammarad[k_ind].receivercustomercode) > " " then
-					else
-						kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode
-					end if
-					kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "invoicecustomercode")) )
-					if trim(kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode) > " " then
-					else
-						kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode
-					end if
-					kst_tab_wm_receiptgammarad[k_ind].specification = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "specification")) )
-					kst_tab_wm_receiptgammarad[k_ind].contract = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "contract")) )
-					kst_tab_wm_receiptgammarad[k_ind].externalpalletcode = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")) )
-					kst_tab_wm_receiptgammarad[k_ind].palletlength = len(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "externalpalletcode")))
-					if kds_receiptgammarad_l.getitemnumber(k_file_ind, "palletquantity") > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].palletquantity = kds_receiptgammarad_l.getitemnumber(k_file_ind, "palletquantity")
-					else
-						kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
-					end if
-
-					if trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerlot")) > " " then
-						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerlot")) )
-					else
-						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "packinglistcode")) )
-					end if
-
-//--- altri dati circa il singolo barcode
-					kst_tab_wm_receiptgammarad[k_ind].customerItem = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "customerItem")) )
-
-					kst_tab_wm_receiptgammarad[k_ind].barcodeWO = upper(trim(kds_receiptgammarad_l.getitemstring(k_file_ind, "barcodewo")) )
-
-					kst_tab_wm_receiptgammarad[k_ind].note_3 = ""
-					kst_tab_wm_receiptgammarad[k_ind].note_2 = ""
-					kst_tab_wm_receiptgammarad[k_ind].note_1 = ""
-					
-				end if					
-			end if				
-		end for
-	
-		k_return = k_ind
-		
-	catch (uo_exception kuo_exception)
-//		kst_esito.esito = kkg_esito.bug
-//		kst_esito.sqlcode = k_rcn
-//		kst_esito.SQLErrText = "Importazione Nuovi 'Packing-List' fallito!  ~n~r "  
-//		kguo_exception.set_esito(kst_esito)
-		throw kuo_exception
-		
-		
-	finally
-
-		
-	end try
-			
-
-
-return k_return
-
-
-end function
-
-public function long if_exists_packinglistcode (readonly st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Controllo se Packing List gia' Caricato per lo stesso packinglistcode
-//---	inp: st_wm_receiptgammarad.packinglistcode
-//---	out:
-//---	rit: idwmpklist > 0  = gia' caricato
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-long k_return, k_rc
-st_esito kst_esito
-kuo_sqlca_db_0 kuo1_sqlca_db_0
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	if kst_tab_wm_receiptgammarad.packinglistcode > " " then
-		kuo1_sqlca_db_0 = set_connessione(true)
-		
-		select max(idwmpklist)
-			into :k_rc
-			from receiptgammarad
-			where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
-				using kuo1_sqlca_db_0;
-		
-		if kuo1_sqlca_db_0.sqlcode = 0 and k_rc > 0 then
-			k_return = k_rc
-		else
-			if kuo1_sqlca_db_0.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kuo1_sqlca_db_0.sqlcode
-				kst_esito.SQLErrText = "Errore in verifica esistenza Packing List grezzo. Codice '" + trim(kst_tab_wm_receiptgammarad.packinglistcode) & 
-										+ "'"&
-										+ "~n~rErrore: " + trim(kuo1_sqlca_db_0.SQLErrText) 
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-		end if			
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	set_connessione(false)
-
-end try
-
-return k_return
-
-
-end function
-
-public function integer get_file_wm_pklist_txt (ref st_wm_pkl_file kst_wm_pkl_file[]) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Trova i nomi file di Packing-List formato testo lineare presenti nella cartella di importazione
-//---	inp: st_wm_pkl_file vuoto
-//---	out: st_wm_pkl_file array con il path e il nome da importare
-//---	rit: nr file trovati nella cartella
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-integer k_return=0
-boolean k_b=false
-string k_rc
-int k_rcn, k_file_ind, k_max_array
-int k_ind, k_nr_file_dirlist
-datastore kds_dirlist
-st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-kuf_file_explorer kuf1_file_explorer
- 
- 
-	try
-		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-		kuf1_file_explorer = create kuf_file_explorer
-
-//--- piglia il path di dove sono i Packing-list Web
-		kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg)
-
-//--- piglia l'elenco dei file xml contenuti nella cartella
-		kds_dirlist = kuf1_file_explorer.DirList(trim(kst_tab_wm_pklist_cfg.cartella_pkl_da_txt)+"\*.txt")
-		k_nr_file_dirlist = kds_dirlist.rowcount()
-
-		k_max_array = upperbound(kst_wm_pkl_file[])
-		if k_max_array = 0 then k_max_array = 100
-		if k_nr_file_dirlist > k_max_array then k_nr_file_dirlist = k_max_array // meglio non superare la dim dell'array
-		
-		for k_file_ind = 1 to k_nr_file_dirlist
-		
-			kst_wm_pkl_file[k_file_ind].nome_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
-			kst_wm_pkl_file[k_file_ind].path_file = kst_tab_wm_pklist_cfg.cartella_pkl_da_txt
-			
-		end for
-
-		k_return = k_nr_file_dirlist
-
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-		
-		
-		finally
-			if isvalid(kds_dirlist) then destroy kds_dirlist
-			if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
-			if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
-		
-	end try
-			
-
-
-return k_return
 
 
 end function

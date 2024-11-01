@@ -25,7 +25,8 @@ table(column=(type=char(13) updatewhereclause=yes key=yes name=meca_dosim_barcod
               inner join armo  on meca_dosim.id_meca = armo.id_meca
               inner join sl_pt  on armo.cod_sl_pt = sl_pt.cod_sl_pt
               left outer join sl_pt_dosimpos on armo.cod_sl_pt = sl_pt_dosimpos.cod_sl_pt
-                                        and meca_dosim.sl_pt_dosimpos_seq = sl_pt_dosimpos.seq
+                                       and meca_dosim.sl_pt_dosimpos_seq = sl_pt_dosimpos.seq
+		          								and sl_pt_dosimpos.impianto = meca.impianto
    WHERE 
          meca_dosim.id_meca = :k_id_meca
 " update="meca_dosim" updatewhere=0 updatekeyinplace=yes arguments=(("k_id_meca", number)) )
@@ -57,4 +58,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" xslfop.print="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

@@ -831,7 +831,7 @@ kuf_base kuf1_base
 		 FROM sr_utenti 
 		 using sqlca;
 
-	k_path = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ")
+	k_path = kguo_path.get_temp( ) //kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ")
 	
 	k_file = fileopen( trim(k_path) + "\" + "pm2000", linemode!, write!, lockreadwrite!,Replace! )
 	
@@ -910,7 +910,7 @@ kuf_base kuf1_base
 	kst_esito.SQLErrText = ""
 	kst_esito.nome_oggetto = this.classname()
 
-	k_path = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ")
+	k_path = kguo_path.get_temp( )
 	
 	k_file = fileopen( trim(k_path) + "\" + "pm2000", linemode!, read!, lockreadwrite!)
 	

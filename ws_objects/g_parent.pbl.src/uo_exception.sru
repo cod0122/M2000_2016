@@ -664,7 +664,7 @@ longlong k_filesize
 	u_set_uo_path()
 	k_path_nome_file = kguo_path.get_nome_file_errori_txt()
 	if left(trim(k_path_nome_file), 1) = kkg.path_sep then
-		k_path_nome_file = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ") + trim(k_path_nome_file)
+		k_path_nome_file = kguo_path.get_temp( ) + kkg.path_sep + trim(k_path_nome_file)
 		if left(trim(k_path_nome_file), 1) = kkg.path_sep then
 			k_path_nome_file = "c:" + trim(k_path_nome_file)
 		end if
@@ -781,7 +781,7 @@ try
 	if left(k_path_nome_file, 1) = kkg.path_sep &
 		                and mid(k_path_nome_file, 2, 1) <> kkg.path_sep then
 // se è ad esempio un path relativo (tipo '\mio_path') ma non un path di rete (quindi tipo '\\') allora aggiunge							 
-		k_path_nome_file = kGuf_data_base.profilestring_leggi_scrivi (1, "temp", " ") + trim(k_path_nome_file)
+		k_path_nome_file = kguo_path.get_temp( ) + kkg.path_sep + trim(k_path_nome_file)
 		if left(trim(k_path_nome_file), 1) = kkg.path_sep then
 			k_path_nome_file = "c:" + trim(k_path_nome_file)
 		end if

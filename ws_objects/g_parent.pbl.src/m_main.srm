@@ -39,6 +39,8 @@ type m_emailattestati0 from menu within m_ottimizzadb
 end type
 type m_emailinviobatch from menu within m_ottimizzadb
 end type
+type m_importadaticamion from menu within m_ottimizzadb
+end type
 type m_disattivazionelistiniscaduti from menu within m_ottimizzadb
 end type
 type m_estinzionecontatti from menu within m_ottimizzadb
@@ -65,6 +67,7 @@ m_generaemailavvisilotti m_generaemailavvisilotti
 m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
+m_importadaticamion m_importadaticamion
 m_disattivazionelistiniscaduti m_disattivazionelistiniscaduti
 m_estinzionecontatti m_estinzionecontatti
 m_esportacodapilotainhtml m_esportacodapilotainhtml
@@ -81,6 +84,8 @@ type m_esportapassword from menu within m_utility
 end type
 type m_importapassword from menu within m_utility
 end type
+type m_8 from menu within m_utility
+end type
 type m_importaanagrafichecrm from menu within m_utility
 end type
 type m_popolaindirizziddt from menu within m_utility
@@ -96,6 +101,7 @@ m_ottimizzadb m_ottimizzadb
 m_f_u_-1 m_f_u_-1
 m_esportapassword m_esportapassword
 m_importapassword m_importapassword
+m_8 m_8
 m_importaanagrafichecrm m_importaanagrafichecrm
 m_popolaindirizziddt m_popolaindirizziddt
 m_ufo m_ufo
@@ -257,6 +263,8 @@ m_importacertificatie1pdf m_importacertificatie1pdf
 end type
 type m_esportadatiritirolotti from menu within m_elaborazioniesterne
 end type
+type m_importacomposizionecamion from menu within m_elaborazioniesterne
+end type
 type m_elaborazioniesterne from menu within m_magazzino
 m_creapackinglistdaweb m_creapackinglistdaweb
 m_importapackinglist m_importapackinglist
@@ -267,6 +275,7 @@ m_datilavtoe1 m_datilavtoe1
 m_importareportpilota m_importareportpilota
 m_creaemailattestatie1m2000 m_creaemailattestatie1m2000
 m_esportadatiritirolotti m_esportadatiritirolotti
+m_importacomposizionecamion m_importacomposizionecamion
 end type
 type m_5 from menu within m_magazzino
 end type
@@ -1802,6 +1811,7 @@ m_ottimizzadb m_ottimizzadb
 m_f_u_-1 m_f_u_-1
 m_esportapassword m_esportapassword
 m_importapassword m_importapassword
+m_8 m_8
 m_importaanagrafichecrm m_importaanagrafichecrm
 m_popolaindirizziddt m_popolaindirizziddt
 m_ufo m_ufo
@@ -1833,6 +1843,7 @@ this.m_ottimizzadb=create m_ottimizzadb
 this.m_f_u_-1=create m_f_u_-1
 this.m_esportapassword=create m_esportapassword
 this.m_importapassword=create m_importapassword
+this.m_8=create m_8
 this.m_importaanagrafichecrm=create m_importaanagrafichecrm
 this.m_popolaindirizziddt=create m_popolaindirizziddt
 this.m_ufo=create m_ufo
@@ -1844,6 +1855,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_ottimizzadb
 this.Item[UpperBound(this.Item)+1]=this.m_f_u_-1
 this.Item[UpperBound(this.Item)+1]=this.m_esportapassword
 this.Item[UpperBound(this.Item)+1]=this.m_importapassword
+this.Item[UpperBound(this.Item)+1]=this.m_8
 this.Item[UpperBound(this.Item)+1]=this.m_importaanagrafichecrm
 this.Item[UpperBound(this.Item)+1]=this.m_popolaindirizziddt
 this.Item[UpperBound(this.Item)+1]=this.m_ufo
@@ -1859,6 +1871,7 @@ destroy(this.m_ottimizzadb)
 destroy(this.m_f_u_-1)
 destroy(this.m_esportapassword)
 destroy(this.m_importapassword)
+destroy(this.m_8)
 destroy(this.m_importaanagrafichecrm)
 destroy(this.m_popolaindirizziddt)
 destroy(this.m_ufo)
@@ -2063,6 +2076,7 @@ m_generaemailavvisilotti m_generaemailavvisilotti
 m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
+m_importadaticamion m_importadaticamion
 m_disattivazionelistiniscaduti m_disattivazionelistiniscaduti
 m_estinzionecontatti m_estinzionecontatti
 m_esportacodapilotainhtml m_esportacodapilotainhtml
@@ -2098,6 +2112,7 @@ this.m_generaemailavvisilotti=create m_generaemailavvisilotti
 this.m_emailprontomerce=create m_emailprontomerce
 this.m_emailattestati0=create m_emailattestati0
 this.m_emailinviobatch=create m_emailinviobatch
+this.m_importadaticamion=create m_importadaticamion
 this.m_disattivazionelistiniscaduti=create m_disattivazionelistiniscaduti
 this.m_estinzionecontatti=create m_estinzionecontatti
 this.m_esportacodapilotainhtml=create m_esportacodapilotainhtml
@@ -2114,6 +2129,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_generaemailavvisilotti
 this.Item[UpperBound(this.Item)+1]=this.m_emailprontomerce
 this.Item[UpperBound(this.Item)+1]=this.m_emailattestati0
 this.Item[UpperBound(this.Item)+1]=this.m_emailinviobatch
+this.Item[UpperBound(this.Item)+1]=this.m_importadaticamion
 this.Item[UpperBound(this.Item)+1]=this.m_disattivazionelistiniscaduti
 this.Item[UpperBound(this.Item)+1]=this.m_estinzionecontatti
 this.Item[UpperBound(this.Item)+1]=this.m_esportacodapilotainhtml
@@ -2134,6 +2150,7 @@ destroy(this.m_generaemailavvisilotti)
 destroy(this.m_emailprontomerce)
 destroy(this.m_emailattestati0)
 destroy(this.m_emailinviobatch)
+destroy(this.m_importadaticamion)
 destroy(this.m_disattivazionelistiniscaduti)
 destroy(this.m_estinzionecontatti)
 destroy(this.m_esportacodapilotainhtml)
@@ -2661,6 +2678,71 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_emailinviobatch.destroy
+call super::destroy
+end on
+
+type m_importadaticamion from menu within m_ottimizzadb
+end type
+
+event clicked;//
+int k_camion_rows
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
+
+
+try
+	kguo_exception.inizializza(this.classname())
+	
+	if messagebox ("Importa dati Camion", "Carica i dati inviati dal sito Web di composizione Camion dei Packing-List. Proseguire?", question!, YesNo!, 2) = 1 then
+		
+		setpointer(kkg.pointer_attesa)
+		
+		kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+
+		k_camion_rows = kuf1_wm_pklist_camion.importa_wm_pklist_camion( )
+		
+		if k_camion_rows > 0 then
+			kguo_exception.messaggio_utente("Elaborazione terminata", "Sono state trattate " + string(k_camion_rows) + " righe Camion dai file inviati dal sito Web dei Packing-List.") 
+		else
+			kguo_exception.messaggio_utente("Elaborazione terminata", "Nessun dato di composizione Camion trovato, la cartella dei file dal sito Web dei Packing-List è probabilmente vuota.") 
+		end if
+	else
+		
+		kguo_exception.messaggio_utente("Elaborazione non eseguita", "Operazione interrotta dall'utente, nessun dato di composizione Camion trattato.") 
+
+	end if
+	
+	kguo_exception.messaggio_utente()
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	destroy kuf1_wm_pklist_camion
+	
+end try
+
+
+end event
+
+on m_importadaticamion.create
+call super::create
+this.text = "Importa dati Camion"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_importadaticamion.destroy
 call super::destroy
 end on
 
@@ -3350,12 +3432,38 @@ on m_importapassword.destroy
 call super::destroy
 end on
 
+type m_8 from menu within m_utility
+end type
+
+on m_8.create
+call super::create
+this.visible = false
+this.text = "-"
+this.enabled = false
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_8.destroy
+call super::destroy
+end on
+
 type m_importaanagrafichecrm from menu within m_utility
 end type
 
 event clicked;//
-   Opensheet (w_test, w_main, 2, Original!)
-
+//   Opensheet (w_test, w_main, 2, Original!)
 
 end event
 
@@ -3363,7 +3471,6 @@ on m_importaanagrafichecrm.create
 call super::create
 this.visible = false
 this.text = "TEST"
-this.enabled = false
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -3425,39 +3532,96 @@ type m_ufo from menu within m_utility
 end type
 
 event clicked;//
-long k_righe=0
-string k_json
-ds_barcode_print_label kds_1, kds_2
+long k_row, k_rows, k_update
+long k_rc
+int k_pos
+string k_cell
+string k_indi
+uo_ds_std_1 kds_1, kds_2
 st_esito kst_esito
-
-string ls_path, ls_file
-long li_rc
-long li_FileNum
+st_tab_clienti_mkt kst_tab_clienti_mkt, kst_tab_clienti_mkt_vuoto
+kuf_clienti_tb_xxx kiuf_clienti_tb_xxx
 
 
 try
-	kds_1 = create ds_barcode_print_label
-	kds_2 = create ds_barcode_print_label
+	kiuf_clienti_tb_xxx = create kuf_clienti_tb_xxx
+	kds_1 = create uo_ds_std_1
+	kds_2 = create uo_ds_std_1
 
 	if messagebox ("Utility Generica", &
-						"Test stampa barcode~n~r" &
+						"Sposta nei CONTATTI il n.cellulare dall'indirizzo al campo opportuno.~n~r" &
 						+ "Avviare l'operazione?" &
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
 
-		long job
-		job = PrintOpen( )
 		// Each DataWindow starts printing on a new page.
-		kds_1.dataobject = "d_barcode_et_dsm_rev_3_gen24"
-		kds_1.insertrow(0)
-		kds_2.dataobject = "d_barcode_et_rev_4_gen24"
-		kds_2.insertrow(0)
+		kds_1.dataobject = "d_ufo"
+		kds_1.settransobject( kguo_sqlca_db_magazzino )
+		k_rows = kds_1.retrieve( )
 		
-		PrintDataWindow(job, kds_1)
-		PrintDataWindow(job, kds_2)
-		PrintClose(job)
+		kds_2.dataobject = "d_ufo_1"
+		kds_2.settransobject( kguo_sqlca_db_magazzino )
+		for k_row = 1 to k_rows
+		
+			k_cell = ""
+			k_indi = upper(trim(kds_1.getitemstring(k_row, "indi_1")))
+			if isnumber(k_indi) or isnumber(left(k_indi,3)) or left(k_indi,1) = "+" then
+				k_cell = k_indi
+			else
+				k_pos = pos(k_indi, "CEL") 
+				if k_pos > 0 then
+					k_pos += 3
+				else
+					k_pos = pos(k_indi, "MOBILE")
+					if k_pos > 0 then
+						k_pos += 6
+					end if
+				end if
+				if k_pos > 0 then
+					do while not isnumber(mid(k_indi, k_pos, 1)) and mid(k_indi,k_pos, 1) <> "+" and k_pos < len(k_indi)
+						k_pos ++
+					loop
+					if isnumber(mid(k_indi, k_pos, 1)) or mid(k_indi, k_pos, 1) = "+" then
+						k_cell = trim(mid(k_indi, k_pos))
+					end if
+				end if
+					
+			end if
+		
+			if k_cell > " " then
+				kst_tab_clienti_mkt = kst_tab_clienti_mkt_vuoto
+				kst_tab_clienti_mkt.id_cliente = kds_1.getitemnumber(k_row, "id_cliente")
+				
+				k_rc = kds_2.retrieve(kst_tab_clienti_mkt.id_cliente)
+				if k_rc > 0 then
+
+//--- Carica Dati MKT attuale
+					kst_tab_clienti_mkt.for_qa_italy = trim(kds_2.getitemstring(1, "for_qa_italy"))
+					kst_tab_clienti_mkt.for_cobalt_rload = trim(kds_2.getitemstring(1, "for_cobalt_rload"))
+					kst_tab_clienti_mkt.for_price_cntct = trim(kds_2.getitemstring(1, "for_price_cntct"))
+					
+				end if
+
+				kst_tab_clienti_mkt.cell = k_cell
+				
+				kiuf_clienti_tb_xxx.tb_ufo(kst_tab_clienti_mkt)
+	
+				k_update ++
+	
+				kguo_sqlca_db_magazzino.db_commit()
+			end if
+			
+		next
+
 	end if	
+	
+	if k_update > 0 then
+		messagebox("Operazione Terminata", "Sono stati aggiornati " + string(k_update) + " Contatti. ")
+	else
+		messagebox("Operazione Terminata", "Nessun Contatto aggiornato. ")
+	end if		
+	
 catch (uo_exception kuo_exception)
 
 	kuo_exception.messaggio_utente() 
@@ -3465,6 +3629,7 @@ catch (uo_exception kuo_exception)
 finally
 	DESTROY kds_1 
 	DESTROY kds_2
+	destroy kiuf_clienti_tb_xxx
 	SetPointer(kkg.pointer_default)
 
 end try
@@ -3474,7 +3639,9 @@ end event
 on m_ufo.create
 call super::create
 this.tag = "master"
+this.visible = false
 this.text = "utilità generica"
+this.enabled = false
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -6189,6 +6356,7 @@ m_datilavtoe1 m_datilavtoe1
 m_importareportpilota m_importareportpilota
 m_creaemailattestatie1m2000 m_creaemailattestatie1m2000
 m_esportadatiritirolotti m_esportadatiritirolotti
+m_importacomposizionecamion m_importacomposizionecamion
 end type
 
 on m_elaborazioniesterne.create
@@ -6216,6 +6384,7 @@ this.m_datilavtoe1=create m_datilavtoe1
 this.m_importareportpilota=create m_importareportpilota
 this.m_creaemailattestatie1m2000=create m_creaemailattestatie1m2000
 this.m_esportadatiritirolotti=create m_esportadatiritirolotti
+this.m_importacomposizionecamion=create m_importacomposizionecamion
 this.Item[UpperBound(this.Item)+1]=this.m_creapackinglistdaweb
 this.Item[UpperBound(this.Item)+1]=this.m_importapackinglist
 this.Item[UpperBound(this.Item)+1]=this.m_getbcodedaeone
@@ -6225,6 +6394,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_datilavtoe1
 this.Item[UpperBound(this.Item)+1]=this.m_importareportpilota
 this.Item[UpperBound(this.Item)+1]=this.m_creaemailattestatie1m2000
 this.Item[UpperBound(this.Item)+1]=this.m_esportadatiritirolotti
+this.Item[UpperBound(this.Item)+1]=this.m_importacomposizionecamion
 end on
 
 on m_elaborazioniesterne.destroy
@@ -6238,6 +6408,7 @@ destroy(this.m_datilavtoe1)
 destroy(this.m_importareportpilota)
 destroy(this.m_creaemailattestatie1m2000)
 destroy(this.m_esportadatiritirolotti)
+destroy(this.m_importacomposizionecamion)
 end on
 
 type m_creapackinglistdaweb from menu within m_elaborazioniesterne
@@ -7044,7 +7215,7 @@ end event
 
 on m_esportadatiritirolotti.create
 call super::create
-this.text = "Esporta Dati Ritiro Lotti (SMART)"
+this.text = "Esporta dati Ritiro Lotti (SMART)"
 this.menuimage = "Custom013_2!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -7062,6 +7233,67 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_esportadatiritirolotti.destroy
+call super::destroy
+end on
+
+type m_importacomposizionecamion from menu within m_elaborazioniesterne
+end type
+
+event clicked;//
+int k_righe=0
+datastore kds_1
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
+st_esito kst_esito
+		
+
+try
+	kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+
+	if messagebox ("Importa dati", &
+						"Importa dati Composizione Camion dei Packing-List da SMART " &
+						+ kkg.acapo + "Avviare l'operazione di importazione?" &
+						 ,question!, YesNo!, 2) = 1 then
+
+		SetPointer(kkg.pointer_attesa)
+		kst_esito = kuf1_wm_pklist_camion.u_batch_run( )
+
+		SetPointer(kkg.pointer_default)
+
+		messagebox ("Operazione Conclusa", kst_esito.sqlerrtext, Information!) 
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	SetPointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente() 
+
+finally
+	if isvalid(kuf1_wm_pklist_camion) then destroy kuf1_wm_pklist_camion
+
+end try
+
+end event
+
+on m_importacomposizionecamion.create
+call super::create
+this.text = "Importa dati Composizione Camion"
+this.menuimage = "Custom013_2!"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_importacomposizionecamion.destroy
 call super::destroy
 end on
 
@@ -8156,7 +8388,9 @@ end event
 on m_contodeposito.create
 call super::create
 this.tag = "ct_dp_l     "
+this.visible = false
 this.text = "Conto Deposito (CD)"
+this.enabled = false
 this.menuimage = "CheckIn5_2!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -8195,7 +8429,9 @@ end event
 on m_ct_rd_l.create
 call super::create
 this.tag = "ct_rd_l"
+this.visible = false
 this.text = "Studio e Sviluppo (SD)"
+this.enabled = false
 this.microhelp = "Contratti Studio e Sviluppo"
 this.menuimage = "Control Average_2!"
 this.menustyle = contemporarymenu!

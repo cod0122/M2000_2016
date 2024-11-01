@@ -370,6 +370,7 @@ st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]
 			
 			k_ind = 1
 			kst_wm_pklist.st_tab_wm_pklist.idpkl = trim(kst_tab_wm_receiptgammarad[k_ind].packinglistcode)
+			kst_wm_pklist.st_tab_wm_pklist.idpkl_in = kst_tab_wm_receiptgammarad[k_ind].idpkl
 			kst_wm_pklist.st_tab_wm_pklist.packinglistcode = trim(kst_tab_wm_receiptgammarad[k_ind].packinglistcode)
 			kst_wm_pklist.st_tab_wm_pklist.nrddt = trim(kst_tab_wm_receiptgammarad[k_ind].ddtcode)
 			kst_wm_pklist.st_tab_wm_pklist.dtddt = date(kst_tab_wm_receiptgammarad[k_ind].ddtdate) 
@@ -841,8 +842,9 @@ try
 	end if
 
 	ast_tab_wm_pklist.idpkl = kuf1_wm_pklist_testa.get_idpkl(ast_tab_wm_pklist)
-	
 	kds_testa.setitem(1, "idpkl", kst_tab_wm_pklist.idpkl) 		
+	
+	kds_testa.setitem(1, "idpkl_in", kds_testa.getitemnumber(1, "idpkl_in"))
 	kds_testa.setitem(1, "id_wm_pklist_padre", kds_testa.getitemnumber(1, "id_wm_pklist")) 		
 	kds_testa.setitem(1, "id_wm_pklist", 0) 	
 	kds_testa.setitem(1, "stato", kki_STATO_nuovo)
@@ -940,16 +942,13 @@ st_esito kst_esito
 
 try 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 	k_ctr = importa_wm_pklist_ext_tutti( ) 
 	if k_ctr > 0 then
-		kst_esito.SQLErrText = "Operazione conclusa correttamente." + "Ci sono " + string(k_ctr) + " Packing-List Clienti pronte per essere importate come Riferimento.  " 
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa correttamente." + "Ci sono " + string(k_ctr) + " Packing-List Clienti pronte per essere importate come Riferimento.  " 
 	else
-		kst_esito.SQLErrText = "Operazione conclusa. Nessun Packing-List Cliente trovato pronto per fare il Riferimento."
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa. Nessun Packing-List Cliente trovato pronto per fare il Riferimento."
 	end if
 
 catch (uo_exception kuo_exception)
@@ -960,7 +959,7 @@ finally
 end try
 
 
-return kst_esito
+return kguo_exception.kist_esito
 end function
 
 public function string u_add_note_aco (ref st_tab_wm_pklist kst_tab_wm_pklist) throws uo_exception;//

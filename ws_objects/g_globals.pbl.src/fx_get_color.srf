@@ -13,7 +13,9 @@ global function long fx_get_color (string a_tipo_oggetto);/*
 if isvalid(kguo_g) then
 
 	if kguo_g.theme_dark then
-		if a_tipo_oggetto = "DISABLED" then
+		if a_tipo_oggetto = "STANDARD" then
+			return kkg_colore.bianco
+		elseif a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
 		elseif a_tipo_oggetto = "HIGHLIGHTED" then
 			return rgb(229, 150, 32)
@@ -41,7 +43,9 @@ if isvalid(kguo_g) then
 
 	else
 	
-		if a_tipo_oggetto = "DISABLED" then
+		if a_tipo_oggetto = "STANDARD" then
+			return kkg_colore.nero
+		elseif a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
 		elseif a_tipo_oggetto = "HIGHLIGHTED" then
 			return rgb(229, 150, 32)

@@ -35,8 +35,12 @@ public function boolean tb_update (st_tab_clienti_mkt ast_tab_clienti_mkt) throw
 public function boolean tb_update_ind_comm (st_tab_ind_comm kst_tab_ind_comm) throws uo_exception
 public function boolean tb_update (st_tab_clienti_web kst_tab_clienti_web) throws uo_exception
 public function boolean tb_update (ref st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception
-private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception
 private subroutine tb_update_json_field (ref st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception
+private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception
+public function st_esito tb_ufo (st_tab_clienti_mkt kst_tab_clienti_mkt) throws uo_exception
+public function boolean tb_dd_clienti_mkt_vuota (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception
+public subroutine if_isnull ()
+public subroutine if_isnull_clienti_mkt (ref st_tab_clienti_mkt ast_tab_clienti_mkt)
 end prototypes
 
 public function boolean tb_delete (st_tab_clienti_memo ast_tab_clienti_memo) throws uo_exception;/*
@@ -854,7 +858,6 @@ public function boolean tb_update (st_tab_clienti_mkt ast_tab_clienti_mkt) throw
 boolean k_return
 long k_rcn
 boolean k_rc, k_senza_dati=false
-st_tab_clienti kst_tab_clienti
 
 
 try
@@ -873,9 +876,7 @@ try
 	ast_tab_clienti_mkt.x_datins = kGuf_data_base.prendi_x_datins()
 	ast_tab_clienti_mkt.x_utente = kGuf_data_base.prendi_x_utente()
 
-	kst_tab_clienti.kst_tab_clienti_mkt = ast_tab_clienti_mkt
-	kiuf_clienti.if_isnull( kst_tab_clienti )
-	ast_tab_clienti_mkt = kst_tab_clienti.kst_tab_clienti_mkt
+	if_isnull_clienti_mkt( ast_tab_clienti_mkt )
 
 	k_rcn = 0
 	select distinct 1
@@ -888,11 +889,11 @@ try
 //--- tento l'insert se manca in arch.
 	if kguo_sqlca_db_magazzino.sqlcode  >= 0 then
 
-//				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_1_qualif)) > 0 & 
-//				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_2_qualif)) > 0 &
-//				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_3_qualif)) > 0 &
-//				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_4_qualif)) > 0 &
-//				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_5_qualif)) > 0 &
+//				or trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_1_qualif)) > 0 & 
+//				or trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_2_qualif)) > 0 &
+//				or trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_3_qualif)) > 0 &
+//				or trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_4_qualif)) > 0 &
+//				or trim(kst_tab_clienti.kst_tab_clienti_mkt.contatto_5_qualif)) > 0 &
 //				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_1 <> 0 &
 //				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_2 <> 0  &
 //				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_3  <> 0 &
@@ -900,18 +901,21 @@ try
 //				or kst_tab_clienti.kst_tab_clienti_mkt.id_contatto_5  <> 0 &
 //
 //--- controllo se ci sono dati
-		if len(trim(kst_tab_clienti.kst_tab_clienti_mkt.altra_sede)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.tipo_rapporto)) > 0 & 
-			  or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.cod_atecori)) > 0 & 
-				or kst_tab_clienti.kst_tab_clienti_mkt.id_cliente_link  <> 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.note_attivita)) > 0 &
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.note_prodotti)) > 0 & 
-				or kst_tab_clienti.kst_tab_clienti_mkt.gruppo > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.doc_esporta)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.doc_esporta_prefpath)) > 0 & 
-				or len(trim(kst_tab_clienti.kst_tab_clienti_mkt.qualifica)) > 0 &
-				or trim(kst_tab_clienti.kst_tab_clienti_mkt.for_cobalt_rload) = "S" &
-				or trim(kst_tab_clienti.kst_tab_clienti_mkt.for_qa_italy) = "S" &
+		if trim(ast_tab_clienti_mkt.altra_sede) > " " & 
+			  or trim(ast_tab_clienti_mkt.tipo_rapporto) > " " & 
+			  or trim(ast_tab_clienti_mkt.cod_atecori) > " " & 
+				or ast_tab_clienti_mkt.id_cliente_link  <> 0 &
+				or trim(ast_tab_clienti_mkt.note_attivita) > " " &
+				or trim(ast_tab_clienti_mkt.note_prodotti) > " " & 
+				or ast_tab_clienti_mkt.gruppo > 0 & 
+				or trim(ast_tab_clienti_mkt.doc_esporta) > " " & 
+				or trim(ast_tab_clienti_mkt.doc_esporta_prefpath) > " " & 
+				or trim(ast_tab_clienti_mkt.qualifica) > " " &
+				or trim(ast_tab_clienti_mkt.for_cobalt_rload) = "S" &
+				or trim(ast_tab_clienti_mkt.for_price_cntct) = "S" &
+				or trim(ast_tab_clienti_mkt.for_qa_italy) = "S" &
+				or trim(ast_tab_clienti_mkt.cell) > " " &
+				or trim(ast_tab_clienti_mkt.categ) > " " &
 				then
 		
 			k_senza_dati = false
@@ -1444,87 +1448,6 @@ end try
 return k_return
 end function
 
-private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception;/*
- Update/Insert the row in  clienti_mkt campo JSON
-    Inp: st_tab_clienti_mkt.id_cliente + con i campi jsoc
-*/
-int k_idx, k_idx_max
-string k_json_key[100]
-string k_json_val[100]
-//string k_json_all
-//kuf_utility kuf1_utility
-
-
-	try
-		kguo_exception.inizializza(this.classname())
-//		kuf1_utility = create kuf_utility
-		
-		if ast_tab_clienti_mkt.id_cliente > 0 then
-	
-	//--- pulizia di tutto il campo JSON
-			update clienti_mkt
-				 set data_json = '{}'
-						where id_cliente = :ast_tab_clienti_mkt.id_cliente
-						using kguo_sqlca_db_magazzino ;
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
-							"Fallito pulizia area dati Marketing (clienti_mkt) dell'Anagrafica " + string(ast_tab_clienti_mkt.id_cliente))
-				throw kguo_exception
-			end if
-
-	//--- compone i campi JSON					
-			k_idx_max = 0
-			k_idx_max ++; k_json_key[k_idx_max] = "$." + "for_qa_italy"; k_json_val[k_idx_max] = trim(ast_tab_clienti_mkt.for_qa_italy)
-			k_idx_max ++; k_json_key[k_idx_max] = "$." + "for_cobalt_rload"; k_json_val[k_idx_max] = trim(ast_tab_clienti_mkt.for_cobalt_rload)
-
-			kguo_sqlca_db_magazzino.sqlcode = 0
-			k_idx = 0
-			do while k_idx < k_idx_max and kguo_sqlca_db_magazzino.sqlcode = 0 
-				k_idx ++
-				
-				if k_json_val[k_idx] > " " then
-					update clienti_mkt
-						 set data_json = replace(JSON_MODIFY(data_json, :k_json_key[k_idx], :k_json_val[k_idx]), '\/', '/')
-						where id_cliente = :ast_tab_clienti_mkt.id_cliente
-						using kguo_sqlca_db_magazzino ;
-				end if
-				
-			loop
-			
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
-						"Fallito Aggiornamento dati Marketing (clienti_mkt) dell'Anagrafica  " + string(ast_tab_clienti_mkt.id_cliente) &
-								+ ", campo: " + k_json_key[k_idx] &
-								+ " valore: "+ k_json_val[k_idx] + ". ")
-				throw kguo_exception
-			end if
-
-			if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit( )
-			end if
-			
-		end if
-		
-	catch	(uo_exception kuo_exception)
-		kuo_exception.scrivi_log( )
-		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
-			if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_rollback( )
-			end if
-		end if
-		throw kuo_exception
-	
-	finally
-//		if isvalid(kuf1_utility) then destroy kuf1_utility
-	
-	end try
-		
-
-
-return kguo_exception.kist_esito
-
-end function
-
 private subroutine tb_update_json_field (ref st_tab_clienti_mkt ast_tab_clienti_mkt, ref string a_json_key, string a_json_val) throws uo_exception;/*
  Aggiorna campo JSON in tabella
 	inp: st_tab_clienti_mkt.id_cliente
@@ -1568,6 +1491,203 @@ finally
 
 
 end try
+
+end subroutine
+
+private function st_esito tb_update_json (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception;/*
+ Update/Insert the row in  clienti_mkt campo JSON
+    Inp: st_tab_clienti_mkt.id_cliente + con i campi jsoc
+*/
+int k_idx, k_idx_max
+string k_json_key[100]
+string k_json_val[100], k_json_val_old[100]
+st_tab_clienti_mkt kst_tab_clienti_mkt
+constant int kk_for_qa_italy = 1
+constant int kk_for_cobalt_rload = 2
+constant int kk_for_price_cntct = 3
+constant int kk_cell = 4
+constant int kk_categ = 5
+
+
+	try
+		kguo_exception.inizializza(this.classname())
+//		kuf1_utility = create kuf_utility
+		
+		if ast_tab_clienti_mkt.id_cliente > 0 then
+		else
+			return kguo_exception.kist_esito
+		end if
+
+	//--- Legge i valori attuali
+		select isnull(clienti_mkt.data_json,'')
+				,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')),'') for_qa_italy
+				,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_cobalt_rload')),'') for_cobalt_rload
+				,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_price_cntct')),'') for_price_cntct
+				,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.cell')),'') cell 
+				,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.categ')),'') categ 
+			into :kst_tab_clienti_mkt.data_json
+				  ,:k_json_val_old[kk_for_qa_italy]
+				  ,:k_json_val_old[kk_for_cobalt_rload]
+				  ,:k_json_val_old[kk_for_price_cntct]
+			     ,:k_json_val_old[kk_cell]
+			     ,:k_json_val_old[kk_categ]
+			FROM clienti_mkt
+			where id_cliente = :ast_tab_clienti_mkt.id_cliente
+					using kguo_sqlca_db_magazzino ;
+					
+		if kguo_sqlca_db_magazzino.sqlcode = 100 then
+			tb_dd_clienti_mkt_vuota(ast_tab_clienti_mkt)
+//			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+//							"Dati Marketing non esistenti fallito aggiornamento dell'Anagrafica " + string(ast_tab_clienti_mkt.id_cliente) + " fallito! ")
+//			throw kguo_exception
+		else
+			if trim(kst_tab_clienti_mkt.data_json) = '' then
+				update clienti_mkt
+	 				 set data_json = '{}'
+  						where id_cliente = :ast_tab_clienti_mkt.id_cliente
+						using kguo_sqlca_db_magazzino ;
+			end if
+		end if
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+							"Fallita lettura dati Marketing (clienti_mkt json) dell'Anagrafica " + string(ast_tab_clienti_mkt.id_cliente))
+			throw kguo_exception
+		end if
+		
+//--- compone i campi JSON					
+		k_idx_max = 0
+		k_idx_max ++; k_json_key[kk_for_qa_italy] = "$." + "for_qa_italy"; k_json_val[kk_for_qa_italy] = trim(ast_tab_clienti_mkt.for_qa_italy)
+		k_idx_max ++; k_json_key[kk_for_cobalt_rload] = "$." + "for_cobalt_rload"; k_json_val[kk_for_cobalt_rload] = trim(ast_tab_clienti_mkt.for_cobalt_rload)
+		k_idx_max ++; k_json_key[kk_for_price_cntct] = "$." + "for_price_cntct"; k_json_val[kk_for_price_cntct] = trim(ast_tab_clienti_mkt.for_price_cntct)
+		k_idx_max ++; k_json_key[kk_cell] = "$." + "cell"; k_json_val[kk_cell] = trim(ast_tab_clienti_mkt.cell)
+		k_idx_max ++; k_json_key[kk_categ] = "$." + "categ"; k_json_val[kk_categ] = trim(ast_tab_clienti_mkt.categ)
+
+		kguo_sqlca_db_magazzino.sqlcode = 0
+		k_idx = 0
+		do while k_idx < k_idx_max and kguo_sqlca_db_magazzino.sqlcode = 0 
+			k_idx ++
+			
+			if k_json_val[k_idx] <> k_json_val_old[k_idx] then
+				if k_json_val[k_idx] > " " then
+				else
+					setnull(k_json_val[k_idx])
+				end if
+				update clienti_mkt
+						 set data_json = replace(JSON_MODIFY(data_json, :k_json_key[k_idx], :k_json_val[k_idx]), '\/', '/')
+					where id_cliente = :ast_tab_clienti_mkt.id_cliente
+					using kguo_sqlca_db_magazzino ;
+			end if
+			
+		loop
+		
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Fallito Aggiornamento dati Marketing (clienti_mkt) dell'Anagrafica  " + string(ast_tab_clienti_mkt.id_cliente) &
+							+ ", campo: " + k_json_key[k_idx] &
+							+ " valore: "+ k_json_val[k_idx] + ". ")
+			throw kguo_exception
+		end if
+
+		if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
+			kguo_sqlca_db_magazzino.db_commit( )
+		end if
+		
+	catch	(uo_exception kuo_exception)
+		kuo_exception.scrivi_log( )
+		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
+			if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+		end if
+		throw kuo_exception
+	
+	finally
+//		if isvalid(kuf1_utility) then destroy kuf1_utility
+	
+	end try
+
+return kguo_exception.kist_esito
+
+end function
+
+public function st_esito tb_ufo (st_tab_clienti_mkt kst_tab_clienti_mkt) throws uo_exception;//
+	return tb_update_json(kst_tab_clienti_mkt)
+
+end function
+
+public function boolean tb_dd_clienti_mkt_vuota (ref st_tab_clienti_mkt ast_tab_clienti_mkt) throws uo_exception;/*
+ Aggiunge una riga alla tabella MKT
+ 
+   Inp: st_tab_clienti_mkt
+   Out: id_cliente
+*/
+boolean k_return
+st_esito kst_esito
+uo_ds_std_1 kds_1
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+//	if_sicurezza(kkg_flag_modalita.cancellazione)
+	
+	if ast_tab_clienti_mkt.id_cliente > 0 then
+	else
+		kguo_exception.kist_esito.SQLErrText = "Aggiornamento dati Avvisi Marketing, manca il codice cliente"
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+	end if
+	
+	ast_tab_clienti_mkt.x_datins = kGuf_data_base.prendi_x_datins()
+	ast_tab_clienti_mkt.x_utente = kGuf_data_base.prendi_x_utente()
+	
+	kds_1 = create uo_ds_std_1
+	kds_1.dataobject = "ds_clienti_mkt"	
+	kds_1.settransobject(kguo_sqlca_db_magazzino)
+	
+	if kds_1.insertrow(0) > 0 then
+		kds_1.setitem(1, "id_cliente", ast_tab_clienti_mkt.id_cliente)
+		kds_1.setitem(1, "data_json", "{}")
+		kds_1.setitem(1, "x_datins", ast_tab_clienti_mkt.x_datins)
+		kds_1.setitem(1, "x_utente", ast_tab_clienti_mkt.x_utente)
+		if kds_1.update( ) > 0 then
+			if ast_tab_clienti_mkt.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_clienti_mkt.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
+		else
+			kguo_exception.set_st_esito_err_ds(kds_1, &
+								"Errore in Aggiornamento dati Marketing Cliente " + string(ast_tab_clienti_mkt.id_cliente))	
+			throw kguo_exception 
+		end if
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return = true
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return k_return
+end function
+
+public subroutine if_isnull ();
+end subroutine
+
+public subroutine if_isnull_clienti_mkt (ref st_tab_clienti_mkt ast_tab_clienti_mkt);//
+st_tab_clienti kst_tab_clienti 
+
+	kst_tab_clienti.kst_tab_clienti_mkt = ast_tab_clienti_mkt
+	kiuf_clienti.if_isnull( kst_tab_clienti )
+	ast_tab_clienti_mkt = kst_tab_clienti.kst_tab_clienti_mkt
 
 end subroutine
 

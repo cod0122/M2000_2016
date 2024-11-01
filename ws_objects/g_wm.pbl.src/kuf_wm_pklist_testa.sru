@@ -1198,64 +1198,46 @@ public function boolean tb_select (ref st_tab_wm_pklist kst_tab_wm_pklist) throw
 //====================================================================
 //
 boolean k_return=false
-st_esito kst_esito
-//st_open_w kst_open_w
-//kuf_sicurezza kuf1_sicurezza
-uo_exception kuo_exception
 
 
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-//kst_open_w.flag_modalita = kkg_flag_modalita.modifica
-//kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.anteprima) 
-//
-////--- controlla se utente autorizzato alla funzione in atto
-//kuf1_sicurezza = create kuf_sicurezza
-//k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-//destroy kuf1_sicurezza
-//
-//
-//if not k_return then
-//
-//	kst_esito.sqlcode = sqlca.sqlcode
-//	kst_esito.SQLErrText = "Modifica Codice Packing List Mandante non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-//	kst_esito.esito = kkg_esito.no_aut
-//
-//else
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	if kst_tab_wm_pklist.id_wm_pklist > 0 then
-
+	else
+		return false
+	end if
 		
-		SELECT wm_pklist.idpkl,   
-					wm_pklist.stato,   
-					wm_pklist.tpimportazione,   
-					wm_pklist.dtimportazione,   
-					wm_pklist.nrord,   
-					wm_pklist.dtord,   
-					wm_pklist.nrddt,   
-					wm_pklist.dtddt,   
-					wm_pklist.colliddt,   
-					wm_pklist.collipkl,   
-					wm_pklist.clie_1,   
-					wm_pklist.clie_2,   
-					wm_pklist.clie_3,   
-					wm_pklist.mc_co,   
-					wm_pklist.sc_cf,   
-					wm_pklist.note,   
-				  wm_pklist.note_lotto,  
-			     wm_pklist.packinglistcode,
-				  wm_pklist.id_wm_pklist_padre,
-				  wm_pklist.eliminato,  
-				  wm_pklist.customerlot,
-					wm_pklist.x_datins_elim,   
-					wm_pklist.x_utente_elim,   
-					wm_pklist.x_datins,   
-					wm_pklist.x_utente  
-				into
+	SELECT wm_pklist.idpkl,   
+			 wm_pklist.idpkl_in,   
+				wm_pklist.stato,   
+				wm_pklist.tpimportazione,   
+				wm_pklist.dtimportazione,   
+				wm_pklist.nrord,   
+				wm_pklist.dtord,   
+				wm_pklist.nrddt,   
+				wm_pklist.dtddt,   
+				wm_pklist.colliddt,   
+				wm_pklist.collipkl,   
+				wm_pklist.clie_1,   
+				wm_pklist.clie_2,   
+				wm_pklist.clie_3,   
+				wm_pklist.mc_co,   
+				wm_pklist.sc_cf,   
+				wm_pklist.note,   
+			  wm_pklist.note_lotto,  
+			  wm_pklist.packinglistcode,
+			  wm_pklist.id_wm_pklist_padre,
+			  wm_pklist.eliminato,  
+			  wm_pklist.customerlot,
+				wm_pklist.x_datins_elim,   
+				wm_pklist.x_utente_elim,   
+				wm_pklist.x_datins,   
+				wm_pklist.x_utente  
+			into
 					:kst_tab_wm_pklist.idpkl,   
+					:kst_tab_wm_pklist.idpkl_in,   
 					:kst_tab_wm_pklist.stato,   
 					:kst_tab_wm_pklist.tpimportazione,   
 					:kst_tab_wm_pklist.dtimportazione,   
@@ -1283,36 +1265,29 @@ kst_esito.nome_oggetto = this.classname()
 			 FROM wm_pklist  
 			WHERE wm_pklist.id_wm_pklist = :kst_tab_wm_pklist.id_wm_pklist   
 			         and eliminato <> :kki_ELIMINATO_SI
-				using sqlca;
+				using kguo_sqlca_db_magazzino;
 			
-		if sqlca.sqlcode = 0 then
-			k_return=true			
-		else
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = &
-	"Errore durante Lettura Packing-List Mandante ~n~r" &
-					+ " id=" + string(kst_tab_wm_pklist.id_wm_pklist, "####0")  &
-					+ trim(kst_tab_wm_pklist.idpkl) &	
-					+ " ~n~rErrore-tab.'wm_pklist':"	+ trim(sqlca.SQLErrText)
-			if sqlca.sqlcode = 100 then
-				kst_esito.esito = kkg_esito.not_fnd
-			else
-				if sqlca.sqlcode > 0 then
-					kst_esito.esito = kkg_esito.db_wrn
-				else
-					kst_esito.esito = kkg_esito.db_ko
-				end if
-			end if
-			
-			kuo_exception = create uo_exception 
-			kuo_exception.set_esito( kst_esito )
-			throw kuo_exception
-			
-		end if
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore durante Lettura Packing-List Mandante ~n~r" &
+								+ " id=" + string(kst_tab_wm_pklist.id_wm_pklist, "####0")  &
+								+ trim(kst_tab_wm_pklist.idpkl))
+		throw kguo_exception
+	end if
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		k_return=true			
 	end if
 		
-//end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
 
+end try
 
 return k_return
 
@@ -1420,182 +1395,165 @@ public function boolean tb_add (ref st_tab_wm_pklist kst_tab_wm_pklist) throws u
 int k_resp, k_lencolmax
 boolean k_return=false
 string k_ope
-st_esito kst_esito
 st_open_w kst_open_w
-kuf_sicurezza kuf1_sicurezza
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-if kst_tab_wm_pklist.id_wm_pklist > 0 then
-	kst_open_w.flag_modalita = kkg_flag_modalita.modifica
-	kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.modifica) 
-else
-	kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
-	kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.inserimento) 
-end if
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-
-if not k_return then
-
-	kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-	kst_esito.SQLErrText = "Aggiornamento Packing-List Mandante non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
-
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if kst_tab_wm_pklist.id_wm_pklist > 0 then
+		kst_open_w.flag_modalita = kkg_flag_modalita.modifica
+		kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.modifica) 
+	else
+		kst_open_w.flag_modalita = kkg_flag_modalita.inserimento
+		kst_open_w.id_programma = get_id_programma(kkg_flag_modalita.inserimento) 
+	end if
+	
+	if_sicurezza(kst_open_w)
+	
 	if_isnull(kst_tab_wm_pklist)
 	kst_tab_wm_pklist.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_wm_pklist.x_utente = kGuf_data_base.prendi_x_utente()
 
 	if kst_tab_wm_pklist.id_wm_pklist > 0 then
 		k_ope = "AGGIORNAMENTO" 
-
-		this.u_set_col_len_max(k_ope, kst_tab_wm_pklist)
-
-		UPDATE wm_pklist  
-			  SET idpkl = :kst_tab_wm_pklist.idpkl,   
-					stato = :kst_tab_wm_pklist.stato,   
-					tpimportazione = :kst_tab_wm_pklist.tpimportazione, 
-					dtimportazione = :kst_tab_wm_pklist.dtimportazione,   
-					idImportazione = :kst_tab_wm_pklist.idImportazione,   
-					nrord = :kst_tab_wm_pklist.nrord,   
-					dtord = :kst_tab_wm_pklist.dtord,   
-					nrddt = :kst_tab_wm_pklist.nrddt,   
-					dtddt = :kst_tab_wm_pklist.dtddt,   
-					colliddt = :kst_tab_wm_pklist.colliddt,   
-					collipkl = :kst_tab_wm_pklist.collipkl,   
-					clie_1 = :kst_tab_wm_pklist.clie_1,   
-					clie_2 = :kst_tab_wm_pklist.clie_2,   
-					clie_3 = :kst_tab_wm_pklist.clie_3,   
-					mc_co = :kst_tab_wm_pklist.mc_co,   
-					sc_cf = :kst_tab_wm_pklist.sc_cf,   
-					note = :kst_tab_wm_pklist.note,   
-					note_lotto = :kst_tab_wm_pklist.note_lotto,   
-					note_aco = :kst_tab_wm_pklist.note_aco,   
-					eliminato = :kst_tab_wm_pklist.eliminato,   
-					customerlot = :kst_tab_wm_pklist.customerlot,
-					x_datins_elim = :kst_tab_wm_pklist.x_datins_elim,   
-					x_utente_elim = :kst_tab_wm_pklist.x_utente_elim,   
-					x_datins = :kst_tab_wm_pklist.x_datins,   
-					x_utente = :kst_tab_wm_pklist.x_utente   
-			WHERE wm_pklist.id_wm_pklist = :kst_tab_wm_pklist.id_wm_pklist   
-				using kguo_sqlca_db_magazzino;
 	
+		this.u_set_col_len_max(k_ope, kst_tab_wm_pklist)
+	
+		UPDATE wm_pklist  
+				  SET idpkl = :kst_tab_wm_pklist.idpkl,   
+				  	   idpkl_in = :kst_tab_wm_pklist.idpkl_in,   
+						stato = :kst_tab_wm_pklist.stato,   
+						tpimportazione = :kst_tab_wm_pklist.tpimportazione, 
+						dtimportazione = :kst_tab_wm_pklist.dtimportazione,   
+						idImportazione = :kst_tab_wm_pklist.idImportazione,   
+						nrord = :kst_tab_wm_pklist.nrord,   
+						dtord = :kst_tab_wm_pklist.dtord,   
+						nrddt = :kst_tab_wm_pklist.nrddt,   
+						dtddt = :kst_tab_wm_pklist.dtddt,   
+						colliddt = :kst_tab_wm_pklist.colliddt,   
+						collipkl = :kst_tab_wm_pklist.collipkl,   
+						clie_1 = :kst_tab_wm_pklist.clie_1,   
+						clie_2 = :kst_tab_wm_pklist.clie_2,   
+						clie_3 = :kst_tab_wm_pklist.clie_3,   
+						mc_co = :kst_tab_wm_pklist.mc_co,   
+						sc_cf = :kst_tab_wm_pklist.sc_cf,   
+						note = :kst_tab_wm_pklist.note,   
+						note_lotto = :kst_tab_wm_pklist.note_lotto,   
+						note_aco = :kst_tab_wm_pklist.note_aco,   
+						eliminato = :kst_tab_wm_pklist.eliminato,   
+						customerlot = :kst_tab_wm_pklist.customerlot,
+						x_datins_elim = :kst_tab_wm_pklist.x_datins_elim,   
+						x_utente_elim = :kst_tab_wm_pklist.x_utente_elim,   
+						x_datins = :kst_tab_wm_pklist.x_datins,   
+						x_utente = :kst_tab_wm_pklist.x_utente   
+				WHERE wm_pklist.id_wm_pklist = :kst_tab_wm_pklist.id_wm_pklist   
+					using kguo_sqlca_db_magazzino;
+		
 	else
 		k_ope = "INSERIMENTO" 
 		this.u_set_col_len_max(k_ope, kst_tab_wm_pklist)
 
 		//id_wm_pklist,   
-	  	INSERT INTO wm_pklist  
-				( 
-				  idpkl,   
-				  stato,   
-				  tpimportazione,
-				  dtimportazione,   
-				  idImportazione,
-				  nrord,   
-				  dtord,   
-				  nrddt,   
-				  dtddt,   
-				  colliddt,   
-				  collipkl,   
-				  clie_1,   
-				  clie_2,   
-				  clie_3,   
-				  mc_co,   
-				  sc_cf,   
-				  note,   
-				  note_lotto,  
-				  note_aco,  
-			     packinglistcode,
-				  id_wm_pklist_padre,
-				  eliminato,  
-				  customerlot,
-				  x_datins,   
-				  x_utente   
-				  )  
-	  VALUES ( 
-				  :kst_tab_wm_pklist.idpkl,   
-				  :kst_tab_wm_pklist.stato,   
-				  :kst_tab_wm_pklist.tpimportazione,
-				  :kst_tab_wm_pklist.dtimportazione,
-				  :kst_tab_wm_pklist.idImportazione,
-				  :kst_tab_wm_pklist.nrord,   
-				  :kst_tab_wm_pklist.dtord,   
-				  :kst_tab_wm_pklist.nrddt,   
-				  :kst_tab_wm_pklist.dtddt,   
-				  :kst_tab_wm_pklist.colliddt,   
-				  :kst_tab_wm_pklist.collipkl,   
-				  :kst_tab_wm_pklist.clie_1,   
-				  :kst_tab_wm_pklist.clie_2,   
-				  :kst_tab_wm_pklist.clie_3,   
-				  :kst_tab_wm_pklist.mc_co,   
-				  :kst_tab_wm_pklist.sc_cf,   
-				  :kst_tab_wm_pklist.note,   
-				  :kst_tab_wm_pklist.note_lotto,   
-				  :kst_tab_wm_pklist.note_aco,   
-				  :kst_tab_wm_pklist.packinglistcode,
-				  :kst_tab_wm_pklist.id_wm_pklist_padre,
-				  :kst_tab_wm_pklist.eliminato,   
-				  :kst_tab_wm_pklist.customerlot,
-				  :kst_tab_wm_pklist.x_datins,   
-				  :kst_tab_wm_pklist.x_utente   
-				  )  
-				using kguo_sqlca_db_magazzino;
-		
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		
-			kst_tab_wm_pklist.id_wm_pklist = get_id_wm_pklist_max()
-			//kst_tab_wm_pklist.id_wm_pklist = long(kguo_sqlca_db_magazzino.SQLReturnData)
-		
-		end if
-	
+		INSERT INTO wm_pklist  
+					( 
+					  idpkl,   
+					  idpkl_in,   
+					  stato,   
+					  tpimportazione,
+					  dtimportazione,   
+					  idImportazione,
+					  nrord,   
+					  dtord,   
+					  nrddt,   
+					  dtddt,   
+					  colliddt,   
+					  collipkl,   
+					  clie_1,   
+					  clie_2,   
+					  clie_3,   
+					  mc_co,   
+					  sc_cf,   
+					  note,   
+					  note_lotto,  
+					  note_aco,  
+					  packinglistcode,
+					  id_wm_pklist_padre,
+					  eliminato,  
+					  customerlot,
+					  x_datins,   
+					  x_utente   
+					  )  
+		  VALUES ( 
+					  :kst_tab_wm_pklist.idpkl,   
+					  :kst_tab_wm_pklist.idpkl_in,   
+					  :kst_tab_wm_pklist.stato,   
+					  :kst_tab_wm_pklist.tpimportazione,
+					  :kst_tab_wm_pklist.dtimportazione,
+					  :kst_tab_wm_pklist.idImportazione,
+					  :kst_tab_wm_pklist.nrord,   
+					  :kst_tab_wm_pklist.dtord,   
+					  :kst_tab_wm_pklist.nrddt,   
+					  :kst_tab_wm_pklist.dtddt,   
+					  :kst_tab_wm_pklist.colliddt,   
+					  :kst_tab_wm_pklist.collipkl,   
+					  :kst_tab_wm_pklist.clie_1,   
+					  :kst_tab_wm_pklist.clie_2,   
+					  :kst_tab_wm_pklist.clie_3,   
+					  :kst_tab_wm_pklist.mc_co,   
+					  :kst_tab_wm_pklist.sc_cf,   
+					  :kst_tab_wm_pklist.note,   
+					  :kst_tab_wm_pklist.note_lotto,   
+					  :kst_tab_wm_pklist.note_aco,   
+					  :kst_tab_wm_pklist.packinglistcode,
+					  :kst_tab_wm_pklist.id_wm_pklist_padre,
+					  :kst_tab_wm_pklist.eliminato,   
+					  :kst_tab_wm_pklist.customerlot,
+					  :kst_tab_wm_pklist.x_datins,   
+					  :kst_tab_wm_pklist.x_utente   
+					  )  
+					using kguo_sqlca_db_magazzino;
 	end if
-
+	
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-"Errore in " + k_ope + " Testata Packing-List cliente~n~r" &
-				+ " id=" + string(kst_tab_wm_pklist.id_wm_pklist, "####0") + " codice: " + trim(kst_tab_wm_pklist.idpkl) &
-				+ " cliente: " + string(kst_tab_wm_pklist.clie_1) + " DDT: " + trim(kst_tab_wm_pklist.nrddt) + " " + string(kst_tab_wm_pklist.dtddt) &	 
-				+ " ~n~rcustomer lot: "	+ trim(kst_tab_wm_pklist.customerlot ) &	 
-				+ " ~n~rnr.ord: "	+ trim(kst_tab_wm_pklist.nrord ) &	 
-				+ " ~n~rContratto CO: "	+ trim(kst_tab_wm_pklist.mc_co ) &	 
-				+ " ~n~rCapitolato: "	+ trim(kst_tab_wm_pklist.sc_cf ) &	 
-				+ " ~n~rNote: "	+ trim(kst_tab_wm_pklist.note ) &	 
-				+ " ~n~rPackinglist code: "	+ trim(kst_tab_wm_pklist.packinglistcode ) &	 
-				+ " ~n~rErrore-tab.'wm_pklist': "	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
-	
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in " + k_ope + " Testata Packing-List cliente~n~r" &
+					+ " id=" + string(kst_tab_wm_pklist.id_wm_pklist, "####0") + " codice: " + trim(kst_tab_wm_pklist.idpkl) &
+					+ " cliente: " + string(kst_tab_wm_pklist.clie_1) + " DDT: " + trim(kst_tab_wm_pklist.nrddt) + " " + string(kst_tab_wm_pklist.dtddt) &	 
+					+ " " + kkg.acapo + "customer lot: "	+ trim(kst_tab_wm_pklist.customerlot ) &	 
+					+ " " + kkg.acapo + "nr.ord: "	+ trim(kst_tab_wm_pklist.nrord ) &	 
+					+ " " + kkg.acapo + "Contratto CO: "	+ trim(kst_tab_wm_pklist.mc_co ) &	 
+					+ " " + kkg.acapo + "Capitolato: "	+ trim(kst_tab_wm_pklist.sc_cf ) &	 
+					+ " " + kkg.acapo + "Note: "	+ trim(kst_tab_wm_pklist.note ) &	 
+					+ " " + kkg.acapo + "Packinglist code: "	+ trim(kst_tab_wm_pklist.packinglistcode ))
+		throw kguo_exception		
 	end if
+		
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 	
-	//---- COMMIT....	
-	if kst_esito.esito = kkg_esito.db_ko then
-		if kst_tab_wm_pklist.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_pklist.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_rollback( )
-		end if
-		throw kguo_exception
-	else
 		if kst_tab_wm_pklist.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_pklist.st_tab_g_0.esegui_commit) then
 			kguo_sqlca_db_magazzino.db_commit( )
 		end if
+	
+		kst_tab_wm_pklist.id_wm_pklist = get_id_wm_pklist_max()
+		//kst_tab_wm_pklist.id_wm_pklist = long(kguo_sqlca_db_magazzino.SQLReturnData)
+
 		k_return=true
 	end if
-		
-end if
+			
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_wm_pklist.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_pklist.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
 
 
 return k_return
@@ -2124,24 +2082,18 @@ public function long tb_duplica (ref st_tab_wm_pklist kst_tab_wm_pklist) throws 
 //=== 
 //====================================================================
 //
-int k_resp
 long k_return
-boolean k_sicurezza
-st_esito kst_esito
-st_open_w kst_open_w
-kuf_sicurezza kuf1_sicurezza
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
 
-k_sicurezza = if_sicurezza(kkg_flag_modalita.inserimento)
-if not k_sicurezza then
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
 
-	kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-	kst_esito.SQLErrText = "Aggiornamento Packing-List Mandante non Autorizzato: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
+	kguo_exception.inizializza(this.classname())
 
-else
+	if_sicurezza(kkg_flag_modalita.inserimento)
 
 	kst_tab_wm_pklist.id_wm_pklist_padre = kst_tab_wm_pklist.id_wm_pklist // l'id da duplicare che diventa il PADRE
 	kst_tab_wm_pklist.idpkl = kst_tab_wm_pklist.idpkl // il nuovo codice
@@ -2153,10 +2105,16 @@ else
 	kst_tab_wm_pklist.note = "Duplicato dal pkl id " + string(kst_tab_wm_pklist.id_wm_pklist) + " il " + string(kst_tab_wm_pklist.x_datins, "dd mmm yy hh:mm") + " da utente cod. " + kst_tab_wm_pklist.x_utente
 
 	if kst_tab_wm_pklist.id_wm_pklist > 0 then
-     //id_wm_pklist,   
-   	INSERT INTO wm_pklist  
+	else
+		kguo_exception.kist_esito.SQLErrText = "Errore in Duplica Testata del Packing-List, manca id da duplicare!" 
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		throw kguo_exception
+	end if
+	
+	INSERT INTO wm_pklist  
          ( 
            idpkl,   
+           idpkl_in,   
            stato,   
            tipo,   
            tpimportazione,   
@@ -2186,6 +2144,7 @@ else
             )  
       SELECT 
             wm_pklist.idpkl,   
+            wm_pklist.idpkl_in,   
             wm_pklist.stato,   
             wm_pklist.tipo,   
             wm_pklist.tpimportazione,   
@@ -2215,51 +2174,40 @@ else
        FROM wm_pklist  
 		WHERE wm_pklist.id_wm_pklist = :kst_tab_wm_pklist.id_wm_pklist   
 		using kguo_sqlca_db_magazzino;
-		
-		if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		
-			kst_tab_wm_pklist.id_wm_pklist = get_id_wm_pklist_max( )
-			//kst_tab_wm_pklist.id_wm_pklist = long(kguo_sqlca_db_magazzino.SQLReturnData)
-			if kst_tab_wm_pklist.id_wm_pklist > 0 then
-				k_return = kst_tab_wm_pklist.id_wm_pklist
-			end if
-		
-		end if
-	else
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-"Errore in Duplica Testata del Packing-List, manca id da duplicare!" 
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-		
+
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = &
-"Errore in Duplica Testata del Packing-List id " + string(kst_tab_wm_pklist.id_wm_pklist, "####0")  &
-				+ " con il nuovo codice " + trim(kst_tab_wm_pklist.idpkl) &	
-				+ "~n~rErrore-tab.'wm_pklist': "	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Duplica Testata del Packing-List id " &
+							+ string(kst_tab_wm_pklist.id_wm_pklist, "####0")  &
+							+ " con il nuovo codice " + trim(kst_tab_wm_pklist.idpkl))	
 		throw kguo_exception
-	end if
-	
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+	end if	
+		
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then	
 		if kst_tab_wm_pklist.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_pklist.st_tab_g_0.esegui_commit) then
-	//---- COMMIT....	
 			kguo_sqlca_db_magazzino.db_commit( )
 		end if
-	else	
-		if kst_esito.esito = kkg_esito.db_ko then
-	//---- ROLLBACK....	
-			kguo_sqlca_db_magazzino.db_rollback( )
+		kst_tab_wm_pklist.id_wm_pklist = get_id_wm_pklist_max( )
+		//kst_tab_wm_pklist.id_wm_pklist = long(kguo_sqlca_db_magazzino.SQLReturnData)
+		if kst_tab_wm_pklist.id_wm_pklist > 0 then
+			
+			k_return = kst_tab_wm_pklist.id_wm_pklist
+			
 		end if
 	end if
-		
-end if
+	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if kst_tab_wm_pklist.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_pklist.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
 
+end try
+	
 
 return k_return
 

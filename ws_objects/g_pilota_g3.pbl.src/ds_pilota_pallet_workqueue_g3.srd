@@ -33,7 +33,7 @@ table(column=(type=char(5) updatewhereclause=yes name=stato dbname="stato" )
       , coalesce(groupage.ordine_figlio, 0) as ordine_figlio 
       , trim(coalesce(wof.lotto, '')) as lotto_figlio
     FROM pallet left outer join groupage on pallet.barcode = groupage.barcode_padre    
-					 left outer join work_orders wof on groupage.work_order = wof.work_order  
+					 left outer join wo wof on groupage.work_order = wof.wo  
                 left outer join wip on pallet.barcode = wip.barcode 
 	where (pallet.Data_Scarico is null or pallet.Data_Scarico < '1990.01.01 00:00:00')
                  and (pallet.Data_Carico > '1990.01.01 00:00:00') 
@@ -53,7 +53,7 @@ SELECT  'QUEUE'
           , coalesce(groupage.ordine_figlio, 0) as ordine_figlio
 	      , trim(coalesce(wof.lotto, '')) as lotto_figlio
         FROM queue_table left outer join groupage on queue_table.Barcode = groupage.barcode_padre    
-								 left outer join work_orders wof on groupage.work_order = wof.work_order  
+								 left outer join wo wof on groupage.work_order = wof.wo
     order by stato desc, n_ordine asc, 5 asc     					  
 	" )
 text(band=header alignment="2" text="Stato" border="0" color="33554432" x="9" y="8" height="56" width="219" html.valueishtml="0"  name=stato_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )

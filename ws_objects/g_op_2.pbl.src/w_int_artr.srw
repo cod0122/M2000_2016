@@ -27,61 +27,8 @@ protected kuf_report_pilota kiuf_report_pilota
 protected kuf_pilota_previsioni kiuf_pilota_previsioni
 protected kuf_pilota_previsioni_g3 kiuf_pilota_previsioni_g3
 
-////--- variabile contenente la scelta del REPORT
-//protected int ki_scelta_report_generico = 0
-//protected int ki_scelta_report_coda_pilota = 0
-//protected int ki_scelta_report_in_trattamento = 0
-//protected int ki_scelta_report_trattato = 0
-//protected int ki_scelta_report_chk_intra = 0
-//protected int ki_scelta_report_lotti_in_giacenza = 0
-//protected int ki_scelta_report_lotti_entrati = 0
-//protected int ki_scelta_report_lotti_in_giacenza_gia_trattati = 0
-//protected int ki_scelta_report_RegArt50 = 0
-//protected int ki_scelta_report_lotti_da_sped = 0
-//protected int ki_scelta_report_lotti_sped = 0
-//protected int ki_scelta_report_etichette_lotti = 0
-//protected int ki_scelta_report_groupage = 0
-//protected int ki_scelta_report_etichettine = 0
-//protected int ki_scelta_report_bcode_trattati = 0
-//protected int ki_scelta_report_art_movim = 0
-////protected int ki_scelta_report_armo_prezzi = 0
-//protected int ki_scelta_report_memo = 0
-//protected int ki_scelta_report_lotti_sped_daFatt = 0
-//protected int ki_scelta_report_Attestati = 0
-//protected int ki_scelta_report_armo_Contratti = 0
-//protected int ki_scelta_report_LavxCapitolato = 0
-//protected int ki_scelta_report_RunsRtrRts = 0
-//protected int ki_scelta_report_prevFineLav = 0
-//protected int ki_scelta_report_NrDosimetri = 0
-
 //--- variabile contenentei l'indice della picture x la scelta del REPORT
 protected int ki_scelta_report=0
-
-//protected int ki_scelta_report_pic_generico = 0
-//protected int ki_scelta_report_pic_coda_pilota = 0
-//protected int ki_scelta_report_pic_in_trattamento = 0
-//protected int ki_scelta_report_pic_trattato = 0
-//protected int ki_scelta_report_pic_chk_intra = 0
-//protected int ki_scelta_report_pic_lotti_in_giacenza = 0
-//protected int ki_scelta_report_pic_lotti_entrati = 0
-//protected int ki_scelta_report_pic_lotti_in_giacenza_gia_trattati = 0
-//protected int ki_scelta_report_pic_RegArt50 = 0
-//protected int ki_scelta_report_pic_lotti_da_sped = 0
-//protected int ki_scelta_report_pic_lotti_sped = 0
-//protected int ki_scelta_report_pic_etichette_lotti = 0
-//protected int ki_scelta_report_pic_groupage = 0
-//protected int ki_scelta_report_pic_etichettine = 0
-//protected int ki_scelta_report_pic_bcode_trattati = 0
-//protected int ki_scelta_report_pic_art_movim = 0
-////protected int ki_scelta_report_pic_armo_prezzi = 0
-//protected int ki_scelta_report_pic_memo = 0
-//protected int ki_scelta_report_pic_lotti_sped_daFatt = 0
-//protected int ki_scelta_report_pic_Attestati = 0
-//protected int ki_scelta_report_pic_armo_Contratti = 0
-//protected int ki_scelta_report_pic_LavxCapitolato = 0
-//protected int ki_scelta_report_pic_RunsRtrRts = 0
-//protected int ki_scelta_report_pic_prevFineLav = 0
-//protected int ki_scelta_report_pic_NrDosimetri = 0
 
 protected boolean ki_scegli_report = false
 
@@ -215,19 +162,47 @@ private subroutine get_parametri_29 () throws uo_exception
 private function long report_29_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 public function long u_dw_selezione_ripri ()
 public function boolean u_dw_selezione_save ()
+public subroutine u_clear_dw_1 ()
+public function string u_attiva_tab (integer a_tab_da_attivare)
+private subroutine report_30 ()
+private function long report_30_inizializza (uo_d_std_1 kdw_1) throws uo_exception
+private subroutine get_parametri_30 () throws uo_exception
 end prototypes
 
-protected function string inizializza () throws uo_exception;////======================================================================
-////=== Inizializzazione della Windows
-////=== Ripristino DW; tasti; e retrieve liste
-////======================================================================
-////
+protected function string inizializza () throws uo_exception;//======================================================================
+//=== Inizializzazione della Windows
+//=== Ripristino DW; tasti; e retrieve liste
+//======================================================================
+//
 
 ki_scegli_report = true
 
 if tab_1.tabpage_1.dw_1.rowcount( ) = 0 then 
-//	tab_1.tabpage_1.dw_1.reset( )
-	u_scegli_report(ki_scelta_report)
+
+	if ki_st_int_artr.report_start > 0 then
+		//if u_scegli_report(ki_st_int_artr.report_start) then
+			tab_1.tabpage_1.ddplb_report.selectitem(ki_st_int_artr.report_start)
+			tab_1.tabpage_1.ddplb_report.event selectionchanged(ki_st_int_artr.report_start)
+			tab_1.selecttab(2)
+			if ki_st_int_artr.report_autorefresh_min > 0 then
+				timer(ki_st_int_artr.report_autorefresh_min * 60)
+			end if
+	//	else
+	//		messagebox("Report", "Report richiesto n. " + string(ki_st_int_artr.report_start) + " non trovato!", stopsign!)
+	//	end if
+		if ki_st_int_artr.report_start_only then
+			tab_1.tabpage_1.dw_1.enabled = false
+			tab_1.tabpage_1.ddplb_report.enabled = false
+		end if
+
+		ki_st_int_artr.report_start = 0 // esegue solo una volta
+
+	else
+
+		u_scegli_report(ki_scelta_report)
+		tab_1.enabled = true
+		
+	end if
 end if
 
 return "0"
@@ -1143,10 +1118,20 @@ protected subroutine stampa ();//
 //=== stampa dw
 long k_righe
 string k_errore, k_titolo=" "
+string k_rcx
+int k_rc
+int k_scelta_report
 //w_g_tab kwindow_1
 st_stampe kst_stampe
+userobject kpage
 
 
+	kpage = tab_1.control[tab_1.selectedtab]   // ottiene il tabpage
+	if kpage.PageCreated() then
+		if isnumber(kpage.tag) then
+			k_scelta_report = integer(kpage.tag)
+		end if
+	end if
 
 	choose case tab_1.selectedtab 
 					
@@ -1156,7 +1141,7 @@ st_stampe kst_stampe
 		case else
 			kst_stampe.dw_print = kidw_selezionata
 			
-			choose case u_report_selezionato()
+			choose case k_scelta_report //u_report_selezionato()
 				case kiuf_int_artr.kki_scelta_report_lotti_entrati
 					k_titolo = "Lotti entrati "
 //--- copia la stampa in un dw fatto apposta x l'esportazione
@@ -1164,14 +1149,13 @@ st_stampe kst_stampe
 						kst_stampe.ds_esporta = create datastore
 						kst_stampe.ds_esporta.dataobject = "d_report_7_con_giri_esporta" 
 						k_righe = kidw_selezionata.rowscopy( 1, kidw_selezionata.rowcount( ) , primary!, kst_stampe.ds_esporta, 1, Primary!)
-						//kst_stampe.dw_esporta = dw_appo
-//						destroy kst_stampe.dw_print
-//						kst_stampe.dw_print = create datawindow
-//						kst_stampe.dw_print.dataobject = "d_report_7_con_giri_esporta" 
-//						k_righe = kidw_selezionata.rowscopy( 1, kidw_selezionata.rowcount( ) , primary!, kst_stampe.dw_print, 1, Primary!)
 					end if
 				case kiuf_int_artr.kki_scelta_report_generico
 					k_titolo = "Interrogazione Generica "
+//--- toglie la colonna grafica con il barcode xche' fa casino nel xls e poi non serve
+					kst_stampe.dw_print = dw_print_0
+					kst_stampe.dw_print.dataobject = "d_report_1_int_generica_x_print"
+					k_rc = kidw_selezionata.sharedata(kst_stampe.dw_print)
 				case kiuf_int_artr.kki_scelta_report_coda_pilota
 					k_titolo = "Programmazione Impianto "
 				case kiuf_int_artr.kki_scelta_report_in_trattamento
@@ -1774,6 +1758,10 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.settransobject(sqlca)
 
 	try
+
+		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
+		tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
+
 		kdwc_cliente_3.settransobject(sqlca)
 		kdwc_cliente_3_c.settransobject(sqlca)
 		if tab_1.tabpage_1.dw_1.rowcount() = 0 then
@@ -1781,9 +1769,6 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 			kdwc_cliente_3.insertrow(1)
 			kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
 		end if
-
-		tab_1.tabpage_1.dw_1.getchild("clie_3", kdwc_cliente_3)
-		tab_1.tabpage_1.dw_1.getchild("clie_3_1", kdwc_cliente_3_c)
 
 //---- data ultima importazione dei barcode x data fine lavorazione
 		kuf1_base = create kuf_base
@@ -2201,23 +2186,6 @@ tab_1.tabpage_2.picturename = "VCRNext!"
 if not isnull(ki_st_open_w.key12_any) and isvalid(ki_st_open_w.key12_any) then
 	ki_st_int_artr = ki_st_open_w.key12_any
 end if
-if ki_st_int_artr.report_start > 0 then
-	//if u_scegli_report(ki_st_int_artr.report_start) then
-		tab_1.tabpage_1.ddplb_report.selectitem(ki_st_int_artr.report_start)
-		tab_1.tabpage_1.ddplb_report.event selectionchanged(ki_st_int_artr.report_start)
-		tab_1.selecttab(2)
-		if ki_st_int_artr.report_autorefresh_min > 0 then
-			timer(ki_st_int_artr.report_autorefresh_min * 60)
-		end if
-//	else
-//		messagebox("Report", "Report richiesto n. " + string(ki_st_int_artr.report_start) + " non trovato!", stopsign!)
-//	end if
-	if ki_st_int_artr.report_start_only then
-		tab_1.tabpage_1.dw_1.enabled = false
-		tab_1.tabpage_1.ddplb_report.enabled = false
-	end if
-end if
-
 
 end subroutine
 
@@ -4953,7 +4921,10 @@ choose case k_par_in
 		end try
 
 		
-	case KKG_FLAG_RICHIESTA.libero1	//chiude il tab
+	case KKG_FLAG_RICHIESTA.libero1	//Rirpeistino parametri default
+		u_clear_dw_1()
+		
+	case KKG_FLAG_RICHIESTA.libero2	//chiude il tab
 		u_close_tab()
 
 	case else
@@ -5240,9 +5211,15 @@ end subroutine
 
 private subroutine u_report_run_1 (uo_d_std_1 kdw_1) throws uo_exception;//
 long k_righe
+userobject kpage
 
 
 try
+
+	kpage = tab_1.control[tab_1.selectedtab]   // ottiene il tabpage
+	if kpage.PageCreated() then
+		kpage.tag = string(ki_scelta_report)
+	end if
 
 	choose case ki_scelta_report 
 	
@@ -5300,8 +5277,8 @@ try
 		case kiuf_int_artr.kki_scelta_report_memo //Cerca su MEMO
 			k_righe = report_18_inizializza(kdw_1)
 
-		case kiuf_int_artr.kki_scelta_report_lotti_sped_daFatt //lotti sped da fatt
-			k_righe = report_19_inizializza(kdw_1)
+//		case kiuf_int_artr.kki_scelta_report_lotti_sped_daFatt //lotti sped da fatt
+//			k_righe = report_19_inizializza(kdw_1)
 
 		case kiuf_int_artr.kki_scelta_report_attestati //Attestati
 			k_righe = report_20_inizializza(kdw_1)
@@ -5333,6 +5310,9 @@ try
 		case kiuf_int_artr.kki_scelta_report_ptasksTempi // Progetti dati Tempi
 			k_righe = report_28_inizializza(kdw_1)
 	
+		case kiuf_int_artr.kki_scelta_report_pklistcamion // Pakcing-List Composizione Camion
+			k_righe = report_30_inizializza(kdw_1)
+			
 		case else
 			kdw_1.visible = false
 			
@@ -5365,26 +5345,39 @@ end try
 
 end subroutine
 
-protected subroutine attiva_menu ();//--- Chiude scheda
-if ki_tab_1_index_new > 1 then
-
-	if not m_main.m_strumenti.m_fin_gest_libero1.enabled or not m_main.m_strumenti.m_fin_gest_libero1.visible then
-		m_main.m_strumenti.m_fin_gest_libero1.text = "Chiudi scheda "
-		m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Chiudi scheda "
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemText =	"Chiudi, Chiudi scheda Selezionata  "
-//		ki_menu.m_strumenti.m_fin_gest_libero1.toolbaritemName = kGuo_path.get_risorse() + "\Cancel16.ico"
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Cancel16.png"
+protected subroutine attiva_menu ();//
+if tab_1.selectedtab = 1 then
+	if not m_main.m_strumenti.m_fin_gest_libero1.enabled then
+		m_main.m_strumenti.m_fin_gest_libero1.text = "Pulizia "
+		m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Pulizia parametri "
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemText =	"Pulizia, Ripristina parametri iniziali. "
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Clear!"
 		m_main.m_strumenti.m_fin_gest_libero1.visible = true
 		m_main.m_strumenti.m_fin_gest_libero1.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
 	end if		
-
 else
-	m_main.m_strumenti.m_fin_gest_libero1.visible = false
 	m_main.m_strumenti.m_fin_gest_libero1.enabled = false
 end if
-//---
-	super::attiva_menu()
+
+//--- Chiude scheda
+if tab_1.selectedtab > 1 then
+	if not m_main.m_strumenti.m_fin_gest_libero2.enabled or not m_main.m_strumenti.m_fin_gest_libero2.visible then
+		m_main.m_strumenti.m_fin_gest_libero2.text = "Chiude scheda "
+		m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Chiude scheda "
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText =	"Chiude, Chiude scheda Selezionata  "
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "Cancel16.png"
+		m_main.m_strumenti.m_fin_gest_libero2.visible = true
+		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
+	end if		
+else
+	m_main.m_strumenti.m_fin_gest_libero2.visible = false
+	m_main.m_strumenti.m_fin_gest_libero2.enabled = false
+end if
+
+
+super::attiva_menu()
 
 
 end subroutine
@@ -5398,7 +5391,7 @@ int k_ctr
 
 	setredraw (false)
 
-	choose case ki_tab_1_index_new
+	choose case tab_1.selectedtab
 //		case 1
 //			tab_1.tabpage_1.dw_1.reset( )
 //			//tab_1.tabpage_1.dw_1.enabled = false
@@ -6999,8 +6992,8 @@ choose case ki_scelta_report
 	case kiuf_int_artr.kki_scelta_report_memo 				//"Cerca su MEMO
 		report_18()
 		
-	case kiuf_int_artr.kki_scelta_report_lotti_sped_dafatt //"lotti spediti da fatturare
-		report_19()
+//	case kiuf_int_artr.kki_scelta_report_lotti_sped_dafatt //"lotti spediti da fatturare
+//		report_19()
 		
 	case kiuf_int_artr.kki_scelta_report_attestati  			//"Attestati
 		report_20()
@@ -7031,6 +7024,9 @@ choose case ki_scelta_report
 		
 	case kiuf_int_artr.kki_scelta_report_colliParziali		// elenco Lotti con colli Parziali
 		report_29()
+		
+	case kiuf_int_artr.kki_scelta_report_PklistCamion	// composizione dei Pklist nel Camion 
+		report_30()
 
 	case else  
 		k_return = false
@@ -8107,6 +8103,171 @@ end if
 //
 end function
 
+public subroutine u_clear_dw_1 ();/*
+ Ripristina parametri di default
+*/
+int k_ctr
+
+	tab_1.tabpage_1.dw_1.reset( )
+	u_dw_selezione_save( )
+	inizializza_lista( )
+
+
+end subroutine
+
+public function string u_attiva_tab (integer a_tab_da_attivare);//
+if this.enabled then
+	super::u_attiva_tab(a_tab_da_attivare)
+else
+	super::u_attiva_tab(1)
+end if
+
+return ""
+end function
+
+private subroutine report_30 ();//======================================================================
+//=== Inizializzazione della Windows
+//=== Ripristino DW; tasti; e retrieve liste
+//======================================================================
+//
+string k_scelta, k_importa
+date k_data_da, k_data_a
+
+
+if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_30" then
+	tab_1.tabpage_1.dw_1.dataobject = "d_report_30"
+	tab_1.tabpage_1.dw_1.settransobject(sqlca)
+	
+	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			k_data_da = tab_1.tabpage_1.dw_1.getitemdate( 1, "data_ini")
+			if k_data_da > date(0) then
+			else
+				k_data_a = kguo_g.get_dataoggi( )
+				k_data_da = date(year(k_data_a), month(k_data_a),01)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_ini", k_data_da)
+				tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
+			end if
+		end if
+		
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+
+	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+
+end if
+
+attiva_tasti()
+		
+
+	
+
+
+
+end subroutine
+
+private function long report_30_inizializza (uo_d_std_1 kdw_1) throws uo_exception;//
+//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_scelta, k_codice_prec
+long k_righe=0, k_rc
+kuf_utility kuf1_utility
+
+
+	try
+			
+	
+		k_scelta = trim(ki_st_open_w.flag_modalita)
+
+	
+	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+		if not isnull(kdw_1.tag) then
+			k_codice_prec = kdw_1.tag
+		else
+			k_codice_prec = " "
+		end if
+	
+	//--- salvo i parametri cosi come sono stati immessi
+		kuf1_utility = create kuf_utility
+		kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+		destroy kuf1_utility
+
+		if trim(k_codice_prec) <> trim(kdw_1.tag) then
+			u_set_tabpage_picture(true)
+		else
+			u_set_tabpage_picture(false)
+		end if
+	
+		if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
+
+			kdw_1.visible = true
+			kdw_1.dataobject = "d_report_30_camion"
+			k_rc = kdw_1.settransobject(sqlca)
+
+	//--- piglia i parametri per l'estrazione 
+			get_parametri_30()
+
+			k_righe = kdw_1.retrieve(ki_st_int_artr.clie_3, ki_st_int_artr.data_ini, ki_st_int_artr.data_fin)
+
+		end if
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally		
+		attiva_tasti()
+		if kdw_1.rowcount() = 0 then
+			kdw_1.insertrow(0) 
+		end if
+		kdw_1.setfocus()
+
+	end try
+
+
+return k_righe
+
+end function
+
+private subroutine get_parametri_30 () throws uo_exception;//======================================================================
+//=== Polola la struttura con i parametri di estrazione
+//======================================================================
+//
+date  k_data_fin, k_data_ini
+st_tab_meca kst_tab_meca_da,  kst_tab_meca_a
+
+
+set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+
+//--- piglia param dalla window
+k_data_ini = tab_1.tabpage_1.dw_1.getitemdate(1, "data_ini") 
+k_data_fin = tab_1.tabpage_1.dw_1.getitemdate(1, "data_fin") 
+if k_data_ini > k_data_fin  then
+	kGuo_exception.inizializza( )
+	kGuo_exception.setmessage("Dati incongruenti", "Data fine maggiore di data inizio, valore non ammesso. "+kkg.acapo+"Prego, correggere i valori.")
+	throw kGuo_exception 
+end if
+
+ki_st_int_artr.clie_3 = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_clie_3") 
+
+ki_st_int_artr.data_ini = k_data_ini
+ki_st_int_artr.data_fin = k_data_fin
+
+
+
+end subroutine
+
 on w_int_artr.create
 int iCurrent
 call super::create
@@ -8240,6 +8401,7 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_int_artr
+boolean enabled = false
 long backcolor = 32435950
 end type
 
@@ -8267,7 +8429,9 @@ call super::destroy
 end on
 
 event tab_1::selectionchanging;call super::selectionchanging;//
-tab_1.tabpage_1.dw_1.accepttext()
+if this.enabled then
+	tab_1.tabpage_1.dw_1.accepttext()
+end if
 
 end event
 
@@ -8758,37 +8922,73 @@ string picturename[] = {"","","","",""}
 long picturemaskcolor = 536870912
 end type
 
-event u_constructor();//--- se run da IDE salta le add picture altrimenti va in CRASH
+event u_constructor();//--- se run da IDE (es. per fare debug) salta le add picture altrimenti va in CRASH
+int k_ctr
+
+
+k_ctr=1
+
 if NOT kguf_data_base.u_if_run_dev_mode( ) then
-	kiuf_int_artr.kki_scelta_report_pic_lotti_entrati = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_generico = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_coda_pilota = this.AddPicture("Regenerate!")
-	kiuf_int_artr.kki_scelta_report_pic_in_trattamento = this.AddPicture("Regenerate!")
-	kiuf_int_artr.kki_scelta_report_pic_trattato = this.AddPicture("Regenerate!")
-	kiuf_int_artr.kki_scelta_report_pic_chk_intra = this.AddPicture("Menu!")
-	kiuf_int_artr.kki_scelta_report_pic_RegArt50 = this.AddPicture("Menu!")
-	kiuf_int_artr.kki_scelta_report_pic_lotti_in_giacenza = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_lotti_in_giacenza_gia_trattati = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_lotti_da_sped = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_lotti_sped = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_etichette_lotti = this.AddPicture("barcode.bmp") //(kGuo_path.get_risorse() + "\barcode.bmp")
-	kiuf_int_artr.kki_scelta_report_pic_etichettine = this.AddPicture("barcode.bmp") //kGuo_path.get_risorse() + "\barcode.bmp")
-	kiuf_int_artr.kki_scelta_report_pic_groupage = this.AddPicture("CheckIn5!")
-	kiuf_int_artr.kki_scelta_report_pic_bcode_trattati = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_art_movim = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_memo = this.AddPicture("edit16.png") //kGuo_path.get_risorse() + "\edit16.png")
-	kiuf_int_artr.kki_scelta_report_pic_lotti_sped_daFatt = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_Attestati = this.AddPicture("certificato16.gif") //kGuo_path.get_risorse() + "\certificato16.gif")
-	kiuf_int_artr.kki_scelta_report_pic_armo_Contratti = this.AddPicture("CheckStatus5!")
-	kiuf_int_artr.kki_scelta_report_pic_LavxCapitolato = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_prevFineLav = this.AddPicture("Regenerate!")
-	kiuf_int_artr.kki_scelta_report_pic_nrDosimetri = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_colliParziali = this.AddPicture("DataWindow!")
-	kiuf_int_artr.kki_scelta_report_pic_PtasksLab = this.AddPicture("prjtask16.png")
-	kiuf_int_artr.kki_scelta_report_pic_PtasksFatt = this.AddPicture("prjtask16.png")
-	kiuf_int_artr.kki_scelta_report_pic_PtasksTempi = this.AddPicture("prjtask16.png")
+	kiuf_int_artr.kki_scelta_report_pic_lotti_entrati                   =   this.AddPicture("DataWindow!")      // kki_scelta_report_lotti_entrati = 1                              
+	kiuf_int_artr.kki_scelta_report_pic_generico                        =   this.AddPicture("DataWindow!")		// kki_scelta_report_generico = 2
+	kiuf_int_artr.kki_scelta_report_pic_coda_pilota                     =   this.AddPicture("Regenerate!")		// kki_scelta_report_coda_pilota = 3   
+	kiuf_int_artr.kki_scelta_report_pic_in_trattamento                  =   this.AddPicture("Regenerate!")		// kki_scelta_report_in_trattamento = 4    
+	kiuf_int_artr.kki_scelta_report_pic_prevFineLav                     =   this.AddPicture("Regenerate!")		// kki_scelta_report_prevFineLav = 5 
+	kiuf_int_artr.kki_scelta_report_pic_trattato                        =   this.AddPicture("Menu!")			// kki_scelta_report_trattato = 6
+	kiuf_int_artr.kki_scelta_report_pic_chk_intra                       =   this.AddPicture("Menu!")			// kki_scelta_report_chk_intra = 7
+	kiuf_int_artr.kki_scelta_report_pic_RegArt50                        =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_RegArt50 = 8
+	kiuf_int_artr.kki_scelta_report_pic_lotti_in_giacenza               =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_lotti_in_giacenza = 9       
+	kiuf_int_artr.kki_scelta_report_pic_lotti_in_giacenza_gia_trattati  =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_lotti_in_giacenza_gia_trattati = 10                    
+	kiuf_int_artr.kki_scelta_report_pic_lotti_da_sped                   =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_lotti_da_sped = 11    
+	kiuf_int_artr.kki_scelta_report_pic_lotti_sped                      =   this.AddPicture("barcode.bmp") 		// kki_scelta_report_lotti_sped = 12 
+	kiuf_int_artr.kki_scelta_report_pic_etichette_lotti                 =   this.AddPicture("barcode.bmp") 		// kki_scelta_report_etichette_lotti = 13      
+	kiuf_int_artr.kki_scelta_report_pic_etichettine                     =   this.AddPicture("CheckIn5!")		// kki_scelta_report_etichettine = 14  
+	kiuf_int_artr.kki_scelta_report_pic_groupage                        =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_groupage = 15
+	kiuf_int_artr.kki_scelta_report_pic_bcode_trattati                  =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_bcode_trattati = 16     
+	kiuf_int_artr.kki_scelta_report_pic_memo                            =   this.AddPicture("edit16.png") 		// kki_scelta_report_memo = 17
+//	kiuf_int_artr.kki_scelta_report_pic_lotti_sped_dafatt               =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_lotti_sped_dafatt = 18        
+	kiuf_int_artr.kki_scelta_report_pic_attestati                       =   this.AddPicture("certificato16.gif") // kki_scelta_report_attestati = 19
+	kiuf_int_artr.kki_scelta_report_pic_art_movim                       =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_art_movim = 20
+	kiuf_int_artr.kki_scelta_report_pic_armo_Contratti                  =   this.AddPicture("DataWindow!")		// kki_scelta_report_armo_Contratti = 21     
+	kiuf_int_artr.kki_scelta_report_pic_LavxCapitolato                  =   this.AddPicture("DataWindow!")		// kki_scelta_report_LavxCapitolato = 22     
+	kiuf_int_artr.kki_scelta_report_pic_nrdosimetri                     =   this.AddPicture("Regenerate!")		// kki_scelta_report_nrdosimetri = 23  
+	kiuf_int_artr.kki_scelta_report_pic_colliParziali                   =   this.AddPicture("DataWindow!")		// kki_scelta_report_colliParziali = 24    
+	kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts                      =   this.AddPicture("DataWindow!")		// kki_scelta_report_RunsRtrRts = 25 
+	kiuf_int_artr.kki_scelta_report_pic_PtasksLab                       =   this.AddPicture("prjtask16.png")	// kki_scelta_report_PtasksLab = 26
+	kiuf_int_artr.kki_scelta_report_pic_PtasksFatt                      =   this.AddPicture("prjtask16.png")	// kki_scelta_report_PtasksFatt = 27 
+	kiuf_int_artr.kki_scelta_report_pic_PtasksTempi  	                 =   this.AddPicture("prjtask16.png")	// kki_scelta_report_PtasksTempi = 28
+	kiuf_int_artr.kki_scelta_report_pic_PklistCamion  	                 =   this.AddPicture("camion32.png")	// kki_scelta_report_PklistCamion = 29
 end if
+
+kiuf_int_artr.kki_scelta_report_lotti_entrati = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_generico = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_coda_pilota = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_in_trattamento = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_prevFineLav = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_trattato = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_chk_intra = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_RegArt50 = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_lotti_in_giacenza = k_ctr; k_ctr++
+kiuf_int_artr.kki_scelta_report_lotti_in_giacenza_gia_trattati = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_lotti_da_sped = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_lotti_sped = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_etichette_lotti = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_etichettine = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_groupage = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_bcode_trattati = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_memo = k_ctr; k_ctr++ 
+//kiuf_int_artr.kki_scelta_report_lotti_sped_dafatt = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_attestati = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_art_movim = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_armo_Contratti = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_LavxCapitolato = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_nrdosimetri = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_colliParziali = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_RunsRtrRts = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_PtasksLab = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_PtasksFatt = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_PtasksTempi = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_PklistCamion = k_ctr; k_ctr++ 
 
 this.InsertItem(  "Lotti entrati", kiuf_int_artr.kki_scelta_report_pic_lotti_entrati, kiuf_int_artr.kki_scelta_report_lotti_entrati) //7 report 
 this.InsertItem(  "Interrogazione Generica", kiuf_int_artr.kki_scelta_report_pic_generico, kiuf_int_artr.kki_scelta_report_generico) //1
@@ -8802,7 +9002,7 @@ this.InsertItem(  "Lotti in Giacenza", kiuf_int_artr.kki_scelta_report_pic_lotti
 this.InsertItem(  "Lotti in Giacenza Certificati", kiuf_int_artr.kki_scelta_report_pic_lotti_in_giacenza_gia_trattati, kiuf_int_artr.kki_scelta_report_lotti_in_giacenza_gia_trattati) //8
 this.InsertItem(  "Da Spedire", kiuf_int_artr.kki_scelta_report_pic_lotti_da_sped, kiuf_int_artr.kki_scelta_report_lotti_da_sped) //10
 this.InsertItem(  "Spediti", kiuf_int_artr.kki_scelta_report_pic_lotti_sped, kiuf_int_artr.kki_scelta_report_lotti_sped) //11
-this.InsertItem(  "Spediti da Fatturare ", kiuf_int_artr.kki_scelta_report_pic_lotti_sped_daFatt, kiuf_int_artr.kki_scelta_report_lotti_sped_dafatt)//19
+//this.InsertItem(  "Spediti da Fatturare ", kiuf_int_artr.kki_scelta_report_pic_lotti_sped_daFatt, kiuf_int_artr.kki_scelta_report_lotti_sped_dafatt)//19
 this.InsertItem(  "Etichette Lotti", kiuf_int_artr.kki_scelta_report_pic_etichette_lotti, kiuf_int_artr.kki_scelta_report_etichette_lotti) //12
 this.InsertItem(  "Etichette Dosimetro", kiuf_int_artr.kki_scelta_report_pic_etichettine, kiuf_int_artr.kki_scelta_report_etichettine) //13
 this.InsertItem(  "Elenco Groupage", kiuf_int_artr.kki_scelta_report_pic_groupage, kiuf_int_artr.kki_scelta_report_groupage) //14
@@ -8818,8 +9018,7 @@ this.InsertItem(  "Indicatori ", kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts,
 this.InsertItem(  "Progetti: Laboratori ", kiuf_int_artr.kki_scelta_report_pic_PtasksLab, kiuf_int_artr.kki_scelta_report_PtasksLab) //26
 this.InsertItem(  "Progetti: Fatture ", kiuf_int_artr.kki_scelta_report_pic_PtasksFatt, kiuf_int_artr.kki_scelta_report_PtasksFatt) //27
 this.InsertItem(  "Progetti: Tempi ", kiuf_int_artr.kki_scelta_report_pic_PtasksTempi, kiuf_int_artr.kki_scelta_report_PtasksTempi) //28
-
- 
+this.InsertItem(  "Packig List: Camion ", kiuf_int_artr.kki_scelta_report_pic_PklistCamion, kiuf_int_artr.kki_scelta_report_PklistCamion) //29
  
 end event
 

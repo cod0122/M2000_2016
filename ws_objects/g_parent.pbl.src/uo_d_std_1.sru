@@ -209,6 +209,11 @@ public function string u_getitemstring (string a_colonna, long a_riga)
 private function string link_standard_call_if (string a_nome_link, long a_riga) throws uo_exception
 private function boolean link_standard_call (string a_nome_link, long a_riga) throws uo_exception
 public function string u_get_ctrl_c_value ()
+private function boolean u_colmodified (long al_row, string as_col, dwbuffer a_buf)
+private function boolean u_colmodified (string as_col)
+private function boolean u_rowmodified (long al_row, dwbuffer a_buf)
+private function boolean u_rowmodified (long al_row)
+private function boolean u_rowmodified ()
 end prototypes
 
 event ue_dwnkey;//
@@ -1003,9 +1008,9 @@ string k_rc
 			if k_rc > " " and k_rc <> "!" then
 				if isvalid(this.Object.DataWindow) then
 					if this.Object.DataWindow.Table.UpdateTable <> " " then
-						 if this.getnextmodified(0, primary!) > 0 or this.getnextmodified(0, delete!) > 0 or this.ModifiedCount ( ) > 0 or this.deletedcount() > 0 then
-							k_return = true
-						end if
+						 //if this.getnextmodified(0, primary!) > 0 or this.getnextmodified(0, delete!) > 0 or this.ModifiedCount ( ) > 0 or this.deletedcount() > 0 then
+							k_return = u_rowmodified()
+						//end if
 					end if
 				end if
 			end if
@@ -2102,6 +2107,129 @@ int k_rc
 
 return ""
 
+end function
+
+private function boolean u_colmodified (long al_row, string as_col, dwbuffer a_buf);/**********************************************************************************************************************
+Dscr:         Reports if the passed column has been modified, i.e. its value has been changed since the row was
+            retrieved/inserted/updated, but not been saved yet. If the value was changed, but later the original value
+            was restored, the field is NOT considered modified regardless its DWItemStatus.
+           
+            If your script deals only with the current record of the Primary! buffer (i.e. it's a FORM DW),
+            then you can use the overloaded version with 2 arguments (this & as_col).
+***********************************************************************************************************************
+Arg:        DataWindow   this
+            long         al_row
+            string      as_col
+            DWBuffer      a_buf
+***********************************************************************************************************************
+Ret:         boolean (true - has been changed, false - has NOT been changed)
+***********************************************************************************************************************
+Developer:   Michael Zuskin -  http://linkedin.com/in/zuskin | http://code.intfast.ca/
+*/
+string         ls_col_type
+string         ls_old
+string         ls_new
+DWItemStatus   l_col_status
+
+//l_col_status = this.GetItemStatus(al_row, as_col, a_buf)
+//if l_col_status = NotModified! then
+//   return false
+//end if
+
+// If this code reached, it's DataModified!. That does not guarantee that the column has actually been
+// modified - user could change its value (making it DataModified!), but restore
+// the original value later (unfortunately, that doesn't rollback the status to NotModified!).
+// So, we will compare the original and the current values.
+
+ls_col_type = Lower(Left(this.Describe(as_col + ".coltype"), 5))
+choose case ls_col_type
+case "numbe", "long", "ulong", "real", "int", "decim"
+   ls_old = String(this.GetItemNumber(al_row, as_col, a_buf, true))
+   ls_new = String(this.GetItemNumber(al_row, as_col, a_buf, false))
+case "char(", "char"
+   ls_old = this.GetItemString(al_row, as_col, a_buf, true)
+   ls_new = this.GetItemString(al_row, as_col, a_buf, false)
+case "datet", "times"
+   ls_old = String(this.GetItemDateTime(al_row, as_col, a_buf, true))
+   ls_new = String(this.GetItemDateTime(al_row, as_col, a_buf, false))
+case "date"
+   ls_old = String(this.GetItemDate(al_row, as_col, a_buf, true))
+   ls_new = String(this.GetItemDate(al_row, as_col, a_buf, false))
+case "time"
+   ls_old = String(this.GetItemTime(al_row, as_col, a_buf, true))
+   ls_new = String(this.GetItemTime(al_row, as_col, a_buf, false))
+end choose
+
+if IsNull(ls_old) and IsNull(ls_new) then return false
+if IsNull(ls_old) and not IsNull(ls_new) then return true
+if not IsNull(ls_old) and IsNull(ls_new) then return true
+
+return (ls_new <> ls_old)
+end function
+
+private function boolean u_colmodified (string as_col);//
+return u_colmodified(this.GetRow(), as_col, Primary!)
+end function
+
+private function boolean u_rowmodified (long al_row, dwbuffer a_buf);/**********************************************************************************************************************
+Dscr:         Reports if the passed row has been modified, i.e. at least one of its columns has been changed.
+            A column is considered modified if its value has been changed since the row was retrieved/inserted/updated,
+            but that change has not been saved yet. If the value was changed, but later the original value was restored,
+            the column is NOT considered modified regardless its DWItemStatus.
+           
+            If your script deals only with the current record of the Primary! buffer (i.e. it's a FORM DW),
+            then you can use the overloaded version with 1 argument only (this).
+***********************************************************************************************************************
+Arg:        
+            al_row         long
+            DWBuffer         a_buf
+***********************************************************************************************************************
+Ret:         boolean
+***********************************************************************************************************************
+Developer:   Michael Zuskin -  http://linkedin.com/in/zuskin | http://code.intfast.ca/
+**********************************************************************************************************************/
+int            i
+int            li_col_count
+string         as_col
+DWItemStatus   l_row_status
+//
+l_row_status = this.GetItemStatus(al_row, 0 /* get the status of the whole row */, a_buf)
+choose case l_row_status
+//case New!, NotModified!
+//   return false
+case NewModified!, DataModified!
+   return true
+end choose
+
+// If this code reached, it's NewModified! or DataModified!. That does not guarantee that the row has actually been
+// modified - user could change a column in the row (marking it as NewModified! or DataModified!), but restore
+// the original value later (unfortunately, that doesn't rollback the status to New! or NotModified!).
+// So, we will utilize uf_col_modified() which compares the original and the current values.
+
+li_col_count = Integer(this.Describe("datawindow.column.count"))
+for i = 1 to li_col_count
+   as_col = this.Describe("#"+ String(i) + ".Name")
+   if u_colmodified(al_row, as_col, a_buf) then
+      return true
+   end if
+next
+
+return false
+end function
+
+private function boolean u_rowmodified (long al_row);//
+return u_rowmodified(al_row, primary!)
+end function
+
+private function boolean u_rowmodified ();//
+long k_row, k_rows
+
+k_rows = this.rowcount( )
+for k_row = 1 to k_rows
+	if u_rowmodified(k_row, primary!) then return true
+next
+
+return false
 end function
 
 on uo_d_std_1.create

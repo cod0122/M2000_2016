@@ -424,8 +424,8 @@ st_esito kst_esito
 
 		case "ultimo_utente_login_nome" 
 			k_row_db_saved = false
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
+			kst_profilestring_ini.file = "login0"
+			kst_profilestring_ini.titolo = "user"
 			kst_profilestring_ini.nome = "ultimo_utente_login_nome"
 			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "2"
@@ -442,8 +442,8 @@ st_esito kst_esito
 
 		case "ultimo_utente_login_data" 
 			k_row_db_saved = false
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
+			kst_profilestring_ini.file = "login0"
+			kst_profilestring_ini.titolo = "user"
 			kst_profilestring_ini.nome = "ultimo_utente_login_data"
 			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "2"
@@ -1170,8 +1170,8 @@ try
 //			k_pos_ini = 115
 //			k_lungo = 24
 			kst_profilestring_ini.utente = ""
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
+			kst_profilestring_ini.file = "login"
+			kst_profilestring_ini.titolo = "user"
 			kst_profilestring_ini.nome = "nome"
 //			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "1"
@@ -1203,8 +1203,8 @@ try
 			
 		case "ultimo_utente_login_nome" 
 			kst_profilestring_ini.utente = ""
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
+			kst_profilestring_ini.file = "login0"
+			kst_profilestring_ini.titolo = "user"
 			kst_profilestring_ini.nome = "ultimo_utente_login_nome"
 //			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "1"
@@ -1225,8 +1225,8 @@ try
 			
 		case "ultimo_utente_login_data" 
 			kst_profilestring_ini.utente = ""
-			kst_profilestring_ini.file = "base_personale"
-			kst_profilestring_ini.titolo = "conf_personale"
+			kst_profilestring_ini.file = "login0"
+			kst_profilestring_ini.titolo = "user"
 			kst_profilestring_ini.nome = "ultimo_utente_login_data"
 //			kst_profilestring_ini.valore = trim(k_key_1)
 			kst_profilestring_ini.operazione = "1"
@@ -2429,7 +2429,7 @@ st_profilestring_ini kst_profilestring_ini
 
 
 		kst_profilestring_ini.utente = ""
-		kst_profilestring_ini.file = "base_personale"
+		kst_profilestring_ini.file = "login"
 		kst_profilestring_ini.titolo = "ambiente"
 		kst_profilestring_ini.nome = "root_server"
 		kst_profilestring_ini.operazione = "2"
@@ -2453,7 +2453,7 @@ st_profilestring_ini kst_profilestring_ini
 
 
 		kst_profilestring_ini.utente = ""
-		kst_profilestring_ini.file = "base_personale"
+		kst_profilestring_ini.file = "login"
 		kst_profilestring_ini.titolo = "ambiente"
 		kst_profilestring_ini.nome = "root_server"
 		kst_profilestring_ini.operazione = "1"
@@ -3865,7 +3865,7 @@ st_profilestring_ini kst_profilestring_ini
 	if k_return > " " then
 	else
 
-//--- per i campi vuoti prova nel confdb.ini
+//--- per i campi vuoti prova nei files ini
 
 		kst_profilestring_ini.utente = ""
 		kst_profilestring_ini.file = "base_personale"

@@ -3804,18 +3804,24 @@ try
 	k_ctr = this.importa_inizio_lav_pilota("0") 
 	k_ctr1 = this.importa_trattati_pilota("0") 
 
-	if k_ctr > 0 then
-		kst_esito.SQLErrText =  string(k_ctr) + " barcode sono ancora in Trattamento" 
-	end if
-
-	if k_ctr > 0 then
-		kst_esito.SQLErrText +=  " e " + string(k_ctr) + " barcode hanno concluso il Trattamento."
-	else
-		kst_esito.SQLErrText +=  "."
-	end if
+	kst_esito.SQLErrText = "Impianto G2: "
 	
 	if k_ctr = 0 and k_ctr1 = 0 then
-		kst_esito.SQLErrText = "nessun barcode ha iniziato o terminato il trattamento."
+		kst_esito.SQLErrText += "nessun barcode ha iniziato o terminato il trattamento."
+		return kst_esito
+	end if
+		
+	if k_ctr > 0 then
+		kst_esito.SQLErrText += string(k_ctr) + " barcode sono ancora in Trattamento" 
+		if k_ctr1 > 0 then
+			kst_esito.SQLErrText +=  " e " 
+		end if
+	end if
+
+	if k_ctr1 > 0 then
+		kst_esito.SQLErrText += string(k_ctr1) + " barcode hanno concluso il Trattamento."
+	else
+		kst_esito.SQLErrText +=  "."
 	end if
 
 	kst_esito.SQLErrText += " Operazione conclusa."

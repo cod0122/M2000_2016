@@ -5,21 +5,22 @@ header(height=72 color="536870912" transparency="0" gradient.color="8421504" gra
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=72 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=char(13) update=yes updatewhereclause=yes name=barcode_lav dbname="meca_dosim.barcode_lav" )
- column=(type=char(13) update=yes updatewhereclause=yes name=barcode dbname="meca_dosim.barcode" )
- column=(type=char(13) update=yes updatewhereclause=yes name=barcode_dosimetro dbname="meca_dosim.barcode_dosimetro" )
- column=(type=long update=yes updatewhereclause=yes name=id_meca dbname="meca_dosim.id_meca" )
+table(column=(type=char(13) update=yes updatewhereclause=yes name=barcode_lav dbname="meca_dosim.barcode_lav" dbalias=".barcode_lav" )
+ column=(type=char(13) update=yes updatewhereclause=yes name=barcode dbname="meca_dosim.barcode" dbalias=".barcode" )
+ column=(type=char(13) update=yes updatewhereclause=yes name=barcode_dosimetro dbname="meca_dosim.barcode_dosimetro" dbalias=".barcode_dosimetro" )
+ column=(type=long update=yes updatewhereclause=yes name=id_meca dbname="meca_dosim.id_meca" dbalias=".id_meca" )
  column=(type=char(1) updatewhereclause=yes name=dosim_flg_tipo_dose dbname="dosim_flg_tipo_dose" )
- retrieve="  SELECT meca_dosim.barcode_lav,   
+ retrieve="    SELECT meca_dosim.barcode_lav,   
          meca_dosim.barcode,   
          meca_dosim.barcode_dosimetro,   
          meca_dosim.id_meca,  
          isnull(sl_pt_dosimpos.dosim_flg_tipo_dose, '')  dosim_flg_tipo_dose
-    FROM meca_dosim inner join barcode on meca_dosim.barcode_lav = barcode.barcode 
+    FROM meca inner join meca_dosim on meca.id = meca_dosim.id_meca
+	                inner join barcode on meca_dosim.barcode_lav = barcode.barcode 
 	                inner join armo on barcode.id_armo = armo.id_armo
 	               LEFT OUTER JOIN sl_pt_dosimpos ON meca_dosim.id_dosimpos = sl_pt_dosimpos.id_dosimpos  
-                                and armo.cod_sl_pt = sl_pt_dosimpos.cod_sl_pt
-   WHERE ( meca_dosim.id_meca = :k_id_meca ) 
+                                and armo.cod_sl_pt = sl_pt_dosimpos.cod_sl_pt and meca.impianto = sl_pt_dosimpos.impianto
+   WHERE ( meca.id = :k_id_meca ) 
          and meca_dosim.barcode not in (
               select meca_dosimbozza.barcode from meca_dosimbozza where meca_dosimbozza.id_meca = :k_id_meca)
 ORDER BY meca_dosim.barcode_lav ASC   

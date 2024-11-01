@@ -421,8 +421,8 @@ long k_rcn
 		end if
 	else
 		kguo_exception.kist_esito.sqlerrtext = "Processo di stampa del file " + kkg.acapo + a_file + " " + kkg.acapo + "in errore! " &
-						+ kkg.acapo + "Applicazione '" + ki_utility_print + "' di stampa dei documenti PDF non trovata nella cartella " &
-						+ kkg.acapo + trim(GetCurrentDirectory())
+						+ kkg.acapo + "Utility '" + ki_utility_print + "' di stampa dei documenti PDF non trovato nella cartella dell'applicazione " &
+						+ kkg.acapo + kguo_path.get_path_app( ) 
 		throw kguo_exception
 	end if
 		

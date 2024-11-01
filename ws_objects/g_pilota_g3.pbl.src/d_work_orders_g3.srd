@@ -8,7 +8,7 @@ detail(height=96 color="536870912" transparency="0" gradient.color="8421504" gra
 table(column=(type=char(2) updatewhereclause=yes name=id_modo dbname="pallet.id_modo" )
  column=(type=char(51) updatewhereclause=yes name=ciclo dbname="ciclo" )
  column=(type=char(12) updatewhereclause=yes name=barcode dbname="pallet.Barcode" )
- column=(type=long updatewhereclause=yes name=pl_barcode dbname="pallet.Piano_Lavorazione" )
+ column=(type=long updatewhereclause=yes name=pl_barcode dbname="pallet.Codice_Lavorazione" )
  column=(type=long updatewhereclause=yes name=giri dbname="pallet.giri" )
  column=(type=datetime updatewhereclause=yes name=data_carico dbname="pallet.Data_Carico" )
  column=(type=long updatewhereclause=yes name=carrier dbname="pallet.carrier" )
@@ -21,7 +21,7 @@ table(column=(type=char(2) updatewhereclause=yes name=id_modo dbname="pallet.id_
 			(select concat(trim(cast(ifnull(max(ciclo_entrata),0) as char(24))), ' - ', trim(cast(ifnull(max(ciclo_uscita),0) as char(24)))) 
 			          from esposizioni where barcode = wip.barcode) ciclo,   
          p.Barcode,   
-         p.Piano_Lavorazione,   
+         p.Codice_Lavorazione,   
          p.giri,   
          p.Data_Carico,
          p.carrier,
@@ -70,4 +70,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=2 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

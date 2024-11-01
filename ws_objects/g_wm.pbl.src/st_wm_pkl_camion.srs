@@ -1,0 +1,8 @@
+﻿$PBExportHeader$st_wm_pkl_camion.srs
+global type st_wm_pkl_camion from structure
+	st_tab_g_0		st_tab_g_0		descriptor "comment" = "standard"
+	string		nome_file		descriptor "comment" = "solo il nome file da importare"
+	string		path_file		descriptor "comment" = "solo il path"
+	st_tab_wm_pklist_camion		st_tab_wm_pklist_camion[]		descriptor "comment" = "struct con i dati del camion"
+end type
+

@@ -2,8 +2,9 @@
 global type st_tab_wm_pklist_cfg from structure
 	st_tab_g_0		st_tab_g_0
 	integer		codice		descriptor "comment" = "codice (1=default)"
-	string		cartella_pkl_da_web		descriptor "comment" = "cartella in cui ci sono i file xml di Packing-list prodotte via Web"
-	string		cartella_pkl_da_txt		descriptor "comment" = "cartella in cui ci sono i file in formato lineare di Packing-list prodotte dal cliente"
+	string		cartella_pkl_da_web		descriptor "comment" = "cartella dei file xml di Packing-list prodotte via Web"
+	string		cartella_pkl_da_txt		descriptor "comment" = "cartella dei file in formato lineare di Packing-list prodotte dal cliente"
+	string		cartella_pkl_camion		descriptor "comment" = "cartella dei file json con i dati giornalieri dei Camion caricati"
 	string		blocca_importa		descriptor "comment" = "blocca le importazioni, 'M' = IMPORTA PKL DA M2000"
 	string		file_esiti		descriptor "comment" = "file del log delle importazioni"
 	string		ultimo_idimportazione		descriptor "comment" = "ultimo id importato dalla tabella esterna"

@@ -455,7 +455,7 @@ boolean k_insert = true
 		m_main.m_strumenti.m_fin_gest_libero2.visible = true
 		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero2.text
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero2.microhelp
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "DataWindow!"
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	
@@ -464,7 +464,7 @@ boolean k_insert = true
 		m_main.m_strumenti.m_fin_gest_libero3.visible = true
 		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "Listini,Elenco Listini dell'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero3.microhelp
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "FormatDollar!"
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 	
@@ -473,7 +473,7 @@ boolean k_insert = true
 		m_main.m_strumenti.m_fin_gest_libero4.visible = true
 		m_main.m_strumenti.m_fin_gest_libero4.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero4.microhelp
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Rep.E1, Stampa dati report E1. "
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "printa16.png"
 //		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = kGuo_path.get_risorse() +  "\fattura16x16.gif"
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2

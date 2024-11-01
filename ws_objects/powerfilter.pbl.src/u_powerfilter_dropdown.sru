@@ -52,6 +52,7 @@ string text = "none"
 long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 event ue_checkfocus ( )
+event u_keydown pbm_keydown
 r_2 r_2
 st_bottomsizer st_bottomsizer
 p_close p_close
@@ -280,6 +281,16 @@ iu_powerfilter_predeffilters.visible=FALSE
 of_close() //close dropdown, none of the objects have focus
 
 
+
+end event
+
+event u_keydown;//
+//--- personalizzazione 
+if key = keyenter! then
+	
+	cb_ok.event clicked( )
+	
+end if
 
 end event
 

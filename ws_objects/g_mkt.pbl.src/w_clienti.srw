@@ -176,7 +176,7 @@ try
 	end if 
 	
 	//=== Aggiorna, se modificato, la TAB_3 MARKETING+WEB
-	if tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0	then
+	if tab_1.tabpage_3.dw_3.u_dati_modificati( ) then // getnextmodified(0, primary!) > 0	then
 		
 		k_riga = tab_1.tabpage_3.dw_3.getrow()
 		if k_riga = 0 then return "0"  // NON FACCIO NULLA SUL MKT
@@ -205,6 +205,11 @@ try
 		kst_tab_clienti_mkt.gruppo = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "gruppo")
 		kst_tab_clienti_mkt.doc_esporta = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "doc_esporta")
 		kst_tab_clienti_mkt.doc_esporta_prefpath = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "doc_esporta_prefpath")
+		kst_tab_clienti_mkt.for_qa_italy = trim(tab_1.tabpage_3.dw_3.getitemstring(k_riga, "for_qa_italy"))
+		kst_tab_clienti_mkt.for_cobalt_rload = trim(tab_1.tabpage_3.dw_3.getitemstring(k_riga, "for_cobalt_rload"))
+		kst_tab_clienti_mkt.for_price_cntct = trim(tab_1.tabpage_3.dw_3.getitemstring(k_riga, "for_price_cntct"))
+		kst_tab_clienti_mkt.cell = trim(tab_1.tabpage_3.dw_3.getitemstring(k_riga, "cell"))
+		kst_tab_clienti_mkt.categ = trim(tab_1.tabpage_3.dw_3.getitemstring(k_riga, "categ"))
 		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_mkt)
 	
 	//--- Dati WEB
@@ -804,29 +809,34 @@ long k_codice
 
 ki_selectedtab = 4
 
+tab_1.tabpage_4.dw_4.object.b_filtro.visible = false
+
 if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
 end if
 
 if k_codice = 0 then
 	tab_1.tabpage_4.dw_4.reset()
-
-else
-
-	if tab_1.tabpage_4.dw_4.rowcount() = 0 and trim(string(k_codice)) <> trim(tab_1.tabpage_4.st_4_retrieve.Text) then
-
-		if tab_1.tabpage_4.dw_4.retrieve(k_codice) < 0 then
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_st_esito_err_dw(tab_1.tabpage_4.dw_4, &
-							"Errore in lettura Contatti collegati all'anagrafica id " + string(k_codice))
-			throw kguo_exception
-		end if
-			
-	end if
-
+	return
 end if
 
-	
+if tab_1.tabpage_4.dw_4.rowcount() = 0 and trim(string(k_codice)) <> trim(tab_1.tabpage_4.st_4_retrieve.Text) then
+
+	if tab_1.tabpage_4.dw_4.retrieve(k_codice) < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_st_esito_err_dw(tab_1.tabpage_4.dw_4, &
+						"Errore in lettura Contatti collegati all'anagrafica id " + string(k_codice))
+		throw kguo_exception
+	end if
+
+	if tab_1.tabpage_4.dw_4.rowcount() > 0 then
+		tab_1.tabpage_4.dw_4.event u_filter_estinti( )
+		if tab_1.tabpage_4.dw_4.filteredcount( ) > 0 then
+			tab_1.tabpage_4.dw_4.object.b_filtro.visible = true
+		end if
+	end if
+end if
+
 tab_1.tabpage_4.st_4_retrieve.Text=trim(string(k_codice)) // per le prossime richieste
 	
 attiva_tasti()
@@ -1013,22 +1023,22 @@ end if
 if tab_1.tabpage_3.dw_3.rowcount() > 0 then
 	tab_1.tabpage_3.dw_3.accepttext()
 end if
-if tab_1.tabpage_4.dw_4.rowcount() > 0 then
-	tab_1.tabpage_4.dw_4.accepttext()
+if tab_1.tabpage_5.dw_5.rowcount() > 0 then
+	tab_1.tabpage_5.dw_5.accepttext()
 end if
 
 //=== Pulizia dei rek non validi sui vari TAB
-	k_nr_righe = tab_1.tabpage_4.dw_4.rowcount()
+	k_nr_righe = tab_1.tabpage_5.dw_5.rowcount()
 	for k_riga = k_nr_righe to 1 step -1
 
-		if tab_1.tabpage_4.dw_4.getitemstatus(k_riga, 0, primary!) = newmodified! then 
-			if (isnull(tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_1")) or &
-				 tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_1") = 0) or &
-				(isnull(tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_2")) or &
-				 tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_2") = 0) &
+		if tab_1.tabpage_5.dw_5.getitemstatus(k_riga, 0, primary!) = newmodified! then 
+			if (isnull(tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_1")) or &
+				 tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_1") = 0) or &
+				(isnull(tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_2")) or &
+				 tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_2") = 0) &
 				then
 		
-				tab_1.tabpage_4.dw_4.deleterow(k_riga)
+				tab_1.tabpage_5.dw_5.deleterow(k_riga)
 
 			end if
 		end if
@@ -1114,10 +1124,10 @@ if k_ctr > 0 then
 		tab_1.tabpage_1.dw_1.setitem ( k_ctr, "email_invio", "0" ) 
 	end if
 		
-	k_righe = tab_1.tabpage_4.dw_4.rowcount()
+	k_righe = tab_1.tabpage_5.dw_5.rowcount()
 	for k_ctr = 1 to k_righe 
 
-		tab_1.tabpage_4.dw_4.setitem(k_ctr, "clie_3", k_codice_1)
+		tab_1.tabpage_5.dw_5.setitem(k_ctr, "clie_3", k_codice_1)
 				
 	end for
 
@@ -1558,47 +1568,50 @@ protected subroutine inizializza_6 () throws uo_exception;//====================
 //=== Inizializzazione del TAB 7 controllandone i valori se gia' presenti
 //======================================================================
 //
-long k_codice, k_codice_3
-string k_scelta, k_estrazione, k_codice_prec
-date k_data_int
-kuf_base kuf1_base 
+//long k_codice, k_codice_3
+//string k_scelta, k_estrazione
+string k_codice_prec
+//date k_data_int
+//kuf_base kuf1_base 
 //kuf_utility kuf1_utility
 
-
-
-	ki_selectedtab = 6
+//	ki_selectedtab = 6
 	
-	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
-	k_scelta = trim(ki_st_open_w.flag_modalita)
-	k_data_int = dw_periodo.get_data_ini( ) // ki_data_ini   // date(year(kg_dataoggi) - 1 , 01, 01) //RelativeDate(today(), -365)
+	if tab_1.tabpage_1.dw_1.getitemnumber(1, "codice") > 0 then
+		//k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+		//k_scelta = trim(ki_st_open_w.flag_modalita)
+		//k_data_int = dw_periodo.get_data_ini( ) // ki_data_ini   // date(year(kg_dataoggi) - 1 , 01, 01) //RelativeDate(today(), -365)
+		
+	//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
+	//	tab_1.tabpage_7.dw_7.Object.k_codice.Text=string(k_codice) + string(ki_data_ini) + string(ki_data_fin)
 	
-//=== Forza valore Codice cliente per ricordarlo per le prossime richieste
-//	tab_1.tabpage_7.dw_7.Object.k_codice.Text=string(k_codice) + string(ki_data_ini) + string(ki_data_fin)
-
-//=== Se nr.cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
-	if k_codice = 0 then
-		inserisci()
-		k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+	//=== Se nr.cliente non impostato forzo una INSERISCI cliente, impostando in nr.cliente
+//		if k_codice = 0 then
+//			inserisci()
+//			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
+//		end if
+	
+	//--- salvo i parametri cosi come sono stati immessi x evitare la rilettura
+		k_codice_prec = tab_1.tabpage_7.st_7_retrieve.text
+		tab_1.tabpage_7.st_7_retrieve.text = string(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")) &
+										+ string( dw_periodo.get_data_ini( )) + string(dw_periodo.get_data_fin())
+		
+		if tab_1.tabpage_7.st_7_retrieve.text = k_codice_prec then
+		else
+	
+	//--- reperisce l'ultima estremi estrazione	
+	//		kuf1_base = create kuf_base 
+	//		k_estrazione = mid(kuf1_base.prendi_dato_base("descr_ultima_estrazione_statistici"),2)
+	//		destroy kuf1_base 
+	//		tab_1.tabpage_7.dw_7.object.t_estrazione.text = trim(k_estrazione)
+		
+			tab_1.tabpage_7.dw_7.retrieve(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"), &
+													dw_periodo.get_data_ini( ), dw_periodo.get_data_fin( ))
+	
+	
+		end if
+		
 	end if
-
-//--- salvo i parametri cosi come sono stati immessi x evitare la rilettura
-	k_codice_prec = tab_1.tabpage_7.st_7_retrieve.text
-	tab_1.tabpage_7.st_7_retrieve.text = string(k_codice) + string( dw_periodo.get_data_ini( )) + string( dw_periodo.get_data_fin( ))
-	
-	if tab_1.tabpage_7.st_7_retrieve.text = k_codice_prec then
-	else
-
-		kuf1_base = create kuf_base 
-//--- reperisce l'ultima estremi estrazione	
-		k_estrazione = mid(kuf1_base.prendi_dato_base("descr_ultima_estrazione_statistici"),2)
-		destroy kuf1_base 
-		tab_1.tabpage_7.dw_7.object.t_estrazione.text = trim(k_estrazione)
-	
-		tab_1.tabpage_7.dw_7.retrieve(k_codice, k_data_int,  dw_periodo.get_data_fin( ))
-
-
-	end if
-	
 	attiva_tasti()
 
 
@@ -2281,6 +2294,7 @@ if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				cb_cancella.enabled = true
 			end if
 		case 4  // Contatti
+			st_ordina_lista.enabled = true
 			st_aggiorna_lista.enabled = true
 			ki_sincronizza_window_ok = true
 			ki_sincronizza_window_consenti = true			
@@ -2297,11 +2311,15 @@ if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				cb_aggiorna.enabled = true
 				cb_modifica.enabled = true
 			end if
-		case 5 //listino
+		case 5 //mrf
+			st_ordina_lista.enabled = true
 		  	cb_visualizza.enabled = true
 			cb_modifica.enabled = true
-		case 6 //movimentazione
+		case 6 //listino
+			st_ordina_lista.enabled = true
 		  	cb_visualizza.enabled = true
+		case 7 //movimentazione
+			st_ordina_lista.enabled = true
 		case 8
 			if tab_1.tabpage_8.dw_8.ki_flag_modalita = kkg_flag_modalita.visualizzazione then
 				cb_modifica.enabled = ki_modDatiACO
@@ -2843,24 +2861,24 @@ end if
 if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0  then 
 	
 //--- Controllo altro tab --------------------------------------------------------------------------------------------------------------------------------
-	k_nr_righe = tab_1.tabpage_4.dw_4.rowcount()
-	k_riga = tab_1.tabpage_4.dw_4.getnextmodified(0, primary!)
+	k_nr_righe = tab_1.tabpage_5.dw_5.rowcount()
+	k_riga = tab_1.tabpage_5.dw_5.getnextmodified(0, primary!)
 
 	do while k_riga > 0  and k_nr_errori < 10
 
 		if k_nr_errori < 9 then // per non uscire da check senza contr.eventuali eltri errori gravi 
-			if isnull(tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_1")) = true &
-			   or tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_1") = 0 &
+			if isnull(tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_1")) = true &
+			   or tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_1") = 0 &
 				then
-				k_return = trim(k_return) +  tab_1.tabpage_4.text + ": Mandante alla riga " + &
+				k_return = trim(k_return) +  tab_1.tabpage_5.text + ": Mandante alla riga " + &
 				string(k_riga, "#####") + " non impostato~n~r" 
 				k_errore = "3"
 				k_nr_errori++
 			end if
-			if isnull(tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_2")) = true & 
-			   or tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "clie_2") = 0 &
+			if isnull(tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_2")) = true & 
+			   or tab_1.tabpage_5.dw_5.getitemnumber ( k_riga, "clie_2") = 0 &
 				then
-				k_return = trim(k_return) + tab_1.tabpage_4.text + ": Ricevente alla riga " + &
+				k_return = trim(k_return) + tab_1.tabpage_5.text + ": Ricevente alla riga " + &
 				string(k_riga, "#####") + " non impostato~n~r" 
 				k_errore = "3"
 				k_nr_errori++
@@ -2869,50 +2887,14 @@ if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0  then
 		
 		k_riga++
 
-		k_riga = tab_1.tabpage_4.dw_4.getnextmodified(k_riga, primary!)
+		k_riga = tab_1.tabpage_5.dw_5.getnextmodified(k_riga, primary!)
 
 	loop
 
 end if
 
 destroy kuf1_ausiliari
-////=== Controllo altro tab
-//	k_nr_righe = tab_1.tabpage_4.dw_4.rowcount()
-//	k_riga = tab_1.tabpage_4.dw_4.getnextmodified(0, primary!)
-//
-//	do while k_riga > 0  and k_nr_errori < 10
-//
-//		k_key_str = tab_1.tabpage_4.dw_4.getitemstring ( k_riga, "id_fattura") 
-//
-//
-//		if k_nr_errori < 9 then // per non uscire da check senza contr.eventuali eltri errori gravi 
-//
-//			if isnull(tab_1.tabpage_4.dw_4.getitemdate ( k_riga, "data_fattura")) = true then
-//				k_return = "Manca la Data " + tab_1.tabpage_4.text + " alla riga " + &
-//				string(k_riga, "#####") + " ~n~r" 
-//				k_errore = "3"
-//				k_nr_errori++
-//			end if
-//
-//			if k_nr_errori < 9 then // per non uscire da check senza contr.eventuali eltri errori gravi 
-//				if isnull(tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "importo")) = true or & 
-//					tab_1.tabpage_4.dw_4.getitemnumber ( k_riga, "importo") = 0 then
-//					k_return = "Manca l'Importo " + tab_1.tabpage_4.text + " alla riga " + &
-//					string(k_riga, "#####") + " ~n~r" 
-//					k_errore = "4"
-//					k_nr_errori++
-//				end if
-//			end if
-//
-//		end if
-//		k_riga++
-//
-//		k_riga = tab_1.tabpage_4.dw_4.getnextmodified(k_riga, primary!)
-//
-//	loop
-//
-//
-//
+
 return k_errore + k_return
 
 
@@ -3947,12 +3929,36 @@ string picturename = "clienti16.gif"
 end type
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
+event u_filter_estinti ( )
 integer x = 14
 integer y = 28
 integer width = 1961
 boolean enabled = true
 string dataobject = "d_contatti_l_x_cliente"
 end type
+
+event dw_4::u_filter_estinti();//
+	if tab_1.tabpage_4.dw_4.filteredcount( ) > 0 then
+		this.object.b_filtro.text = "No Estinti"
+		this.object.b_filtro.tag = "0"
+		this.setfilter("")
+	else
+		this.object.b_filtro.text = "Vedi Tutti"
+		this.object.b_filtro.tag = "1"
+		this.setfilter("STATO = '6'")
+	end if
+	this.filter( )
+	this.setredraw(true)
+
+end event
+
+event dw_4::buttonclicked;call super::buttonclicked;//
+int k_rc
+
+if dwo.name = "b_filtro" then
+	event u_filter_estinti( )
+end if
+end event
 
 type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
@@ -4062,6 +4068,7 @@ string dataobject = "d_clienti_mov"
 end type
 
 event dw_7::buttonclicked;call super::buttonclicked;//
+
 //=== Attivo/Disattivo visione grafico
 if this.object.kgr_1.visible = "1" then
 	tab_1.tabpage_7.dw_7.object.kcb_gr.text = "Grafico"
@@ -4071,6 +4078,18 @@ else
 	tab_1.tabpage_7.dw_7.object.kgr_1.visible = "1"
 end if
 //
+
+end event
+
+event dw_7::u_constructor_post;call super::u_constructor_post;string k_x
+
+	k_x = string(integer(this.describe("kcb_gr.x")) &
+			        + integer(this.describe("kcb_gr.width")) &
+				 	  + integer(this.describe("kcb_gr.width")) / 2) 
+	tab_1.tabpage_7.dw_7.modify("kgr_1.x = " + k_x &
+										+ " kgr_1.y = " + string(integer(this.describe("kcb_gr.y"))) &
+										+ " kgr_1.width = " + string(integer(this.describe("s_armo_clie_1.x"))) &
+										+ " kgr_1.height = 1476" ) 
 
 end event
 
@@ -4165,13 +4184,14 @@ end type
 
 event ue_clicked;call super::ue_clicked;//
 try
-	if ki_selectedtab = 6 then
-		inizializza_5( )
-	else 
-		if ki_selectedtab = 7 then
+	
+	choose case tab_1.selectedtab
+		case 6
+			inizializza_5( )
+		case 7
 			inizializza_6( )
-		end if
-	end if
+	end choose
+
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 end try

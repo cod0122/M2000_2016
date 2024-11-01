@@ -133,7 +133,7 @@ kuf_pl_barcode kuf1_pl_barcode
 			+ "pl_barcode.note_2, " &
 			+ "pl_barcode.data_sosp, " &
 			+ "pl_barcode.data_chiuso, " &
-			+ "pl_barcode.path_file_pilota, " &
+			+ "isnull(pl_barcode.impianto, 2), " &
 			+ "sr_utenti.nome " &
 	      + "FROM (pl_barcode LEFT OUTER JOIN barcode ON  " &
 	      + "pl_barcode.codice = barcode.pl_barcode) " &
@@ -194,7 +194,7 @@ kuf_pl_barcode kuf1_pl_barcode
 				+ " pl_barcode.note_2, " &
 				+ " pl_barcode.data_sosp, " &
 				+ " pl_barcode.data_chiuso, " &
-				+ " pl_barcode.path_file_pilota, " &
+				+ " pl_barcode.impianto, " &
 				+ " sr_utenti.nome " &
 				+ " order by " &
 				+ " pl_barcode.data desc, pl_barcode.codice "
@@ -237,12 +237,29 @@ kuf_pl_barcode kuf1_pl_barcode
 					 ,:kst_tab_pl_barcode.note_2
 					 ,:kst_tab_pl_barcode.data_sosp
 					 ,:kst_tab_pl_barcode.data_chiuso
-					 ,:kst_tab_pl_barcode.path_file_pilota
+					 ,:kst_tab_pl_barcode.impianto
 					 ,:kst_tab_sr_utenti.nome
 					  ;
 
 			if isnull(kst_tab_barcode.pl_barcode) then
 				kst_treeview_data_any.contati = 0
+			end if
+			
+//--- Dato non trovato			
+			if sqlca.sqlcode <> 0 then
+				kst_tab_treeview.voce = ""
+			   kst_tab_treeview.descrizione = "Nessun Piano trovato"
+				kst_treeview_data.pic_list = k_pic_list
+				kst_treeview_data.oggetto = ""
+				kst_treeview_data.handle = k_handle_item_padre
+				kst_treeview_data_any.st_tab_treeview = kst_tab_treeview
+				kst_treeview_data_any.st_tab_pl_barcode = kst_tab_pl_barcode
+				kst_treeview_data_any.st_tab_sr_utenti = kst_tab_sr_utenti
+				kst_treeview_data.struttura = kst_treeview_data_any
+				k_handle_item = kuf1_treeview.kitv_tv1.insertitemlast(k_handle_item_padre, ktvi_treeviewitem)
+				kst_treeview_data.handle = k_handle_item
+				ktvi_treeviewitem.data = kst_treeview_data
+				kuf1_treeview.kitv_tv1.setitem(k_handle_item, ktvi_treeviewitem)
 			end if
 			
 			do while sqlca.sqlcode = 0
@@ -289,15 +306,9 @@ kuf_pl_barcode kuf1_pl_barcode
 				else
 					kst_tab_pl_barcode.note_2 = trim(kst_tab_pl_barcode.note_2) + ". "
 				end if
-				if isnull(kst_tab_pl_barcode.path_file_pilota) then
-					kst_tab_pl_barcode.path_file_pilota = " " 
-				else
-					kst_tab_pl_barcode.path_file_pilota = "File: " + trim(kst_tab_pl_barcode.path_file_pilota)
-				end if
 				
-			   	kst_tab_treeview.descrizione_ulteriore = kst_tab_sr_utenti.nome + kst_tab_pl_barcode.note_1  &
-				                                       	+ kst_tab_pl_barcode.note_2 &
-													+ trim(kst_tab_pl_barcode.path_file_pilota) 
+		   	kst_tab_treeview.descrizione_ulteriore = kst_tab_sr_utenti.nome + kst_tab_pl_barcode.note_1  &
+				                                       	+ kst_tab_pl_barcode.note_2
 
 				if kst_tab_pl_barcode.data_sosp > date(0) then
 					kst_tab_treeview.descrizione_tipo = "Sospeso, P.L. bloccato dall'operatore " 
@@ -367,7 +378,7 @@ kuf_pl_barcode kuf1_pl_barcode
 					 ,:kst_tab_pl_barcode.note_2
 					 ,:kst_tab_pl_barcode.data_sosp
 					 ,:kst_tab_pl_barcode.data_chiuso
-					 ,:kst_tab_pl_barcode.path_file_pilota
+					 ,:kst_tab_pl_barcode.impianto
 					 ,:kst_tab_sr_utenti.nome
 					  ;
 	

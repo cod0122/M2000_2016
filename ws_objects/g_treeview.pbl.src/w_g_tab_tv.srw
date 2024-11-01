@@ -2217,7 +2217,6 @@ listviewitem klvi_copy
 		else
 			this.tag = string(column) + "D"
 		end if
-		
 
 	end if
 

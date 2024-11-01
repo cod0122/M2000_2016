@@ -13,6 +13,7 @@ integer width = 3383
 integer height = 1912
 string title = "Listini"
 boolean ki_toolbar_window_presente = true
+boolean ki_sincronizza_window_ok = true
 dw_data dw_data
 dw_box_duplica_listini dw_box_duplica_listini
 end type

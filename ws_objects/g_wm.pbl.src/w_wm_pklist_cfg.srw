@@ -44,6 +44,10 @@ protected subroutine inizializza_2 () throws uo_exception
 private subroutine get_path_pkl_da_txt ()
 protected subroutine inizializza_3 () throws uo_exception
 protected subroutine attiva_tasti_0 ()
+private subroutine get_path_pkl_camion ()
+protected function integer cancella ()
+protected subroutine inizializza_4 () throws uo_exception
+protected function boolean sicurezza (st_open_w kst_open_w)
 end prototypes
 
 private function integer inserisci ();////
@@ -252,6 +256,7 @@ protected function string aggiorna ();//
 //======================================================================
 //
 string k_return="0 ", k_errore="0 "
+int k_rc
 st_esito kst_esito
 
 
@@ -260,42 +265,22 @@ if tab_1.tabpage_1.dw_1.getnextmodified(0, primary!) > 0 OR &
 	tab_1.tabpage_1.dw_1.getnextmodified(0, delete!) > 0 & 
 	then
 
-	if tab_1.tabpage_1.dw_1.update() = 1 then
-
-//=== Se tutto OK faccio la COMMIT		
-		kst_esito = kguo_sqlca_db_magazzino.db_commit()
-		if kst_esito.esito <> kkg_esito.ok then
-			k_return = "3" + "Archivio " + tab_1.tabpage_1.text + " ~n~r" + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
-		else // Tutti i Dati Caricati in Archivio
-			k_return ="0 "
-		end if
-	else
-		k_errore = string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
-		kguo_sqlca_db_magazzino.db_rollback( )
-		if kst_esito.esito <> kkg_esito.ok then
-			k_errore += "~n~rfallito anche il 'recupero' dell'errore: ~n~r" + string(kst_esito.sqlcode) + " " + trim(kst_esito.sqlerrtext) 
-		end if
-		k_errore += "~n~rPrego, controllare i dati !! "
-		k_return="1Fallito aggiornamento archivio di Configurazione Pk-List '" + tab_1.tabpage_1.text + "' : " + k_errore 
+	k_rc = tab_1.tabpage_1.dw_1.update()
+	if k_rc < 0 then
+		k_return="1Fallito aggiornamento archivio di Configurazione Pk-List '" + tab_1.tabpage_1.text + "'. "&
+					+ kkg.acapo + "Errore: " + string(kst_esito.sqlcode) + " - " + trim(kst_esito.sqlerrtext)
+	elseif k_rc = 1 then
+		kguo_sqlca_db_magazzino.db_commit()
 	end if
 end if
-
-
 
 //=== errore : 0=tutto OK o NON RICHIESTA; 1=errore grave I-O;
 //=== 		 : 2=LIBERO
 //===			 : 3=Commit fallita
-
 if LeftA(k_return, 1) = "1" then
 	messagebox("Operazione di Aggiornamento Non Eseguita !!", &
 		MidA(k_return, 2))
-else
-	if LeftA(k_return, 1) = "3" then
-		messagebox("Registrazione dati : problemi nella 'Commit' !!", &
-			"Consiglio : chiudere e ripetere le operazioni eseguite")
-	end if
 end if
-
 
 return k_return
 
@@ -490,7 +475,7 @@ else
 end if
 
 
-k_ret = GetFolder ( "Scegli Cartella dei Packing-list in formato XML (Web)",  k_path  )
+k_ret = GetFolder ( "Scegli la Cartella dei Packing-list in formato XML (come da sito Web)",  k_path  )
 
 if k_ret = 1 then
 	tab_1.tabpage_1.dw_1.setitem(1, "cartella_pkl_da_web", trim(k_path))
@@ -696,7 +681,7 @@ else
 end if
 
 
-k_ret = GetFolder ( "Scegli Cartella dei Packing-list in formato lineare",  k_path  )
+k_ret = GetFolder ( "Scegli la Cartella dei Packing-list in formato lineare generati dai Clienti",  k_path  )
 
 if k_ret = 1 then
 	tab_1.tabpage_1.dw_1.setitem(1, "cartella_pkl_da_txt", trim(k_path))
@@ -810,7 +795,12 @@ super::attiva_tasti_0()
 cb_ritorna.enabled = true
 cb_inserisci.enabled = false
 cb_aggiorna.enabled = true
-cb_cancella.enabled = false
+
+if tab_1.selectedtab = 5 then
+	cb_cancella.enabled = true
+else
+	cb_cancella.enabled = false
+end if
 
 cb_ritorna.default = false
 cb_inserisci.default = false
@@ -825,6 +815,138 @@ end if
 //attiva_menu()
 
 end subroutine
+
+private subroutine get_path_pkl_camion ();//
+string k_path="..", k_file
+int k_ret
+
+
+k_path = tab_1.tabpage_1.dw_1.getitemstring (1, "cartella_pkl_camion")
+if len(trim(k_path)) > 0 then
+else
+	k_path= kg_path_procedura
+end if
+
+
+k_ret = GetFolder ( "Scegli la cartella dei dati dei Camion caricati dai Packing-list",  k_path  )
+
+if k_ret = 1 then
+	tab_1.tabpage_1.dw_1.setitem(1, "cartella_pkl_camion", trim(k_path))
+else
+	if k_ret < 0 then
+//--- ERRORE	
+	end if
+end if
+
+
+end subroutine
+
+protected function integer cancella ();//
+long k_row, k_selectedrows
+st_tab_wm_pklist_camion kst_tab_wm_pklist_camion
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	
+	if tab_1.selectedtab = 5 then // CAMION
+		
+		do while tab_1.tabpage_5.dw_5.getselectedrow(k_row) > 0
+			k_selectedrows ++
+		loop
+	
+		if k_selectedrows > 0 then
+		else
+			messagebox("Cancella dati Camion", "Selezionare almeno una riga dall'elenco")
+			return 0
+		end if
+		
+		if	messagebox("Cancella dati Camion", "Rimuovere le " + string(k_selectedrows) + " selezionate in modo definitivo?", question!, yesno!, 2) = 1 then
+			
+			kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+			
+			k_row = tab_1.tabpage_5.dw_5.getselectedrow(0)
+			do while k_row > 0
+				
+				kst_tab_wm_pklist_camion.id_wm_pklist_camion = tab_1.tabpage_5.dw_5.getitemnumber( k_row, "id_wm_pklist_camion")
+				
+				kuf1_wm_pklist_camion.tb_delete(kst_tab_wm_pklist_camion)
+				tab_1.tabpage_5.dw_5.deleterow(k_row)
+				
+				k_row = tab_1.tabpage_5.dw_5.getselectedrow(0)
+			loop
+		end if
+	
+	end if
+	
+catch (uo_exception kuo_exception)
+	kguo_sqlca_db_magazzino.db_rollback( )
+	kuo_exception.messaggio_utente( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_wm_pklist_camion) then destroy kuf1_wm_pklist_camion
+
+end try
+
+return k_selectedrows
+end function
+
+protected subroutine inizializza_4 () throws uo_exception;//
+//--- Elenco dati CAMION
+//
+
+	try
+
+		tab_1.tabpage_5.dw_5.retrieve()
+		
+	catch(uo_exception kuo_exception)
+		kguo_exception.set_esito(kuo_exception.get_st_esito())
+		
+	finally
+		
+	end try
+	
+ 
+
+
+end subroutine
+
+protected function boolean sicurezza (st_open_w kst_open_w);//
+boolean k_return
+kuf_wm_pklist kuf1_wm_pklist
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if tab_1.selectedtab = 5 and kst_open_w.flag_modalita = kkg_flag_modalita.cancellazione then
+		
+		kuf1_wm_pklist = create kuf_wm_pklist
+		k_return = kuf1_wm_pklist.if_sicurezza(kst_open_w)
+		
+	else
+		
+		return super::sicurezza(kst_open_w)
+		
+	end if	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_wm_pklist) then destroy kuf1_wm_pklist
+
+end try
+
+return k_return 
+
+end function
 
 on w_wm_pklist_cfg.create
 int iCurrent
@@ -962,19 +1084,18 @@ boolean ki_d_std_1_attiva_cerca = false
 end type
 
 event dw_1::buttonclicked;call super::buttonclicked;//
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 
 
-if dwo.name = "b_odbc" then 
-
-	kuf1_utility = create kuf_utility
-	kuf1_utility.u_apri_programma_esterno("odbcad32.exe")
-	destroy kuf1_utility
-
-else
+//if dwo.name = "b_odbc" then 
+//
+//	kuf1_utility = create kuf_utility
+//	kuf1_utility.u_apri_programma_esterno("odbcad32.exe")
+//	destroy kuf1_utility
+//
+//else
 	if dwo.name = "b_importazione_ts_ini_reset" then
 		this.setitem( row, "importazione_ts_ini", datetime(date(0)) )
-		attiva_tasti( )
 	elseif dwo.name = "b_file_esiti" then
 		get_file_esiti()
 	elseif dwo.name = "b_check_dll" then
@@ -989,24 +1110,27 @@ else
 		get_path_pkl_da_web()
 	elseif dwo.name = "b_cartella_pkl_da_txt" then
 		get_path_pkl_da_txt()
-	elseif dwo.name = "b_dbparm" then
-		kguo_exception.inizializza( )
-		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
-		kguo_exception.messaggio_utente("Test Connessione", "Hai Salvato i Dati della Connessione qui indicati?  ~n~rAttenzione: il test di Connessione è fatto con i parametri già SALVATI su DB!")
-		try
-			kguo_sqlca_db_wm.db_disconnetti( ) 
-		catch (uo_exception kuo_exceptionOK)
-		end try
-		try
-			if kguo_sqlca_db_wm.db_connetti( ) then
-				kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
-				kguo_exception.messaggio_utente("Test Connessione",  "OK, connessione eseguita.")
-			end if
-		catch (uo_exception kuo_exception)
-			kuo_exception.messaggio_utente()
-		end try
+	elseif dwo.name = "b_cartella_pkl_camion" then
+		get_path_pkl_camion()
+//	elseif dwo.name = "b_dbparm" then
+//		kguo_exception.inizializza( )
+//		kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
+//		kguo_exception.messaggio_utente("Test Connessione", "Hai Salvato i Dati della Connessione qui indicati?  ~n~rAttenzione: il test di Connessione è fatto con i parametri già SALVATI su DB!")
+//		try
+//			kguo_sqlca_db_wm.db_disconnetti( ) 
+//		catch (uo_exception kuo_exceptionOK)
+//		end try
+//		try
+//			if kguo_sqlca_db_wm.db_connetti( ) then
+//				kguo_exception.set_tipo(kguo_exception.KK_st_uo_exception_tipo_OK)
+//				kguo_exception.messaggio_utente("Test Connessione",  "OK, connessione eseguita.")
+//			end if
+//		catch (uo_exception kuo_exception)
+//			kuo_exception.messaggio_utente()
+//		end try
 	end if
-end if
+	attiva_tasti( )
+//end if
 
 
 
@@ -1098,14 +1222,20 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+boolean visible = true
 integer width = 3003
 integer height = 1268
-string text = ""
+boolean enabled = true
+string text = "Composizione Camion"
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
+boolean visible = true
+integer y = 32
 integer width = 2935
-integer height = 1172
+integer height = 1140
+boolean enabled = true
+string dataobject = "d_wm_pklist_camion_l"
 end type
 
 type st_5_retrieve from w_g_tab_3`st_5_retrieve within tabpage_5

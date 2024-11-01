@@ -1074,7 +1074,7 @@ kst_esito = kuf1_base.leggi_base(kst_tab_base)
 	tab_1.tabpage_1.dw_1.setitem(1, "stcert2", trim(kst_tab_base.st_tab_base_personale.stcert2))
 	tab_1.tabpage_1.dw_1.setitem(1, "stbarcode", trim(kst_tab_base.st_tab_base_personale.stbarcode))
 	tab_1.tabpage_1.dw_1.setitem(1, "current", k_current)
-	tab_1.tabpage_1.dw_1.setitem(1, "path", trim(kGuo_path.get_procedura()))
+	tab_1.tabpage_1.dw_1.setitem(1, "path", trim(kGuo_path.get_path_app()))
 	tab_1.tabpage_1.dw_1.setitem(1, "flag_zoom_ctrl", trim(kst_tab_base.st_tab_base_personale.flag_zoom_ctrl))
 	tab_1.tabpage_1.dw_1.setitem(1, "memo_window_open", trim(kst_tab_base.st_tab_base_personale.memo_window_open))
 	tab_1.tabpage_1.dw_1.setitem(1, "pdfprintdefault", trim(kst_tab_base.st_tab_base_personale.pdfprintdefault))	
@@ -1717,10 +1717,8 @@ kuf_utility kuf1_utility
 		k_riga_user = kds_1.retrieve( )
 	
 		k_parametro_db = trim ( kguo_sqlca_db_magazzino.DBParm )
-		k_path_dw = trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "arch_saveas", ""))
-//		k_path_dw = profilestring ( KG_PATH_PROCEDURA + "\confdb.ini", "ambiente", "arch_saveas", "<NULLA>")
-		k_path_db = trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "arch_base", ""))
-//		k_path_db = profilestring ( KG_PATH_PROCEDURA + "\confdb.ini", "ambiente", "arch_base", "<NULLA>")
+		k_path_dw = kguo_path.get_path_arch_saveas( ) //trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "arch_saveas", ""))
+		k_path_db = kguo_path.get_base( ) //trim(kGuf_data_base.profilestring_leggi_scrivi(kGuf_data_base.ki_profilestring_operazione_leggi, "arch_base", ""))
 		k_esito = kuf1_base.prendi_dato_base( "nome_server")
 		if left(k_esito,1) = "0" then k_server	= trim(mid(k_esito,2))
 		k_esito = kuf1_base.prendi_dato_base( "versione_db")
@@ -2640,8 +2638,6 @@ boolean flatstyle = true
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_base_personale
-integer x = 0
-integer y = 0
 integer width = 4622
 integer height = 1624
 integer taborder = 40
@@ -3648,7 +3644,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-string text = "Proprietà Packing-List (WM)"
+string text = "Proprietà Packing-List"
 boolean flatstyle = true
 end type
 
@@ -3692,8 +3688,8 @@ end event
 type st_18 from statictext within tabpage_6
 integer x = 1157
 integer y = 980
-integer width = 2565
-integer height = 88
+integer width = 2094
+integer height = 156
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
@@ -3703,7 +3699,7 @@ fontfamily fontfamily = swiss!
 string facename = "Arial"
 long textcolor = 8388608
 long backcolor = 67108864
-string text = "Proprietà di importazione dati Packing-List di entrata dai canali FTP Web (XML) e diretto (TXT)"
+string text = "Cartelle di importazione dati Packing-List di entrata dai canali FTP Web (XML) e diretto (TXT)"
 boolean focusrectangle = false
 end type
 

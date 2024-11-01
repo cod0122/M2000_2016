@@ -17,6 +17,8 @@ type variables
 
 //--- file di configurazione 
 constant string KKi_NOME_PROFILE_BASE = "confdb.ini"
+constant string KKi_NOME_PROFILE_BASE_LOGIN = "confLogin.ini"
+constant string KKi_NOME_PROFILE_BASE_USER = "confUser.ini"
 constant string KKi_NOME_PROFILE_BASE_PRN = "confSta.ini"
 constant string KKi_NOME_PROFILE_BASE_WIN = "confWin.ini"
 constant string KKi_NOME_PROFILE_BASE_TOOLBAR = "confTool.ini"
@@ -58,7 +60,6 @@ public function window prendi_win_la_ultima ()
 public function string u_getfocus_nome ()
 public function integer dw_importfile (string k_argomenti, ref datawindow k_dw_import)
 public function window prendi_win_next ()
-public function string crea_file (string k_nome_file)
 public function window prendi_win_attiva ()
 public function integer prendi_num_win_uguale (string k_nome_win)
 public function datetime prendi_x_datins ()
@@ -130,6 +131,9 @@ public function integer dw_ripri_righe (string k_argomenti, string k_titolo, ref
 public subroutine u_set_uo_sqlca_db_magazzino () throws uo_exception
 public subroutine u_set_ds_change_name_tab_suff (ref datawindow kdw_1, string k_nome_tab, string k_nome_suff) throws uo_exception
 public subroutine u_set_ds_change_name_tab_name (ref datawindow kdw_1, string k_nome_tab, string k_nome_new) throws uo_exception
+public function string profilestring_crea_file (string k_path, string k_nome_file)
+private function string profilestring_get_filename (ref st_profilestring_ini kst_profilestring_ini)
+private function string profilestring_build_file (ref string a_path, string a_filename) throws uo_exception
 end prototypes
 
 public function string db_commit ();//---
@@ -492,50 +496,6 @@ return k_return
 
 end function
 
-public function string crea_file (string k_nome_file);//===
-//=== Crea Nuovo File Vuoto
-//=== Input: 
-//===   Nome file comprensivo del path
-//===              I=Aggiungi messaggio Informativo
-//=== 
-//===
-//===   Ritorna: 1 = Operazione non riuscita
-//===
-int k_file 
-int k_bytes, k_ctr, k_ctr_1, k_bytes_f, k_righe
-string k_record, k_return = "1"
-string k_path
-pointer koldpointer
-
-//=== Clessidra di attesa
-	koldpointer=setpointer(hourglass!)
-
-
-	k_path = profilestring_leggi_scrivi (ki_profilestring_operazione_leggi, "arch_base")
-
-	if not (FileExists (k_nome_file)) then
-	
-		k_file = fileopen( k_nome_file, linemode!, Write! , LockWrite! )
-	
-		if k_file > 0 then
-			
-			k_bytes = filewrite(k_file, "File creato in automatico il " + string(now(), "dd mmm yyyy hh:mm:ss"))
-			
-			k_bytes = filewrite(k_file, " ") //Una riga vuota
-
-			k_return = "0"
-
-			fileclose(k_file)
-	
-		end if
-	end if	
-
-	setpointer(koldpointer)
-
-return k_return
-
-end function
-
 public function window prendi_win_attiva ();//
 //=== Torna oggetto window, la window attiva
 //w_g_tab k_window
@@ -742,30 +702,32 @@ return k_return
 end function
 
 public function string setta_path_default ();//
+string k_app
 
 
-	if LenA(trim(kGuo_path.get_procedura())) > 0 then
+	k_app = trim(kGuo_path.get_path_app())
+
+	if k_app > " " then
 		
-		if DirectoryExists ( trim(kGuo_path.get_procedura()) ) then
+		if DirectoryExists(k_app) then
 			
-			ChangeDirectory(trim(kGuo_path.get_procedura())) 
+			ChangeDirectory(k_app) 
 			
 		else
-			messagebox("Cartella della Proceura non Trovata",&
-			           "Non è stato trovato il percorso dove risiedono i file di configurazione~n~r" &
-						  + "Cartella cercata:" + trim(kGuo_path.get_procedura()), &
+			messagebox("Cartella dell'Applicazione non Trovata",&
+			           "Non è stato trovato il percorso dove risiedono i file di configurazione dell'applicazione." &
+						  + "Cartella cercata:" + k_app, &
 						  information!)
 		end if
 	else
-		messagebox("Cartella della Proceura non Trovata",&
-			        "Nessun percorso di risidenza dei file di configurazione impostato~n~r" &
-						  + "Possono verificarsi anomalie inaspettate, chidere la Procedura", &
+		k_app = ""
+		messagebox("Cartella dell'Applicazione non Trovata",&
+			        "Nessun percorso di residenza dei file dell'applicazione trovato per l'accesso." &
+						  + "Si possono verificare anomalie inaspettate, chiudere l'applicazione appena possibile.", &
 						  stopsign!)
 	end if
 
-  
-
-return kGuo_path.get_procedura()
+return k_app
 
 
 
@@ -1649,20 +1611,18 @@ string k_return = ""
 string k_key_3
 int k_rc
 string k_valore_iniz
-st_esito kst_esito
 
 	
 try
+	kguo_exception.inizializza(this.classname())
+
 	kst_profilestring_ini.esito = "0"
-	
+		
+//--- Imposta i valori di default come se manca il nome file allora lo sostituisco con il nome titolo 	
 //--- Imposta i valori di default come se manca il nome file allora lo sostituisco con il nome titolo 	
 	if trim(kst_profilestring_ini.titolo) > " " then
 	else
 		kst_profilestring_ini.titolo = "ambiente"
-	end if
-	if trim(kst_profilestring_ini.utente ) > " " then
-	else
-		kst_profilestring_ini.utente = kGuo_utente.get_codice()
 	end if
 	if trim(kst_profilestring_ini.operazione) > " " then
 	else
@@ -1683,69 +1643,8 @@ try
 		k_valore_iniz = trim(kst_profilestring_ini.valore)
 	end if
 
-	choose case lower(trim(kst_profilestring_ini.file))
-			
-		case "ambiente"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKI_NOME_PROFILE_BASE) 	
-			
-		case "base_personale"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKI_NOME_PROFILE_BASE) 	
-	
-		case "treeview"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKi_NOME_PROFILE_BASE_TREEVIEW) 	
-	
-		case "window"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKi_NOME_PROFILE_BASE_WIN) 	
-	
-		case "toolbar"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKi_NOME_PROFILE_BASE_TOOLBAR) 	
-	
-		case "stampe"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKi_NOME_PROFILE_BASE_PRN) 	
-	
-		case "risorse_grafiche"
-			kst_profilestring_ini.titolo = "ambiente"
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKI_NOME_PROFILE_BASE) 	
-			
-		case else
-			kst_profilestring_ini.path = trim(kGuo_path.get_procedura()) 	
-			kst_profilestring_ini.nome_file = trim(KKG.PATH_SEP + KKI_NOME_PROFILE_BASE) 	
-	
-	end choose
-
-//--- esiste la cartella?
-	if not DirectoryExists ( kst_profilestring_ini.path ) then
-		kst_profilestring_ini.esito = "1"
-		k_return = "Cartella Centrale della Procedura Non Trovata, percorso cercato:" + kkg.acapo &
-		           + kst_profilestring_ini.path 
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = k_return
-		kst_esito.esito = kkg_esito.ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	end if
-	
-//--- esiste il file?
-	if kst_profilestring_ini.esito = "0" then
-		if not FileExists ( kst_profilestring_ini.path+kst_profilestring_ini.nome_file ) then
-			kst_profilestring_ini.esito = "1"
-			k_return = "Creo Archivio di Configurazione Programma perche' non trovato, percorso:" + kkg.acapo &
-						  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
-
-//---- crea nuovo file vuoto
-			crea_file( kst_profilestring_ini.path+kst_profilestring_ini.nome_file )
-			
-		end if
-	end if
+//--- imposta e verifica il nome del file
+	profilestring_get_filename(kst_profilestring_ini)	
 
 //--- se tutto ok
 	if kst_profilestring_ini.esito = "0" then
@@ -1783,13 +1682,13 @@ try
 			if k_rc = -1 then
 				kst_profilestring_ini.esito = "2"
 				k_return = "Accesso in scrittura in archivio di Configurazione FALLITO: " + kkg.acapo &
-					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
-				kst_esito.sqlcode = 0
-				kst_esito.sqlerrtext = k_return
-				kst_esito.esito = kkg_esito.ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
+					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file + ": " + kkg.acapo &
+					  +	 "Etichetta: [" +  trim(kst_profilestring_ini.titolo) + "] " & 
+					  +	 "campo: '" + trim(kst_profilestring_ini.nome) + "' " &
+					  + "valore: '" + trim(kst_profilestring_ini.valore) + "' " 
+				kguo_exception.kist_esito.sqlerrtext = k_return
+				kguo_exception.kist_esito.esito = kkg_esito.ko
+				throw kguo_exception		
 			end if
 													  
 		end if
@@ -1807,12 +1706,9 @@ try
 				kst_profilestring_ini.esito = "2"
 				k_return = "Accesso archivio di Configurazione per inizializzazione FALLITO: " + kkg.acapo &
 					  + kst_profilestring_ini.path+kst_profilestring_ini.nome_file 
-				kst_esito.sqlcode = 0
-				kst_esito.sqlerrtext = k_return
-				kst_esito.esito = kkg_esito.ko
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
+				kguo_exception.kist_esito.sqlerrtext = k_return
+				kguo_exception.kist_esito.esito = kkg_esito.ko
+				throw kguo_exception		
 			end if
 		end if											  
 
@@ -2067,7 +1963,7 @@ public subroutine u_if_profile_base_exists () throws uo_exception;//---
 string k_file 
 
 
-k_file = kGuo_path.get_PROCEDURA() + KKG.PATH_SEP + KKi_NOME_PROFILE_BASE
+k_file = kGuo_path.get_path_app() + KKG.PATH_SEP + KKi_NOME_PROFILE_BASE
 if not FileExists (k_file) then
 	kguo_exception.inizializza( )
 	kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_not_fnd )
@@ -2094,7 +1990,7 @@ kuf_ole kuf1_ole
 	kst_esito.SQLErrText = ""
 
 
-	k_file = trim(kguo_path.get_procedura( ) + kkg.path_sep + KKI_NOME_PROFILE_BASE)
+	k_file = trim(kguo_path.get_path_app( ) + kkg.path_sep + KKI_NOME_PROFILE_BASE)
 
 	if len(trim(k_file)) > 0 then 
 	
@@ -2128,7 +2024,7 @@ public function string get_nome_profile_base ();//---
 string k_return 
 
 
-k_return = kGuo_path.get_PROCEDURA() + KKG.PATH_SEP + KKi_NOME_PROFILE_BASE
+k_return = kGuo_path.get_path_app() + KKG.PATH_SEP + KKi_NOME_PROFILE_BASE
 if isnull(k_return) then 
 	k_return = ""
 end if
@@ -3085,10 +2981,11 @@ public function string profilestring_leggi_scrivi (readonly integer k_key, strin
 string k_return = ""   
 string k_key_3, k_file
 int k_leggi=1, k_scrivi=2, k_rc
+st_profilestring_ini kst_profilestring_ini
+	
 
-	
-	k_file = kGuo_path.get_procedura() + KKG.PATH_SEP + KKI_NOME_PROFILE_BASE
-	
+try
+
 	if LeftA(k_key_1, 9) = "generico." then
 		k_key_3 = MidA(k_key_1, 10) 
 		k_key_1 = "generico." 
@@ -3099,312 +2996,305 @@ int k_leggi=1, k_scrivi=2, k_rc
 	
 //--- se sto personalizzando un campo del 'navigatore' ovvero inizia per tv_larg_campo_
 	if LeftA(k_key_1, 14) = "tv_larg_campo_" then
+		kst_profilestring_ini.file = "autogestiti"
+		k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
 
-		if fileexists(k_file) then
 //--- salvo le dimensioni delle colonne della treeview
-			if k_key = k_leggi then 
-				k_RETURN = trim(profilestring ( k_file, "autogestiti", k_key_1, "nullo"))
-				if k_return = "nullo" then
-					k_return = "0"
-					k_rc = SetProfileString(k_file, "autogestiti", k_key_1, trim(k_return))
-				end if
-			else
-				k_return = trim(string(SetProfileString(k_file, "autogestiti", k_key_1, k_key_2)))
+		if k_key = k_leggi then 
+			k_RETURN = trim(profilestring ( k_file, "autogestiti", k_key_1, "nullo"))
+			if k_return = "nullo" then
+				k_return = "0"
+				k_rc = SetProfileString(k_file, "autogestiti", k_key_1, trim(k_return))
 			end if
 		else
-			k_return = "NF"
+			k_return = trim(string(SetProfileString(k_file, "autogestiti", k_key_1, k_key_2)))
 		end if
 	
 	else
+		
 		choose case lower(k_key_1)
 
-		
-			case "arch_base"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_base", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( )) + "\db"
-							k_rc = SetProfileString(k_file, "ambiente", "arch_base", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_base", k_key_2))
-					end if
-				else
-					k_return = "NF"
-				end if
+//			case "arch_base"
+//				if fileexists(k_file) then
+//					if k_key = k_leggi then 
+//						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_base", "nullo"))
+//						if k_return = "nullo" then
+//							k_return = trim(GetCurrentDirectory ( )) + "\db"
+//							k_rc = SetProfileString(k_file, "ambiente", "arch_base", trim(k_return))
+//						end if
+//					else
+//						k_return = string(SetProfileString(k_file, "ambiente", "arch_base", k_key_2))
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 	
 			case "arch_saveas"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_saveas", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( )) + "\save_dw"
-							k_rc = SetProfileString(k_file, "ambiente", "arch_saveas", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_saveas", k_key_2))
-					end if
-				else
-					k_return = "NF"
-				end if
+				k_return = kguo_path.get_path_arch_saveas()
+//				if fileexists(k_file) then
+//					if k_key = k_leggi then 
+//						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_saveas", "nullo"))
+//						if k_return = "nullo" then
+//							k_return = trim(GetCurrentDirectory ( )) + "\save_dw"
+//							k_rc = SetProfileString(k_file, "ambiente", "arch_saveas", trim(k_return))
+//						end if
+//					else
+//						k_return = string(SetProfileString(k_file, "ambiente", "arch_saveas", k_key_2))
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 	
-			case "path_db"
-				if fileexists(k_file) then
-					k_return = profilestring ( k_file, "ambiente", "arch_base", ".")
-				else
-					k_return = "NF"
-				end if
+//			case "path_db"
+//				if fileexists(k_file) then
+//					k_return = profilestring ( k_file, "ambiente", "arch_base", ".")
+//				else
+//					k_return = "NF"
+//				end if
 	
-			case "path_help"
-				if fileexists(k_file) then
-					k_return = profilestring ( k_file, "ambiente", "pathHelp", "nullo")
-					if k_return = "nullo" then
-						k_return = trim(GetCurrentDirectory ( )) + "\help"
-//						k_return = trim(profilestring ( k_file, "ambiente", "path_centrale", "nullo")) 
-//						k_rc = SetProfileString(k_file, "ambiente", "pathHelp", trim(k_return))
-					end if
-				else
-					k_return = "NF"
-				end if
+//			case "path_help"
+//				if fileexists(k_file) then
+//					k_return = profilestring ( k_file, "ambiente", "pathHelp", "nullo")
+//					if k_return = "nullo" then
+//						k_return = trim(GetCurrentDirectory ( )) + "\help"
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 				
 			case "arch_riba"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_riba", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( )) + "\riba.txt"
-							k_rc = SetProfileString(k_file, "ambiente", "arch_riba", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_riba", k_key_2))
+				kst_profilestring_ini.file = "ambiente"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+					
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_riba", "nullo"))
+					if k_return = "nullo" then
+						k_return = trim(GetCurrentDirectory ( )) + "\riba.txt"
+						k_rc = SetProfileString(k_file, "ambiente", "arch_riba", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "ambiente", "arch_riba", k_key_2))
 				end if
 	
 			case "arch_pilota"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_pilota", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( )) + "\fpilota"
-							k_rc = SetProfileString(k_file, "ambiente", "arch_pilota", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_pilota", k_key_2))
+				kst_profilestring_ini.file = "ambiente"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_pilota", "nullo"))
+					if k_return = "nullo" then
+						k_return = trim(GetCurrentDirectory ( )) + "\fpilota"
+						k_rc = SetProfileString(k_file, "ambiente", "arch_pilota", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "ambiente", "arch_pilota", k_key_2))
 				end if
 	
 			case "arch_graf"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_graf", "nullo"))
-						if k_return = "nullo" then
+				kst_profilestring_ini.file = "login"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+//				if fileexists(k_file) then
+//					if k_key = k_leggi then 
+//						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_graf", "nullo"))
+//						if k_return = "nullo" then
 							k_return = kguo_path.get_base_del_server( )
 							if k_return > " " then
 								k_return += "\ICONE"
 								k_rc = SetProfileString(k_file, "ambiente", "arch_graf", trim(k_return))
 							else
-								k_return = trim(GetCurrentDirectory ( )) + "\ICONE"
+								k_return = kguo_path.get_path_app() + kkg.path_sep + "ICONE"
 							end if
 							
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_graf", k_key_2))
-					end if
-				else
-					k_return = "NF"
-				end if
+//						end if
+//					else
+//						k_return = string(SetProfileString(k_file, "ambiente", "arch_graf", k_key_2))
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 	
-			case "arch_4gi"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_4gi", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( ))
-							k_rc = SetProfileString(k_file, "ambiente", "arch_4gi", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "arch_4gi", k_key_2))
-					end if
-				else
-					k_return = "NF"
-				end if
+//			case "arch_4gi"
+//				if fileexists(k_file) then
+//					if k_key = k_leggi then 
+//						k_RETURN = trim(profilestring ( k_file, "ambiente", "arch_4gi", "nullo"))
+//						if k_return = "nullo" then
+//							k_return = trim(GetCurrentDirectory ( ))
+//							k_rc = SetProfileString(k_file, "ambiente", "arch_4gi", trim(k_return))
+//						end if
+//					else
+//						k_return = string(SetProfileString(k_file, "ambiente", "arch_4gi", k_key_2))
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 	
-			case "temp" //temporaneo 
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "temp", "nullo"))
-						if k_return = "nullo" then
-							k_return = trim(GetCurrentDirectory ( )) + "\temp"
-							k_rc = SetProfileString(k_file, "ambiente", "temp", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "temp", k_key_2))
-					end if
-				else
-					k_return = "NF"
-				end if
+			case "temp" //OBSOPLETO chiamare direttamente kguo_path.get_temp( )  
+				k_return = kguo_path.get_temp( ) 
+//				if fileexists(k_file) then
+//					if k_key = k_leggi then 
+//						k_RETURN = trim(profilestring ( k_file, "ambiente", "temp", "nullo"))
+//						if k_return = "nullo" then
+//							k_return = trim(GetCurrentDirectory ( )) + "\temp"
+//							k_rc = SetProfileString(k_file, "ambiente", "temp", trim(k_return))
+//						end if
+//					else
+//						k_return = string(SetProfileString(k_file, "ambiente", "temp", k_key_2))
+//					end if
+//				else
+//					k_return = "NF"
+//				end if
 	
 			case "temp_server" //temporaneo sul server
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", "temp_server", "nullo"))
-						if k_return = "nullo" then
-							k_return = kGuo_path.get_procedura() + "\temp"
-							k_rc = SetProfileString(k_file, "ambiente", "temp_server", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", "temp_server", k_key_2))
+				kst_profilestring_ini.file = "ambiente"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "ambiente", "temp_server", "nullo"))
+					if k_return = "nullo" then
+						k_return = kGuo_path.get_path_app() + "\temp"
+						k_rc = SetProfileString(k_file, "ambiente", "temp_server", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "ambiente", "temp_server", k_key_2))
 				end if
 	
 			case "pathfileaccessname"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "Database", "pathfileaccessname", "nullo"))
-						if k_return = "nullo" then
-							k_return = ""
-							k_rc = SetProfileString(k_file, "Database", "pathfileaccessname", trim(k_return))
-						end if
-					else
-					//	k_return = string(SetProfileString(k_file, "ambiente", "pathfileaccessname", k_key_2))
+				kst_profilestring_ini.file = "database"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "Database", "pathfileaccessname", "nullo"))
+					if k_return = "nullo" then
+						k_return = ""
+						k_rc = SetProfileString(k_file, "Database", "pathfileaccessname", trim(k_return))
 					end if
-				else
-					k_return = "NF"
 				end if
 	
 			case "servername"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "Database", "servername", "nullo"))
-						if k_return = "nullo" then
-							k_return = "1"
-							k_rc = SetProfileString(k_file, "Database", "servername", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "Database", "servername", k_key_2))
+				kst_profilestring_ini.file = "database"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "Database", "servername", "nullo"))
+					if k_return = "nullo" then
+						k_return = "1"
+						k_rc = SetProfileString(k_file, "Database", "servername", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "Database", "servername", k_key_2))
 				end if
 	
 			case "nascondi_treeview"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "autogestiti", "nascondi_treeview", "nullo"))
-						if k_return = "nullo" then
-							k_return = "1"
-							k_rc = SetProfileString(k_file, "autogestiti", "nascondi_treeview", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "autogestiti", "nascondi_treeview", k_key_2))
+				kst_profilestring_ini.file = "treeview"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "treeview", "nascondi_treeview", "nullo"))
+					if k_return = "nullo" then
+						k_return = "1"
+						k_rc = SetProfileString(k_file, "treeview", "nascondi_treeview", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "treeview", "nascondi_treeview", k_key_2))
 				end if
 	
 			case "listview_view"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "autogestiti", "listview_view", "nullo"))
-						if k_return = "nullo" then
-							k_return = "0"
-							k_rc = SetProfileString(k_file, "autogestiti", "listview_view", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "autogestiti", "listview_view", k_key_2))
+				kst_profilestring_ini.file = "treeview"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "treeview", "listview_view", "nullo"))
+					if k_return = "nullo" then
+						k_return = "0"
+						k_rc = SetProfileString(k_file, "treeview", "listview_view", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "treeview", "listview_view", k_key_2))
 				end if
 
 			case "treeview_listview_dim"
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "autogestiti", "treeview_listview_dim", "nullo"))
-						if k_return = "nullo" then
-							k_return = "0"
-							k_rc = SetProfileString(k_file, "autogestiti", "treeview_listview_dim", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "autogestiti", "treeview_listview_dim", k_key_2))
+				kst_profilestring_ini.file = "treeview"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "treeview", "treeview_listview_dim", "nullo"))
+					if k_return = "nullo" then
+						k_return = "0"
+						k_rc = SetProfileString(k_file, "treeview", "treeview_listview_dim", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "treeview", "treeview_listview_dim", k_key_2))
 				end if
 	
 			case "moduli" //dimensione stampa 
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "moduli", "tabulato", "nullo"))
-						if k_return = "nullo" then
-							k_return = "1"
-							k_rc = SetProfileString(k_file, "moduli", "tabulato", trim(k_return))
-						end if
-					else
-						k_return = string(SetProfileString(k_file, "moduli", "tabulato", k_key_2))
+				kst_profilestring_ini.file = "moduli"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "moduli", "tabulato", "nullo"))
+					if k_return = "nullo" then
+						k_return = "1"
+						k_rc = SetProfileString(k_file, "moduli", "tabulato", trim(k_return))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "moduli", "tabulato", k_key_2))
 				end if
 
 			case "generico."
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), "nullo"))
-						if k_return = "nullo" then
-							k_return = k_key_2
-							k_rc = SetProfileString(k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), k_key_2)
-						end if
-					else
-						k_return = string(SetProfileString(k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), k_key_2))
+				kst_profilestring_ini.file = "generico"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), "nullo"))
+					if k_return = "nullo" then
+						k_return = k_key_2
+						k_rc = SetProfileString(k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), k_key_2)
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, LeftA(k_key_3, 8), MidA(k_key_3, 9), k_key_2))
 				end if
 
 //--- generico, ovvero il nome passato (k_key_1) diventa anche il tag nel config nella sezione AMBIENTE
-//			case "arch_esolver_anag"
 			case else
-				if fileexists(k_file) then
-					if k_key = k_leggi then 
-						k_RETURN = trim(profilestring ( k_file, "ambiente", k_key_1, "nullo"))
-						if k_return = "nullo" then
-							k_return = ""
-							if k_key_2 > " " and k_key_2 <> "nullo" then 
-								k_rc = SetProfileString(k_file, "ambiente",  k_key_1, k_key_2)
-							else
-								k_rc = SetProfileString(k_file, "ambiente",  k_key_1, "")
-							end if
+				kst_profilestring_ini.file = "ambiente"
+				k_file = profilestring_get_filename(kst_profilestring_ini)	//--- imposta e verifica il nome del file
+				
+				if k_key = k_leggi then 
+					k_RETURN = trim(profilestring ( k_file, "ambiente", k_key_1, "nullo"))
+					if k_return = "nullo" then
+						k_return = ""
+						if k_key_2 > " " and k_key_2 <> "nullo" then 
+							k_rc = SetProfileString(k_file, "ambiente",  k_key_1, k_key_2)
+						else
+							k_rc = SetProfileString(k_file, "ambiente",  k_key_1, "")
 						end if
-					else
-						k_return = string(SetProfileString(k_file, "ambiente", k_key_1, k_key_2))
 					end if
 				else
-					k_return = "NF"
+					k_return = string(SetProfileString(k_file, "ambiente", k_key_1, k_key_2))
 				end if
 				
 		end choose
 	
 	end if
-	
-	if k_return = "NF" then
-		k_return = ""
-		messagebox ( "Fallito Accesso in Archivio di Configurazione", &
-		             "Archivio non trovato: " + kkg.acapo + trim(k_file) + kkg.acapo + &
-						 "Prego, Uscire dall'Applicazione.", &
-						 stopsign!)
-	end if
 
-	if k_key = k_leggi then 
-		k_key_2 = k_return 
-	end if
+catch (uo_exception kuo_exception)
+	k_return = "NF"
+	k_file = kst_profilestring_ini.file
+	
+end try
+
+if k_return = "NF" then
+	k_return = ""
+	messagebox ( "Fallito Accesso in Archivio di Configurazione", &
+					 "Archivio non trovato: " + kkg.acapo + trim(k_file) + kkg.acapo + &
+					 "Prego, Uscire dall'Applicazione.", &
+					 stopsign!)
+end if
+
+if k_key = k_leggi then 
+	k_key_2 = k_return 
+end if
 	
 
 return trim(k_return)
@@ -3523,6 +3413,208 @@ public subroutine u_set_ds_change_name_tab_name (ref datawindow kdw_1, string k_
 	
 
 end subroutine
+
+public function string profilestring_crea_file (string k_path, string k_nome_file);//===
+//=== Crea Nuovo File Vuoto
+//=== Input: 
+//===   Nome file comprensivo del path
+//===              I=Aggiungi messaggio Informativo
+//=== 
+//===
+//===   Ritorna: 1 = Operazione non riuscita
+//===
+int k_file 
+int k_bytes, k_ctr, k_ctr_1, k_bytes_f, k_righe
+string k_record, k_return = "1"
+
+	
+	SetPointer(kkg.pointer_attesa)
+
+	if not (FileExists(k_path + k_nome_file)) then		
+			
+		k_file = fileopen(k_path + k_nome_file, linemode!, Write! , LockWrite! )
+	
+		if k_file > 0 then
+			
+			k_bytes = filewrite(k_file, "File creato in automatico il " + string(now(), "dd mmm yyyy hh:mm:ss"))
+			
+			k_bytes = filewrite(k_file, " ") //Una riga vuota
+
+			k_return = "0"
+
+			fileclose(k_file)
+	
+		end if
+	end if	
+
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function string profilestring_get_filename (ref st_profilestring_ini kst_profilestring_ini);/*
+ Imposta il nome archivio .ini 
+	Inp/Out: st_profilestring_ini
+				utente     	= utente di login (x defautl è il codice_utente di lavoro)
+				file    		= nome logico del file (indicare solo se non è standard) 
+            esito   	 	= torna 0 = OK, 1=ERRORE GRAVE, 2=non autorizzato all'accesso al file 
+				nome_file	= in OUTPUT, nome del file 
+				path        = cartella del nome file con il \ alla fine 
+	rit:
+*/
+string k_PathUser
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	kst_profilestring_ini.esito = "0"
+	if trim(kst_profilestring_ini.utente) > " " then
+	else
+		kst_profilestring_ini.utente = string(kGuo_utente.get_id_utente(),"0")
+	end if
+	
+	kst_profilestring_ini.path = trim(kGuo_path.get_base()) // cartella dei file .INI 	
+	k_PathUser = KKG.PATH_SEP + trim(kst_profilestring_ini.utente) + KKG.PATH_SEP 
+
+	choose case lower(trim(kst_profilestring_ini.file))
+			
+		case "database"
+			kst_profilestring_ini.nome_file = trim(KKI_NOME_PROFILE_BASE) 
+			k_PathUser = KKG.PATH_SEP
+			kst_profilestring_ini.path = trim(kGuo_path.get_path_app()) // Eccezione questo file è nella cartella dell'APP
+//--- il File esiste nella cartella radice?
+			if not FileExists (kst_profilestring_ini.path + k_PathUser + kst_profilestring_ini.nome_file ) then
+				kst_profilestring_ini.esito = "1"
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
+				kguo_exception.kist_esito.sqlerrtext = "Archivio di Configurazione " &
+							+ kkg.acapo + kst_profilestring_ini.path + k_PathUser + kst_profilestring_ini.nome_file + " " &
+							+ kkg.acapo + "non trovato. " 
+				kguo_exception.kist_esito.esito = kkg_esito.ko
+				throw kguo_exception		
+			end if
+			
+		case "ambiente"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_USER) 	
+			
+		case "base_personale"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_USER) 	
+			
+		case "login"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_LOGIN) 	
+			
+		case "login0"
+			k_PathUser = KKG.PATH_SEP + "0" + KKG.PATH_SEP
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_LOGIN) 	
+	
+		case "treeview"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_TREEVIEW) 	
+	
+		case "window"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_WIN) 	
+	
+		case "toolbar"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_TOOLBAR) 	
+	
+		case "stampe"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_PRN) 	
+	
+		case "risorse_grafiche"
+			kst_profilestring_ini.titolo = "ambiente"
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_USER) 	
+			
+		case else
+			kst_profilestring_ini.nome_file = trim(KKi_NOME_PROFILE_BASE_USER) 	
+	
+	end choose
+	
+	kst_profilestring_ini.path += k_PathUser 
+	profilestring_build_file(kst_profilestring_ini.path, kst_profilestring_ini.nome_file )
+	
+catch (uo_exception kuo_exception)
+	kst_profilestring_ini.esito = "1"
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return kst_profilestring_ini.path + kst_profilestring_ini.nome_file 
+
+
+
+end function
+
+private function string profilestring_build_file (ref string a_path, string a_filename) throws uo_exception;/*
+ Genera o copia il file .ini 
+	Inp: path radice dove mettere i file INI
+	     path_user path per distinfuere gli INI utenti
+		  nome file
+	Out: st_profilestring_ini
+            esito   	 	= torna 0 = OK, 1=ERRORE GRAVE, 2=non autorizzato all'accesso al file 
+				errortext
+	rit:
+*/
+kuf_file_explorer kuf1_file_explorer
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+//--- verifica se esiste il file nella cartella BASE (esempio 'path_app+\db') 	
+	if not FileExists(a_path + a_filename ) then 
+
+//--- Crea la cartella se non esiste
+		if not (DirectoryExists(a_path)) then		
+			kuf1_file_explorer = create kuf_file_explorer
+			kuf1_file_explorer.u_directory_create(a_path)
+			if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+		end if
+		
+//--- altrimenti verfica che il file sia sul path dell'APP
+		if FileExists (kGuo_path.get_path_app() + KKG.PATH_SEP + a_filename ) then
+			
+			if Filecopy (kGuo_path.get_path_app() + KKG.PATH_SEP + a_filename, &
+							a_path + a_filename, false) = -1 then
+				kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
+				kguo_exception.kist_esito.sqlerrtext = "Archivio di configurazione delle personalizzazioni dell'Applicazione " &
+						+ kkg.acapo + kGuo_path.get_path_app() + KKG.PATH_SEP + a_filename + " " &
+						+ kkg.acapo + "non copiato nella cartella " &
+						+ kkg.acapo + a_path + a_filename + " " 
+				throw kguo_exception
+			end if
+		else
+//--- se non esiste lo CREA VUOTO
+			kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn
+			kguo_exception.kist_esito.sqlerrtext = "Genera Archivio di Configurazione " &
+							+ kkg.acapo + a_path + a_filename + " " &
+							+ kkg.acapo + "perchè non trovato. " 
+			kguo_exception.scrivi_log( )
+//---- crea nuovo file vuoto
+			profilestring_crea_file(a_path, a_filename)
+			
+		end if
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return a_filename
+
+
+
+end function
 
 on kuf_data_base.create
 call super::create

@@ -13,10 +13,10 @@ public function integer u_tree_riempi_treeview (ref kuf_treeview kuf1_treeview, 
 public function integer u_tree_riempi_listview (ref kuf_treeview kuf1_treeview, string k_tipo_oggetto)
 public function st_esito tb_delete (ref st_wm_pkl_web kst_wm_pkl_web)
 public function integer u_tree_open (string k_modalita, st_wm_pklist kst_wm_pklist[], ref datawindow kdw_anteprima)
-public function long get_wm_pklist_web_xml (ref st_wm_pkl_web kst_wm_pkl_web_file, ref st_wm_pkl_web kst_wm_pkl_web_par[]) throws uo_exception
 public function long importa_wm_pklist_web () throws uo_exception
 private function long set_wm_pklist_web_to_wm_tab (ref st_wm_pkl_web kst_wm_pkl_web[], ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception
 public function integer get_file_wm_pklist_web (ref st_wm_pkl_web kst_wm_pkl_web[]) throws uo_exception
+public function long get_wm_pklist_web_xml (ref st_wm_pkl_web kst_wm_pkl_web_file, ref st_wm_pkl_web kst_wm_pkl_web_out[]) throws uo_exception
 end prototypes
 
 public function integer u_tree_riempi_treeview (ref kuf_treeview kuf1_treeview, string k_tipo_oggetto);//
@@ -592,12 +592,341 @@ return k_return
 
 end function
 
-public function long get_wm_pklist_web_xml (ref st_wm_pkl_web kst_wm_pkl_web_file, ref st_wm_pkl_web kst_wm_pkl_web_par[]) throws uo_exception;//
+public function long importa_wm_pklist_web () throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//--- Importa Packing-List da file XML nella Tabella 'grezza' ReceiptGammarad
+//---	
+//---
+//---	inp: kst_tab_wm_receiptgammarad. 
+//---	out: 
+//---	rit: nr. dei Pcking Importati 
+//---   Lancia EXCEPTION se errore
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+long k_return=0
+long k_id_wm_pklist_importato=0, k_nr_file_xml=0, k_ind_file=0, k_nr_ws_receiptgammarad=0, k_ctr_ws_receiptgammarad=0, k_nr_wm_pkl_web=0
+long k_rc
+string k_nome_file=""
+st_esito kst_esito
+st_wm_pklist kst_wm_pklist
+st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
+st_wm_pkl_web kst_wm_pkl_web, kst_wm_pkl_web_file[], kst_wm_pkl_web_da_imp[], kst_wm_pkl_web_da_imp_NULLA[]
+st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad [], kst_tab_wm_receiptgammarad_NULLA[]
+kuf_utility kuf1_utility
+kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
+kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
+
+					
+try
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+	kuf1_utility = create kuf_utility
+	kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
+	kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
+			
+//--- leggo configurazione x lo scambio dati
+	if not kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg) then
+		return 0
+	end if
+
+//--- parte l'importazione solo se Operazione di Importazione PACKING-LIST Attiva
+	if kst_tab_wm_pklist_cfg.blocca_importa = kuf1_wm_pklist_cfg.ki_blocca_importa_dam2000 then
+		
+//--- Leggo i nomi dei file da importare
+		kst_wm_pkl_web_file[100].nome_file = " "   // x sicurezza crea intanto una tabellina grande 100 elementi 
+		k_nr_file_xml = get_file_wm_pklist_web(kst_wm_pkl_web_file[]) 
+
+		for k_ind_file = 1 to k_nr_file_xml 
+			
+			kst_wm_pkl_web.nome_file = kst_wm_pkl_web_file[k_ind_file].nome_file
+
+			if len(trim(kst_wm_pkl_web.nome_file)) > 0 then   // se c'e' un file....
+	//--- muove il file XML nella cartella dei flussi 'IN LAVORAZIONE'
+				if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav") 
+				kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\"+  kst_wm_pkl_web_file[k_ind_file].nome_file,  &
+																			 kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
+				kst_wm_pkl_web.path_file = kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav"
+				
+	//--- Legge le Packing-list in formato XML 
+				kst_wm_pkl_web_da_imp[] = kst_wm_pkl_web_da_imp_NULLA[]
+				k_nr_wm_pkl_web = get_wm_pklist_web_xml( kst_wm_pkl_web, kst_wm_pkl_web_da_imp[]) 
+				if k_nr_wm_pkl_web > 0 then
+					
+//--- Imposta area ReceiptGammarad il Packing-list in formato XML 
+					kst_tab_wm_receiptgammarad[] = kst_tab_wm_receiptgammarad_NULLA[]
+					k_nr_ws_receiptgammarad = set_wm_pklist_web_to_wm_tab( kst_wm_pkl_web_da_imp[], kst_tab_wm_receiptgammarad[]) 
+				
+//--- Se Esiste già, SCARTA
+					k_rc = kuf1_wm_receiptgammarad.if_exists_packinglistcode(kst_tab_wm_receiptgammarad[1])
+					if k_rc > 0 then
+
+//--- muove il file nella cartella dei flussi SCARTATI			
+						if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati") 
+						kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file,  &
+																					 kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
+		
+						kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
+						kguo_exception.kist_esito.sqlerrtext = "Packing List: " + kst_tab_wm_receiptgammarad[1].packinglistcode &
+																	+ " SCARTATO perchè già Presente con ID " + string(k_rc) &
+																	+ ".~n~rFile scartato: " + kst_wm_pkl_web_file[k_ind_file].nome_file
+						throw kguo_exception
+					end if
+
+//--- INSERT nella tabella di PACKING-LIST
+					k_rc = kuf1_wm_receiptgammarad.add( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
+					if k_rc > 0 then
+						k_return ++
+					end if
+
+//--- muove il file XML nella cartella dei flussi IMPORTATI			
+					if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\importato") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\importato") 
+					kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file,  &
+																				 kst_wm_pkl_web_file[k_ind_file].path_file+"\importato\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
+	
+					
+				end if
+			end if
+					
+		end for
+	else
+		kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
+		kguo_exception.setmessage( "NON eseguito. Se si vuole importare i Pkl Web del Cliente, Attivare le Operazioni in Proprietà Packing-List da Proprietà della Procedura.")
+		throw kguo_exception
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg	
+	if isvalid(kuf1_wm_receiptgammarad) then destroy kuf1_wm_receiptgammarad
+	
+end try
+
+
+return k_return
+
+
+end function
+
+private function long set_wm_pklist_web_to_wm_tab (ref st_wm_pkl_web kst_wm_pkl_web[], ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Converte i Packing-List Web nalla struct array kst_tab_wm_receiptgammarad []
+//---	inp: st_wm_pkl_web.nome_file è il nome file da importare 
+//---	out: kst_tab_wm_receiptgammarad[]: array con le righe del packing-list letto
+//---	rit: nr pkl trovati
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+long k_return=0
+string k_rc, k_file=""
+int k_rcn, k_file_ind, k_anno, k_mese, k_giorno
+long k_ind=0
+boolean k_trovate_note_lotto = false
+datetime k_datetime_current
+st_esito kst_esito
+st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_null
+kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
+ 
+ 
+	try
+
+		kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
+
+		k_datetime_current = kguo_g.get_datetime_current( )
+		
+//--- preparo la struct a NULL		
+		kuf1_wm_receiptgammarad.set_null(kst_tab_wm_receiptgammarad_null)
+		
+		for k_file_ind = 1 to upperbound(kst_wm_pkl_web[])
+
+			if kst_wm_pkl_web[k_file_ind].idpkl > 0 then
+				
+				if len(trim( kst_wm_pkl_web[k_file_ind].barcode)) > 0 then
+					
+					k_ind++
+
+//--- inizializzo la riga				
+					kst_tab_wm_receiptgammarad[k_ind] = kst_tab_wm_receiptgammarad_null
+				
+//--- riempie le righe con il Packing-list WEB da importare
+
+					kst_tab_wm_receiptgammarad[k_ind].idpkl = kst_wm_pkl_web[k_file_ind].idpkl  // id del pklist
+
+//--- codice packing-list
+					if trim(kst_wm_pkl_web[k_file_ind].tipo_invio) = "FTP" then // se questo campo è valorizzato a FTP allora compongo il codice packing-list fregandomene del codice_pl
+						kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "ftp_" +string(kst_wm_pkl_web[k_file_ind].id_cliente)+"_"+ string(kst_wm_pkl_web[k_file_ind].idpkl) 
+					else
+						if len(trim(kst_wm_pkl_web[k_file_ind].codice_pl)) > 0 then // come richiesto da Zanetti+Mario se questo campo è val allora metto questo codice
+							kst_tab_wm_receiptgammarad[k_ind].packinglistcode = trim(kst_wm_pkl_web[k_file_ind].codice_pl)
+						else
+							kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "www_" +string(kst_wm_pkl_web[k_file_ind].id_cliente)+"_"+ string(kst_wm_pkl_web[k_file_ind].idpkl) 
+						end if
+					end if
+
+//--- converte la data di invio
+					if len(trim(kst_wm_pkl_web[k_file_ind].data_invio)) > 0 then
+						k_giorno = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),1,2))
+						k_mese = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),4,2))
+						k_anno = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),7,4))
+						kst_tab_wm_receiptgammarad[k_ind].transmissiondate = datetime(date(k_anno,k_mese,k_giorno), time(kst_wm_pkl_web[k_file_ind].ora_invio))
+					else
+						kst_tab_wm_receiptgammarad[k_ind].transmissiondate = k_datetime_current // datetime(date(today()),time(now()))
+					end if
+	
+					kst_tab_wm_receiptgammarad[k_ind].receiptdate = k_datetime_current //datetime(date(today()),time(now()))
+					kst_tab_wm_receiptgammarad[k_ind].ddtcode	= upper(kst_wm_pkl_web[k_file_ind].nrddt)
+					kst_tab_wm_receiptgammarad[k_ind].ddtdate = datetime(date(kst_wm_pkl_web[k_file_ind].dtddt ))	
+					kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode	= trim(kst_wm_pkl_web[k_file_ind].mandante)
+					kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = trim(kst_wm_pkl_web[k_file_ind].ricevente)	
+					kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = trim(kst_wm_pkl_web[k_file_ind].fatturato)
+					kst_tab_wm_receiptgammarad[k_ind].specification = upper(kst_wm_pkl_web[k_file_ind].sc_cf)
+					kst_tab_wm_receiptgammarad[k_ind].contract	= upper(kst_wm_pkl_web[k_file_ind].mc_co)
+					kst_tab_wm_receiptgammarad[k_ind].externalpalletcode = upper(kst_wm_pkl_web[k_file_ind].barcode)
+					kst_tab_wm_receiptgammarad[k_ind].palletlength = len(trim(kst_tab_wm_receiptgammarad[k_ind].externalpalletcode))
+//---25.06.2009 su rich di Zanetti					kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
+					if kst_wm_pkl_web[k_file_ind].barcode_qta_scatole > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].palletquantity = kst_wm_pkl_web[k_file_ind].barcode_qta_scatole 
+					else
+						kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
+					end if
+
+//--- quando arriva via Internet viene riempito il tab <codice_lotto> mentre dal cliente ARAN il tag <barcode_lotto> 
+					if len(trim(kst_wm_pkl_web[k_file_ind].codice_lotto )) > 0 then
+						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kst_wm_pkl_web[k_file_ind].codice_lotto ))
+					else
+						if len(trim(kst_wm_pkl_web[k_file_ind].barcode_lotto )) > 0 then
+							kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_lotto ))
+						else
+							kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(kst_tab_wm_receiptgammarad[k_ind].packinglistcode)
+						end if
+					end if
+					kst_tab_wm_receiptgammarad[k_ind].orderdate = k_datetime_current //datetime(date(today()),time(now()))
+
+//--- altri dati circa il singolo barcode
+					kst_tab_wm_receiptgammarad[k_ind].customerItem = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_item ))
+//??????					kst_tab_wm_receiptgammarad[k_ind].customerLot = trim(kst_wm_pkl_web[k_file_ind].barcode_note )
+					kst_tab_wm_receiptgammarad[k_ind].PesoNetto = kst_wm_pkl_web[k_file_ind].barcode_peso_netto
+					kst_tab_wm_receiptgammarad[k_ind].PesoLordo = kst_wm_pkl_web[k_file_ind].barcode_peso_lordo
+					kst_tab_wm_receiptgammarad[k_ind].QuantitaSacchi = kst_wm_pkl_web[k_file_ind].barcode_qta_pezzi 
+					kst_tab_wm_receiptgammarad[k_ind].barcodewo = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_wo ))
+
+					
+//--- scompatta il campo note, carica le NOTE del cliente solo sulla prima riga del Lotto!
+					kst_tab_wm_receiptgammarad[k_ind].note_1 = ""
+					kst_tab_wm_receiptgammarad[k_ind].note_2 = ""
+					kst_tab_wm_receiptgammarad[k_ind].note_3 = ""
+					if not k_trovate_note_lotto then
+						if (kst_wm_pkl_web[k_file_ind].note_lotto ) > " " then
+							k_trovate_note_lotto = true
+							kst_tab_wm_receiptgammarad[1].note_1 = trim(kst_wm_pkl_web[k_file_ind].note_lotto)
+						end if
+					end if
+					
+				end if				
+			end if				
+		end for
+	
+		k_return = k_ind
+		
+	catch (uo_exception kuo_exception)
+//		kst_esito.esito = kkg_esito.bug
+//		kst_esito.sqlcode = k_rcn
+//		kst_esito.SQLErrText = "Importazione Nuovi 'Packing-List' fallito!  ~n~r "  
+//		kguo_exception.set_esito(kst_esito)
+		throw kuo_exception
+		
+		
+	finally
+		destroy kuf1_wm_receiptgammarad			
+		
+	end try
+			
+
+
+return k_return
+
+
+end function
+
+public function integer get_file_wm_pklist_web (ref st_wm_pkl_web kst_wm_pkl_web[]) throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Trova i nomi file di Packing-List Web presenti nella cartella di importazione
+//---	inp: st_wm_pkl_web vuoto
+//---	out: st_wm_pkl_web array con il path e il nome da importare
+//---	rit: nr file da importare
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+integer k_return=0
+boolean k_b=false
+string k_rc
+int k_rcn, k_file_ind, k_max_array
+int k_ind, k_nr_file_dirlist
+datastore kds_dirlist
+st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
+kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
+//listbox klistbox
+kuf_file_explorer kuf1_file_explorer
+ 
+ 
+	try
+		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
+		kuf1_file_explorer = create kuf_file_explorer
+
+//--- piglia il path di dove sono i Packing-list Web
+		kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg)
+
+//--- piglia l'elenco dei file xml contenuti nella cartella
+		kds_dirlist = kuf1_file_explorer.DirList( &
+					kuf1_file_explorer.u_add_path_and_filename(kst_tab_wm_pklist_cfg.cartella_pkl_da_web, "*.xml"))
+			
+		k_nr_file_dirlist = kds_dirlist.rowcount( )
+
+		k_max_array = upperbound(kst_wm_pkl_web[])
+		if k_max_array = 0 then k_max_array = 100
+		if k_nr_file_dirlist > k_max_array then k_nr_file_dirlist = k_max_array // meglio non superare la dim dell'array
+
+		for k_file_ind = 1 to k_nr_file_dirlist
+		
+//			k_file_wm_pklist_web[k_file_ind] = kst_tab_wm_pklist_cfg.cartella_pkl_da_web + "\" + k_file
+			kst_wm_pkl_web[k_file_ind].nome_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
+			kst_wm_pkl_web[k_file_ind].path_file = kst_tab_wm_pklist_cfg.cartella_pkl_da_web
+			
+		end for
+
+		k_return = k_nr_file_dirlist
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+		
+		
+		finally
+			if isvalid(kds_dirlist) then destroy kds_dirlist
+			if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
+			if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+		
+	end try
+			
+
+
+return k_return
+
+
+end function
+
+public function long get_wm_pklist_web_xml (ref st_wm_pkl_web kst_wm_pkl_web_file, ref st_wm_pkl_web kst_wm_pkl_web_out[]) throws uo_exception;//
 //------------------------------------------------------------------------------------------------------------------------------------
 //---
 //---	Riempie Packing-List Web nalla struct array st_wm_pkl_web[] 
 //---	inp: kst_wm_pkl_web_file: nome del file contenente il pkl
-//---	out: st_wm_pkl_web_par[]: array con le righe del packing-list-web lette
+//---	out: st_wm_pkl_web_out[]: array con le righe del packing-list-web lette
 //---	rit: nr pkl trovati
 //---	x ERRORE lancia UO_EXCEPTION
 //---
@@ -839,8 +1168,7 @@ kuf_wm_pbdom_xml_pkl_web kuf1_wm_pbdom_xml_pkl_web
 //----------------------------------------------------------------------------------------------------------------------------------------------------------	
 
 		for k_nr_etichetta = 1 to k_ind_pkl_etichette
-		
-		
+				
 //--- Riempie dati generici
 			if isnull(kst_wm_pkl_web.mandante) or len(kst_wm_pkl_web.mandante) = 0 then
 				if kst_wm_pkl_web.id_cliente > 0 then
@@ -895,13 +1223,12 @@ kuf_wm_pbdom_xml_pkl_web kuf1_wm_pbdom_xml_pkl_web
 
 //--- riempio l'array da ritornare
 			k_ind_rec++
-			kst_wm_pkl_web_par[k_ind_rec] = kst_wm_pkl_web
+			kst_wm_pkl_web_out[k_ind_rec] = kst_wm_pkl_web
 		
 		end for
 	
 		k_return = k_ind_rec  // torna il nr delle righe del packing
 
-	
 //----------------------------------------------------------------------------------------------------------------------------------------------------------	
 	
 	catch (uo_exception kuo_exception)
@@ -921,328 +1248,6 @@ kuf_wm_pbdom_xml_pkl_web kuf1_wm_pbdom_xml_pkl_web
 		
 	end try
 			
-
-return k_return
-
-
-end function
-
-public function long importa_wm_pklist_web () throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//--- Importa Packing-List da file XML nella Tabella 'grezza' ReceiptGammarad
-//---	
-//---
-//---	inp: kst_tab_wm_receiptgammarad. 
-//---	out: 
-//---	rit: nr. dei Pcking Importati 
-//---   Lancia EXCEPTION se errore
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-long k_return=0
-long k_id_wm_pklist_importato=0, k_nr_file_xml=0, k_ind_file=0, k_nr_ws_receiptgammarad=0, k_ctr_ws_receiptgammarad=0, k_nr_wm_pkl_web=0
-long k_rc
-string k_nome_file=""
-st_esito kst_esito
-st_wm_pklist kst_wm_pklist
-st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-st_wm_pkl_web kst_wm_pkl_web, kst_wm_pkl_web_file[], kst_wm_pkl_web_da_imp[], kst_wm_pkl_web_da_imp_NULLA[]
-st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad [], kst_tab_wm_receiptgammarad_NULLA[]
-kuf_utility kuf1_utility
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
-
-					
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	kuf1_utility = create kuf_utility
-	kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-	kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
-			
-//--- leggo configurazione x lo scambio dati
-	if kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg) then
-		
-//--- Leggo i nomi dei file da importare
-		kst_wm_pkl_web_file[100].nome_file = " "   // x sicurezza crea intanto una tabellina grande 100 elementi 
-		k_nr_file_xml = get_file_wm_pklist_web(kst_wm_pkl_web_file[]) 
-
-		for k_ind_file = 1 to k_nr_file_xml 
-			
-			kst_wm_pkl_web.nome_file = kst_wm_pkl_web_file[k_ind_file].nome_file
-
-			if len(trim(kst_wm_pkl_web.nome_file)) > 0 then   // se c'e' un file....
-	//--- muove il file XML nella cartella dei flussi 'IN LAVORAZIONE'
-				if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav") 
-				kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\"+  kst_wm_pkl_web_file[k_ind_file].nome_file,  &
-																			 kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
-				kst_wm_pkl_web.path_file = kst_wm_pkl_web_file[k_ind_file].path_file+"\inLav"
-				
-	//--- Legge le Packing-list in formato XML 
-				kst_wm_pkl_web_da_imp[] = kst_wm_pkl_web_da_imp_NULLA[]
-				k_nr_wm_pkl_web = get_wm_pklist_web_xml( kst_wm_pkl_web, kst_wm_pkl_web_da_imp[]) 
-				if  k_nr_wm_pkl_web > 0 then
-					
-//--- Imposta area ReceiptGammarad il Packing-list in formato XML 
-					kst_tab_wm_receiptgammarad[] = kst_tab_wm_receiptgammarad_NULLA[]
-					k_nr_ws_receiptgammarad = set_wm_pklist_web_to_wm_tab( kst_wm_pkl_web_da_imp[], kst_tab_wm_receiptgammarad[]) 
-				
-//--- Se Esiste già, SCARTA
-					k_rc = kuf1_wm_receiptgammarad.if_exists_packinglistcode(kst_tab_wm_receiptgammarad[1])
-					if k_rc > 0 then
-
-//--- muove il file nella cartella dei flussi SCARTATI			
-						if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati") 
-						kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file,  &
-																					 kst_wm_pkl_web_file[k_ind_file].path_file+"\scartati\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
-		
-						kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-						kguo_exception.kist_esito.sqlerrtext = "Packing List: " + kst_tab_wm_receiptgammarad[1].packinglistcode &
-																	+ " SCARTATO perchè già Presente con ID " + string(k_rc) &
-																	+ ".~n~rFile scartato: " + kst_wm_pkl_web_file[k_ind_file].nome_file
-						throw kguo_exception
-					end if
-
-//--- INSERT nella tabella di PACKING-LIST
-					k_rc = kuf1_wm_receiptgammarad.add( k_nr_ws_receiptgammarad, kst_tab_wm_receiptgammarad[] )
-					if k_rc > 0 then
-						k_return ++
-					end if
-
-//--- muove il file XML nella cartella dei flussi IMPORTATI			
-					if not DirectoryExists (kst_wm_pkl_web_file[k_ind_file].path_file+"\importato") then CreateDirectory (kst_wm_pkl_web_file[k_ind_file].path_file+"\importato") 
-					kuf1_utility.u_filemovereplace( kst_wm_pkl_web_file[k_ind_file].path_file +"\inLav\"+kst_wm_pkl_web_file[k_ind_file].nome_file,  &
-																				 kst_wm_pkl_web_file[k_ind_file].path_file+"\importato\"+kst_wm_pkl_web_file[k_ind_file].nome_file)
-	
-					
-				end if
-			end if
-					
-		end for
-	else
-		kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_non_eseguito )
-		kguo_exception.setmessage( "NON eseguito. Se si vuole importare PKL-WEB,  RIATTIVARE da Proprietà della proceura.")
-		throw kguo_exception
-	end if
-	
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-	
-finally
-	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg	
-	if isvalid(kuf1_wm_receiptgammarad) then destroy kuf1_wm_receiptgammarad
-	
-end try
-
-
-return k_return
-
-
-end function
-
-private function long set_wm_pklist_web_to_wm_tab (ref st_wm_pkl_web kst_wm_pkl_web[], ref st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Converte i Packing-List Web nalla struct array kst_tab_wm_receiptgammarad []
-//---	inp: st_wm_pkl_web.nome_file è il nome file da importare 
-//---	out: kst_tab_wm_receiptgammarad[]: array con le righe del packing-list letto
-//---	rit: nr pkl trovati
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-long k_return=0
-string k_rc, k_file=""
-int k_rcn, k_file_ind, k_anno, k_mese, k_giorno
-long k_ind=0
-boolean k_trovate_note_lotto = false
-datetime k_datetime_current
-st_esito kst_esito
-st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad_null
-kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
- 
- 
-	try
-
-		kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
-
-		k_datetime_current = kguo_g.get_datetime_current( )
-		
-//--- preparo la struct a NULL		
-		kuf1_wm_receiptgammarad.set_null(kst_tab_wm_receiptgammarad_null)
-		
-		for k_file_ind = 1 to upperbound(kst_wm_pkl_web[])
-
-			if kst_wm_pkl_web[k_file_ind].idpkl > 0 then
-				
-				if len(trim( kst_wm_pkl_web[k_file_ind].barcode)) > 0 then
-					
-					k_ind++
-
-//--- inizializzo la riga				
-					kst_tab_wm_receiptgammarad[k_ind] = kst_tab_wm_receiptgammarad_null
-				
-//--- riempie le righe con il Packing-list WEB da importare
-
-//--- codice packing-list
-					if trim(kst_wm_pkl_web[k_file_ind].tipo_invio) = "FTP" then // se questo campo è valorizzato a FTP allora compongo il codice packing-list fregandomene del codice_pl
-						kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "ftp_" +string(kst_wm_pkl_web[k_file_ind].id_cliente)+"_"+ string(kst_wm_pkl_web[k_file_ind].idpkl) 
-					else
-						if len(trim(kst_wm_pkl_web[k_file_ind].codice_pl)) > 0 then // come richiesto da Zanetti+Mario se questo campo è val allora metto questo codice
-							kst_tab_wm_receiptgammarad[k_ind].packinglistcode = trim(kst_wm_pkl_web[k_file_ind].codice_pl)
-						else
-							kst_tab_wm_receiptgammarad[k_ind].packinglistcode = "www_" +string(kst_wm_pkl_web[k_file_ind].id_cliente)+"_"+ string(kst_wm_pkl_web[k_file_ind].idpkl) 
-						end if
-					end if
-
-//--- converte la data di invio
-					if len(trim(kst_wm_pkl_web[k_file_ind].data_invio)) > 0 then
-						k_giorno = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),1,2))
-						k_mese = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),4,2))
-						k_anno = integer(mid(trim(kst_wm_pkl_web[k_file_ind].data_invio),7,4))
-						kst_tab_wm_receiptgammarad[k_ind].transmissiondate = datetime(date(k_anno,k_mese,k_giorno), time(kst_wm_pkl_web[k_file_ind].ora_invio))
-					else
-						kst_tab_wm_receiptgammarad[k_ind].transmissiondate = k_datetime_current // datetime(date(today()),time(now()))
-					end if
-	
-					kst_tab_wm_receiptgammarad[k_ind].receiptdate = k_datetime_current //datetime(date(today()),time(now()))
-					kst_tab_wm_receiptgammarad[k_ind].ddtcode	= upper(kst_wm_pkl_web[k_file_ind].nrddt)
-					kst_tab_wm_receiptgammarad[k_ind].ddtdate = datetime(date(kst_wm_pkl_web[k_file_ind].dtddt ))	
-					kst_tab_wm_receiptgammarad[k_ind].mandatorcustomercode	= trim(kst_wm_pkl_web[k_file_ind].mandante)
-					kst_tab_wm_receiptgammarad[k_ind].receivercustomercode = trim(kst_wm_pkl_web[k_file_ind].ricevente)	
-					kst_tab_wm_receiptgammarad[k_ind].invoicecustomercode = trim(kst_wm_pkl_web[k_file_ind].fatturato)
-					kst_tab_wm_receiptgammarad[k_ind].specification = upper(kst_wm_pkl_web[k_file_ind].sc_cf)
-					kst_tab_wm_receiptgammarad[k_ind].contract	= upper(kst_wm_pkl_web[k_file_ind].mc_co)
-					kst_tab_wm_receiptgammarad[k_ind].externalpalletcode = upper(kst_wm_pkl_web[k_file_ind].barcode)
-					kst_tab_wm_receiptgammarad[k_ind].palletlength = len(trim(kst_tab_wm_receiptgammarad[k_ind].externalpalletcode))
-//---25.06.2009 su rich di Zanetti					kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
-					if kst_wm_pkl_web[k_file_ind].barcode_qta_scatole > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].palletquantity = kst_wm_pkl_web[k_file_ind].barcode_qta_scatole 
-					else
-						kst_tab_wm_receiptgammarad[k_ind].palletquantity = 1	
-					end if
-
-//--- quando arriva via Internet viene riempito il tab <codice_lotto> mentre dal cliente ARAN il tag <barcode_lotto> 
-					if len(trim(kst_wm_pkl_web[k_file_ind].codice_lotto )) > 0 then
-						kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kst_wm_pkl_web[k_file_ind].codice_lotto ))
-					else
-						if len(trim(kst_wm_pkl_web[k_file_ind].barcode_lotto )) > 0 then
-							kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_lotto ))
-						else
-							kst_tab_wm_receiptgammarad[k_ind].customerlot = upper(kst_tab_wm_receiptgammarad[k_ind].packinglistcode)
-						end if
-					end if
-					kst_tab_wm_receiptgammarad[k_ind].orderdate = k_datetime_current //datetime(date(today()),time(now()))
-
-//--- altri dati circa il singolo barcode
-					kst_tab_wm_receiptgammarad[k_ind].customerItem = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_item ))
-//??????					kst_tab_wm_receiptgammarad[k_ind].customerLot = trim(kst_wm_pkl_web[k_file_ind].barcode_note )
-					kst_tab_wm_receiptgammarad[k_ind].PesoNetto = kst_wm_pkl_web[k_file_ind].barcode_peso_netto
-					kst_tab_wm_receiptgammarad[k_ind].PesoLordo = kst_wm_pkl_web[k_file_ind].barcode_peso_lordo
-					kst_tab_wm_receiptgammarad[k_ind].QuantitaSacchi = kst_wm_pkl_web[k_file_ind].barcode_qta_pezzi 
-					kst_tab_wm_receiptgammarad[k_ind].barcodewo = upper(trim(kst_wm_pkl_web[k_file_ind].barcode_wo ))
-
-					
-//--- scompatta il campo note, carica le NOTE del cliente solo sulla prima riga del Lotto!
-					kst_tab_wm_receiptgammarad[k_ind].note_1 = ""
-					kst_tab_wm_receiptgammarad[k_ind].note_2 = ""
-					kst_tab_wm_receiptgammarad[k_ind].note_3 = ""
-					if not k_trovate_note_lotto then
-						if (kst_wm_pkl_web[k_file_ind].note_lotto ) > " " then
-							k_trovate_note_lotto = true
-							kst_tab_wm_receiptgammarad[1].note_1 = trim(kst_wm_pkl_web[k_file_ind].note_lotto)
-						end if
-					end if
-					
-				end if				
-			end if				
-		end for
-	
-		k_return = k_ind
-		
-	catch (uo_exception kuo_exception)
-//		kst_esito.esito = kkg_esito.bug
-//		kst_esito.sqlcode = k_rcn
-//		kst_esito.SQLErrText = "Importazione Nuovi 'Packing-List' fallito!  ~n~r "  
-//		kguo_exception.set_esito(kst_esito)
-		throw kuo_exception
-		
-		
-	finally
-		destroy kuf1_wm_receiptgammarad			
-		
-	end try
-			
-
-
-return k_return
-
-
-end function
-
-public function integer get_file_wm_pklist_web (ref st_wm_pkl_web kst_wm_pkl_web[]) throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Trova i nomi file di Packing-List Web presenti nella cartella di importazione
-//---	inp: st_wm_pkl_web vuoto
-//---	out: st_wm_pkl_web array con il path e il nome da importare
-//---	rit: nr file da importare
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-integer k_return=0
-boolean k_b=false
-string k_rc
-int k_rcn, k_file_ind, k_max_array
-int k_ind, k_nr_file_dirlist
-datastore kds_dirlist
-st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
-kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-//listbox klistbox
-kuf_file_explorer kuf1_file_explorer
- 
- 
-	try
-		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
-		kuf1_file_explorer = create kuf_file_explorer
-
-//--- piglia il path di dove sono i Packing-list Web
-		kuf1_wm_pklist_cfg.get_wm_pklist_cfg(kst_tab_wm_pklist_cfg)
-
-//--- piglia l'elenco dei file xml contenuti nella cartella
-		kds_dirlist = kuf1_file_explorer.DirList( &
-					kuf1_file_explorer.u_add_path_and_filename(kst_tab_wm_pklist_cfg.cartella_pkl_da_web, "*.xml"))
-			
-		k_nr_file_dirlist = kds_dirlist.rowcount( )
-
-		k_max_array = upperbound(kst_wm_pkl_web[])
-		if k_max_array = 0 then k_max_array = 100
-		if k_nr_file_dirlist > k_max_array then k_nr_file_dirlist = k_max_array // meglio non superare la dim dell'array
-
-		for k_file_ind = 1 to k_nr_file_dirlist
-		
-//			k_file_wm_pklist_web[k_file_ind] = kst_tab_wm_pklist_cfg.cartella_pkl_da_web + "\" + k_file
-			kst_wm_pkl_web[k_file_ind].nome_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
-			kst_wm_pkl_web[k_file_ind].path_file = kst_tab_wm_pklist_cfg.cartella_pkl_da_web
-			
-		end for
-
-		k_return = k_nr_file_dirlist
-
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-		
-		
-		finally
-			if isvalid(kds_dirlist) then destroy kds_dirlist
-			if isvalid(kuf1_wm_pklist_cfg) then destroy kuf1_wm_pklist_cfg
-			if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
-		
-	end try
-			
-
 
 return k_return
 

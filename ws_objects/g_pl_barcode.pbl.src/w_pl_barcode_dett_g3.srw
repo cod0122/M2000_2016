@@ -3400,7 +3400,7 @@ try
 					kdsi_elenco_output.setitem(k_riga_queue, "consegna_data", string(kds1_barcode_x_pilota_queue.getitemdate(k_riga, "consegna_data"), "dd mmm" ))
 				end if
 				kdsi_elenco_output.setitem(k_riga_queue, "id_meca", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "id_meca"))
-				kdsi_elenco_output.setitem(k_riga_queue, "num_int", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "num_int"))
+				//kdsi_elenco_output.setitem(k_riga_queue, "num_int", kds1_barcode_x_pilota_queue.getitemnumber(k_riga, "num_int"))
 				kdsi_elenco_output.setitem(k_riga_queue, "e1ancodrs", kds1_barcode_x_pilota_queue.getitemstring(k_riga, "e1ancodrs"))
 			next
 		end if

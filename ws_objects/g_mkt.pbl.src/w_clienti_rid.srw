@@ -272,29 +272,18 @@ try
 			kiuf_clienti.get_ultimo_id(kst_tab_clienti)
 			tab_1.tabpage_1.dw_1.setitem(k_riga, "codice", kst_tab_clienti.codice)
 			tab_1.tabpage_1.dw_1.resetupdate( )
-					
-////--- Imposta il codice anche nella window chiamante					
-//					if isvalid(kidw_wind_chiamante) then
-//						if kidw_wind_chiamante.dataobject = "d_clienti_mkt_web" then
-//							if kidw_wind_chiamante.getrow( ) > 0 and ki_wind_chiamante_id_contatto_numero > " " then
-//								kidw_wind_chiamante.setitem( kidw_wind_chiamante.getrow( ), "id_contatto_" + ki_wind_chiamante_id_contatto_numero, kst_tab_clienti.codice)
-//								kidw_wind_chiamante.setitem( kidw_wind_chiamante.getrow( ), "c" + ki_wind_chiamante_id_contatto_numero + "_rag_soc_10", &
-//								                                                                                                                          tab_1.tabpage_1.dw_1.getitemstring(k_riga, "rag_soc_10"))
-//							end if
-//						end if
-//					end if
 		end if
 				
 //--- Carica Dati WEB
 		kst_tab_clienti_web.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
-		kst_tab_clienti_web.blog_web = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "blog_web"))
-		kst_tab_clienti_web.blog_web1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "blog_web1"))
+//		kst_tab_clienti_web.blog_web = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "blog_web"))
+//		kst_tab_clienti_web.blog_web1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "blog_web1"))
 		kst_tab_clienti_web.email = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email"))
 		kst_tab_clienti_web.email1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email1"))
 		kst_tab_clienti_web.email2 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "email2"))
 		kst_tab_clienti_web.note = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note"))
-		kst_tab_clienti_web.sito_web = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "sito_web"))
-		kst_tab_clienti_web.sito_web1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "sito_web1"))
+//		kst_tab_clienti_web.sito_web = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "sito_web"))
+//		kst_tab_clienti_web.sito_web1 = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "sito_web1"))
 		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_web)
 //--- Carica Dati MKT
 		kst_tab_clienti_mkt.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
@@ -302,6 +291,9 @@ try
 		kst_tab_clienti_mkt.qualifica = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "qualifica"))
 		kst_tab_clienti_mkt.for_qa_italy = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_qa_italy"))
 		kst_tab_clienti_mkt.for_cobalt_rload = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_cobalt_rload"))
+		kst_tab_clienti_mkt.for_price_cntct = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_price_cntct"))
+		kst_tab_clienti_mkt.cell = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "cell"))
+		kst_tab_clienti_mkt.categ = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "categ"))
 		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_mkt)
 		
 		kguo_sqlca_db_magazzino.db_commit()
@@ -568,15 +560,14 @@ kuf1_ausiliari = create kuf_ausiliari
 		end if
 	end if
 
-	if	k_errore = "0" then
-		if isnull(k_key) or k_key = 0 then
-			k_return = tab_1.tabpage_1.text + ": Il Codice verra' assegnato automaticamente. " + "~n~r"
-			k_errore = "5"
-			k_nr_errori++
-		else
-		end if
-	end if
-	
+//	if	k_errore = "0" then
+//		if isnull(k_key) or k_key = 0 then
+//			k_return = tab_1.tabpage_1.text + ": Il Codice verra' assegnato automaticamente. " + "~n~r"
+//			k_errore = "5"
+//			k_nr_errori++
+//		else
+//		end if
+//	end if	
 	
 	if k_errore = "0" or k_errore = "4" or k_errore = "5" then
 		k_nr_righe = tab_1.tabpage_1.dw_1.rowcount()
@@ -986,7 +977,7 @@ end choose
 if k_errore = 1 then
 	return 2
 else
-	attiva_tasti()
+	post attiva_tasti()
 	
 end if
 	

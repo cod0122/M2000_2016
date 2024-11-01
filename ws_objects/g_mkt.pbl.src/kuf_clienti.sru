@@ -2168,7 +2168,7 @@ st_esito kst_esito
 datastore kdsi_elenco_output   //ds da passare alla windows di elenco
 //st_open_w kst_open_w 
 kuf_elenco kuf1_elenco
-kuf_web kuf1_web
+//kuf_web kuf1_web
 pointer kp_oldpointer
 
 
@@ -2316,44 +2316,44 @@ if k_riga > 0 then
 			end if
 			k_titolo = "Elenco Clienti " 
 
-		case "email", "email1", "email2", "email3" 
-			kst_tab_clienti_web.email = trim(adw_link.getitemstring(k_riga, a_campo_link))
-			if len(kst_tab_clienti_web.email) > 0 then
-				kuf1_web = create kuf_web 
-				if not kuf1_web.u_call_mail_client(kst_tab_clienti_web.email, "", "", "") then
-					kst_esito.esito = kkg_esito.no_esecuzione
-					kst_esito.sqlerrtext = "Applicazione di Posta non Trovata!"
-				end if
-				destroy kuf1_web
-	//			kst_esito = this.anteprima_elenco_clienti_del_contatto( kdsi_elenco_output, kst_tab_clienti )
-				if kst_esito.esito <> kkg_esito.ok then
-					kguo_exception.inizializza()
-					kguo_exception.set_esito( kst_esito)
-					throw kguo_exception
-				end if
-	//			kst_open_w.key1 = "Clienti del Contatto codice=" + trim(string(kst_tab_clienti.codice)) + " " 
-				k_return = false
-			else
-				k_return = false
-			end if
-			
-		case "sito_web", "sito_web1" 
-			kst_tab_clienti_web.sito_web = trim(adw_link.getitemstring(k_riga, a_campo_link))
-			if len(kst_tab_clienti_web.sito_web) > 0 then
-				try 
-					kuf1_web = create kuf_web 
-					kuf1_web.u_start_www(kst_tab_clienti_web.sito_web) 
-				catch (uo_exception kuo_exception1)
-	//				kuo_exception.set_esito( kst_esito)
-					throw kuo_exception1
-				finally
-					destroy kuf1_web
-				end try
-				k_return = false
-			else
-				k_return = false
-			end if
-			
+//		case "email", "email1", "email2", "email3" 
+//			kst_tab_clienti_web.email = trim(adw_link.getitemstring(k_riga, a_campo_link))
+//			if len(kst_tab_clienti_web.email) > 0 then
+//				kuf1_web = create kuf_web 
+//				if not kuf1_web.u_call_mail_client(kst_tab_clienti_web.email, "", "", "") then
+//					kst_esito.esito = kkg_esito.no_esecuzione
+//					kst_esito.sqlerrtext = "Applicazione di Posta non Trovata!"
+//				end if
+//				destroy kuf1_web
+//	//			kst_esito = this.anteprima_elenco_clienti_del_contatto( kdsi_elenco_output, kst_tab_clienti )
+//				if kst_esito.esito <> kkg_esito.ok then
+//					kguo_exception.inizializza()
+//					kguo_exception.set_esito( kst_esito)
+//					throw kguo_exception
+//				end if
+//	//			kst_open_w.key1 = "Clienti del Contatto codice=" + trim(string(kst_tab_clienti.codice)) + " " 
+//				k_return = false
+//			else
+//				k_return = false
+//			end if
+//			
+//		case "sito_web", "sito_web1" 
+//			kst_tab_clienti_web.sito_web = trim(adw_link.getitemstring(k_riga, a_campo_link))
+//			if len(kst_tab_clienti_web.sito_web) > 0 then
+//				try 
+//					kuf1_web = create kuf_web 
+//					kuf1_web.u_start_www(kst_tab_clienti_web.sito_web) 
+//				catch (uo_exception kuo_exception1)
+//	//				kuo_exception.set_esito( kst_esito)
+//					throw kuo_exception1
+//				finally
+//					destroy kuf1_web
+//				end try
+//				k_return = false
+//			else
+//				k_return = false
+//			end if
+//			
 		case "p_clienti_memo_elenco"
 			kst_tab_clienti.codice = adw_link.getitemnumber(k_riga, "id_cliente")
 			if kst_tab_clienti.codice > 0 then

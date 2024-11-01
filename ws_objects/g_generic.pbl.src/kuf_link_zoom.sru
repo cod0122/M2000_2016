@@ -199,7 +199,7 @@ string k_num_colonne, k_nome, k_nome_orig
 					, "id_ric" &
 					, "num_bolla_out" &
 					, "id_sped" &
-					, "email", "sito_web" &
+					, "email", "email1", "email2", "email3", "sito_web", "web_email_contatto" &
 					, "id_contratto_rd" &
 					, "id_contratto_co" &
 					, "id_contratto_doc" &
@@ -393,7 +393,6 @@ choose case k_nome_link
 		
 	case "clie", "cod_cli", "id_cliente", "id_cliente_1", "id_cliente_link" &
 			, "cliente_mkt", "cliente_web", "m_r_f", "id_contatto", "elenco_clienti_del_contatto" &
-			, "email", "sito_web" &
 			, "clienti", "p_clienti_memo_elenco" &
 			, "clie_1_l", "clie_2_l", "clie_3_l" 
 		kuf1_parent = create using "kuf_clienti"
@@ -535,6 +534,9 @@ choose case k_nome_link
 		
 	case "pl_barcode"
 		kuf1_parent = create using "kuf_pl_barcode"
+		
+	case "email", "email1", "email2", "email3", "sito_web", "web_email_contatto"
+		kuf1_parent = create using "kuf_web"
 
 	case else
 		k_return = false
