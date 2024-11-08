@@ -32,7 +32,7 @@ protected kuf_clienti kiuf_clienti
 private string ki_win_titolo_orig_save
 
 private boolean ki_updated=true
-private long k_list_id_selected
+private long ki_list_id_selected
 end variables
 
 forward prototypes
@@ -48,13 +48,11 @@ private subroutine put_video_cliente (st_tab_clienti kst_tab_clienti)
 public subroutine set_iniz_dati_cliente (ref st_tab_clienti kst_tab_clienti)
 public function boolean get_dati_cliente (ref st_tab_clienti kst_tab_clienti)
 protected subroutine leggi_liste ()
-private subroutine proteggi_campi ()
 public function boolean u_duplica () throws uo_exception
 public function st_tab_sped_free u_set_st_tab_from_dw () throws uo_exception
 public subroutine u_calcola_colli ()
 protected subroutine inizializza_1 () throws uo_exception
 protected subroutine attiva_menu ()
-public subroutine u_set_indirizzo_border ()
 protected subroutine attiva_tasti_0 ()
 protected function string dati_modif (string k_titolo)
 public function boolean stampa_ddt ()
@@ -62,7 +60,6 @@ protected function integer visualizza ()
 protected subroutine modifica ()
 public subroutine smista_funz (string k_par_in)
 private subroutine cambia_periodo_elenco ()
-private subroutine u_set_tabpage_2_title ()
 end prototypes
 
 private subroutine pulizia_righe ();//
@@ -118,11 +115,14 @@ choose case tab_1.selectedtab
 				kst_tab_sped_free.data_bolla_out = tab_1.tabpage_2.dw_2.getitemdate(1, "sped_free_data_bolla_out")
 				kiuf_sped_free.set_num_bolla_out_in_base(kst_tab_sped_free)
 				
-				proteggi_campi()
+				//proteggi_campi()
 				
 				ki_updated = true // aggiornato x rifare poi l'elenco
 				
-				inizializza( )  // torna sull'elenco
+				//inizializza( )  // torna sull'elenco
+				
+				ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
+				tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.modifica
 				
 			catch (uo_exception kuo_exception)
 				k_return="1Fallito aggiornamento in archivio '" &
@@ -384,7 +384,7 @@ kuf_listino kuf1_listino
 	tab_1.selecttab(1)
 	
 	attiva_tasti()
-	u_set_tabpage_2_title( )
+	tab_1.tabpage_2.event u_set_tab_title()
 	
 	SetPointer(kkg.pointer_default)
 
@@ -396,7 +396,6 @@ end function
 protected function integer inserisci ();//
 int k_return=1, k_anno
 long k_riga
-kuf_utility kuf1_utility
 
 
 try 
@@ -425,6 +424,7 @@ try
 			//tab_1.tabpage_2.dw_2.setcolumn("oggetto")
 			
 			tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.inserimento
+			ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
 
 			k_anno = kiuf_sped_free.get_num_bolla_out_next(kist_tab_sped_free)
 			if kist_tab_sped_free.num_bolla_out > " " then
@@ -442,10 +442,11 @@ try
 			tab_1.tabpage_2.dw_2.setitem(1, "porto", kist_tab_sped_free.porto)
 
 //--- S-protezione campi per abilitare l'inserimento
-			kuf1_utility = create kuf_utility
-	     	kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_2.dw_2)
-			destroy kuf1_utility
+			tab_1.tabpage_2.dw_2.u_proteggi_sproteggi_dw()
 		
+			tab_1.tabpage_2.dw_2.event u_init_display_form( )
+			tab_1.tabpage_2.event u_set_tab_title()
+			
 			tab_1.tabpage_2.dw_2.SetItemStatus( 1, 0, Primary!, NotModified!)
 
 	end choose	
@@ -673,33 +674,6 @@ protected subroutine leggi_liste ();////
 //
 end subroutine
 
-private subroutine proteggi_campi ();//
-//--- Protegge o meno a seconda dei casi
-//
-kuf_utility kuf1_utility
-
-
-	kuf1_utility = create kuf_utility 
-	tab_1.tabpage_2.dw_2.setredraw(false)
-
-//--- se NO inserimento leggo DW-CHILD
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
-		kuf1_utility.u_proteggi_dw("1", "id_sped_free", tab_1.tabpage_2.dw_2)
-//--- S-protezione campi 
-		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_2)
-	else
-//--- Protezione tutti i campi 
-		kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_2.dw_2)
-		kuf1_utility.u_proteggi_dw("1", "id_sped_free", tab_1.tabpage_2.dw_2)
-	end if			
-
-	destroy kuf1_utility
-		
-	
-	tab_1.tabpage_2.dw_2.setredraw(true)
-	
-end subroutine
-
 public function boolean u_duplica () throws uo_exception;//
 //--- Duplica documento 
 //
@@ -838,18 +812,14 @@ protected subroutine inizializza_1 () throws uo_exception;//
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-string k_return="0 "
 int k_rc 
 st_tab_sped_free kst_tab_sped_free
 st_esito kst_esito
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 uo_exception kuo_exception
 
 
 	ki_st_open_w.flag_modalita = tab_1.tabpage_2.dw_2.ki_flag_modalita
-
-	//--- salvo il ID della lista per poi riproporlo dopo
-	k_list_id_selected = tab_1.tabpage_1.dw_1.event u_get_id_sped_free_selected( )
  
 	SetPointer(kkg.pointer_attesa)
 	tab_1.tabpage_2.enabled = true
@@ -861,20 +831,14 @@ uo_exception kuo_exception
 		choose case k_rc
 			case is < 0		
 				SetPointer(kkg.pointer_default)
-				kguo_exception.inizializza()
-				kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_internal_bug )
-				kguo_exception.setmessage(  &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"(ID Documento cercato: " + string(kist_tab_sped_free.id_sped_free) + ") " )
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_2.dw_2, &
+							"Errore in lettura DDT libero id " + string(kist_tab_sped_free.id_sped_free))
 				kguo_exception.post messaggio_utente( )	
 
-			case 0
+			case 100
 				SetPointer(kkg.pointer_default)
-				kguo_exception.inizializza()
-				kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_not_fnd )
-				kguo_exception.setmessage(  &
-						"Mi spiace ma il Documento cercato non e' in archivio ~n~r" + &
-						"(ID Documento cercato: " + string(kist_tab_sped_free.id_sped_free) + ") " )
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_2.dw_2, &
+							"Il DDT libero cercato non è in archivio, id " + string(kist_tab_sped_free.id_sped_free))
 				kguo_exception.post messaggio_utente( )	
 
 			case is > 0	
@@ -887,25 +851,16 @@ uo_exception kuo_exception
 				tab_1.tabpage_2.dw_2.setfocus()
 //				tab_1.tabpage_2.dw_2.setcolumn("fat1_note_1")
 				tab_1.tabpage_2.dw_2.visible = true
+				tab_1.tabpage_2.dw_2.SetItemStatus( 1, 0, Primary!, NotModified!)
+				
 		end choose
+		
+		tab_1.tabpage_2.dw_2.event u_init_display_form()  // sistema il form
+		
 	end if
 	
-//--- ripropone eventaulemnete i link
-	tab_1.tabpage_2.dw_2.event u_personalizza_dw()
-
-	tab_1.tabpage_2.dw_2.modify("b_clie_2_l.visible='1' b_clie_3_l.visible='1'") 
-
-//--- protegge/sprotegge campi
-	proteggi_campi()
-
 	u_resize_1( )
 	
-//--- espone i bordi per alcuni campi
-	post u_set_indirizzo_border()
-	
-	tab_1.tabpage_2.dw_2.visible = true
-	tab_1.tabpage_2.dw_2.setfocus()
-
 	if tab_1.tabpage_2.dw_2.rowcount() = 0 then
 		
 		SetPointer(kkg.pointer_attesa)
@@ -917,16 +872,8 @@ uo_exception kuo_exception
 		
 	end if
 
-	u_set_tabpage_2_title( )
+	tab_1.tabpage_2.event u_set_tab_title()
 
-//--- se inserimento inabilito gli altri TAB, sono inutili
-//	if tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.inserimento then
-//		tab_1.tabpage_2.dw_2.setcolumn("")
-//	else
-//		if tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.modifica then
-	//		tab_1.tabpage_2.dw_2.setcolumn("oggetto")
-//		end if
-//	end if
 
 	
 end subroutine
@@ -962,76 +909,6 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 
 
 
-end subroutine
-
-public subroutine u_set_indirizzo_border ();//
-//<DW Control Name>.Modify("<Columnname>.Border='<0 - None, 1- Shadow, 2 - Box, 3 - Resize, 4 - Underline, 5 - 3D Lowered, 6 - 3D Raised>'")
-string k_border 
-string k_rc
-int k_idx
-string k_color
-
-tab_1.tabpage_2.dw_2.setredraw(false)
-
-if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
-				or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-	k_border = "6"
-	k_color = string(rgb(205,238,255))
-else
-	k_border = "0"
-end if
-//k_rc = tab_1.tabpage_2.dw_2.modify("dicit_ind_intest.border='" + k_border &
-//									+ "' intestazione.border=' " + k_border &
-//									+ "' intestazione_ind.border='" + k_border &
-//									+ "' dicit_ind_sped.border='" + k_border &
-//									+ "' indirizzo_riga_1.border='" + k_border &
-//									+ "' indirizzo_riga_2.border='" + k_border &
-//									+ "' indirizzo_riga_3.border='" + k_border &
-//									+ "' indirizzo_riga_4.border='" + k_border &
-//									+ "' indirizzo_riga_5.border='" + k_border &
-//									+ "' ")
-k_rc = tab_1.tabpage_2.dw_2.modify("dicit_ind_intest.Background.Color='" + k_color &
-									+ "' intestazione.Background.Color=' " + k_color &
-									+ "' intestazione_ind1.Background.Color='" + k_color &
-									+ "' intestazione_ind2.Background.Color='" + k_color &
-									+ "' intestazione_ind3.Background.Color='" + k_color &
-									+ "' intestazione_ind4.Background.Color='" + k_color &
-									+ "' dicit_ind_sped.Background.Color='" + k_color &
-									+ "' indirizzo_riga_1.Background.Color='" + k_color &
-									+ "' indirizzo_riga_2.Background.Color='" + k_color &
-									+ "' indirizzo_riga_3.Background.Color='" + k_color &
-									+ "' indirizzo_riga_4.Background.Color='" + k_color &
-									+ "' indirizzo_riga_5.Background.Color='" + k_color &
-									+ "' sped_free_data_bolla_out.Background.Color='" + k_color &
-									+ "' sped_free_num_bolla_out.Background.Color='" + k_color &
-									+ "' ")
-k_rc = tab_1.tabpage_2.dw_2.modify( "causale.Background.Color='" + k_color &
-									+ "' sped_note.Background.Color='" + k_color &
-									+ "' aspetto.Background.Color='" + k_color &
-									+ "' resa.Background.Color='" + k_color &
-									+ "' colli.Background.Color='" + k_color &
-									+ "' peso_kg.Background.Color='" + k_color &
-									+ "' porto.Background.Color='" + k_color &
-									+ "' trasporto.Background.Color='" + k_color &
-									+ "' data_ora_rit.Background.Color='" + k_color &
-									+ "' vett_1.Background.Color='" + k_color &
-									+ "' annotazioni.Background.Color='" + k_color &
-									+ "' ")
-
-for k_idx = 1 to 19
-	k_rc = tab_1.tabpage_2.dw_2.modify("qta_" + string(k_idx, "#") + ".Background.Color='" + k_color &
-											+ "' descr_" + string(k_idx, "#") + ".Background.Color=' " + k_color &
-											+ "' kgy_" + string(k_idx, "#") + ".Background.Color=' " + k_color &
-									+ "' ")
-next
-									
-									
-//									+ "' clie_2.border='" + k_border &
-//									+ "' clie_3.border='" + k_border &
-									
-tab_1.tabpage_2.dw_2.setredraw(true)
-
-k_rc = ""
 end subroutine
 
 protected subroutine attiva_tasti_0 ();//
@@ -1196,6 +1073,9 @@ try
 	if tab_1.selectedtab = 2 or kist_tab_sped_free.id_sped_free > 0 then
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
 		tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.visualizzazione 
+
+	//--- salvo il ID della lista per poi riproporlo dopo
+		ki_list_id_selected = tab_1.tabpage_1.dw_1.event u_get_id_sped_free_selected( )
 		
 		tab_1.selecttab(2)
 	end if
@@ -1227,6 +1107,13 @@ try
 	if tab_1.selectedtab = 2 or kist_tab_sped_free.id_sped_free > 0 then
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
 		tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.modifica 
+		
+	//--- salvo il ID della lista per poi riproporlo dopo
+		ki_list_id_selected = tab_1.tabpage_1.dw_1.event u_get_id_sped_free_selected( )
+		
+		tab_1.tabpage_2.dw_2.u_proteggi_sproteggi_dw( )
+		tab_1.tabpage_2.dw_2.event u_init_display_form( )
+		tab_1.tabpage_2.event u_set_tab_title()
 		
 		tab_1.selecttab(2)
 	end if
@@ -1263,16 +1150,6 @@ private subroutine cambia_periodo_elenco ();//---
 
 //dw_periodo.event post ue_visibile
 dw_periodo.event ue_visible( )
-end subroutine
-
-private subroutine u_set_tabpage_2_title ();//
-tab_1.tabpage_2.text = "DDT"
-if tab_1.tabpage_2.dw_2.rowcount( ) > 0 then
-	if trim(tab_1.tabpage_2.dw_2.getitemstring(1, "sped_free_num_bolla_out")) > " " then 
-		tab_1.tabpage_2.text = "DDT " + trim(tab_1.tabpage_2.dw_2.getitemstring(1, "sped_free_num_bolla_out")) + "/" &
-								+ string(tab_1.tabpage_2.dw_2.getitemdate(1, "sped_free_data_bolla_out"), "yyyy") 
-	end if
-end if
 end subroutine
 
 on w_ddt_free.create
@@ -1440,7 +1317,6 @@ string k_errore="0"
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_ddt_free
-integer x = 0
 integer y = 28
 integer width = 3255
 integer height = 1384
@@ -1513,8 +1389,9 @@ long k_row
 
 
 	if this.rowcount( ) > 0 then
-		if k_list_id_selected > 0 then
-			k_row = this.find("id_sped_free = " + string(k_list_id_selected), 1, this.rowcount( ) )
+		if ki_list_id_selected > 0 then
+			k_row = this.find("id_sped_free = " + string(ki_list_id_selected), 1, this.rowcount( ) )
+			ki_list_id_selected = 0
 		end if
 		if k_row = 0 then
 			k_row = 1
@@ -1539,13 +1416,41 @@ type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+event u_set_tab_title ( )
 integer width = 3218
 integer height = 1256
 string text = "DDT"
 string powertiptext = "Dettaglio dati"
 end type
 
+event tabpage_2::u_set_tab_title();//
+if this.dw_2.ki_flag_modalita = kkg_flag_modalita.inserimento then
+	this.text = "Nuovo DDT "
+elseif this.dw_2.ki_flag_modalita = kkg_flag_modalita.modifica then
+	this.text = "Modifica DDT "
+elseif this.dw_2.ki_flag_modalita = kkg_flag_modalita.visualizzazione then
+	this.text = "Visualizza DDT "
+else
+	this.text = "DDT "
+end if
+if this.dw_2.rowcount( ) > 0 then
+	//if trim(this.dw_2.getitemstring(1, "sped_free_num_bolla_out")) > " " then 
+	if trim(kist_tab_sped_free.num_bolla_out) > " " then
+//		this.text += trim(this.dw_2.getitemstring(1, "sped_free_num_bolla_out")) + "/" &
+		this.text += trim(kist_tab_sped_free.num_bolla_out) + "/" &
+								+ string(this.dw_2.getitemdate(1, "sped_free_data_bolla_out"), "yyyy") 
+	end if
+end if
+end event
+
 type dw_2 from w_g_tab_3`dw_2 within tabpage_2
+event type long u_get_id_sped_free ( )
+event u_itemchanged_num_data_bolla ( )
+event u_proteggi_campi ( )
+event u_set_background_color ( )
+event u_init_display_form ( )
+event u_set_tab_title ( )
+event u_set_data_bolla_out_color ( )
 integer x = 5
 integer y = 20
 integer width = 2981
@@ -1559,9 +1464,176 @@ boolean ki_d_std_1_attiva_cerca = false
 boolean ki_dw_visibile_in_open_window = false
 end type
 
-event dw_2::itemchanged;//
+event type long dw_2::u_get_id_sped_free();//
+long k_return
+string k_num
+int k_anno
+
+
+	if this.rowcount( ) = 0 then return 0
+	
+	k_num = this.getitemstring(1, "sped_free_num_bolla_out")
+	k_anno = year(this.getitemdate(1, "sped_free_data_bolla_out"))
+
+	select id_sped_free
+	    into :k_return
+		 from sped_free
+		 where num_bolla_out = :k_num and year(data_bolla_out) = :k_anno
+		 using kguo_sqlca_db_magazzino;
+	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
+		return 0
+	else
+		return k_return
+	end if
+
+
+end event
+
+event dw_2::u_itemchanged_num_data_bolla();//
+st_tab_sped_free kst_tab_sped_free
+
+try		
+	kst_tab_sped_free.id_sped_free = event u_get_id_sped_free( )
+	if kst_tab_sped_free.id_sped_free > 0 then
+		ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
+		this.ki_flag_modalita = kkg_flag_modalita.modifica 
+		ki_list_id_selected = kst_tab_sped_free.id_sped_free
+		kist_tab_sped_free.id_sped_free = kst_tab_sped_free.id_sped_free
+		inizializza_1( )
+	end if
+	tab_1.tabpage_2.event u_set_tab_title()
+
+catch (exception kuo_exception)
+	throw kuo_exception
+	
+end try
+end event
+
+event dw_2::u_proteggi_campi();//
+//--- Protegge o meno a seconda dei casi
+//
+
+	this.setredraw(false)
+
+//--- se NO inserimento leggo DW-CHILD
+	if this.ki_flag_modalita = kkg_flag_modalita.inserimento or this.ki_flag_modalita = kkg_flag_modalita.modifica then
+		this.u_proteggi_dw("1", "id_sped_free")
+//--- S-protezione campi 
+		this.u_proteggi_dw("0", 0)
+	else
+//--- Protezione tutti i campi 
+		this.u_proteggi_dw("1", 0)
+		this.u_proteggi_dw("1", "id_sped_free")
+	end if			
+
+	this.setredraw(true)
+	
+end event
+
+event dw_2::u_set_background_color();//
+//<DW Control Name>.Modify("<Columnname>.Border='<0 - None, 1- Shadow, 2 - Box, 3 - Resize, 4 - Underline, 5 - 3D Lowered, 6 - 3D Raised>'")
+string k_border 
+string k_rc
+int k_idx
+string k_color
+
+
+tab_1.tabpage_2.dw_2.setredraw(false)
+
+if this.ki_flag_modalita = kkg_flag_modalita.modifica &
+					or this.ki_flag_modalita = kkg_flag_modalita.inserimento then
+	k_border = "6"
+	k_color = string(rgb(205,238,255))
+else
+	k_border = "0"
+end if
+//k_rc = tab_1.tabpage_2.dw_2.modify("dicit_ind_intest.border='" + k_border &
+//									+ "' intestazione.border=' " + k_border &
+//									+ "' intestazione_ind.border='" + k_border &
+//									+ "' dicit_ind_sped.border='" + k_border &
+//									+ "' indirizzo_riga_1.border='" + k_border &
+//									+ "' indirizzo_riga_2.border='" + k_border &
+//									+ "' indirizzo_riga_3.border='" + k_border &
+//									+ "' indirizzo_riga_4.border='" + k_border &
+//									+ "' indirizzo_riga_5.border='" + k_border &
+//									+ "' ")
+k_rc = tab_1.tabpage_2.dw_2.modify("dicit_ind_intest.Background.Color='" + k_color &
+									+ "' intestazione.Background.Color=' " + k_color &
+									+ "' intestazione_ind1.Background.Color='" + k_color &
+									+ "' intestazione_ind2.Background.Color='" + k_color &
+									+ "' intestazione_ind3.Background.Color='" + k_color &
+									+ "' intestazione_ind4.Background.Color='" + k_color &
+									+ "' dicit_ind_sped.Background.Color='" + k_color &
+									+ "' indirizzo_riga_1.Background.Color='" + k_color &
+									+ "' indirizzo_riga_2.Background.Color='" + k_color &
+									+ "' indirizzo_riga_3.Background.Color='" + k_color &
+									+ "' indirizzo_riga_4.Background.Color='" + k_color &
+									+ "' indirizzo_riga_5.Background.Color='" + k_color &
+									+ "' sped_free_data_bolla_out.Background.Color='" + k_color &
+									+ "' sped_free_num_bolla_out.Background.Color='" + k_color &
+									+ "' ")
+k_rc = tab_1.tabpage_2.dw_2.modify( "causale.Background.Color='" + k_color &
+									+ "' sped_note.Background.Color='" + k_color &
+									+ "' aspetto.Background.Color='" + k_color &
+									+ "' resa.Background.Color='" + k_color &
+									+ "' colli.Background.Color='" + k_color &
+									+ "' peso_kg.Background.Color='" + k_color &
+									+ "' porto.Background.Color='" + k_color &
+									+ "' trasporto.Background.Color='" + k_color &
+									+ "' data_ora_rit.Background.Color='" + k_color &
+									+ "' vett_1.Background.Color='" + k_color &
+									+ "' annotazioni.Background.Color='" + k_color &
+									+ "' ")
+
+for k_idx = 1 to 19
+	k_rc = tab_1.tabpage_2.dw_2.modify("qta_" + string(k_idx, "#") + ".Background.Color='" + k_color &
+											+ "' descr_" + string(k_idx, "#") + ".Background.Color=' " + k_color &
+											+ "' kgy_" + string(k_idx, "#") + ".Background.Color=' " + k_color &
+									+ "' ")
+next
+																		
+tab_1.tabpage_2.dw_2.setredraw(true)
+
+k_rc = ""
+end event
+
+event dw_2::u_init_display_form();// Varie operazioni di visualizzazione del form
+
+	event u_personalizza_dw() // propone i link
+	modify("b_clie_2_l.visible='1' b_clie_3_l.visible='1'") 
+//--- protegge/sprotegge campi
+	event u_proteggi_campi()
+//--- colora i campi modificabili
+	event u_set_Background_Color()
+//--- mette data in attenzione
+	event u_set_data_bolla_out_color( )
+
+	this.visible = true
+	this.setfocus()
+
+end event
+
+event dw_2::u_set_data_bolla_out_color();//
+string k_modify 
+
+if this.rowcount( ) = 0 then return
+
+if (this.ki_flag_modalita = kkg_flag_modalita.inserimento or this.ki_flag_modalita = kkg_flag_modalita.modifica) &
+		and this.getitemdate(1, "sped_free_data_bolla_out") <> date(today()) then
+	k_modify = "sped_free_data_bolla_out.color = " + string(fx_get_color('TXTHIGHLIGHTED'))
+else 
+	k_modify = "sped_free_data_bolla_out.color = " + describe('sped_free_num_bolla_out.color')
+end if
+
+this.modify(k_modify)
+
+
+end event
+
+event dw_2::itemchanged;call super::itemchanged;//
 string k_codice, k_nome
 int k_errore
+
 
 try
 	
@@ -1569,10 +1641,14 @@ try
 	
 	if left(k_nome,4) = "qta_" then
 		post u_calcola_colli()
-	end if
+	elseif k_nome = "sped_free_num_bolla_out" or k_nome = "sped_free_data_bolla_out" then
+		event post u_itemchanged_num_data_bolla( )
+
+		event post u_set_data_bolla_out_color( ) // mette data in attenzione
+	end if	
 	
 // fino a che non e' a posto il bug che la funzione non viene lanciata da u_d_std_1
-	post attiva_tasti()
+//	post attiva_tasti()
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.post messaggio_utente()
@@ -1582,121 +1658,6 @@ end try
 
 return k_errore
 
-end event
-
-event dw_2::itemfocuschanged;call super::itemfocuschanged;//int k_rc
-//long k_cod_cli, k_cod_cli_old
-//st_tab_contratti_doc kst_tab_contratti_doc
-//datawindowchild  kdwc_x,  kdwc_x_des, kdwc_2
-//
-//
-//choose case dwo.name
-//
-//
-//	//--- Attivo dw archivio CLIENTI
-//	case "clienti_rag_soc_10", "id_cliente"
-//		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
-//			k_rc = this.getchild("id_cliente", kdwc_x)
-//			if kdwc_x.rowcount() < 2 then
-//				kdwc_x.retrieve("%")
-//				k_rc = this.getchild("clienti_rag_soc_10", kdwc_x_des)
-//				kdwc_x.RowsCopy(kdwc_x.GetRow(), kdwc_x.RowCount(), Primary!, kdwc_x_des, 1, Primary!)
-//				kdwc_x.setsort( "id_cliente A")
-//				kdwc_x.sort( )
-//				k_rc = kdwc_x.insertrow(1)
-//				k_rc = kdwc_x_des.insertrow(1)
-//			end if	
-//		end if
-//		
-//
-//	case "nome_contatto"
-//		k_cod_cli = this.getitemnumber(this.getrow(), "id_cliente")
-//		
-//		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
-//	//--- Attivo dw archivio CONTATTI
-//			k_rc = this.getchild(dwo.name, kdwc_x)
-//			if kdwc_x.rowcount() > 1 then
-//				k_cod_cli_old = kdwc_x.getitemnumber( 2, "codice")
-//				if k_cod_cli_old <> k_cod_cli or kdwc_x.rowcount() < 2 then
-//					kdwc_x.retrieve(k_cod_cli)
-//					k_rc = kdwc_x.insertrow(1)
-//				end if
-//			end if
-//		end if 
-//
-//
-//	case "gruppo"
-//		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
-//	
-//	//--- piglio il codice del settore xchè la query va fatta con il codice
-//			kist_tab_contratti_doc.id_clie_settore = this.getitemstring(1, "id_clie_settore")
-//			k_rc = this.getchild(dwo.name, kdwc_x)
-//			if len(trim(kist_tab_contratti_doc.id_clie_settore)) > 0 then
-//	//--- Attivo dw diversi archivi 
-//				if kdwc_x.rowcount() > 1 then
-//					 if trim(kdwc_x.getitemstring(2, "id_clie_settore")) <> trim(kist_tab_contratti_doc.id_clie_settore) then
-//						kdwc_x.reset()
-//					end if
-//				end if
-//				if kdwc_x.rowcount() < 2 then
-//					kdwc_x.retrieve(kist_tab_contratti_doc.id_clie_settore )
-//					k_rc = kdwc_x.insertrow(1)
-//				end if
-//			else
-//				k_rc = kdwc_x.reset()
-//				k_rc = kdwc_x.insertrow(1)
-//			end if
-//		end if 
-//
-//	case "art"
-//		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
-//	
-//	//--- piglio il codice del Gruppo xchè la query va fatta con il codice
-//			kst_tab_contratti_doc.gruppo = this.getitemnumber(1, "gruppo")
-//			if kst_tab_contratti_doc.gruppo > 0 then
-//	//--- Attivo dw diversi archivi 
-//				k_rc = this.getchild(dwo.name, kdwc_x)
-//				if kdwc_x.rowcount() > 1 then
-//					 if  isnull(kdwc_x.getitemnumber(2, "gruppo")) or kdwc_x.getitemnumber(2, "gruppo") <> kst_tab_contratti_doc.gruppo then
-//						kdwc_x.reset()
-//					end if
-//				end if
-//				if kdwc_x.rowcount() < 2 then
-//					kdwc_x.retrieve(kst_tab_contratti_doc.gruppo )
-//					k_rc = kdwc_x.insertrow(1)
-//				end if
-//			else
-//				k_rc = kdwc_x.reset()
-//				kdwc_x.retrieve(0)
-//				k_rc = kdwc_x.insertrow(1)
-//			end if
-//		end if 
-//
-//
-//	case "oggetto", "id_clie_settore",  "iva"
-//		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione then
-//	
-//	//--- Attivo dw diversi archivi 
-//			k_rc = this.getchild(dwo.name, kdwc_x)
-//			if kdwc_x.rowcount() < 2 then
-//				kdwc_x.retrieve()
-//				k_rc = kdwc_x.insertrow(1)
-//			end if
-//		end if 
-//
-//	case "cod_pag", "acconto_cod_pag"
-//		this.getchild("cod_pag", kdwc_x)
-//		kdwc_x.settransobject(sqlca)
-//		if kdwc_x.rowcount() < 2 then
-//			kdwc_x.retrieve()
-//			kdwc_x.insertrow(1)
-//		end if
-//		this.getchild("acconto_cod_pag", kdwc_2)
-//		kdwc_x.ShareData( kdwc_2)			
-//
-//end choose
-//
-//
 end event
 
 type st_2_retrieve from w_g_tab_3`st_2_retrieve within tabpage_2

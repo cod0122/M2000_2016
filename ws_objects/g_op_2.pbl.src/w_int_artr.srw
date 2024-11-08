@@ -2210,6 +2210,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		kuf1_report_regart50.get_st_report_regart50(kst_report_regart50)
 		destroy kuf1_report_regart50
 		
+		tab_1.tabpage_1.dw_1.insertrow(0)
 		tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kst_report_regart50.k_data_a) )
 		tab_1.tabpage_1.dw_1.setitem(1, "mese", month(kst_report_regart50.k_data_a) )
 		tab_1.tabpage_1.dw_1.setitem(1, "nrpag", kst_report_regart50.k_nrpagina + 1)

@@ -222,7 +222,7 @@ string k_num_colonne, k_nome, k_nome_orig
 					, "allegati_cartella" &
 					,"doc_root" &
 					,"fgrp_out_path" &
-					,"dir_report_pilota" &
+					,"dir_report_pilota", "dir_report_pilota_g3" &
 					,"report_export_dir" &
 					,"aco_exp_regcdp_dir" &
 					,"e1_certif_saved_dir", "dir_cust_packing_in", "url_cust_packing_in", "k_packingformin_pathfile" &
@@ -499,7 +499,7 @@ choose case k_nome_link
 	case "allegati_cartella" &
 			,"doc_root" &
 			,"fgrp_out_path" &
-			,"dir_report_pilota" &
+			,"dir_report_pilota", "dir_report_pilota_g3" &
 			,"report_export_dir" &
 			,"aco_exp_regcdp_dir" &
 			,"e1_certif_saved_dir" &

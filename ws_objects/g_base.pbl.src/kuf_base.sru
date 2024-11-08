@@ -1837,6 +1837,9 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	if isnull(kst_tab_base.dir_report_pilota) then
 		kst_tab_base.dir_report_pilota = ""
 	end if
+	if isnull(kst_tab_base.dir_report_pilota_g3) then
+		kst_tab_base.dir_report_pilota_g3 = ""
+	end if
 	if isnull(kst_tab_base.report_export_dir) then
 		kst_tab_base.report_export_dir = ""
 	end if
@@ -1868,6 +1871,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	kst_tab_base.esolver_expfidi_nome = trim(kst_tab_base.esolver_expfidi_nome)
 	kst_tab_base.esolver_inpfidi_nome = trim(kst_tab_base.esolver_inpfidi_nome)
 	kst_tab_base.dir_report_pilota   = trim(kst_tab_base.dir_report_pilota)
+	kst_tab_base.dir_report_pilota_g3   = trim(kst_tab_base.dir_report_pilota_g3)
 	kst_tab_base.report_export_dir   = trim(kst_tab_base.report_export_dir)
 	kst_tab_base.aco_exp_regcdp_dir  = trim(kst_tab_base.aco_exp_regcdp_dir)
 	kst_tab_base.e1_certif_saved_dir = trim(kst_tab_base.e1_certif_saved_dir)
@@ -1900,6 +1904,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 					esolver_inpfidi_nome = :kst_tab_base.esolver_inpfidi_nome,
 					e1dtlav_allineagg = :kst_tab_base.e1dtlav_allineagg,
 					dir_report_pilota = :kst_tab_base.dir_report_pilota,
+					dir_report_pilota_g3 = :kst_tab_base.dir_report_pilota_g3,
 					report_export_dir = :kst_tab_base.report_export_dir,
 					aco_exp_regcdp_dir = :kst_tab_base.aco_exp_regcdp_dir,
 					e1_certif_saved_dir = :kst_tab_base.e1_certif_saved_dir,
@@ -1925,6 +1930,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  esolver_expfidi_nome,
 						  esolver_inpfidi_nome,
 						  dir_report_pilota,
+						  dir_report_pilota_g3,
 						  report_export_dir,
 						  aco_exp_regcdp_dir,
 						  e1_certif_saved_dir,
@@ -1944,6 +1950,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  :kst_tab_base.esolver_expfidi_nome,
 						  :kst_tab_base.esolver_inpfidi_nome,
 						  :kst_tab_base.dir_report_pilota,
+						  :kst_tab_base.dir_report_pilota_g3,
 						  :kst_tab_base.report_export_dir,
 						  :kst_tab_base.aco_exp_regcdp_dir,
 						  :kst_tab_base.e1_certif_saved_dir,
@@ -3346,8 +3353,19 @@ kuf_stampe kuf1_stampe
 			k_pos_ini = 1
 			k_lungo = len(k_record)
 			
-		case "path_report_pilota" // Cartella radice dove risiedono i report prodotti dal Pilota (pdf)
+		case "path_report_pilota" // Cartella radice dove risiedono i report prodotti dal Pilota G2 (pdf)
 			select dir_report_pilota
+				 into :k_record
+				 from base_dir;
+			k_record = trim(k_record)
+			if isnull(k_record) then
+				k_record = ""
+			end if
+			k_pos_ini = 1
+			k_lungo = len(k_record)
+			
+		case "path_report_pilota_g3" // Cartella radice dove risiedono i report prodotti dal Pilota G3 (pdf)
+			select dir_report_pilota_g3
 				 into :k_record
 				 from base_dir;
 			k_record = trim(k_record)

@@ -256,6 +256,7 @@ public subroutine u_resize_1 ()
 private subroutine get_path_smart_pickup_lots_dir ()
 private function st_esito u_base_update ()
 private subroutine get_path_dir_cust_packing_in ()
+private subroutine get_path_reportpilota_g3 ()
 end prototypes
 
 protected subroutine pulizia_righe ();////
@@ -2146,7 +2147,7 @@ else
 	k_path=".."
 end if
 
-k_ret = GetFolder ( "Scegliere la cartella dove trovare i Report generati dal 'PILOTA'", k_path )
+k_ret = GetFolder ( "Scegliere la cartella dove trovare i Report generati dal PILOTA G2", k_path )
 
 if k_ret = 1 then
 	tab_1.tabpage_4.dw_4.setitem(1, "dir_report_pilota", trim(k_path))
@@ -2404,6 +2405,7 @@ try
 	kst_tab_base.dir_ddt = ""
 	kst_tab_base.e1dtlav_allineagg = tab_1.tabpage_4.dw_4.getitemnumber(1, "e1dtlav_allineagg")
 	kst_tab_base.dir_report_pilota = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_report_pilota")
+	kst_tab_base.dir_report_pilota_g3 = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_report_pilota_g3")
 	kst_tab_base.dir_cust_packing_in = tab_1.tabpage_4.dw_4.getitemstring(1, "dir_cust_packing_in")
 	kst_tab_base.url_cust_packing_in = tab_1.tabpage_4.dw_4.getitemstring(1, "url_cust_packing_in")
 	kst_tab_base.report_export_dir = tab_1.tabpage_4.dw_4.getitemstring(1, "report_export_dir")
@@ -2470,6 +2472,30 @@ else
 //--- ERRORE	
 	end if
 end if
+
+end subroutine
+
+private subroutine get_path_reportpilota_g3 ();//
+string k_path=".."
+int k_ret
+
+
+k_path = tab_1.tabpage_4.dw_4.getitemstring (1, "dir_report_pilota_g3")
+if len(trim(k_path)) > 0 then
+else
+	k_path=".."
+end if
+
+k_ret = GetFolder ( "Scegliere la cartella dove trovare i Report generati dal PILOTA G3", k_path )
+
+if k_ret = 1 then
+	tab_1.tabpage_4.dw_4.setitem(1, "dir_report_pilota_g3", trim(k_path))
+else
+	if k_ret < 0 then
+//--- ERRORE	
+	end if
+end if
+
 
 end subroutine
 
@@ -2896,8 +2922,10 @@ elseif dwo.name = "b_folder_upd" then
 	get_path_pgm_upd()
 elseif dwo.name = "b_folder_fatt" then
 	get_path_fatt()
-elseif dwo.name = "b_dir_report_pilota" then
+elseif dwo.name = "x_dir_report_pilota" then
 	get_path_reportpilota()
+elseif dwo.name = "x_dir_report_pilota_g3" then
+	get_path_reportpilota_g3()
 //elseif dwo.name = "b_dosimetro_ult_barcode" then
 //	get_dosimetro_ult_barcode()
 elseif dwo.name = "b_folder_esolver_anag" then

@@ -469,11 +469,11 @@ boolean k_insert = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 	
 		m_main.m_strumenti.m_fin_gest_libero4.text = "Stampa Report E1"
-		m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Report, Stampa dati report E1. "
+		m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Report, Stampa Contact List per E1. "
 		m_main.m_strumenti.m_fin_gest_libero4.visible = true
 		m_main.m_strumenti.m_fin_gest_libero4.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Rep.E1, Stampa dati report E1. "
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Rprt E1, Stampa Contact List E1. "
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "printa16.png"
 //		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = kGuo_path.get_risorse() +  "\fattura16x16.gif"
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
@@ -1307,14 +1307,16 @@ try
 			 + " where CLIENTI.CODICE in ( " 
 	k_query += &
 	  " SELECT DISTINCT clienti.codice  " &
-		+ "FROM (clienti LEFT OUTER JOIN clienti_mkt ON  " &
+		+ "FROM clienti LEFT OUTER JOIN clienti_mkt ON  " &
 									+ " clienti.codice = clienti_mkt.id_cliente  " &
 		  + " LEFT OUTER JOIN clienti_web ON  " &
-									+ " clienti.codice = clienti_web.id_cliente)   " &
+									+ " clienti.codice = clienti_web.id_cliente   " &
+		  + " LEFT OUTER JOIN v_clienti_mkt_web vc ON  " &
+									+ " clienti.codice = vc.id_cliente   " &
 		  + "  LEFT OUTER JOIN gru ON  " &
-								  + " clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice   " &
+								  + " clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice " &
 		  + "  LEFT OUTER JOIN province ON  " &
-							  + " (clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla) " &
+							  + " clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla " &
 		  + " WHERE  " &
 		+ " coalesce(CONVERT(VARCHAR,clienti.codice),' ')" &
 		+ " like '" + k_valore + "' "  &
@@ -1354,10 +1356,10 @@ try
 		+ " like '" + k_valore + "' "  &
 		+ " or coalesce(CONVERT(VARCHAR,clienti.id_clie_classe),' ') " &
 		+ " like '" + k_valore + "' "  &
-		+ " or coalesce(CONVERT(VARCHAR,clienti.e1an),' ') " &
-		+ " like '" + k_valore + "' "  &
-		+ " or upper(coalesce(clienti.e1ancodrs,' ')) " &
-		+ " like '" + k_valore + "' "  &
+		+ " or coalesce(CONVERT(VARCHAR,clienti.e1an),' ') " + " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(clienti.e1ancodrs,' ')) " + " like '" + k_valore + "' "  &
+		+ " or vc.cell like '" + k_valore + "' "  &
+		+ " or vc.categ like '" + k_valore + "' "  &
 		  + " ) " 
 		//+ " or upper(coalesce(clienti_mkt.tipo_rapporto,' ')+coalesce(CONVERT(VARCHAR,clienti_mkt.id_cliente_link),' ') 
 	k_query += "   "

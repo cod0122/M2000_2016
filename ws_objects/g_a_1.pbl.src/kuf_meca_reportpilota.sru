@@ -17,7 +17,6 @@ public function boolean tb_add (st_tab_meca_fconv ast_tab_meca_fconv) throws uo_
 public function boolean tb_update (st_tab_meca_fconv ast_tab_meca_fconv) throws uo_exception
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function long get_id_meca (st_tab_meca_reportpilota ast_tab_meca_reportpilota) throws uo_exception
-public function datastore importa_report_pilota () throws uo_exception
 public function long u_job_importa_report_pilota () throws uo_exception
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 public function boolean u_stampa (st_tab_meca_reportpilota ast_tab_meca_reportpilota) throws uo_exception
@@ -29,6 +28,8 @@ private function string u_build_pathreport (ref st_tab_meca_reportpilota ast_tab
 public function string u_get_path_nomereport (ref st_tab_meca_reportpilota ast_tab_meca_reportpilota) throws uo_exception
 private function any get_path_all (ref st_tab_meca_reportpilota ast_tab_meca_reportpilota) throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
+public function datastore old_importa_report_pilota () throws uo_exception
+public function datastore importa_report_pilota (string a_dir_report_pilota) throws uo_exception
 end prototypes
 
 public function boolean tb_add (st_tab_meca_fconv ast_tab_meca_fconv) throws uo_exception;// funzione che fa l'insert sulla tabella meca_fconv
@@ -229,305 +230,55 @@ return k_return
 
 end function
 
-public function datastore importa_report_pilota () throws uo_exception;//
-//------------------------------------------------------------------------------------------------------------------------------------
-//---
-//---	Importa i report prodotti dal Pilota dalla cartella impostata nelle Proprietà
-//---	inp: 
-//---	out: 
-//---	rit: nr file trovati
-//---	x ERRORE lancia UO_EXCEPTION
-//---
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-//integer k_return=0
-boolean k_b=false
-string k_rc, k_file="", k_path[], k_docpath[], k_path_all[], k_nome_file_dest, k_file_find
-int k_rcn, k_file_ind=0, k_ctr
-long k_ind, k_nr_file_dirlist=0, k_nr_doc, k_wo_non_importati
-date k_dataoggi
-string k_esito, k_num_x
-int k_npath_tot, k_npath
-st_tab_meca kst_tab_meca
-st_tab_meca_reportpilota kst_tab_meca_reportpilota
-st_esito kst_esito
-st_tab_base kst_tab_base
-kuf_file_explorer kuf1_file_explorer
+public function long u_job_importa_report_pilota () throws uo_exception;/*
+ Importa file prodotti dal PILOTA (report trattamenti in pdf)
+ 	Rit: numero righe aggiornate su MECA_REPORTPILOTA 
+*/
+long k_return
+string k_esito, k_dir_report_pilota
+uo_ds_std_1 kds_1
 kuf_base kuf1_base
-kuf_armo kuf1_armo
-datastore kds_dirlist
-datastore kds_meca_reportpilota, kds_meca_reportpilota_errori
- 
- 
-	try
 
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.ok
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = ""
-
-		kds_meca_reportpilota = create datastore
-		kds_meca_reportpilota.dataobject = "ds_meca_reportpilota"
-		kds_meca_reportpilota.settransobject( kguo_sqlca_db_magazzino )
-		
-		kds_meca_reportpilota_errori = create datastore
-		kds_meca_reportpilota_errori.dataobject = "ds_meca_reportpilota_errori"
-		
-//--- legge i path nei quali copiare i report
-		k_docpath[] = get_docpath ( )
-		k_ctr = upperbound(k_docpath[])
-		for k_ind = 1 to k_ctr
-			if trim(k_docpath[k_ind]) > " " then
-				k_npath_tot ++
-				k_path[k_npath_tot] = k_docpath[k_ind]
-			else
-				exit 
-			end if
-		end for
-		if k_npath_tot = 0  then 
-			kst_esito.esito = kkg_esito.no_esecuzione  
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Nessun report importato dal Pilota. Cartella non impostata in archivio~n~r" 
-			kGuo_exception.inizializza( )
-			kGuo_exception.set_esito(kst_esito)
-			throw kGuo_exception   
-		end if
-			
-		kuf1_file_explorer = create kuf_file_explorer
-		kuf1_base = create kuf_base
-		kuf1_armo = create kuf_armo
-
-//--- piglia il path di dove sono i Report del PILOTA
-		k_esito = kuf1_base.prendi_dato_base( "path_report_pilota")
-		if left(k_esito,1) <> "0" then
-			kst_esito.esito = kkg_esito.no_esecuzione  
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Impostare in Proprietà la Cartella in cui trovare i Report prodotti dal 'Pilota' ~n~r" + mid(k_esito,2)
-			kGuo_exception.inizializza( )
-			kGuo_exception.set_esito(kst_esito)
-			throw kGuo_exception   
-		else
-			kst_tab_base.dir_report_pilota = trim(mid(k_esito,2))
-		end if
-
-//--- piglia l'elenco dei file xml contenuti nella cartella Pilota formato: WOnnnnnnnn.pdf
-		k_file_find = kst_tab_base.dir_report_pilota + kkg.path_sep + "WO*.pdf"
-		kds_dirlist = kuf1_file_explorer.DirList(k_file_find)
-		k_nr_file_dirlist = kds_dirlist.rowcount( )
-
-		for k_file_ind = 1 to k_nr_file_dirlist
-		
-//--- estrae il file da importare		
-			k_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
-			if k_file > " " then
-
-//--- get codice E1 - WO dal nome file che è ad esempio WO01234567.pdf
-				k_num_x = mid(k_file, 3, len(k_file) - 6)
-				if isnumber(k_num_x) then
-					kst_tab_meca.e1doco = long(k_num_x)
-
-//--- get del ID_MECA
-					kst_tab_meca_reportpilota.id_meca = kuf1_armo.get_id_meca_da_e1doco(kst_tab_meca)	
-					if kst_tab_meca_reportpilota.id_meca > 0 then
-	
-						//--- verifica di non avere già importato il file
-						if get_nomereport(kst_tab_meca_reportpilota) > " " then
-						else
-
-							u_build_pathreport(kst_tab_meca_reportpilota) // get del path 'relativo' del Report
-			
-							k_path_all = u_build_path_all(k_path[], kst_tab_meca_reportpilota)  // aggiunge al percorso di root quello relativo
-					
-							for k_npath = 1 to k_npath_tot
-								if k_path_all[k_npath] > " " then 
-	
-									k_dataoggi = kguo_g.get_dataoggi( )
-									//--- compone il nome file es. rPilota180627_WO01234567_id345678.pdf
-									k_nome_file_dest = "rPilota" + string(k_dataoggi, "yymmdd") + "_" +  left(k_file, len(k_file) - 4) &
-													+ "_id" + string(kst_tab_meca.id, "#") + ".pdf"
-	
-	//--- copia il file dalla cartella PILOTA alla cartella Interna definita in Procedura (crea la cartella se non esiste)
-									kuf1_file_explorer.u_directory_create(k_path_all[k_npath])
-									k_rcn = FileCopy (kst_tab_base.dir_report_pilota + kkg.path_sep + k_file, k_path_all[k_npath] + k_nome_file_dest, true)
-									
-									choose case k_rcn
-										case 1 
-											//--- scrivo solo il Report interno in tabella
-											if k_npath = 1 then
-												k_nr_doc = kds_meca_reportpilota.insertrow(0)
-												kds_meca_reportpilota.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
-												kds_meca_reportpilota.setitem(k_nr_doc, "nomereportorig", k_file)
-												kds_meca_reportpilota.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
-												kds_meca_reportpilota.setitem(k_nr_doc, "pathreport",  kst_tab_meca_reportpilota.pathreport)
-												kds_meca_reportpilota.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
-												kds_meca_reportpilota.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
-											end if
-										case -1
-											k_wo_non_importati ++
-											k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in apertura del Report Pilota: "+kst_tab_base.dir_report_pilota + kkg.path_sep + k_file)
-//											kst_esito.esito = kkg_esito.no_esecuzione  
-//											kst_esito.sqlcode = 0
-//											kst_esito.SQLErrText = "Errore in apertura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
-//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
-//											kGuo_exception.inizializza( )
-//											kGuo_exception.set_esito(kst_esito)
-//											throw kGuo_exception   
-										case -2	
-											k_wo_non_importati ++
-											k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
-											kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in scrittura del Report Pilota: "+k_path_all[k_npath] + k_nome_file_dest)
-//											kst_esito.esito = kkg_esito.no_esecuzione  
-//											kst_esito.sqlcode = 0
-//											kst_esito.SQLErrText = "Errore in scrittura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
-//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
-//											kGuo_exception.inizializza( )
-//											kGuo_exception.set_esito(kst_esito)
-//											throw kGuo_exception   
-									end choose
-									
-								end if
-							end for
-						end if
-					else
-						k_wo_non_importati ++
-						k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", "")
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport", "")
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
-						kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Lotto non trovato in archivio")
-//						kst_esito.esito = kkg_esito.no_esecuzione  
-//						kst_esito.sqlcode = 0
-//						kst_esito.SQLErrText = "Non è stato trovato il Lotto per il Report Pilota '" + k_file + "', Verificare l'esattezza del dato o rimuovere il file~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file 
-//						kGuo_exception.inizializza( )
-//						kGuo_exception.set_esito(kst_esito)
-//						throw kGuo_exception   
-					end if					
-						
-				end if
-			end if
-
-			
-		end for
-
-		k_ind = kds_meca_reportpilota.rowcount( )
-		if k_ind > 0 then
-			if kds_meca_reportpilota.update( ) > 0 then
-				kguo_sqlca_db_magazzino.db_commit( )
-				kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaOKFileList.xlsx", XLSX!, true)
-			else
-				if upperbound(k_path) > 0 then
-					kuf1_file_explorer.u_directory_create(k_path[1])
-					kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
-				else
-					k_path[1] = ""
-				end if
-				kst_esito.esito = kkg_esito.no_esecuzione  
-				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Errore in aggiornamento dati dei '" + string(k_ind) + "' Report Pilota importati~n~r da '" + kst_tab_base.dir_report_pilota + kkg.path_sep +"'" &
-												+ "~n~ra '" + k_path[1] + "'n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
-				kGuo_exception.inizializza( )
-				kGuo_exception.set_esito(kst_esito)
-				throw kGuo_exception   
-			end if
-		end if
-
-//--- se ci sono ERRORI li segnala				
-		if k_wo_non_importati > 0 then
-			if upperbound(k_path) > 0 then
-				kuf1_file_explorer.u_directory_create(k_path[1])
-				kds_meca_reportpilota_errori.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
-			else
-				k_path[1] = ""
-			end if
-			kst_esito.esito = kkg_esito.DATI_WRN 
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Operazione di importazione incompleta. Sono stati importati " + string(k_ind) + " documenti da~n~r" &
-							  + "'" + kst_tab_base.dir_report_pilota + "'~n~r in '" + k_path[1] + k_nome_file_dest + "'~n~r"&
-							  +"Ma si sono vericati degli errori e " + string(k_wo_non_importati) + " file non sono stati importati.~n~r" &
-							  +"Prego controllare il tabulato dei documenti non importati in '" + k_path[1]+kkg.path_sep + "ErroreReportPilotaFileList.xlsx" + "'"
-			kGuo_exception.inizializza( )
-			kGuo_exception.set_esito(kst_esito)
-			throw kGuo_exception   
-		end if
-
-		//k_return = k_nr_doc
-
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-		
-		
-	finally
-		if isvalid(kds_dirlist) then destroy kds_dirlist
-		if isvalid(kuf1_base) then destroy kuf1_base
-		if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
-		if isvalid(kuf1_armo) then destroy kuf1_armo
-		
-	end try
-			
-
-
-return kds_meca_reportpilota
-
-
-end function
-
-public function long u_job_importa_report_pilota () throws uo_exception;//
-//--------------------------------------------------------------------------------------------------------------
-//--- Importa file prodotti dal PILOTA 
-//--- 
-//--- Input: 
-//--- out: 
-//--- Rit: numero righe aggiornate su MECA_REPORTPILOTA 
-//--- Lancia EXCEPTION se errori gravi 
-//--- 
-//--------------------------------------------------------------------------------------------------------------
-long k_return=0
-datastore kds_1
-st_esito kst_esito
-
-
-//setpointer()
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
 
 try
-//	kds_1 = create datastore
-//	kds_1.dataobject = "ds_meca_senza_data_ent"
-//	kds_1.settrans(kguo_sqlca_db_magazzino)
+	kguo_exception.inizializza(this.classname())
 
-//--- Copia i file del Pilota nella cartella interna e riempie il ds 
-	kds_1 = importa_report_pilota( )
+
+	kuf1_base = create kuf_base
+
+	k_esito = kuf1_base.prendi_dato_base( "path_report_pilota") // piglia il path di dove sono i Report del PILOTA G2
+	if left(k_esito,1) <> "0" then
+		kGuo_exception.kist_esito.esito = kkg_esito.no_esecuzione  
+		kGuo_exception.kist_esito.SQLErrText = "Impostare in Proprietà la Cartella in cui trovare i Report prodotti dal 'Pilota' ~n~r" + mid(k_esito,2)
+		throw kGuo_exception   
+	else
+		k_dir_report_pilota = trim(mid(k_esito,2))
+	end if
+
+	kds_1 = importa_report_pilota(k_dir_report_pilota) // Copia i file del Pilota G2 nella cartella interna e riempie il ds 
 	if isvalid(kds_1) then
 		k_return = kds_1.rowcount( ) 
 	end if
-		
 	
+	k_esito = kuf1_base.prendi_dato_base( "path_report_pilota_g3") // piglia il path di dove sono i Report del PILOTA G2
+	if left(k_esito,1) <> "0" then
+		kGuo_exception.kist_esito.esito = kkg_esito.no_esecuzione  
+		kGuo_exception.kist_esito.SQLErrText = "Impostare in Proprietà la Cartella in cui trovare i Report prodotti dal 'Pilota' ~n~r" + mid(k_esito,2)
+		throw kGuo_exception   
+	else
+		k_dir_report_pilota = trim(mid(k_esito,2))
+	end if
+	kds_1 = importa_report_pilota(k_dir_report_pilota) // Copia i file del Pilota G3 nella cartella interna e riempie il ds 
+	if isvalid(kds_1) then
+		k_return += kds_1.rowcount( ) 
+	end if
+			
 catch (uo_exception kuo_exception) 
-	k_return = 0
 	throw kuo_exception
 	
 finally
 	if isvalid(kds_1) then destroy kds_1
-//	setpointer(kp_originale)
+	if isvalid(kuf1_base) then destroy kuf1_base
 
 end try
 
@@ -964,7 +715,7 @@ try
 	if ast_tab_meca_reportpilota.id_meca > 0 then
 	else
 		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.SQLErrText = "Manca il Lotto id compilare la cartella interna del Report Pilota, operazione non eseguita!"
+		kst_esito.SQLErrText = "Manca Id del Lotto per compilare il nome della cartella interna del Report Pilota, operazione non eseguita!"
 		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	end if
@@ -974,7 +725,7 @@ try
 	kst_tab_meca.id = ast_tab_meca_reportpilota.id_meca
 	kuf1_armo.get_dati_rid(kst_tab_meca )
 	
-//--- get del path da iinestare sul path root del documento
+//--- get del path da innestare sul path root del documento
 	kuf1_docpath = create kuf_docpath
 	k_data =  date(kst_tab_meca.data_ent)
 	if k_data > kkg.data_no then
@@ -1092,23 +843,18 @@ public function st_esito u_batch_run () throws uo_exception;//---
 //--- Lancio operazioni Batch
 //---
 int k_ctr
-st_esito kst_esito
 
 
 try 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 //--- Importa Report Prodotti dal PILOTA dalla cartella del Pilota a quella interna
 	k_ctr = u_job_importa_report_pilota( )
 	if k_ctr > 0 then
-		kst_esito.SQLErrText = "Operazione conclusa correttamente." &
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa correttamente." &
 									+ "Sono stati importati " + string(k_ctr) + " nuovi Report (pdf) prodotti dal Pilota" 
 	else
-		kst_esito.SQLErrText = "Operazione conclusa. Nessun nuovo Report (pdf) prodotto dal Pilota è stato trovato."
+		kguo_exception.kist_esito.SQLErrText = "Operazione conclusa. Nessun nuovo Report (pdf) prodotto dal Pilota è stato trovato."
 	end if
 
 
@@ -1120,7 +866,495 @@ finally
 end try
 
 
-return kst_esito
+return kguo_exception.kist_esito
+end function
+
+public function datastore old_importa_report_pilota () throws uo_exception;//
+//------------------------------------------------------------------------------------------------------------------------------------
+//---
+//---	Importa i report prodotti dal Pilota dalla cartella impostata nelle Proprietà
+//---	inp: 
+//---	out: 
+//---	rit: nr file trovati
+//---	x ERRORE lancia UO_EXCEPTION
+//---
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+//integer k_return=0
+boolean k_b=false
+string k_rc, k_file="", k_path[], k_docpath[], k_path_all[], k_nome_file_dest, k_file_find
+int k_rcn, k_file_ind=0, k_ctr
+long k_ind, k_nr_file_dirlist=0, k_nr_doc, k_wo_non_importati
+date k_dataoggi
+string k_esito, k_num_x
+int k_npath_tot, k_npath
+st_tab_meca kst_tab_meca
+st_tab_meca_reportpilota kst_tab_meca_reportpilota
+st_esito kst_esito
+st_tab_base kst_tab_base
+kuf_file_explorer kuf1_file_explorer
+kuf_base kuf1_base
+kuf_armo kuf1_armo
+datastore kds_dirlist
+datastore kds_meca_reportpilota, kds_meca_reportpilota_errori
+ 
+ 
+	try
+
+		kst_esito.nome_oggetto = this.classname()
+		kst_esito.esito = kkg_esito.ok
+		kst_esito.sqlcode = 0
+		kst_esito.SQLErrText = ""
+
+		kds_meca_reportpilota = create datastore
+		kds_meca_reportpilota.dataobject = "ds_meca_reportpilota"
+		kds_meca_reportpilota.settransobject( kguo_sqlca_db_magazzino )
+		
+		kds_meca_reportpilota_errori = create datastore
+		kds_meca_reportpilota_errori.dataobject = "ds_meca_reportpilota_errori"
+		
+//--- legge i path nei quali copiare i report
+		k_docpath[] = get_docpath ( )
+		k_ctr = upperbound(k_docpath[])
+		for k_ind = 1 to k_ctr
+			if trim(k_docpath[k_ind]) > " " then
+				k_npath_tot ++
+				k_path[k_npath_tot] = k_docpath[k_ind]
+			else
+				exit 
+			end if
+		end for
+		if k_npath_tot = 0  then 
+			kst_esito.esito = kkg_esito.no_esecuzione  
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = "Nessun report importato dal Pilota. Cartella non impostata in archivio~n~r" 
+			kGuo_exception.inizializza( )
+			kGuo_exception.set_esito(kst_esito)
+			throw kGuo_exception   
+		end if
+			
+		kuf1_file_explorer = create kuf_file_explorer
+		kuf1_base = create kuf_base
+		kuf1_armo = create kuf_armo
+
+//--- piglia il path di dove sono i Report del PILOTA
+		k_esito = kuf1_base.prendi_dato_base( "path_report_pilota")
+		if left(k_esito,1) <> "0" then
+			kst_esito.esito = kkg_esito.no_esecuzione  
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = "Impostare in Proprietà la Cartella in cui trovare i Report prodotti dal 'Pilota' ~n~r" + mid(k_esito,2)
+			kGuo_exception.inizializza( )
+			kGuo_exception.set_esito(kst_esito)
+			throw kGuo_exception   
+		else
+			kst_tab_base.dir_report_pilota = trim(mid(k_esito,2))
+		end if
+
+//--- piglia l'elenco dei file xml contenuti nella cartella Pilota formato: WOnnnnnnnn.pdf
+		k_file_find = kst_tab_base.dir_report_pilota + kkg.path_sep + "WO*.pdf"
+		kds_dirlist = kuf1_file_explorer.DirList(k_file_find)
+		k_nr_file_dirlist = kds_dirlist.rowcount( )
+
+		for k_file_ind = 1 to k_nr_file_dirlist
+		
+//--- estrae il file da importare		
+			k_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
+			if k_file > " " then
+
+//--- get codice E1 - WO dal nome file che è ad esempio WO01234567.pdf
+				k_num_x = mid(k_file, 3, len(k_file) - 6)
+				if isnumber(k_num_x) then
+					kst_tab_meca.e1doco = long(k_num_x)
+
+//--- get del ID_MECA
+					kst_tab_meca_reportpilota.id_meca = kuf1_armo.get_id_meca_da_e1doco(kst_tab_meca)	
+					if kst_tab_meca_reportpilota.id_meca > 0 then
+	
+						//--- verifica di non avere già importato il file
+						if get_nomereport(kst_tab_meca_reportpilota) > " " then
+						else
+
+							u_build_pathreport(kst_tab_meca_reportpilota) // get del path 'relativo' del Report
+			
+							k_path_all = u_build_path_all(k_path[], kst_tab_meca_reportpilota)  // aggiunge al percorso di root quello relativo
+					
+							for k_npath = 1 to k_npath_tot
+								if k_path_all[k_npath] > " " then 
+	
+									k_dataoggi = kguo_g.get_dataoggi( )
+									//--- compone il nome file es. rPilota180627_WO01234567_id345678.pdf
+									k_nome_file_dest = "rPilota" + string(k_dataoggi, "yymmdd") + "_" +  left(k_file, len(k_file) - 4) &
+													+ "_id" + string(kst_tab_meca.id, "#") + ".pdf"
+	
+	//--- copia il file dalla cartella PILOTA alla cartella Interna definita in Procedura (crea la cartella se non esiste)
+									kuf1_file_explorer.u_directory_create(k_path_all[k_npath])
+									k_rcn = FileCopy (kst_tab_base.dir_report_pilota + kkg.path_sep + k_file, k_path_all[k_npath] + k_nome_file_dest, true)
+									
+									choose case k_rcn
+										case 1 
+											//--- scrivo solo il Report interno in tabella
+											if k_npath = 1 then
+												k_nr_doc = kds_meca_reportpilota.insertrow(0)
+												kds_meca_reportpilota.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+												kds_meca_reportpilota.setitem(k_nr_doc, "nomereportorig", k_file)
+												kds_meca_reportpilota.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+												kds_meca_reportpilota.setitem(k_nr_doc, "pathreport",  kst_tab_meca_reportpilota.pathreport)
+												kds_meca_reportpilota.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+												kds_meca_reportpilota.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+											end if
+										case -1
+											k_wo_non_importati ++
+											k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in apertura del Report Pilota: "+kst_tab_base.dir_report_pilota + kkg.path_sep + k_file)
+//											kst_esito.esito = kkg_esito.no_esecuzione  
+//											kst_esito.sqlcode = 0
+//											kst_esito.SQLErrText = "Errore in apertura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
+//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
+//											kGuo_exception.inizializza( )
+//											kGuo_exception.set_esito(kst_esito)
+//											throw kGuo_exception   
+										case -2	
+											k_wo_non_importati ++
+											k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+											kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in scrittura del Report Pilota: "+k_path_all[k_npath] + k_nome_file_dest)
+//											kst_esito.esito = kkg_esito.no_esecuzione  
+//											kst_esito.sqlcode = 0
+//											kst_esito.SQLErrText = "Errore in scrittura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
+//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
+//											kGuo_exception.inizializza( )
+//											kGuo_exception.set_esito(kst_esito)
+//											throw kGuo_exception   
+									end choose
+									
+								end if
+							end for
+						end if
+					else
+						k_wo_non_importati ++
+						k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", "")
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport", "")
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+						kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Lotto non trovato in archivio")
+//						kst_esito.esito = kkg_esito.no_esecuzione  
+//						kst_esito.sqlcode = 0
+//						kst_esito.SQLErrText = "Non è stato trovato il Lotto per il Report Pilota '" + k_file + "', Verificare l'esattezza del dato o rimuovere il file~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file 
+//						kGuo_exception.inizializza( )
+//						kGuo_exception.set_esito(kst_esito)
+//						throw kGuo_exception   
+					end if					
+						
+				end if
+			end if
+
+			
+		end for
+
+		k_ind = kds_meca_reportpilota.rowcount( )
+		if k_ind > 0 then
+			if kds_meca_reportpilota.update( ) > 0 then
+				kguo_sqlca_db_magazzino.db_commit( )
+				kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaOKFileList.xlsx", XLSX!, true)
+			else
+				if upperbound(k_path) > 0 then
+					kuf1_file_explorer.u_directory_create(k_path[1])
+					kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
+				else
+					k_path[1] = ""
+				end if
+				kst_esito.esito = kkg_esito.no_esecuzione  
+				kst_esito.sqlcode = 0
+				kst_esito.SQLErrText = "Errore in aggiornamento dati dei '" + string(k_ind) + "' Report Pilota importati~n~r da '" + kst_tab_base.dir_report_pilota + kkg.path_sep +"'" &
+												+ "~n~ra '" + k_path[1] + "'n~r" + trim(kguo_sqlca_db_magazzino.sqlerrtext)
+				kGuo_exception.inizializza( )
+				kGuo_exception.set_esito(kst_esito)
+				throw kGuo_exception   
+			end if
+		end if
+
+//--- se ci sono ERRORI li segnala				
+		if k_wo_non_importati > 0 then
+			if upperbound(k_path) > 0 then
+				kuf1_file_explorer.u_directory_create(k_path[1])
+				kds_meca_reportpilota_errori.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
+			else
+				k_path[1] = ""
+			end if
+			kst_esito.esito = kkg_esito.DATI_WRN 
+			kst_esito.sqlcode = 0
+			kst_esito.SQLErrText = "Operazione di importazione incompleta. Sono stati importati " + string(k_ind) + " documenti da~n~r" &
+							  + "'" + kst_tab_base.dir_report_pilota + "'~n~r in '" + k_path[1] + k_nome_file_dest + "'~n~r"&
+							  +"Ma si sono vericati degli errori e " + string(k_wo_non_importati) + " file non sono stati importati.~n~r" &
+							  +"Prego controllare il tabulato dei documenti non importati in '" + k_path[1]+kkg.path_sep + "ErroreReportPilotaFileList.xlsx" + "'"
+			kGuo_exception.inizializza( )
+			kGuo_exception.set_esito(kst_esito)
+			throw kGuo_exception   
+		end if
+
+		//k_return = k_nr_doc
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+		
+		
+	finally
+		if isvalid(kds_dirlist) then destroy kds_dirlist
+		if isvalid(kuf1_base) then destroy kuf1_base
+		if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+		if isvalid(kuf1_armo) then destroy kuf1_armo
+		
+	end try
+			
+
+
+return kds_meca_reportpilota
+
+
+end function
+
+public function datastore importa_report_pilota (string a_dir_report_pilota) throws uo_exception;/*
+	Importa i report prodotti dal Pilota dalla cartella impostata nelle Proprietà
+	inp: cartella dove trovare i Report pdf del Pilota
+	out: 
+	rit: ds_meca_reportpilota
+*/
+boolean k_b=false
+string k_rc, k_file="", k_path[], k_docpath[], k_path_all[], k_nome_file_dest, k_file_find
+int k_rcn, k_file_ind=0, k_ctr
+long k_ind, k_nr_file_dirlist=0, k_nr_doc, k_wo_non_importati
+date k_dataoggi
+string k_esito, k_num_x
+int k_npath_tot, k_npath
+st_tab_meca kst_tab_meca
+st_tab_meca_reportpilota kst_tab_meca_reportpilota
+kuf_file_explorer kuf1_file_explorer
+kuf_armo kuf1_armo
+datastore kds_dirlist
+uo_ds_std_1 kds_meca_reportpilota, kds_meca_reportpilota_errori
+ 
+ 
+try
+	kguo_exception.inizializza(this.classname())
+
+	kds_meca_reportpilota = create uo_ds_std_1
+	kds_meca_reportpilota.dataobject = "ds_meca_reportpilota"
+	
+	a_dir_report_pilota = trim(a_dir_report_pilota)
+	if a_dir_report_pilota > " " then
+		kds_meca_reportpilota.settransobject( kguo_sqlca_db_magazzino )
+	else
+		return kds_meca_reportpilota  
+	end if
+	
+	kds_meca_reportpilota_errori = create uo_ds_std_1
+	kds_meca_reportpilota_errori.dataobject = "ds_meca_reportpilota_errori"
+
+//--- legge i path nei quali copiare i report
+	k_docpath[] = get_docpath ( )
+	k_ctr = upperbound(k_docpath[])
+	for k_ind = 1 to k_ctr
+		if trim(k_docpath[k_ind]) > " " then
+			k_npath_tot ++
+			k_path[k_npath_tot] = k_docpath[k_ind]
+		else
+			exit 
+		end if
+	end for
+	if k_npath_tot = 0  then 
+		kGuo_exception.kist_esito.esito = kkg_esito.no_esecuzione  
+		kGuo_exception.kist_esito.SQLErrText = "Nessun report importato dal Pilota. Cartella non impostata in archivio~n~r" 
+		throw kGuo_exception   
+	end if
+		
+	kuf1_file_explorer = create kuf_file_explorer
+//	kuf1_base = create kuf_base
+	kuf1_armo = create kuf_armo
+
+	k_dataoggi = kguo_g.get_dataoggi( )
+
+//--- piglia l'elenco dei file xml contenuti nella cartella Pilota formato: WOnnnnnnnn.pdf
+	k_file_find = a_dir_report_pilota + kkg.path_sep + "WO*.pdf"
+	kds_dirlist = kuf1_file_explorer.DirList(k_file_find)
+	k_nr_file_dirlist = kds_dirlist.rowcount( )
+
+	for k_file_ind = 1 to k_nr_file_dirlist
+		
+//--- estrae il file da importare		
+		k_file = trim(kds_dirlist.getitemstring(k_file_ind, "nome"))
+		if k_file > " " then
+
+//--- get codice E1 - WO dal nome file che è ad esempio WO01234567.pdf
+			k_num_x = mid(k_file, 3, len(k_file) - 6)
+			if isnumber(k_num_x) then
+				kst_tab_meca.e1doco = long(k_num_x)
+
+//--- get del ID_MECA
+				kst_tab_meca_reportpilota.id_meca = kuf1_armo.get_id_meca_da_e1doco(kst_tab_meca)	
+				if kst_tab_meca_reportpilota.id_meca > 0 then
+
+					//--- verifica di non avere già importato il file
+					if get_nomereport(kst_tab_meca_reportpilota) > " " then
+					else
+
+						u_build_pathreport(kst_tab_meca_reportpilota) // get del path 'relativo' del Report
+		
+						k_path_all = u_build_path_all(k_path[], kst_tab_meca_reportpilota)  // aggiunge al percorso di root quello relativo
+				
+						for k_npath = 1 to k_npath_tot
+							if k_path_all[k_npath] > " " then 
+
+								//--- compone il nome file es. rPilota180627_WO01234567_id345678.pdf
+								k_nome_file_dest = "rPilota" + string(k_dataoggi, "yymmdd") + "_" +  left(k_file, len(k_file) - 4) &
+													+ "_id" + string(kst_tab_meca.id, "#") + ".pdf"
+	
+	//--- copia il file dalla cartella PILOTA alla cartella Interna definita in Procedura (crea la cartella se non esiste)
+								kuf1_file_explorer.u_directory_create(k_path_all[k_npath])
+								k_rcn = FileCopy (a_dir_report_pilota + kkg.path_sep + k_file, k_path_all[k_npath] + k_nome_file_dest, true)
+								
+								choose case k_rcn
+									case 1 
+										//--- scrivo solo il Report interno in tabella
+										if k_npath = 1 then
+											k_nr_doc = kds_meca_reportpilota.insertrow(0)
+											kds_meca_reportpilota.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+											kds_meca_reportpilota.setitem(k_nr_doc, "nomereportorig", k_file)
+											kds_meca_reportpilota.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+											kds_meca_reportpilota.setitem(k_nr_doc, "pathreport",  kst_tab_meca_reportpilota.pathreport)
+											kds_meca_reportpilota.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+											kds_meca_reportpilota.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+										end if
+									case -1
+										k_wo_non_importati ++
+										k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in apertura del Report Pilota: " + a_dir_report_pilota + kkg.path_sep + k_file)
+//											kst_esito.esito = kkg_esito.no_esecuzione  
+//											kst_esito.sqlcode = 0
+//											kst_esito.SQLErrText = "Errore in apertura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
+//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
+//											kGuo_exception.inizializza( )
+//											kGuo_exception.set_esito(kst_esito)
+//											throw kGuo_exception   
+									case -2	
+										k_wo_non_importati ++
+										k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", k_nome_file_dest)
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport",  k_path_all[k_npath])
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+										kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Errore in scrittura del Report Pilota: "+k_path_all[k_npath] + k_nome_file_dest)
+//											kst_esito.esito = kkg_esito.no_esecuzione  
+//											kst_esito.sqlcode = 0
+//											kst_esito.SQLErrText = "Errore in scrittura report Pilota durante la copia da~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file &
+//																			+ " a ~n~r" + k_path_all[k_npath] + k_nome_file_dest
+//											kGuo_exception.inizializza( )
+//											kGuo_exception.set_esito(kst_esito)
+//											throw kGuo_exception   
+								end choose
+								
+							end if
+						end for
+					end if
+				else
+					k_wo_non_importati ++
+					k_nr_doc = kds_meca_reportpilota_errori.insertrow(0)
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "id_meca", kst_tab_meca.id)
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereportorig", k_file)
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "nomereport", "")
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "pathreport", "")
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_datins", kGuf_data_base.prendi_x_datins())
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "x_utente", kGuf_data_base.prendi_x_utente())
+					kds_meca_reportpilota_errori.setitem(k_nr_doc, "k_errore_msg", "Lotto non trovato in archivio")
+//						kst_esito.esito = kkg_esito.no_esecuzione  
+//						kst_esito.sqlcode = 0
+//						kst_esito.SQLErrText = "Non è stato trovato il Lotto per il Report Pilota '" + k_file + "', Verificare l'esattezza del dato o rimuovere il file~n~r" + kst_tab_base.dir_report_pilota + kkg.path_sep + k_file 
+//						kGuo_exception.inizializza( )
+//						kGuo_exception.set_esito(kst_esito)
+//						throw kGuo_exception   
+				end if					
+						
+			end if
+		end if
+
+			
+	end for
+
+	k_ind = kds_meca_reportpilota.rowcount( )
+	if k_ind > 0 then
+		if kds_meca_reportpilota.update( ) > 0 then
+			kguo_sqlca_db_magazzino.db_commit( )
+			kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaOKFileList.xlsx", XLSX!, true)
+		else
+			if upperbound(k_path) > 0 then
+				kuf1_file_explorer.u_directory_create(k_path[1])
+				kds_meca_reportpilota.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
+			else
+				k_path[1] = ""
+			end if
+			kguo_exception.set_st_esito_err_ds(kds_meca_reportpilota, &
+					"Errore in aggiornamento dati dei '" + string(k_ind) + "' Report Pilota importati dalla cartella " + kkg.acapo  &
+									+ a_dir_report_pilota + kkg.path_sep + " " + kkg.acapo + "alla cartella " + kkg.acapo + k_path[1] + " ")
+			throw kguo_exception
+			
+		end if
+	end if
+
+//--- se ci sono ERRORI li segnala				
+	if k_wo_non_importati > 0 then
+		if upperbound(k_path) > 0 then
+			kuf1_file_explorer.u_directory_create(k_path[1])
+			kds_meca_reportpilota_errori.saveas(k_path[1]+kkg.path_sep +"ReportPilotaERRORFileList.xlsx", XLSX!, true)
+		else
+			k_path[1] = ""
+		end if
+		kguo_exception.kist_esito.esito = kkg_esito.DATI_WRN 
+		kguo_exception.kist_esito.SQLErrText = "Operazione di importazione incompleta. Sono stati importati " + string(k_ind) + " documenti da~n~r" &
+						  + "'" + a_dir_report_pilota + kkg.acapo + "' in '" + k_path[1] + k_nome_file_dest + "' " + kkg.acapo &
+						  +"Ma si sono vericati degli errori e " + string(k_wo_non_importati) + " file non sono stati importati. " + kkg.acapo &
+						  +"Prego controllare il tabulato dei documenti non importati in '" + k_path[1]+kkg.path_sep + "ErroreReportPilotaFileList.xlsx" + "'"
+		throw kGuo_exception   
+	end if
+
+		//k_return = k_nr_doc
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+		
+		
+	finally
+		if isvalid(kds_dirlist) then destroy kds_dirlist
+		if isvalid(kuf1_file_explorer) then destroy kuf1_file_explorer
+		if isvalid(kuf1_armo) then destroy kuf1_armo
+		
+	end try
+			
+
+
+return kds_meca_reportpilota
+
+
 end function
 
 on kuf_meca_reportpilota.create

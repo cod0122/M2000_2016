@@ -168,17 +168,15 @@ st_esito kst_esito
 st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014
 st_tab_f5548014 kst_tab_f5548014, kst1_tab_f5548014
 kuf_e1_f5548014 kuf1_e1_f5548014
-datastore kds_e1_wo_f5548014_l_xe1
+uo_ds_std_1 kds_e1_wo_f5548014_l_xe1
+
 
 try
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
 	kuf1_e1_f5548014 = create kuf_e1_f5548014
 	
-	kds_e1_wo_f5548014_l_xe1 = create datastore
+	kds_e1_wo_f5548014_l_xe1 = create uo_ds_std_1
 	kds_e1_wo_f5548014_l_xe1.dataobject = "ds_e1_wo_f5548014_l_xe1"
 	kds_e1_wo_f5548014_l_xe1.settransobject(kguo_sqlca_db_magazzino)
 	k_righe_tot = kds_e1_wo_f5548014_l_xe1.retrieve( )
@@ -215,29 +213,26 @@ try
 				try
 					
 					//--- Effettivo aggiornamento dei dati su E1
-					kst_tab_f5548014.st_tab_g_0.esegui_commit = "N"
+					kst_tab_f5548014.st_tab_g_0.esegui_commit = "S"
 					kuf1_e1_f5548014.set_datilav_f5548014(kst_tab_f5548014)
 			
 					kds_e1_wo_f5548014_l_xe1.setitem(k_riga, "e1updts", kst_tab_e1_wo_f5548014.e1updts)	//data di aggiornamento a E1
 			
 					k_rc = kds_e1_wo_f5548014_l_xe1.update()
-			
 					if k_rc < 0 then
-						kst_esito.esito = kkg_esito.db_ko
-						kst_esito.sqlcode = k_return
-						kst_esito.SQLErrText = "Aggiornamento data fallito in tabella dati lavorazione per E1 'e1_wo_F554814' ma dati E1 inviati correttamente. ~n~rWO (doco): "+string(kst_tab_e1_wo_f5548014.wo_osdoco)
-						kguo_exception.inizializza()
-						kguo_exception.set_esito (kst_esito)
+						kguo_exception.set_st_esito_err_ds(kds_e1_wo_f5548014_l_xe1, &
+									"Aggiornamento fallito della data di invio in tabella Lavorazione per E1 (e1_wo_F554814) ma dati inviati correttamente a E1. Work Order (doco): " + string(kst_tab_e1_wo_f5548014.wo_osdoco))
+						kguo_exception.scrivi_log( )
 						//throw kguo_exception
 					end if
-		
-				catch (uo_exception kuo1_exception)
+					kguo_sqlca_db_magazzino.db_commit( )
+
+					k_return ++
 					
+				catch (uo_exception kuo1_exception)
+						kuo1_exception.scrivi_log( )
 				
 				finally
-					kguo_sqlca_db_e1.db_commit( )
-					kguo_sqlca_db_magazzino.db_commit( )
-					k_return ++
 				
 				end try
 			end if		

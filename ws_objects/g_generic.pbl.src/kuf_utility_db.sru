@@ -50,6 +50,7 @@ private function boolean u_crea_view_v_colli_sped () throws uo_exception
 private function boolean u_crea_view_v_sped_deposito_anag () throws uo_exception
 private function boolean u_crea_view_v_barcode_data_json () throws uo_exception
 private function boolean u_crea_view_v_clienti_mkt_web () throws uo_exception
+private function boolean u_crea_view_v_memo () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -581,6 +582,8 @@ try
 	krc = u_crea_view_v_asd_barcode_all( )
 	if not krc then k_return=false
 	krc = u_crea_view_v_barcode_data_json( )
+	if not krc then k_return=false	
+	krc = u_crea_view_v_memo( )
 	if not krc then k_return=false	
 	
 	krc = u_crea_view_v_temptable_armo( )
@@ -2608,8 +2611,8 @@ string k_sql
 		+ " ,id_deposito " & 
 		+ " ,data_bolla_out " & 
 		+ " ,trim(num_bolla_out) num_bolla_out " &  
-		+ " ,clie_2     " & 
-		+ " ,clie_3     " &  
+		+ " ,coalesce(clie_2,0) clie_2 " & 
+		+ " ,coalesce(clie_3,0) clie_3 " &  
 		+ " ,coalesce(stampa, 'N') stampa " & 
 		+ " ,data_stampa" & 
 		+ " ,coalesce(form_di_stampa, '') form_di_stampa " &
@@ -6308,6 +6311,63 @@ string k_sql
 
 	k_return = u_tb_crea_view("v_clienti_mkt_web", k_sql)
 
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_memo () throws uo_exception;/*
+ Estemporanea da lanciare una sola volta
+	 Crae tabella View  'v_memo' 
+*/
+boolean k_return = true
+string k_sql
+ 
+
+//=== Puntatore Cursore da attesa.....
+	SetPointer(kkg.pointer_attesa)
+
+	k_sql = "create view v_memo  " &
+		+ " as SELECT " &
+      + " clienti_memo.id_cliente_memo " &
+      + " ,clienti_memo.id_memo " &
+      + " ,clienti_memo.id_cliente " &
+      + " ,0 id_meca " &
+      + " ,trim(coalesce(clienti_memo.tipo_sv, '')) tipo_sv " &
+      + " ,trim(coalesce(clienti_memo.allarme, '')) allarme " &
+      + " ,trim(coalesce(memo.titolo, '')) titolo " &
+      + " ,trim(coalesce(memo.note, '')) note " &
+		+ " from clienti_memo inner join memo on clienti_memo.id_memo = memo.id_memo " &
+		+ " union all " &
+		+ " select " &
+      + " meca_memo.id_meca_memo " &
+      + " ,meca_memo.id_memo " &
+      + " ,coalesce(meca.clie_3,0) id_cliente " &
+      + " ,meca_memo.id_meca " &
+      + " ,trim(coalesce(meca_memo.tipo_sv, '')) tipo_sv " &
+      + " ,trim(coalesce(meca_memo.allarme, '')) allarme " &
+      + " ,trim(coalesce(memo.titolo, '')) titolo " &
+      + " ,trim(coalesce(memo.note, '')) note " &
+		+ " from meca_memo inner join memo on meca_memo.id_memo = memo.id_memo " &
+		+ " left outer join meca on meca_memo.id_meca = meca.id " &
+		+ " union all " &
+		+ "  select " &
+      + " id_sl_pt_memo " &
+		+ " ,sl_pt_memo.id_memo " &
+		+ " ,0 id_cliente " &
+		+ " ,cod_sl_pt  " &
+      + " ,trim(coalesce(sl_pt_memo.tipo_sv, '')) tipo_sv " &
+      + " ,'' allarme " &
+      + " ,trim(coalesce(memo.titolo, '')) titolo " &
+      + " ,trim(coalesce(memo.note, '')) note " &
+		+ " from sl_pt_memo inner join memo on sl_pt_memo.id_memo = memo.id_memo " 
+		
+//		+ " , x_datins " &
+//		+ " , coalesce(x_utente, '') x_utente" &
+
+	k_return = u_tb_crea_view("v_memo", k_sql)
+
+	SetPointer(kkg.pointer_default)
 
 return k_return
 

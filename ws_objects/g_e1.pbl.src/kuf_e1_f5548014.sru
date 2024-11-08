@@ -47,10 +47,7 @@ kds_e1_f5548014 kds1_e1_f5548014
 
 
 try
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 	
 	kds1_e1_f5548014 = create kds_e1_f5548014
 	
@@ -94,21 +91,18 @@ try
 // kds1_e1_f5548014.setitem(1, "osuser", kst_tab_f5548014.osuser)	//Utente  22082016 NIENTE su richiesta per test da Karen Johnson
 	kds1_e1_f5548014.setitem(1, "osedsp", " ")	//flag esito di E1 
 	
-
 	k_return = kds1_e1_f5548014.u_update()
 	if k_return < 0 then
-		kst_esito = kds1_e1_f5548014.kist_esito
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.SQLErrText = "Aggiornamento Tempi di Lavorazione per E1 fallito ('F554814'). ~r~nWO (doco): " + string(kst_tab_f5548014.osdoco) &
-		                       + trim(kst_esito.SQLErrText)
-		kguo_exception.inizializza()
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_st_esito_err_ds(kds1_e1_f5548014, "Aggiornamento Tempi di Lavorazione per E1 fallito ('F554814'). Work Order (doco): " + string(kst_tab_f5548014.osdoco))
 		throw kguo_exception
 	end if
 	
 	if kst_tab_f5548014.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_f5548014.st_tab_g_0.esegui_commit) then
-		kds1_e1_f5548014.db_commit( )
+		kguo_exception.kist_esito = kds1_e1_f5548014.db_commit( )
+		if kguo_exception.kist_esito.esito <> kkg_esito.ok then
+			throw kguo_exception
+		end if
 	end if
 
 catch (uo_exception kuo_exception)

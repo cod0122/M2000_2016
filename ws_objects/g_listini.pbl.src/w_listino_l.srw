@@ -21,6 +21,7 @@ global w_listino_l w_listino_l
 
 type variables
 private kuf_listino kiuf_listino
+private kuf_clienti kiuf_clienti
 private string ki_mostra_nascondi_in_lista="S"
 private string ki_listini_nodose="N"
 private string ki_win_titolo_orig_save = ""
@@ -718,6 +719,8 @@ end on
 
 event close;call super::close;//
 //if isvalid(kids_listino) then destroy kids_listino
+if isvalid(kiuf_listino) then destroy kiuf_listino 
+if isvalid(kiuf_clienti) then destroy kiuf_clienti 
 
 end event
 
@@ -1126,7 +1129,6 @@ long k_riga
 string k_rag_soc
 st_stat_fatt kst_stat_fatt
 st_tab_clienti kst_tab_clienti
-kuf_clienti kuf1_clienti
 datawindowchild kdwc_cliente 
 
 try
@@ -1185,9 +1187,8 @@ try
 	
 		case "e1an" 
 			if isnumber(k_dato) then
-				kuf1_clienti = create kuf_clienti
 				kst_tab_clienti.e1an = long(k_dato)
-				kst_stat_fatt.k_id_cliente = kuf1_clienti.get_codice_da_e1an(kst_tab_clienti)
+				kst_stat_fatt.k_id_cliente = kiuf_clienti.get_codice_da_e1an(kst_tab_clienti)
 				if kst_stat_fatt.k_id_cliente > 0 then
 					this.getchild("rag_soc_1", kdwc_cliente)
 					if kdwc_cliente.rowcount() < 2 then
@@ -1217,7 +1218,6 @@ catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 	
 finally
-	if isvalid(kuf1_clienti) then destroy kuf1_clienti
 	
 end try
 

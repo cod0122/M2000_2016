@@ -3,7 +3,6 @@ Save Format v3.0(19990112)
 @end;
 @begin Targets
  0 "m_2000.pbt";
- 1 "..\\g_upd_ver\\g_upd_ver.pbt";
 @end;
 DefaultTarget "m_2000.pbt";
 DefaultExportEncode "UTF-8";
