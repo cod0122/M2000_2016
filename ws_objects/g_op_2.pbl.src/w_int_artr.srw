@@ -67,7 +67,6 @@ public subroutine report_9_salva_dati ()
 private subroutine report_10 ()
 private function long report_5_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 private function long report_8_inizializza (uo_d_std_1 kdw_1) throws uo_exception
-private function long report_9_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 private function long report_10_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 private subroutine leggi_dwc_rif_x_data_mrf (long k_riga, ref datawindow k_dw)
 private function long report_14_inizializza (uo_d_std_1 kdw_1) throws uo_exception
@@ -167,6 +166,7 @@ public function string u_attiva_tab (integer a_tab_da_attivare)
 private subroutine report_30 ()
 private function long report_30_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 private subroutine get_parametri_30 () throws uo_exception
+private function long report_9_inizializza (ref uo_d_std_1 kdw_1) throws uo_exception
 end prototypes
 
 protected function string inizializza () throws uo_exception;//======================================================================
@@ -2263,11 +2263,20 @@ try
 	
 	kuf1_report_regart50.set_st_report_regart50(kst_report_regart50)
 
-	kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_ok )
-	kguo_exception.setmessage( "Dati Registro salvati Correttamente")
-	kguo_exception.messaggio_utente( )
+	tab_1.tabpage_1.dw_1.SetColumn("anno")
+	
+	tab_1.tabpage_1.dw_1.setitem(1, "mod_dati", "N")
+	tab_1.tabpage_1.dw_1.modify("p_salvato_esito.filename = 'faccinaok16.png'")
+	tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '1'")
+	tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='No'
+	
+//	kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_ok )
+//	kguo_exception.setmessage( "Dati Registro salvati Correttamente")
+//	kguo_exception.messaggio_utente( )
 
 catch (uo_exception kuo_exception)
+	tab_1.tabpage_1.dw_1.modify("p_salvato_esito.filename = 'faccinako16.png'")
+	tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '1'")
 	kuo_exception.messaggio_utente( )
 	
 	
@@ -2549,115 +2558,6 @@ kuf_calendar_working kuf1_calendar_working
 		kdw_1.setfocus()
 
 	end try
-
-
-return k_righe
-
-
-end function
-
-private function long report_9_inizializza (uo_d_std_1 kdw_1) throws uo_exception;//
-//======================================================================
-//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
-//======================================================================
-//
-//--- REPORT REGISTRO ART 50
-//
-string k_scelta, k_codice_prec
-int k_anno, k_mese, k_rc
-long k_righe=0
-st_report_regart50 kst_report_regart50
-kuf_report_regart50 kuf1_report_regart50
-
-	
-	try
-	
-		k_scelta = trim(ki_st_open_w.flag_modalita)
-	
-	
-	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-		if not isnull(kdw_1.tag) then
-			k_codice_prec = kdw_1.tag
-		else
-			k_codice_prec = " "
-		end if
-	
-	//--- salvo i parametri cosi come sono stati immessi
-		kdw_1.tag = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-
-		if trim(k_codice_prec) <> trim(kdw_1.tag) then
-			u_set_tabpage_picture(true)
-		else
-			u_set_tabpage_picture(false)
-		end if
-		
-		if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
-
-			kuf1_report_regart50 = create kuf_report_regart50
-			
-			k_anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno") 
-			k_mese = tab_1.tabpage_1.dw_1.getitemnumber(1, "mese") 
-			kst_report_regart50.k_data_da = date(k_anno, k_mese, 01)
-			if k_mese = 12 then
-				kst_report_regart50.k_data_a = date(k_anno, k_mese, 31)
-			else
-				kst_report_regart50.k_data_a = relativedate(date(k_anno, k_mese + 1, 01), -1)
-			end if
-			kst_report_regart50.k_nrpagina = tab_1.tabpage_1.dw_1.getitemnumber(1, "nrpag") 
-			kst_report_regart50.k_nrprotocollo = tab_1.tabpage_1.dw_1.getitemnumber(1, "nrprot") 
-
-//=== Controllo date
-//			if (kst_tab_meca_a.data_int > date(0) and kst_tab_meca_a.data_int < kst_tab_meca_da.data_int) &
-//				then
-//				kGuo_exception.setmessage("Controlla le date immesse,~n~r data di fine periodo minore di quella di inizio")
-//			else							
-//				get_id_meca(kst_tab_meca_da, kst_tab_meca_a)
-
-//--- lancia estrazione dei dati
-				kuf1_report_regart50.get_report(kst_report_regart50)
-				k_righe = kuf1_report_regart50.kids_report_regart50.rowcount( )
-
-				if k_righe > 0 then
-//--- Il REPORT!			
-					kdw_1.dataobject = kuf1_report_regart50.kids_report_regart50.dataobject
-					
-					kdw_1.event u_personalizza_dw() //--- aggiunge i link standard
-					
-					kuf1_report_regart50.kids_report_regart50.rowscopy( 1, k_righe , primary!, kdw_1, 1, primary!)
-					kdw_1.scrolltorow( kdw_1.rowcount( ))
-					kst_report_regart50.k_nrpagina = kdw_1.object.pagecount[1]
-					tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='Yes'
-				else
-					kst_report_regart50.k_nrpagina = 0
-					kGuo_exception.setmessage("Nessun Dato Trovato,~n~r Controllare i dati richiesti.")
-					kGuo_exception.messaggio_utente()
-					tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='No'
-				end if
-
-//--- mostra i dati x registrarli in archivio				
-				tab_1.tabpage_1.dw_1.setitem(1, "annodef", year(kst_report_regart50.k_data_da)) 
-				tab_1.tabpage_1.dw_1.setitem(1, "mesedef", month(kst_report_regart50.k_data_a)) 
-				tab_1.tabpage_1.dw_1.setitem(1, "nrpag_def", kst_report_regart50.k_nrpagina)
-				tab_1.tabpage_1.dw_1.setitem(1, "nrprot_def", kst_report_regart50.k_nrprotocollo)
-				
-//			end if
-
-			destroy kuf1_report_regart50
-
-		end if
-
-	catch (uo_exception kuo_exception)
-		throw kuo_exception
-
-	finally
-		attiva_tasti()
-		if kdw_1.rowcount() = 0 then
-			kdw_1.insertrow(0) 
-		end if
-		kdw_1.setfocus()
-
-	end try
-		
 
 
 return k_righe
@@ -4669,11 +4569,6 @@ if k_riga > 0 then
 					kdwc_cliente.retrieve("")
 					kdwc_cliente.insertrow(1)
 				end if
-		
-			case "b_registra" 
-		//		if ki_scelta_report = ki_scelta_report_RegArt50 then
-					report_9_salva_dati()
-		//		end if
 			
 			case "b_cod_art_l" 
 				try 
@@ -8269,6 +8164,116 @@ ki_st_int_artr.data_fin = k_data_fin
 
 end subroutine
 
+private function long report_9_inizializza (ref uo_d_std_1 kdw_1) throws uo_exception;//
+//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+//--- REPORT REGISTRO ART 50
+//
+string k_scelta, k_codice_prec
+int k_anno, k_mese, k_rc
+long k_righe=0
+st_report_regart50 kst_report_regart50
+kuf_report_regart50 kuf1_report_regart50
+
+	
+	try
+	
+		k_scelta = trim(ki_st_open_w.flag_modalita)
+	
+	
+	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+		if not isnull(kdw_1.tag) then
+			k_codice_prec = kdw_1.tag
+		else
+			k_codice_prec = " "
+		end if
+	
+	//--- salvo i parametri cosi come sono stati immessi
+		kdw_1.tag = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+
+		if trim(k_codice_prec) <> trim(kdw_1.tag) then
+			u_set_tabpage_picture(true)
+		else
+			u_set_tabpage_picture(false)
+		end if
+		
+		if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
+
+			kuf1_report_regart50 = create kuf_report_regart50
+			
+			k_anno = tab_1.tabpage_1.dw_1.getitemnumber(1, "anno") 
+			k_mese = tab_1.tabpage_1.dw_1.getitemnumber(1, "mese") 
+			kst_report_regart50.k_data_da = date(k_anno, k_mese, 01)
+			if k_mese = 12 then
+				kst_report_regart50.k_data_a = date(k_anno, k_mese, 31)
+			else
+				kst_report_regart50.k_data_a = relativedate(date(k_anno, k_mese + 1, 01), -1)
+			end if
+			kst_report_regart50.k_nrpagina = tab_1.tabpage_1.dw_1.getitemnumber(1, "nrpag") 
+			kst_report_regart50.k_nrprotocollo = tab_1.tabpage_1.dw_1.getitemnumber(1, "nrprot") 
+
+//=== Controllo date
+//			if (kst_tab_meca_a.data_int > date(0) and kst_tab_meca_a.data_int < kst_tab_meca_da.data_int) &
+//				then
+//				kGuo_exception.setmessage("Controlla le date immesse,~n~r data di fine periodo minore di quella di inizio")
+//			else							
+//				get_id_meca(kst_tab_meca_da, kst_tab_meca_a)
+
+//--- lancia estrazione dei dati
+				kuf1_report_regart50.get_report(kst_report_regart50)
+				k_righe = kuf1_report_regart50.kids_report_regart50.rowcount( )
+
+				if k_righe > 0 then
+//--- Il REPORT!			
+					kdw_1.dataobject = kuf1_report_regart50.kids_report_regart50.dataobject
+					
+					kdw_1.event u_personalizza_dw() //--- aggiunge i link standard
+					
+					kuf1_report_regart50.kids_report_regart50.rowscopy( 1, k_righe , primary!, kdw_1, 1, primary!)
+					kdw_1.Modify("DataWindow.Print.Preview=yes")
+					kdw_1.scrolltorow( kdw_1.rowcount( ))
+					kst_report_regart50.k_nrpagina = kdw_1.object.pagecount[1]
+					tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='Yes'
+				else
+					kst_report_regart50.k_nrpagina = 0
+					kGuo_exception.setmessage("Nessun Dato Trovato,~n~r Controllare i dati richiesti.")
+					kGuo_exception.messaggio_utente()
+					tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='No'
+				end if
+
+//--- mostra i dati x registrarli in archivio				
+				tab_1.tabpage_1.dw_1.setitem(1, "annodef", year(kst_report_regart50.k_data_da)) 
+				tab_1.tabpage_1.dw_1.setitem(1, "mesedef", month(kst_report_regart50.k_data_a)) 
+				tab_1.tabpage_1.dw_1.setitem(1, "nrpag_def", kst_report_regart50.k_nrpagina)
+				tab_1.tabpage_1.dw_1.setitem(1, "nrprot_def", kst_report_regart50.k_nrprotocollo)
+				
+//			end if
+
+			destroy kuf1_report_regart50
+
+		end if
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally
+		attiva_tasti()
+		if kdw_1.rowcount() = 0 then
+			kdw_1.insertrow(0) 
+		end if
+		kdw_1.setfocus()
+
+	end try
+		
+
+
+return k_righe
+
+
+end function
+
 on w_int_artr.create
 int iCurrent
 call super::create
@@ -8655,10 +8660,13 @@ u_dw_report_clicked(dwo.Name, row)
 
 end event
 
-event dw_1::buttonclicked;call super::buttonclicked;////
-//
+event dw_1::buttonclicked;call super::buttonclicked;//
 //u_button_clicked(dwo.Name, row)
-//
+
+	if dwo.Name = "b_registra" then
+		report_9_salva_dati()
+	end if
+
 end event
 
 event dw_1::itemfocuschanged;call super::itemfocuschanged;//
@@ -8699,7 +8707,7 @@ if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 			kdwc_contratti_1.retrieve(k_id_clie)
 			kdwc_contratti_1.insertrow(1)
 //		end if
-	elseif  dwo.name = "mc_co" then
+	elseif dwo.name = "mc_co" then
 		this.setitem(1, "descr", "" )
 		this.setitem(1, "scadenza", "" )
 		this.setitem(1, "idem", "" )
@@ -8721,6 +8729,15 @@ if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 					end if
 				end if
 			end if
+		end if
+	end if
+else
+	if dwo.name = "annodef" or dwo.name = "nrprot_def" or dwo.name = "nrpag_def" &
+				or dwo.name = "mesedef" then
+		tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '0'")
+	elseif dwo.name = "mod_dati" then
+		if data = "S" then
+			tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='Yes'
 		end if
 	end if
 end if

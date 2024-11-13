@@ -522,28 +522,23 @@ boolean k_insert = true
 end subroutine
 
 protected function string inizializza () throws uo_exception;//
-
+string k_dataobject, k_dataobject_new
 
 
 //--- se Primo giro esegue prima il ripristina (inizializza_post) come l'ultima uscita
 	if not ki_primo_giro then
 		
-//=== Puntatore Cursore da attesa.....
 		SetPointer(kkg.pointer_attesa)
 
 		dw_lista_0.setredraw(false)
 		kist_tab_clienti.tipo = trim(ki_st_open_w.key1)
 		kist_tab_clienti.stato = trim(ki_st_open_w.key2)
 	
+		k_dataobject = dw_lista_0.dataobject
 		if ki_st_open_w.key1 = kiuf_clienti.kki_tipo_contatto then
-			
-			dw_lista_0.dataobject = "d_contatti_l_mkt"
-			dw_lista_0.settransobject( kguo_sqlca_db_magazzino )
-			
+			k_dataobject_new = "d_contatti_l_mkt"
 		else
-
-			dw_lista_0.dataobject = "d_clienti_l_mkt"
-			dw_lista_0.settransobject( kguo_sqlca_db_magazzino )
+			k_dataobject_new = "d_clienti_l_mkt"
 
 			if isnull(ki_st_open_w.key1) or trim(ki_st_open_w.key1) = "*" or Len(trim(ki_st_open_w.key1)) = 0 then
 				kist_tab_clienti.tipo = "%"
@@ -553,9 +548,13 @@ protected function string inizializza () throws uo_exception;//
 			end if
 		end if
 
+		if k_dataobject <> k_dataobject_new then
+			dw_lista_0.dataobject = k_dataobject_new
+			dw_lista_0.settransobject( kguo_sqlca_db_magazzino )
+		end if
+
 		u_retrieve()    // RETRIEVE
 	
-//		attiva_tasti()
 	end if
 
 
@@ -1712,15 +1711,6 @@ event dw_lista_0::constructor;call super::constructor;//
 this.ki_icona_normale = "clienti16.gif"
 //this.object.p_id_memo.filename = "edit16.png"
 //this.object.p_id_memo_no.filename = "document_new.gif"
-
-end event
-
-event dw_lista_0::getfocus;call super::getfocus;//---- inizia il timer per eventuale auto-lettura
-//ki_time_rileggi_auto = now()
-//ki_time_riga = now()
-
-//---- Scatena il timer (vedi l'evento) 
-//	timer (0.30)  NON FUNZIONA PIU' IN MODALITA DOCKING
 
 end event
 

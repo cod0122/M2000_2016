@@ -151,7 +151,6 @@ end event
 
 event u_activate();//
 
-
 kGuo_g.kgw_attiva = this
 
 if ki_st_open_w.flag_primo_giro = 'S' then

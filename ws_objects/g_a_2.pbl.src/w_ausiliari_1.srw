@@ -13,6 +13,11 @@ global w_ausiliari_1 w_ausiliari_1
 type variables
 //
 private boolean ki_dosimetrie_join_history
+private boolean ki_dosimetrie_edit_dettaglio
+private date ki_dosimetrie_data_storicizzazione
+private boolean ki_dosimetrie_includi_disattivi
+private string ki_lotto_dosim
+
 end variables
 
 forward prototypes
@@ -41,6 +46,8 @@ private subroutine u_ptasks_types_put_descr ()
 protected function integer inserisci ()
 protected subroutine modifica ()
 protected subroutine attiva_tasti_0 ()
+public subroutine u_dosimetrie_edit_dettaglio_switch ()
+public subroutine u_dosimetrie_disattivati_on_off ()
 end prototypes
 
 protected subroutine attiva_menu ();//
@@ -58,55 +65,84 @@ if tab_1.selectedtab <> 2 then
 	m_main.m_strumenti.m_fin_gest_libero2.visible = false
 	m_main.m_strumenti.m_fin_gest_libero3.visible = false
 	m_main.m_strumenti.m_fin_gest_libero4.visible = false
+	m_main.m_strumenti.m_fin_gest_libero5.visible = false
+	m_main.m_strumenti.m_fin_gest_libero6.visible = false
 else
 	m_main.m_strumenti.m_fin_gest_libero1.visible = true
 	m_main.m_strumenti.m_fin_gest_libero2.visible = true
 	m_main.m_strumenti.m_fin_gest_libero3.visible = true
 	m_main.m_strumenti.m_fin_gest_libero4.visible = true
+	m_main.m_strumenti.m_fin_gest_libero5.visible = true
+	m_main.m_strumenti.m_fin_gest_libero6.visible = true
 
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
 	m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
 	m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = true
 	m_main.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
+	m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = true
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemVisible = true
 
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
 	m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 	m_main.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
+	m_main.m_strumenti.m_fin_gest_libero5.toolbaritembarindex=2
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritembarindex=2
 	
 	m_main.m_strumenti.m_fin_gest_libero1.text = "Importa Lotto Dosimetrico da file CSV "
-	m_main.m_strumenti.m_fin_gest_libero1.microhelp = &
-	"Importa da file esterno in formato CSV (colonne separate dal ';') i valori dosimetrici    "
+	m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Importa da file esterno in formato CSV (colonne separate dal ';') i valori dosimetrici    "
    if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.inserimento then //lotti dosimetrici 
 		m_main.m_strumenti.m_fin_gest_libero1.enabled = true
 	end if
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemText = "Importa,"+m_main.m_strumenti.m_fin_gest_libero1.text
 	m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Insert!"
 
-	m_main.m_strumenti.m_fin_gest_libero2.text = "Attiva/Disattiva Tutto il Lotto Dosimetrico "
-	m_main.m_strumenti.m_fin_gest_libero2.microhelp = &
-	"Disattiva/Attiva Lotto dosimetrico selezionato    "
-   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.modifica then //lotti dosimetrici 
-		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
+	if ki_dosimetrie_edit_dettaglio then
+		m_main.m_strumenti.m_fin_gest_libero2.text = "Apri Dettaglio Lotto Dosimetrico "
+		m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Apri Dettaglio Lotto Dosimetrico Selezionato "
+	else
+		m_main.m_strumenti.m_fin_gest_libero2.text = "Torna in elenco Lotti Dosimetrici "
+		m_main.m_strumenti.m_fin_gest_libero2.microhelp = m_main.m_strumenti.m_fin_gest_libero2.text
 	end if
-	m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Disattiva,"+m_main.m_strumenti.m_fin_gest_libero2.text
-	m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "Custom093!"
+	m_main.m_strumenti.m_fin_gest_libero2.enabled = true
+	if ki_dosimetrie_edit_dettaglio then
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Elenco,"+m_main.m_strumenti.m_fin_gest_libero2.text
+	else
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Dettaglio,"+m_main.m_strumenti.m_fin_gest_libero2.text
+	end if
+	m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "DosEdit2!" //Edit_2!
 
-	m_main.m_strumenti.m_fin_gest_libero3.text = "Includi Lotti Dosimetrici Storici"
-	m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Includi Lotti Dosimetrici Storici"
-   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.visualizzazione then //lotti dosimetrici 
+	m_main.m_strumenti.m_fin_gest_libero3.text = "Attiva/Disattiva Tutto il Lotto Dosimetrico "
+	m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Disattiva/Attiva Lotto dosimetrico selezionato    "
+   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.modifica then //lotti dosimetrici 
 		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
 	end if
-	m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "Storici,"+m_main.m_strumenti.m_fin_gest_libero3.text
-	m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "Join1!"
+	m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "Disattiva,"+m_main.m_strumenti.m_fin_gest_libero3.text
+	m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "Custom093!"
 
-	m_main.m_strumenti.m_fin_gest_libero4.text = "Storicizza i Lotti Dosimetrici vecchi e non attivi"
-	m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Storicizza i Lotti Dosimetrici vecchi e non attivi"
-   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.modifica then //lotti dosimetrici 
+	m_main.m_strumenti.m_fin_gest_libero4.text = "Includi Lotti Dosimetrici Disattivati"
+	m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Includi Lotti Dosimetrici Disattivati"
+   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.visualizzazione then //anche lotti dosimetrici estinti
 		m_main.m_strumenti.m_fin_gest_libero4.enabled = true
 	end if
-	m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Storicizza,"+m_main.m_strumenti.m_fin_gest_libero4.text
-	m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "ConfigODBC1!"
+	m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Disattivati,"+m_main.m_strumenti.m_fin_gest_libero4.text
+	m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "Join1!"
+
+	m_main.m_strumenti.m_fin_gest_libero5.text = "Includi Lotti Dosimetrici Storici"
+	m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Includi Lotti Dosimetrici Storici"
+   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.visualizzazione then //lotti dosimetrici 
+		m_main.m_strumenti.m_fin_gest_libero5.enabled = true
+	end if
+	m_main.m_strumenti.m_fin_gest_libero5.toolbaritemText = "Storici,"+m_main.m_strumenti.m_fin_gest_libero5.text
+	m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = "Join1!"
+
+	m_main.m_strumenti.m_fin_gest_libero6.text = "Storicizza i Lotti Dosimetrici più vecchi del " + string(ki_dosimetrie_data_storicizzazione, "dd mmm yyyy") + " e Disattivati"
+	m_main.m_strumenti.m_fin_gest_libero6.microhelp = "Storicizza i Lotti Dosimetrici vecchi e Disattivati"
+   if trim(tab_1.tabpage_2.dw_2.ki_flag_modalita) = kkg_flag_modalita.modifica then //lotti dosimetrici 
+		m_main.m_strumenti.m_fin_gest_libero6.enabled = true
+	end if
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemText = "Storicizza,"+m_main.m_strumenti.m_fin_gest_libero6.text
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemName = "ConfigODBC1!"
 
 end if
 
@@ -900,41 +936,70 @@ protected subroutine inizializza_1 () throws uo_exception;//
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-integer k_key, k_rc, k_ctr
-kuf_utility kuf1_utility
+long k_key, k_rc, k_ctr
+string k_dataobject_orig, k_dataobject_new
 
 	
    if trim(kidw_selezionata.ki_flag_modalita) <> kkg_flag_modalita.inserimento then
 
-		if tab_1.tabpage_2.dw_2.rowcount() = 0 then
+		k_dataobject_orig = tab_1.tabpage_2.dw_2.dataobject
+		
+//		if tab_1.tabpage_2.dw_2.rowcount() = 0 then
 	
-			k_key = integer(trim(ki_st_open_w.key2))
+			//???k_key = integer(trim(ki_st_open_w.key2))
 	
-			if trim(kidw_selezionata.ki_flag_modalita) = kkg_flag_modalita.visualizzazione then
-				if not ki_dosimetrie_join_history then
-					if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_l_tree" then
-						tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l_tree"
-						tab_1.tabpage_2.dw_2.settransobject( sqlca )
-					end if
-				else
-					if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_h_l_tree" then
-						tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_h_l_tree"
-						tab_1.tabpage_2.dw_2.settransobject( sqlca )
-					end if
-				end if
+		if ki_dosimetrie_edit_dettaglio then
+			k_dataobject_new = "d_dosimetrie_l_tree"
+		elseif ki_dosimetrie_join_history then
+			kidw_selezionata.ki_flag_modalita = kkg_flag_modalita.visualizzazione
+			k_dataobject_new = "d_dosimetrie_h_l_tree"
+		else
+			k_dataobject_new = "d_dosimetrie_l_upd_rid"
+		end if
+			
+		if k_dataobject_orig <> k_dataobject_new or tab_1.tabpage_2.dw_2.rowcount() = 0 then
+			
+			tab_1.tabpage_2.dw_2.dataobject = k_dataobject_new 
+			tab_1.tabpage_2.dw_2.settransobject( kguo_sqlca_db_magazzino )
+				
+//			if trim(kidw_selezionata.ki_flag_modalita) = kkg_flag_modalita.visualizzazione then
+//				if not ki_dosimetrie_join_history then
+//					if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_l_tree" then
+//						tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l_tree"
+//						tab_1.tabpage_2.dw_2.settransobject( sqlca )
+//					end if
+//				else
+//					if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_h_l_tree" then
+//						tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_h_l_tree"
+//						tab_1.tabpage_2.dw_2.settransobject( sqlca )
+//					end if
+//				end if
+//			else
+//				if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_l_upd_rid" then
+//					tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l_upd_rid"
+//					tab_1.tabpage_2.dw_2.settransobject( sqlca )
+//				end if
+//			end if
+//			if tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l_tree" then
+
+			if ki_dosimetrie_edit_dettaglio then
+				k_rc = tab_1.tabpage_2.dw_2.retrieve(ki_lotto_dosim)
 			else
-				if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_l_upd_rid" then
-					tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l_upd_rid"
-					tab_1.tabpage_2.dw_2.settransobject( sqlca )
+				if ki_dosimetrie_includi_disattivi then
+					k_rc = tab_1.tabpage_2.dw_2.retrieve(1)
+				else
+					k_rc = tab_1.tabpage_2.dw_2.retrieve(0)
 				end if
 			end if
-
-			if tab_1.tabpage_2.dw_2.retrieve(k_key) <= 0 then
-	
-				messagebox("Operazione fallita", &
-					"Mi spiace ma nessun dato e' stato Trovato per la richiesta fatta ~n~r" + &
-					"(Dato ricercato :" + string(k_key) + ")~n~r" )
-	
+			
+			if k_rc < 0 then
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_2.dw_2, "Errore in lettura dati tabella dati curve Dosimetriche. ")
+				throw kguo_exception
+			end if
+			
+			if k_rc = 0 then
+				messagebox("Dati non Trvati", &
+					"Mi spiace ma nessun dato presente in tabella Dosimetrie. ")
 				if tab_1.tabpage_2.dw_2.dataobject <> "d_dosimetrie_l" then
 					tab_1.tabpage_2.dw_2.dataobject = "d_dosimetrie_l"
 					tab_1.tabpage_2.dw_2.settransobject( sqlca )
@@ -957,31 +1022,25 @@ kuf_utility kuf1_utility
 	end if
 
 	tab_1.tabpage_2.dw_2.setfocus()
-
 		
 //--- Inabilita campi alla modifica se Vsualizzazione
-   kuf1_utility = create kuf_utility 
  	if trim(kidw_selezionata.ki_flag_modalita) = kkg_flag_modalita.visualizzazione or trim(kidw_selezionata.ki_flag_modalita) = kkg_flag_modalita.cancellazione then
 	
-     	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_2.dw_2)
-     	kuf1_utility.u_proteggi_dw("1", "lotto_dosim", tab_1.tabpage_2.dw_2)
-     	kuf1_utility.u_proteggi_dw("1", "data", tab_1.tabpage_2.dw_2)
+     	tab_1.tabpage_2.dw_2.u_proteggi_dw("1", 0)
+//     	tab_1.tabpage_2.dw_2.u_proteggi_dw("1", "lotto_dosim")
+//     	tab_1.tabpage_2.dw_2.u_proteggi_dw("1", "data")
 
 	else		
 		
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_2)
-     	kuf1_utility.u_proteggi_dw("0", "lotto_dosim", tab_1.tabpage_2.dw_2)
-     	kuf1_utility.u_proteggi_dw("0", "data", tab_1.tabpage_2.dw_2)
+     	tab_1.tabpage_2.dw_2.u_proteggi_dw("0", 0)
 
 //--- Inabilita campo cliente per la modifica se Funzione MODIFICA
 	   if trim(kidw_selezionata.ki_flag_modalita) = kkg_flag_modalita.modifica then
-//   	   kuf1_utility.u_proteggi_dw("2", 1, tab_1.tabpage_1.dw_1)
 	  		tab_1.tabpage_2.dw_2.setcolumn(2)
 		end if
 
 	end if
-	destroy kuf1_utility
 
 	attiva_tasti()
 
@@ -1031,13 +1090,19 @@ choose case LeftA(k_par_in, 2)
 	case "l1"		//Estrazione...
 		dosimetrie_importa_file_csv()
 
-	case "l2"		//Dosimetria Attiva/Disattiva 
-		dosimetrie_cambia_stato()
+	case "l2"		//Modifica dettagllio Dosimetria
+		u_dosimetrie_edit_dettaglio_switch()
 		
-	case "l3"		//join con Dosimetria STORICI
+	case "l3"		//Dosimetria Attiva/Disattiva 
+		dosimetrie_cambia_stato()
+
+	case "l4"		//Dosimetria includi Disattivi
+		u_dosimetrie_disattivati_on_off()
+	
+	case "l5"		//join con Dosimetria STORICI
 		u_dosimetrie_h_switch()
 
-	case "l4"		//Dosimetria STORICIZZAZIONE
+	case "l6"		//Dosimetria STORICIZZAZIONE
 		u_dosimetrie_storicizza()
 
 		
@@ -1442,7 +1507,7 @@ kuf_dosimetrie kuf1_dosimetrie
 try
 	kuf1_dosimetrie = create kuf_dosimetrie
 	
-	kst_tab_dosimetrie.data = relativedate(today(), - 730)
+	kst_tab_dosimetrie.data = ki_dosimetrie_data_storicizzazione
 	
 	if messagebox("Storicizza Lotti Dosimetrici" &
 			, "Storicizza e Rimuove dall'area di lavoro i Lotti Dosimetrici Non Attivi e precedenti al " &
@@ -1479,7 +1544,8 @@ try
 
 	ki_dosimetrie_join_history = not ki_dosimetrie_join_history
 
-	inizializza_lista( )
+	//inizializza_lista( )
+	inizializza_1( )
 
 	setpointer(kkg.pointer_default)
 	
@@ -1526,6 +1592,55 @@ end if
 
 end subroutine
 
+public subroutine u_dosimetrie_edit_dettaglio_switch ();//
+try
+	
+	setpointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	ki_lotto_dosim = ''
+	if tab_1.tabpage_2.dw_2.getselectedrow(0) > 0 then
+		ki_lotto_dosim = trim(tab_1.tabpage_2.dw_2.getitemstring(tab_1.tabpage_2.dw_2.getselectedrow(0), "lotto_dosim"))
+	end if
+	
+	if not ki_dosimetrie_edit_dettaglio and ki_lotto_dosim = '' then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Nessun Lotto Dosimetrico Selezionato. Operazione interrotta."
+		throw kguo_exception
+	end if
+
+	ki_dosimetrie_edit_dettaglio = not ki_dosimetrie_edit_dettaglio
+
+	inizializza_1( )
+		
+	setpointer(kkg.pointer_default)
+
+catch (uo_exception kuo_exception)
+	setpointer(kkg.pointer_default)
+	kuo_exception.messaggio_utente()
+
+end try
+end subroutine
+
+public subroutine u_dosimetrie_disattivati_on_off ();//
+try
+	
+	setpointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+	ki_dosimetrie_includi_disattivi = not ki_dosimetrie_includi_disattivi
+
+	inizializza_1( )
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+	setpointer(kkg.pointer_default)
+
+end try
+end subroutine
+
 on w_ausiliari_1.create
 call super::create
 end on
@@ -1537,6 +1652,9 @@ end on
 
 event u_open_preliminari;//
 ki_tabtext_sizemax_onleft = 750//820
+ki_dosimetrie_data_storicizzazione = relativedate(today(), - 730)
+
+
 end event
 
 type dw_print_0 from w_ausiliari`dw_print_0 within w_ausiliari_1
@@ -1595,8 +1713,9 @@ call super::destroy
 end on
 
 type tabpage_1 from w_ausiliari`tabpage_1 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Banche"
 end type
 
@@ -1621,8 +1740,9 @@ type dw_11 from w_ausiliari`dw_11 within tabpage_1
 end type
 
 type tabpage_2 from w_ausiliari`tabpage_2 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Lotti Dosimetrici"
 end type
 
@@ -1646,8 +1766,9 @@ type dw_12 from w_ausiliari`dw_12 within tabpage_2
 end type
 
 type tabpage_3 from w_ausiliari`tabpage_3 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Settori Merceologici"
 end type
 
@@ -1670,8 +1791,9 @@ type dw_13 from w_ausiliari`dw_13 within tabpage_3
 end type
 
 type tabpage_4 from w_ausiliari`tabpage_4 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Classi Clienti"
 end type
 
@@ -1694,8 +1816,9 @@ type dw_14 from w_ausiliari`dw_14 within tabpage_4
 end type
 
 type tabpage_5 from w_ausiliari`tabpage_5 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Categoria Voce listino"
 end type
 
@@ -1718,8 +1841,9 @@ type dw_15 from w_ausiliari`dw_15 within tabpage_5
 end type
 
 type tabpage_6 from w_ausiliari`tabpage_6 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 string text = "Settori Dipartimentali"
 end type
 
@@ -1744,8 +1868,9 @@ type dw_16 from w_ausiliari`dw_16 within tabpage_6
 end type
 
 type tabpage_7 from w_ausiliari`tabpage_7 within tab_1
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 boolean enabled = true
 string text = "Tempi Impianto"
 end type
@@ -1767,8 +1892,9 @@ end type
 
 type tabpage_8 from w_ausiliari`tabpage_8 within tab_1
 boolean visible = true
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 boolean enabled = true
 string text = "Posizioni Dosimetri"
 end type
@@ -1790,8 +1916,9 @@ end type
 
 type tabpage_9 from w_ausiliari`tabpage_9 within tab_1
 boolean visible = true
-integer x = 731
-integer width = 1083
+integer x = 7150
+integer width = -5335
+integer height = -32
 boolean enabled = true
 string text = "Attività Progetti"
 string powertiptext = "Elenco associazioni Attività dei Progetti"

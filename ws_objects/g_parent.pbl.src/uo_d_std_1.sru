@@ -2195,10 +2195,12 @@ DWItemStatus   l_row_status
 //
 l_row_status = this.GetItemStatus(al_row, 0 /* get the status of the whole row */, a_buf)
 choose case l_row_status
-//case New!, NotModified!
-//   return false
-case NewModified!, DataModified!
-   return true
+	case New!, NotModified!
+		if al_row > 1000 then  // se supero le 1000 righe di controllo allora semplifica!
+		   return false
+		end if
+	case NewModified!, DataModified!
+	   return true
 end choose
 
 // If this code reached, it's NewModified! or DataModified!. That does not guarantee that the row has actually been
@@ -2323,8 +2325,16 @@ end if
 end event
 
 event getfocus;//
-long k_riga=0
+long k_riga
 
+
+//if this.dataobject = "d_contatti_l_mkt" then
+//if isvalid(kin_cst_PowerFilter) then
+//	if kin_cst_PowerFilter.checked then
+//		kin_cst_PowerFilter.of_setoriginalfilter()
+//	end if
+//end if
+//end if
 
 if trim(ki_icona_selezionata) > " " then
 	this.icon = ki_icona_selezionata

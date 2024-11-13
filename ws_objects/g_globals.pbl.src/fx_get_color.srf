@@ -15,6 +15,8 @@ if isvalid(kguo_g) then
 	if kguo_g.theme_dark then
 		if a_tipo_oggetto = "STANDARD" then
 			return kkg_colore.bianco
+		elseif a_tipo_oggetto = "BACKGROUNDSTANDARD" then
+			return kkg_colore.nero
 		elseif a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
 		elseif a_tipo_oggetto = "HIGHLIGHTED" then
@@ -45,6 +47,8 @@ if isvalid(kguo_g) then
 	
 		if a_tipo_oggetto = "STANDARD" then
 			return kkg_colore.nero
+		elseif a_tipo_oggetto = "BACKGROUNDSTANDARD" then
+			return kkg_colore.bianco
 		elseif a_tipo_oggetto = "DISABLED" then
 			return kkg_colore.CAMPO_DISATTIVO_TEXTN
 		elseif a_tipo_oggetto = "HIGHLIGHTED" then
