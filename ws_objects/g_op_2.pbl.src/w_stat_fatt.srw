@@ -998,7 +998,7 @@ tab_1.tabpage_8.dw_8.setfocus()
 end subroutine
 
 protected subroutine open_start_window ();//
-tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\edit16.png" 
+tab_1.tabpage_1.picturename = "edit16.png" 
 
 
 end subroutine

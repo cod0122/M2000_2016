@@ -204,7 +204,7 @@ END CHOOSE
 THIS.Object.t_text.text = as_text
 THIS.Object.item_number[ll_row] = ll_row
 THIS.Object.parent_handle[ll_row] = ai_parent
-THIS.Object.item_picture[ll_row] = kGuo_path.get_risorse() + "\" + as_picture
+THIS.Object.item_picture[ll_row] =  as_picture
 THIS.Object.highlighted[ll_row] = 'N'
 
 il_rowcount = THIS.RowCount()
@@ -256,7 +256,7 @@ public subroutine of_setitem (long k_riga, string k_testo, string k_picture);//
 
 THIS.Object.item_text[k_riga]  = trim(k_testo) 
 if len(trim(k_picture)) > 0 then
-	THIS.Object.item_picture[k_riga] = kGuo_path.get_risorse() + "\" + k_picture
+	THIS.Object.item_picture[k_riga] =  k_picture
 else
 	THIS.Object.item_picture[k_riga] = ""
 end if
@@ -295,11 +295,11 @@ datetime k_data_backup
 
 
 //
-this.object.p_collapsedhover.filename = kGuo_path.get_risorse() + "\" + "XPListBarCollapsedHover.bmp"
-this.object.p_expandedhover.filename = kGuo_path.get_risorse() + "\" + "XPListBarExpandedHover.bmp"
-this.object.p_expanded.filename = kGuo_path.get_risorse() + "\" + "XPListBarExpanded.bmp"
-this.object.p_collapsed.filename = kGuo_path.get_risorse() + "\" + "XPListBarCollapsed.bmp"
-this.object.p_side.filename = kGuo_path.get_risorse() + "\" + "XPListBarSide.bmp"
+this.object.p_collapsedhover.filename =  "XPListBarCollapsedHover.bmp"
+this.object.p_expandedhover.filename =  "XPListBarExpandedHover.bmp"
+this.object.p_expanded.filename =  "XPListBarExpanded.bmp"
+this.object.p_collapsed.filename =  "XPListBarCollapsed.bmp"
+this.object.p_side.filename =  "XPListBarSide.bmp"
 
 THIS.Object.datawindow.color = RGB(122,160,230)
 

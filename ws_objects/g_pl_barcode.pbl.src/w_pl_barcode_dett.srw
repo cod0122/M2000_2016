@@ -8251,7 +8251,7 @@ long k_rows_retrieve, k_rc
 kuf_ausiliari kuf1_ausiliari
 st_tab_imptime kst_tab_imptime
 long k_tempo_impianto_secondi
-int k_pos
+long k_pos
 string k_sql, k_rcx
 
 

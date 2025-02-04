@@ -293,12 +293,14 @@ st_tab_email_invio kst_tab_email_invio
 st_tab_email_funzioni kst_tab_email_funzioni
 st_tab_email kst_tab_email
 st_tab_alarm_instock_email kst_tab_alarm_instock_email
+st_msg_replace_placeholder kst_msg_replace_placeholder
 kuf_email_funzioni kuf1_email_funzioni
 kuf_email kuf1_email
 kuf_email_invio kuf1_email_invio
 kuf_alarm_instock_email kuf1_alarm_instock_email
 kuf_utility kuf1_utility
-datastore kds_pilota_avvisi, kds_d_alarm_instocktosend_meca_l, kds_d_alarm_instock
+kuf_msg_replace_placeholder kuf1_msg_replace_placeholder
+uo_ds_std_1 kds_pilota_avvisi, kds_d_alarm_instocktosend_meca_l, kds_d_alarm_instock
 
 
 try 
@@ -310,20 +312,25 @@ try
 	kuf1_email = create kuf_email
 	kuf1_email_invio = create kuf_email_invio
 	kuf1_alarm_instock_email = create kuf_alarm_instock_email
+	kuf1_msg_replace_placeholder = create kuf_msg_replace_placeholder
 
-	kds_pilota_avvisi = create datastore
+	kds_pilota_avvisi = create uo_ds_std_1
 	kds_pilota_avvisi.dataobject = "ds_alarm_instock_email"
 	kds_pilota_avvisi.settransobject(kguo_sqlca_db_magazzino)
 	
-	kds_d_alarm_instocktosend_meca_l = create datastore
+	kds_d_alarm_instocktosend_meca_l = create uo_ds_std_1
 	kds_d_alarm_instocktosend_meca_l.dataobject = "d_alarm_instocktosend_meca_l"
 	kds_d_alarm_instocktosend_meca_l.settransobject(kguo_sqlca_db_magazzino)
 	
-	kds_d_alarm_instock = create datastore
+	kds_d_alarm_instock = create uo_ds_std_1
 	kds_d_alarm_instock.dataobject = "d_alarm_instock"
 	kds_d_alarm_instock.settransobject(kguo_sqlca_db_magazzino)
 	
 	k_rows = kds_pilota_avvisi.retrieve()  // recupera dalla View gli Avvisi da inviare
+	if k_rows < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_pilota_avvisi, "Errore in recupero Avvisi per Lotti in Giacenza. ")
+		throw kguo_exception
+	end if
 
 	for k_row = 1 to k_rows
 		k_today = datetime(today(), now())
@@ -366,6 +373,12 @@ try
 				kst_tab_email_invio.oggetto = kst_tab_email.oggetto + " (gen." + string(k_today, "ddmmyyyy hh:mm:ss") &
 						+ " " + string(kst_tab_email_funzioni.id_email_funzione) + ")"
 			end if
+			kst_msg_replace_placeholder.msg = kst_tab_email_invio.oggetto
+			kst_msg_replace_placeholder.id_meca = kst_tab_email_invio.id_oggetto
+			if kst_msg_replace_placeholder.id_meca > 0 then
+				kst_tab_email_invio.oggetto = kuf1_msg_replace_placeholder.u_message_replace_placeholder(kst_msg_replace_placeholder)
+			end if
+			
 			if trim(kst_tab_email_invio.lettera) > " " then
 			else
 				kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
@@ -376,8 +389,15 @@ try
 			kst_tab_email_invio.id_cliente = kds_d_alarm_instock.getitemnumber(1, "id_cliente")
 			kst_tab_email_invio.invio_batch = kds_d_alarm_instock.getitemnumber(1, "invio_batch")
 			kst_tab_email_invio.id_oggetto = kst_tab_alarm_instock.id_alarm_instock
-			kst_tab_email_invio.email = kds_pilota_avvisi.getitemstring(k_row, "email") // email addresses
 			
+			//--- email addresses
+			kst_tab_email_invio.email = kds_pilota_avvisi.getitemstring(k_row, "email") 
+			if trim(kst_tab_email.email_to) > " " then
+				kst_tab_email_invio.email += ";" + trim(kst_tab_email.email_to) 
+			end if
+			kst_tab_email_invio.email_cc = trim(kst_tab_email.email_cc) 
+			kst_tab_email_invio.email_ccn = trim(kst_tab_email.email_ccn)
+			 
 			if kds_d_alarm_instocktosend_meca_l.retrieve(kst_tab_alarm_instock.id_alarm_instock) > 0 then
 	//--- genera allegato XLS
 				k_attached_full_name = kuf1_utility.u_xls_create(kds_d_alarm_instocktosend_meca_l, ki_path_alarm, k_attach_file, "Avviso" + string(kst_tab_alarm_instock.id_alarm_instock, "00000") + "_" + string(k_today, "yyyymmddhhmm"))
@@ -428,6 +448,7 @@ finally
 	if isvalid(kuf1_email) then destroy kuf1_email
 	if isvalid(kuf1_email_invio) then destroy kuf1_email_invio
 	if isvalid(kuf1_alarm_instock_email) then destroy kuf1_alarm_instock_email
+	if isvalid(kuf1_msg_replace_placeholder) then destroy kuf1_msg_replace_placeholder
 	
 end try
 

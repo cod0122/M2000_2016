@@ -499,8 +499,7 @@ boolean k_return = false
 //string k_errore = "0 ", k_errore1 = "0 "
 long k_riga=0, k_id
 string k_rag_soc_10, k_txt
-//decimal {2} k_perc, k_scost_perc
-double k_perc, k_scost_perc
+decimal{5} k_perc, k_scost_perc, k_prezzo
 st_tab_listino kst_tab_listino
 st_esito kst_esito
 
@@ -525,13 +524,17 @@ if dw_lista_0.rowcount() > 0 then
 	//=== Richiesta di conferma operazione
 		k_perc = dw_box_duplica_listini.getitemnumber(1, "k_perc")
 		if k_perc <> 0.00 then
-			k_scost_perc = (1.00 + k_perc/100)
-			kst_tab_listino.prezzo = dw_lista_0.getitemnumber(k_riga, "prezzo") * k_scost_perc
-			kst_tab_listino.prezzo_2 = dw_lista_0.getitemnumber(k_riga, "prezzo_2") * k_scost_perc
-			kst_tab_listino.prezzo_3 = dw_lista_0.getitemnumber(k_riga, "prezzo_3") * k_scost_perc
-			k_txt = "Genera il nuovo Listino, con lo scostamento dei Prezzi del " + string(k_perc) + "% " &
-						+ "(es. Prezzo 1 da " + string(dw_lista_0.getitemnumber(k_riga, "prezzo")) &
-						+ " a " + string(kst_tab_listino.prezzo) + ") copiando i dati da questo"
+			k_scost_perc = (1.00 + k_perc/100) 
+			k_prezzo = dw_lista_0.getitemnumber(k_riga, "prezzo")
+			if k_prezzo > 0 then	kst_tab_listino.prezzo = kguo_g.u_round_fixed(k_prezzo * k_scost_perc, 2)
+			k_prezzo = dw_lista_0.getitemnumber(k_riga, "prezzo_2")
+			if k_prezzo > 0 then	kst_tab_listino.prezzo_2 = kguo_g.u_round_fixed(k_prezzo * k_scost_perc, 2)
+			k_prezzo = dw_lista_0.getitemnumber(k_riga, "prezzo_3")
+			if k_prezzo > 0 then	kst_tab_listino.prezzo_3 = kguo_g.u_round_fixed(k_prezzo * k_scost_perc, 2)
+
+			k_txt = "Genera il nuovo Listino, scostamento Prezzi indicato del " + string(k_perc) + "% " &
+					   + kkg.acapo + "Es. Per questo Listino il Prezzo 1 da " + string(dw_lista_0.getitemnumber(k_riga, "prezzo"), "###,##0.00") &
+						+ " --> " + string(kst_tab_listino.prezzo, "###,##0.00") 
 		else
 			k_txt = "Genera il nuovo Listino copiando i dati da questo"
 		end if
@@ -1301,14 +1304,8 @@ string k_dacercare
 end event
 
 event dw_guida::itemchanged;call super::itemchanged;//
-//event ue_buttonclicked( )
-//if isnumber(trim(data)) then
-//	post event ue_itemchanged( "id_cliente", trim(data) )  //this.gettext()) )
-//else
-//	post event ue_itemchanged( "rag_soc_1", trim(data) )  //this.gettext()) )
-//end if
 if dwo.name = "rag_soc_1" then
-	this.post event ue_buttonclicked("default")
+//	this.post event ue_buttonclicked("default")
 elseif dwo.name = "mostra" then
 	if ki_ultimo_clie_3_cercato <> 999999 then
 		ki_mostra_nascondi_in_lista = ""
@@ -1332,15 +1329,18 @@ end if
 end event
 
 event dw_guida::u_premuto_enter;//
-if trim(this.getitemstring(1, "rag_soc_1")) > " " then
-	
-else
+//if trim(this.getitemstring(1, "rag_soc_1")) > " " then
+//	
+//else
 	
 	super::event u_premuto_enter( )
 
-end if
+//end if
 
 
+end event
+
+event dw_guida::ue_retrieve_dinamico;//
 end event
 
 type st_duplica from w_g_tab0`st_duplica within w_listino_l

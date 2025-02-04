@@ -28,8 +28,6 @@ type cb_pdf from commandbutton within w_stampe
 end type
 type ddplb_stampanti from dropdownpicturelistbox within w_stampe
 end type
-type dw_crea_xls from datawindow within w_stampe
-end type
 type cb_printlist from picturebutton within w_stampe
 end type
 type dw_setup from datawindow within w_stampe
@@ -46,7 +44,13 @@ type cbx_preview from checkbox within w_stampe
 end type
 type cb_apply_customization from commandbutton within w_stampe
 end type
+type cb_docx from commandbutton within w_stampe
+end type
 type r_dimensione_win from rectangle within w_stampe
+end type
+type dw_crea_xls from datawindow within w_stampe
+end type
+type dw_xls from datawindow within w_stampe
 end type
 end forward
 
@@ -54,8 +58,8 @@ global type w_stampe from w_g_tab
 boolean visible = true
 integer x = 101
 integer y = 100
-integer width = 1413
-integer height = 1680
+integer width = 1376
+integer height = 2112
 string title = "Stampa"
 string menuname = ""
 boolean controlmenu = false
@@ -77,6 +81,7 @@ event rbuttonup pbm_rbuttonup
 event u_preview_show_display ( boolean k_visible )
 event u_preview_show ( )
 event u_preview_custom ( )
+event u_set_enabled ( boolean a_enabled )
 cb_esci cb_esci
 cb_email cb_email
 cb_close_anteprima cb_close_anteprima
@@ -90,7 +95,6 @@ cb_stampa cb_stampa
 dw_originale dw_originale
 cb_pdf cb_pdf
 ddplb_stampanti ddplb_stampanti
-dw_crea_xls dw_crea_xls
 cb_printlist cb_printlist
 dw_setup dw_setup
 dw_print dw_print
@@ -99,7 +103,10 @@ pb_preview_zoom_meno pb_preview_zoom_meno
 pb_preview_zoom_piu pb_preview_zoom_piu
 cbx_preview cbx_preview
 cb_apply_customization cb_apply_customization
+cb_docx cb_docx
 r_dimensione_win r_dimensione_win
+dw_crea_xls dw_crea_xls
+dw_xls dw_xls
 end type
 global w_stampe w_stampe
 
@@ -124,6 +131,8 @@ private boolean ki_zoom_ok=true
 private string ki_setup_grid_lines 
 private string ki_setup_stampa_testata
 
+//--- ADOBE API per fare i DOCX da PDF
+n_adobeapi kin_adobeapi 
 //w_g_tab kiw_this_window
 //m_toolbar_libx ki_menu   
 end variables
@@ -146,6 +155,8 @@ public subroutine zoom_set (integer a_zoom)
 private subroutine preview_set (boolean a_set_preview)
 private subroutine crea_report (boolean a_preview)
 private subroutine crea_report_setup ()
+private function boolean u_dw2xls (string a_nome_file)
+private subroutine set_default_button (boolean k_boolean)
 end prototypes
 
 event set_window_size();//
@@ -191,52 +202,6 @@ event u_preview_only();//
 	
 end event
 
-event rbuttonup;//
-string k_stringa=""
-//long k_riga=0
-//string k_tag_old=""
-//string k_tag=""
-//m_popup m_menu
-//
-//
-//	attiva_tasti()
-//
-//
-////=== Salvo il Tag attuale per reimpostarlo a fine routine
-//		k_tag_old = this.tag
-//
-////=== Creo menu Popup 
-//		m_menu = create m_popup
-//	
-//		m_menu.m_t_lib_3.visible = ki_menu.m_strumenti.m_fin_gest_libero1.visible
-//		m_menu.m_lib_1.visible = ki_menu.m_strumenti.m_fin_gest_libero1.visible
-//		m_menu.m_lib_1.enabled = ki_menu.m_strumenti.m_fin_gest_libero1.enabled
-//		m_menu.m_lib_1.text = ki_menu.m_strumenti.m_fin_gest_libero1.text
-//		m_menu.m_lib_2.visible = ki_menu.m_strumenti.m_fin_gest_libero2.visible
-//		m_menu.m_lib_2.enabled = ki_menu.m_strumenti.m_fin_gest_libero2.enabled
-//		m_menu.m_lib_2.text = ki_menu.m_strumenti.m_fin_gest_libero2.text
-//		m_menu.m_lib_3.visible = ki_menu.m_strumenti.m_fin_gest_libero3.visible
-//		m_menu.m_lib_3.enabled = ki_menu.m_strumenti.m_fin_gest_libero3.enabled
-//		m_menu.m_lib_3.text = ki_menu.m_strumenti.m_fin_gest_libero3.text
-//		
-//
-////=== Attivo il menu Popup
-//		m_menu.visible = true
-//		//m_menu.popmenu(this.x + pointerx(), this.y +pointery())
-//		m_menu.popmenu(pointerx(), pointery())
-//		m_menu.visible = false
-//
-//		destroy m_menu
-//
-//		k_tag = this.tag 
-//
-//		this.tag = k_tag_old 
-//
-//		smista_funz(k_tag)
-
-
-end event
-
 event u_preview_show_display(boolean k_visible);//
 boolean k_not_visible
 string k_zoom
@@ -279,6 +244,7 @@ string k_zoom
 	cb_esci.visible = k_not_visible
 	ddplb_stampanti.visible = k_not_visible	
 	cb_printlist.visible = k_not_visible
+	cb_pdf.visible = k_not_visible
 	
 	cb_imposta.BringToTop = k_not_visible
 	cb_anteprima.BringToTop = k_not_visible
@@ -288,6 +254,7 @@ string k_zoom
 	cb_esci.BringToTop = k_not_visible
 	ddplb_stampanti.BringToTop = k_not_visible	
 	cb_printlist.bringtotop = k_not_visible
+	cb_pdf.bringtotop = k_not_visible
 	
 	this.setredraw(true)
 
@@ -321,6 +288,21 @@ event u_preview_custom();//
 
 
 	
+end event
+
+event u_set_enabled(boolean a_enabled);//
+	
+	dw_setup.enabled = a_enabled
+	
+	cb_imposta.enabled = a_enabled
+	cb_anteprima.enabled = a_enabled
+	cb_stampa.enabled = a_enabled
+	cb_excel.enabled = a_enabled
+	cb_personalizza.enabled = a_enabled
+	cb_pdf.enabled = a_enabled
+	ddplb_stampanti.enabled = a_enabled	
+	cb_printlist.enabled = a_enabled
+
 end event
 
 public subroutine zoom_avanti ();//
@@ -530,8 +512,7 @@ pointer koldpointer
 
 //=== Puntatore Cursore da attesa.....
 	koldpointer = SetPointer(HourGlass!)
-	
-	
+		
 //--- aggiunge testata standard solo al tabulato di tipo GRID
 	if dw_print.Object.DataWindow.Processing = "1" or dw_print.Object.DataWindow.Processing = "8" or dw_print.Object.DataWindow.Processing = "9" then
 		kiuf_stampe.kist_stampe_add_testata = kist_stampe	
@@ -586,7 +567,6 @@ kuf_base kuf1_base
 		ddplb_stampanti.visible = true
 		cb_printlist.visible = true
 	end if 
-
 	
 	k_nome_stampa = kist_stampe.dataobject
 	
@@ -597,7 +577,6 @@ kuf_base kuf1_base
 	if len(trim(kist_stampe.stampante_predefinita)) > 0 then
 		PrintSetPrinter (kist_stampe.stampante_predefinita)
 	end if
-
 
 //--- attivo bottone esportazione PDF -----------------------------
 		kuf1_base = create kuf_base
@@ -611,7 +590,6 @@ kuf_base kuf1_base
 			cb_pdf.enabled = true
 		end if
 		destroy kuf1_base
-
 
 //--- Riempio il DDLB con Lista delle stampanti
 		kiuf_stampe.ddlb_set_stampanti(ddplb_stampanti)
@@ -681,19 +659,6 @@ kuf_base kuf1_base
 		else
 			dw_setup.object.cbx_personalizzazioni_salva[1] = "N"
 		end if
-
-//--- recupero i valori se personalizzati della window
-		kst_profilestring_ini.operazione = "1"
-		kst_profilestring_ini.valore = "S"
-		kst_profilestring_ini.file = "stampe" 
-		kst_profilestring_ini.titolo = "testata_xls" 
-		kst_profilestring_ini.nome = trim(k_nome_stampa) 
-		k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
-		if kst_profilestring_ini.esito <> "0" then
-			kist_stampe.testata_xls = "N"
-		else
-			kist_stampe.testata_xls = kst_profilestring_ini.valore
-		end if
 		
 //--- recupero i valori se personalizzati della window
 		kst_profilestring_ini.operazione = "1"
@@ -754,6 +719,8 @@ protected subroutine open_start_window ();//
 long k_rc
 st_stampe kst_stampe
 kuf_utility kuf1_utility
+kuf_base kuf1_base
+st_tab_base kst_tab_base
 
 	
 	ki_toolbar_window_presente=true
@@ -763,6 +730,7 @@ kuf_utility kuf1_utility
 	dw_crea_xls.object.testata[1] = ""
 	
 	kiuf_stampe = create kuf_stampe
+	kin_adobeapi = create n_adobeapi
 
 	kst_stampe = ki_st_open_w.key12_any
 
@@ -814,6 +782,11 @@ kuf_utility kuf1_utility
 			kist_stampe.nome_file = kuf1_utility.u_stringa_tonome(kist_stampe.nome_file) 
 			if isvalid(kuf1_utility) then destroy kuf1_utility
 		end if
+	end if
+
+//--- leggo API KEY e Secret dio ADOBE
+	if kin_adobeapi.ki_credential_enabled then
+		cb_docx.enabled = true
 	end if
 
 	ki_win_titolo_orig  = "Esegui Stampa: " + trim(kist_stampe.titolo)
@@ -959,13 +932,20 @@ end if
 
 end subroutine
 
-private subroutine crea_report (boolean a_preview);//
+private subroutine crea_report (boolean a_preview);/*
+ Applica le personalizzazioni al Report
+    inp: TRUE = sono in Preview
+*/
 int k_zoom
 
 
 	SetPointer(kkg.pointer_attesa)
 
 	crea_report_setup( )  // compone il report con le personalizzazioni indicate
+
+	if ki_setup_stampa_testata = "S" then
+		aggiungi_testata()
+	end if
 
 //--- Zoom della stampa
 	k_zoom = dw_setup.object.em_zoom[1]
@@ -1038,11 +1018,97 @@ string k_rcx
 //--- applica personalizzazioni come richiesto	
 	u_setup_personalizzazioni( )
 
-	if ki_setup_stampa_testata = "S" then
-		aggiungi_testata()
+	SetPointer(kkg.pointer_default)
+
+end subroutine
+
+private function boolean u_dw2xls (string a_nome_file);//
+boolean k_return 
+long k_id_stampa, k_rc
+string k_rcx
+kuf_dw2xls kuf1_dw2xls
+kuf_utility kuf1_utility
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	
+	kuf1_dw2xls = create kuf_dw2xls
+
+	if trim(dw_crea_xls.object.nome_scheda[1]) > " " then
+		kuf1_dw2xls.ki_is_sheet_name = trim(dw_crea_xls.object.nome_scheda[1])
+	end if
+		
+//--- Richiesta la Testata delle colonne?
+	if dw_crea_xls.object.testata[1] = "S" then //Stampa anche la testata
+		kuf1_dw2xls.ki_ib_header = true         //ok header band 
+	else
+		kuf1_dw2xls.ki_ib_header = false        //skip header band 
 	end if
 
-	SetPointer(kkg.pointer_default)
+//--- se non indicata nessuna dw_esporta allora la faccio uguale alla dw_print
+	if isvalid(kist_stampe.ds_esporta) then
+		if trim(kist_stampe.ds_esporta.dataobject) > " " then
+			dw_xls.dataobject = kist_stampe.ds_esporta.dataobject
+			//k_rc = kist_stampe.ds_esporta.rowscopy(1, kist_stampe.ds_esporta.rowcount( ) ,primary!, kdw_1 ,1, primary!)
+			k_rc = kist_stampe.ds_esporta.ShareData(dw_xls)
+		end if
+	else
+//--- applica o meno le personalizzazioni alla stampa
+		if dw_crea_xls.object.personalizza[1] = "S" then //non si vuole EVITARE la testata
+			crea_report_setup()
+		end if
+		dw_xls.dataobject = dw_print.dataobject
+		k_rc = dw_print.ShareData(dw_xls)
+	end if
+	if k_rc < 1 then
+		SetPointer(kkg.pointer_default)
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko
+		kguo_exception.messaggio_utente("Generazione documento non eseguita", "Errore durante la preparazione dei dati da esportare nel formato Excel")
+		throw kguo_exception
+	end if
+	
+//	if trim(kdw_1.dataobject) > " "  then
+//	else
+//		kdw_1.dataobject = dw_print.dataobject
+//		k_rc = dw_print.rowscopy(1, dw_print.rowcount( ) ,primary!, kdw_1 ,1, primary!)
+//	end if
+		
+	if dw_xls.rowcount() < 1 then
+		SetPointer(kkg.pointer_default)
+		kguo_exception.messaggio_utente("Generazione documento non eseguita", "Non ci sono dati da esportare nel formato Excel")
+		throw kguo_exception
+	end if
+	
+	kuf1_utility = create kuf_utility
+	kuf1_utility.u_dw_set_bitmap_not_visible(dw_xls)  // mette a non visible le immagini
+		
+	kiuf_stampe.kist_stampe_add_testata.dw_print = dw_print	
+	k_rcx = dw_xls.Modify(kiuf_stampe.u_dw_sintax_pulizia(dw_xls.describe("DataWindow.Syntax")))
+	
+//--- esportazione in EXCEL attraverso prodotto di terzi			
+	if not kuf1_dw2xls.u_dw2xlsx(dw_xls, a_nome_file) then
+		SetPointer(kkg.pointer_default)
+		kguo_exception.messaggio_utente("Generazione documento in anomalia", string(dw_xls.rowcount()) + " righe non esportate nel formato Excel")
+		throw kguo_exception
+	end if
+
+	k_return = true
+
+catch (uo_exception kuo_exception)
+	k_return = false
+
+finally
+	if isvalid(kuf1_dw2xls) then destroy kuf1_dw2xls
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+	
+end try
+
+return k_return
+end function
+
+private subroutine set_default_button (boolean k_boolean);//
+cb_anteprima.default = k_boolean
 
 end subroutine
 
@@ -1104,7 +1170,6 @@ this.cb_stampa=create cb_stampa
 this.dw_originale=create dw_originale
 this.cb_pdf=create cb_pdf
 this.ddplb_stampanti=create ddplb_stampanti
-this.dw_crea_xls=create dw_crea_xls
 this.cb_printlist=create cb_printlist
 this.dw_setup=create dw_setup
 this.dw_print=create dw_print
@@ -1113,7 +1178,10 @@ this.pb_preview_zoom_meno=create pb_preview_zoom_meno
 this.pb_preview_zoom_piu=create pb_preview_zoom_piu
 this.cbx_preview=create cbx_preview
 this.cb_apply_customization=create cb_apply_customization
+this.cb_docx=create cb_docx
 this.r_dimensione_win=create r_dimensione_win
+this.dw_crea_xls=create dw_crea_xls
+this.dw_xls=create dw_xls
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.cb_esci
 this.Control[iCurrent+2]=this.cb_email
@@ -1128,16 +1196,18 @@ this.Control[iCurrent+10]=this.cb_stampa
 this.Control[iCurrent+11]=this.dw_originale
 this.Control[iCurrent+12]=this.cb_pdf
 this.Control[iCurrent+13]=this.ddplb_stampanti
-this.Control[iCurrent+14]=this.dw_crea_xls
-this.Control[iCurrent+15]=this.cb_printlist
-this.Control[iCurrent+16]=this.dw_setup
-this.Control[iCurrent+17]=this.dw_print
-this.Control[iCurrent+18]=this.st_preview_zoom
-this.Control[iCurrent+19]=this.pb_preview_zoom_meno
-this.Control[iCurrent+20]=this.pb_preview_zoom_piu
-this.Control[iCurrent+21]=this.cbx_preview
-this.Control[iCurrent+22]=this.cb_apply_customization
+this.Control[iCurrent+14]=this.cb_printlist
+this.Control[iCurrent+15]=this.dw_setup
+this.Control[iCurrent+16]=this.dw_print
+this.Control[iCurrent+17]=this.st_preview_zoom
+this.Control[iCurrent+18]=this.pb_preview_zoom_meno
+this.Control[iCurrent+19]=this.pb_preview_zoom_piu
+this.Control[iCurrent+20]=this.cbx_preview
+this.Control[iCurrent+21]=this.cb_apply_customization
+this.Control[iCurrent+22]=this.cb_docx
 this.Control[iCurrent+23]=this.r_dimensione_win
+this.Control[iCurrent+24]=this.dw_crea_xls
+this.Control[iCurrent+25]=this.dw_xls
 end on
 
 on w_stampe.destroy
@@ -1155,7 +1225,6 @@ destroy(this.cb_stampa)
 destroy(this.dw_originale)
 destroy(this.cb_pdf)
 destroy(this.ddplb_stampanti)
-destroy(this.dw_crea_xls)
 destroy(this.cb_printlist)
 destroy(this.dw_setup)
 destroy(this.dw_print)
@@ -1164,7 +1233,10 @@ destroy(this.pb_preview_zoom_meno)
 destroy(this.pb_preview_zoom_piu)
 destroy(this.cbx_preview)
 destroy(this.cb_apply_customization)
+destroy(this.cb_docx)
 destroy(this.r_dimensione_win)
+destroy(this.dw_crea_xls)
+destroy(this.dw_xls)
 end on
 
 event closequery;call super::closequery;//
@@ -1220,17 +1292,7 @@ if dw_setup.rowcount( ) > 0 then
 		kst_profilestring_ini.valore = "N"
 	end if
 	kGuf_data_base.profilestring_ini(kst_profilestring_ini)
-	
-
-//--- recupero i valori se personalizzati della window
-	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
-	kst_profilestring_ini.file = "stampe" 
-	kst_profilestring_ini.titolo = "testata_xls" 
-	kst_profilestring_ini.nome = trim(dw_print.dataobject) 
-	kst_profilestring_ini.valore = dw_crea_xls.object.testata[1]
-	trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
-	
-	
+		
 //--- salvo campo "Chiudi a fine stampa"
 	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
 	kst_profilestring_ini.file = "stampe" 
@@ -1294,6 +1356,7 @@ end event
 event close;call super::close;// 
 
 if isvalid(kiuf_stampe) then destroy kiuf_stampe
+if isvalid(kin_adobeapi) then destroy kin_adobeapi
 
 end event
 
@@ -1365,7 +1428,7 @@ end type
 
 type cb_esci from commandbutton within w_stampe
 integer x = 709
-integer y = 1332
+integer y = 1460
 integer width = 393
 integer height = 84
 integer taborder = 80
@@ -1388,7 +1451,7 @@ end event
 
 type cb_email from commandbutton within w_stampe
 integer x = 709
-integer y = 1216
+integer y = 1332
 integer width = 393
 integer height = 84
 integer taborder = 30
@@ -1770,33 +1833,19 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-boolean italic = true
 string pointer = "HyperLink!"
-string text = "Crea &XLS..."
+string text = "Crea &Excel"
 boolean flatstyle = true
 end type
 
 event clicked;//
 
 //--- Disabilito il tasto x evitare ridondanze
-this.enabled = false
+//this.enabled = false
 
+dw_crea_xls.post event u_open( )
 
-if len(trim(dw_crea_xls.object.nome_scheda[1])) = 0 then
-	dw_crea_xls.object.nome_scheda[1] = kist_stampe.nome_file + string(kguo_g.get_datetime_current( ), "_dd_mm_hh_mm")
-end if
-
-if len(trim(dw_crea_xls.object.testata[1])) = 0 then
-	dw_crea_xls.object.testata[1] = kist_stampe.testata_xls
-end if	
-
-if not dw_crea_xls.visible then
-	dw_crea_xls.x = (parent.width - dw_crea_xls.width) / 2.3
-	dw_crea_xls.y = (parent.height - dw_crea_xls.height ) / 2.5
-	dw_crea_xls.visible = true
-end if
-
-this.enabled = true
+//this.enabled = true
 
 end event
 
@@ -1992,10 +2041,9 @@ kuf_utility kuf1_utility
 	else		
 
 //--- imposta il nome per il file
-		k_path = kguf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, kiw_this_window.classname( ) + "_utlimosaveas", "")
+		k_path = kguf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, kiw_this_window.classname( ) + "_ultimosaveas", "")
 		k_pathnomefile = kist_stampe.nome_file
 		
-			
 		k_rc = GetFileSaveName ( "Scegliere dove salvare il file pdf", k_pathnomefile, k_nome_file,  "pdf",  "pdf (*.pdf),*.*", k_path, 32770 )
 		if k_rc = 1 then
 			if trim(k_nome_file) > " " then
@@ -2016,7 +2064,7 @@ kuf_utility kuf1_utility
 			else
 				
 				kuf1_utility = create kuf_utility
-				kguf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_scrivi, kiw_this_window.classname( ) + "_utlimosaveas" &
+				kguf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_scrivi, kiw_this_window.classname( ) + "_ultimosaveas" &
 											, kuf1_utility.u_get_path_file(k_pathnomefile))
 				if isvalid(kuf1_utility) then destroy kuf1_utility
 				
@@ -2079,193 +2127,6 @@ end type
 event selectionchanged;//
 dw_print.object.datawindow.printer = trim(ddplb_stampanti.text( index ) )
 
-
-end event
-
-type dw_crea_xls from datawindow within w_stampe
-boolean visible = false
-integer x = 1499
-integer y = 528
-integer width = 1143
-integer height = 668
-integer taborder = 130
-boolean bringtotop = true
-boolean titlebar = true
-string title = "Esporta in formato xls"
-string dataobject = "d_param_xls"
-boolean controlmenu = true
-boolean border = false
-end type
-
-event buttonclicked;//
-long k_id_stampa, k_rc
-string k_path="",k_nome_file, k_rcx="",k_path_init="", k_setup_stampa_testata
-st_profilestring_ini kst_profilestring_ini
-kuf_utility kuf1_utility
-kuf_file_explorer kuf1_file_explorer
-datastore kds_1 
-
-
-//=== Puntatore Cursore da attesa.....
-SetPointer(kkg.pointer_attesa)
-
-if dwo.name = "b_esporta" then
-	
-	this.modify(dwo.name + ".enabled = '0'")  // disbilita pulsante
-
-//--- applica o meno le personalizzazioni alla stampa
-	k_setup_stampa_testata = ki_setup_stampa_testata
-	if dw_crea_xls.object.testata[1] = "S" then //non si vuole EVITARE la testata
-		ki_setup_stampa_testata = "S"
-	else
-		ki_setup_stampa_testata = "N"
-	end if
-	crea_report(false)
-	ki_setup_stampa_testata = k_setup_stampa_testata
-
-//=== Scelgo file x Esportare i dati DW
-	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_leggi
-	kst_profilestring_ini.file = "ambiente" 
-	kst_profilestring_ini.titolo = "ambiente" 
-	kst_profilestring_ini.nome = "arch_export_xls"
-	kst_profilestring_ini.valore = " " 
-	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
-	k_nome_file = trim(kst_profilestring_ini.valore)
-	if Len(k_nome_file) > 0 then
-		k_rcx = k_nome_file
-		k_rc = Len(k_rcx)
-		do while Mid(k_rcx, k_rc, 1) <> "\" and k_rc > 1
-			k_rcx = Replace(k_rcx, k_rc, 1, " ")  
-			k_rc= k_rc - 1
-		loop
-		k_path_init = trim(k_rcx)
-	end if
-
-	k_path=kist_stampe.nome_file
-	
-	k_id_stampa = GetFileSaveName("Esporta file in formato EXCEL/CALC", &
-										k_path, k_nome_file, "xls", "Excel (*.xls),*.xls",k_path_init, 32770) 
-	
-	if k_id_stampa <= 0 or LenA(trim(k_nome_file)) = 0 then
-		k_path = " "
-//		kst_esito.esito = kkg_esito.NO_ESECUZIONE
-//		kst_esito.sqlcode = 0
-//		kst_esito.SQLErrText = "Elaborazione interrotta dall'utente" 
-		
-	else
-		n_dwr_service_parm kn_dwr_service_parm
-		kn_dwr_service_parm = create  n_dwr_service_parm
-//   k_path = trim(profilestring ( "confdb.ini", "ambiente", "arch_export", "stampa"))
-//   k_nome_file = trim(mid(parent.title,9,8)) + string(today(), "ddmmyy")
-//	trim(kist_stampe.dataobject)
-
-//	k_path=""
-//	k_id_stampa = dw_print.saveas(k_path ,Excel5!, true)
-
-		if len(trim(dw_crea_xls.object.nome_scheda[1])) > 0 then
-//			kuf1_utility = create kuf_utility
-//			dw_crea_xls.object.nome_scheda[1] = kuf1_utility.u_stringa_pulisci(dw_crea_xls.object.nome_scheda[1])
-//			destroy kuf1_utility
-		else
-			dw_crea_xls.object.nome_scheda[1] = string(kguo_g.get_datetime_current( ) , "dd_mm_hh_mm")
-		end if
-		
-#if defined PBNATIVE then		
-		kn_dwr_service_parm.is_sheet_name = dw_crea_xls.object.nome_scheda[1]
-		kn_dwr_service_parm.il_title_fg_color = kkg_colore.blu_chiaro
-		kn_dwr_service_parm.ib_background = false
-		kn_dwr_service_parm.ib_background_color = false
-		kn_dwr_service_parm.ib_group_header = false   //skip all group headers 
-		kn_dwr_service_parm.ib_group_trailer = false  //skip all group trailers 
-		kn_dwr_service_parm.ib_summary = false        //skip summary band 
-		kn_dwr_service_parm.ib_footer = false         //skip footer band 
-
-//--- se richiesto Testata esporta il dw_print
-		if dw_crea_xls.object.testata[1] = "S" then //Stampa anche la testata
-			kn_dwr_service_parm.ib_header = true         //skip header band 
-//			k_id_stampa = uf_save_dw_as_excel_parm(dw_print, k_path, kn_dwr_service_parm)  //esportazione in EXCEL attraverso prodotto di terzi
-		else
-			kn_dwr_service_parm.ib_header = false         //skip header band 
-//			k_id_stampa = uf_save_dw_as_excel_parm(dw_esporta, k_path, kn_dwr_service_parm)  //esportazione in EXCEL attraverso prodotto di terzi
-		end if
-
-		kds_1 = create datastore
-
-//--- se non indicata nessuna dw_esporta allora la faccio uguale alla dw_print
-		if isvalid(kist_stampe.ds_esporta) then
-			if trim(kist_stampe.ds_esporta.dataobject) > " " then
-				kds_1.dataobject = kist_stampe.ds_esporta.dataobject
-				k_rc = kist_stampe.ds_esporta.rowscopy(1, kist_stampe.ds_esporta.rowcount( ) ,primary!, kds_1 ,1, primary!)
-			end if
-		end if
-		if trim(kds_1.dataobject) > " "  then
-		else
-			kds_1.dataobject = dw_print.dataobject
-			k_rc = dw_print.rowscopy(1, dw_print.rowcount( ) ,primary!, kds_1 ,1, primary!)
-		end if
-		
-		if kds_1.rowcount() > 0 then
-			k_rcx = kds_1.Modify(kiuf_stampe.u_dw_sintax_pulizia(kds_1.describe("DataWindow.Syntax")))
-//--- esportazione in EXCEL attraverso prodotto di terzi			
-			k_id_stampa = uf_save_ds_as_excel_parm(kds_1, k_path, kn_dwr_service_parm)  
-			if k_id_stampa < 1 then
-				SetPointer(kkg.pointer_default)
-				messagebox("Operazione in anomalia", string(kds_1.rowcount()) + " righe non esportate")
-			end if
-		else
-			SetPointer(kkg.pointer_default)
-			messagebox("Operazione non eseguita", "Non ci sono dati da esportare")
-			k_id_stampa = 0
-		end if
-		
-		
-		if isvalid(kn_dwr_service_parm) then destroy kn_dwr_service_parm
-#end if
-	end if
-
-
-	if k_id_stampa > 0 then
-
-		kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
-		kst_profilestring_ini.file = "ambiente" 
-		kst_profilestring_ini.titolo = "ambiente" 
-		kst_profilestring_ini.nome = "arch_export_xls"
-		kst_profilestring_ini.valore = trim(k_path) 
-		k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
-		
-		SetPointer(kkg.pointer_default)
-		if messagebox("Operazione terminata correttamente",  "Vuoi aprire subito il file~n~r" + trim(k_path), Question!, yesno!, 1) = 1 then
-			SetPointer(kkg.pointer_attesa)
-			kuf1_file_explorer = create kuf_file_explorer
-			kuf1_file_explorer.of_execute( trim(k_path))
-			destroy kuf1_file_explorer
-		end if
-					
-	end if
-
-//--- Ripristina path di lavoro
-	kGuf_data_base.setta_path_default()
-
-//--- chiude la window se tutto ok	e se richiesto dal cbx
-//	if isvalid(cbx_chiude ) then
-		
-//		if k_id_stampa > 0 and cbx_chiude.checked then
-//			
-//			if isvalid(cb_esci) then
-//				cb_esci.event clicked( )
-//			end if
-//		else
-			if isvalid(kiw_this_window) then
-				
-				this.visible = false // Nasconde la finestra
-				this.modify(dwo.name + ".enabled = '1'")  // Riabilita il pulsante
-
-				kiw_this_window.setfocus( )
-			end if
-//		end if
-//	end if
-
-end if
 
 end event
 
@@ -2557,12 +2418,352 @@ event clicked;//
 
 end event
 
+type cb_docx from commandbutton within w_stampe
+integer x = 709
+integer y = 1216
+integer width = 393
+integer height = 84
+integer taborder = 30
+boolean bringtotop = true
+integer textsize = -8
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string pointer = "HyperLink!"
+boolean enabled = false
+string text = "crea &Word"
+boolean flatstyle = true
+end type
+
+event clicked;//
+long k_id_stampa
+string k_pathnomefile,k_path, k_nome_file, k_zoom_orig, k_printer_orig, k_printer_new, k_pathnomefileDocx
+int k_rc
+kuf_file_explorer kuf1_file_explorer
+kuf_utility kuf1_utility
+	
+try 
+	
+	kguo_exception.inizializza(this.classname())
+	
+	messagebox("Generazione documento DOCX", "Leggere gli avvertimenti: " &
+						+ kkg.acapo +"A) Il documento non deve contenere dati sensibili o privati in quanto sono inviati al sito di ADOBE, quindi potrebbero essere letti; " &
+						+ kkg.acapo +"B) Deve essere attiva la connessione Internet; " &
+						)
+	
+//--- imposta il nome per il file
+	k_path = kguf_data_base.profilestring_leggi_scrivi(kguf_data_base.ki_profilestring_operazione_leggi, kiw_this_window.classname( ) + "_ultimosaveas", "")
+	k_pathnomefileDocx = kist_stampe.nome_file
+	
+	k_rc = GetFileSaveName ( "Scegliere dove salvare il file Word", k_pathnomefileDocx, k_nome_file,  "docx",  "docx (*.docx),*.*", k_path, 32770 )
+	if k_rc <> 1 then return // EXIT
+
+	this.enabled = false  // Disabilito il tasto x evitare ridondanze
+	SetPointer(kkg.pointer_attesa )
+
+	k_zoom_orig=dw_print.describe("DataWindow.Zoom")			
+
+//--- applica o meno le personalizzazioni alla stampa
+	crea_report(false)
+
+//=== Puntatore Cursore da attesa.....
+	SetPointer(kkg.pointer_attesa )
+	
+	if dw_print.rowcount( ) = 0 then
+		messagebox("File Word non generato", "Nessun dato da stampare" )
+		dw_print.modify("DataWindow.Zoom="+k_zoom_orig)			
+		this.enabled = true
+		return
+	end if		
+
+//--- imposta il nome per il file
+	k_path = kguo_path.get_temp( ) 
+	k_pathnomefile = kguo_path.get_temp( ) + kkg.path_sep + "daConvertireInDocx_" + string(now(), "hhmmss") + ".pdf"
+				
+	dw_print.Object.DataWindow.Export.PDF.Method = NativePDF!
+	dw_print.Object.DataWindow.Export.PDF.NativePDF.ImageFormat = '2' 				
+	k_id_stampa = dw_print.saveas(k_pathnomefile,PDF!, false) 
+		
+	if k_id_stampa < 1 then
+		SetPointer(kkg.pointer_default)
+		messagebox("File Word non generato", "Elaborazione da pdf a docx fallita durante la conversione in pdf (err=" + string(k_id_stampa) + ")" ) // (stampante: " + ki_stampante_pdf + ") " )
+		dw_print.modify("DataWindow.Zoom="+k_zoom_orig)			
+		this.enabled = true
+		return
+	end if
+
+// Script per chiamare l'oggetto adobeAPI
+	kin_adobeApi.of_exportToDocx(k_pathnomefile, k_pathnomefileDocx, kin_adobeApi.kin_ocrLanguage.IT)
+			
+	kist_stampe.nome_file = k_nome_file
+	SetPointer(kkg.pointer_default)
+	if messagebox("Operazione terminata correttamente",  "Vuoi aprire subito il file Word " + kkg.acapo + k_pathnomefileDocx + ".", Question!, yesno!, 1) = 1 then
+		SetPointer(kkg.pointer_attesa)
+		kuf1_file_explorer = create kuf_file_explorer
+		kuf1_file_explorer.of_execute(trim(k_pathnomefileDocx))
+	end if
+
+//--- Ripristina path di lavoro
+	kGuf_data_base.setta_path_default()
+
+	SetPointer(kkg.pointer_default)
+
+	dw_print.modify("DataWindow.Zoom="+k_zoom_orig)			
+	this.enabled = true
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_file_explorer) then	destroy kuf1_file_explorer
+
+end try
+
+end event
+
 type r_dimensione_win from rectangle within w_stampe
 boolean visible = false
 linestyle linestyle = transparent!
 integer linethickness = 4
 long fillcolor = 255
 integer width = 1413
-integer height = 1628
+integer height = 1828
+end type
+
+type dw_crea_xls from datawindow within w_stampe
+event u_open ( )
+event u_get_default_value ( string a_nome_stampa )
+event u_set_default_value ( string a_nome_stampa )
+event u_close ( )
+event u_premuto_enter pbm_dwnprocessenter
+event ue_b_esporta ( )
+boolean visible = false
+integer x = 901
+integer y = 452
+integer width = 1257
+integer height = 828
+integer taborder = 130
+boolean bringtotop = true
+boolean titlebar = true
+string title = "Esporta nel formato xlsx"
+string dataobject = "d_param_xls"
+boolean controlmenu = true
+boolean border = false
+end type
+
+event u_open();//
+
+this.event u_get_default_value(kist_stampe.dataobject)  // recupera i valori del form
+
+this.object.b_esporta.enabled = '1'  // Riabilita il pulsante
+
+if trim(this.object.nome_scheda[1]) > " " then
+else
+	if trim(kist_stampe.nome_file) > " " then
+		this.object.nome_scheda[1] = left(trim(kist_stampe.nome_file) + string(kguo_g.get_datetime_current( ), "_ddmmyy_hhmm"),31)
+	else
+		this.object.nome_scheda[1] = "Foglio" + string(kguo_g.get_datetime_current( ), "_ddmmyy_hhmm")
+	end if
+end if
+
+if len(trim(this.object.testata[1])) = 0 then
+	this.object.testata[1] = kist_stampe.testata_xls
+end if
+
+if isvalid(kist_stampe.ds_esporta) then
+	this.Modify("personalizza.protect = '1'  personalizza.Background.Color='" + string(fx_get_color("DISABLED"))+"'")
+	this.object.personalizza[1] = 'N'
+else
+	this.Modify("personalizza.protect = '0' personalizza.Background.Color='" + this.describe("testata.Background.Color")+"'")
+	if len(trim(this.object.personalizza[1])) = 0 then
+		this.object.personalizza[1] = kist_stampe.testata_xls
+	end if
+end if
+
+if not this.visible then
+	this.x = (parent.width - this.width) / 3
+	this.y = (parent.height - this.height ) / 2.5
+	this.visible = true
+end if
+
+parent.event u_set_enabled(false)
+
+this.bringtotop = true
+end event
+
+event u_get_default_value(string a_nome_stampa);//
+string k_rcx
+st_profilestring_ini kst_profilestring_ini
+
+//--- recupero i valori se personalizzati della window
+	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_leggi
+	kst_profilestring_ini.valore = "N"
+	kst_profilestring_ini.file = "stampe" 
+	kst_profilestring_ini.titolo = "testata_xls" 
+	kst_profilestring_ini.nome = trim(a_nome_stampa) 
+	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+	if kst_profilestring_ini.esito <> "0" then
+		this.object.testata[1] = "S"  // includi testata
+	else
+		this.object.testata[1] = kst_profilestring_ini.valore
+	end if
+
+	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_leggi
+	kst_profilestring_ini.valore = "S"
+	kst_profilestring_ini.file = "stampe" 
+	kst_profilestring_ini.titolo = "personalizza_xls" 
+	kst_profilestring_ini.nome = trim(a_nome_stampa) 
+	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+	if kst_profilestring_ini.esito <> "0" then
+		this.object.personalizza[1] = "N"  // personalizza dw
+	else
+		this.object.personalizza[1] = kst_profilestring_ini.valore
+	end if
+
+end event
+
+event u_set_default_value(string a_nome_stampa);//
+string k_rcx
+st_profilestring_ini kst_profilestring_ini
+
+//--- registra i valori 
+kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
+kst_profilestring_ini.file = "stampe" 
+kst_profilestring_ini.titolo = "testata_xls" 
+kst_profilestring_ini.nome = trim(a_nome_stampa) 
+kst_profilestring_ini.valore = this.object.testata[1]
+k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+
+if not isvalid(kist_stampe.ds_esporta) then
+
+	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
+	kst_profilestring_ini.file = "stampe" 
+	kst_profilestring_ini.titolo = "personalizza_xls" 
+	kst_profilestring_ini.nome = trim(a_nome_stampa) 
+	kst_profilestring_ini.valore = this.object.personalizza[1]
+	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+
+end if
+end event
+
+event u_close();//
+
+	this.visible = false // Nasconde la finestra
+	this.bringtotop = false
+	parent.event u_set_enabled(false)
+	//set_default_button (true)
+
+	kGuf_data_base.setta_path_default() //--- Ripristina path di lavoro
+
+	if isvalid(kiw_this_window) then
+		kiw_this_window.setfocus( )
+	end if
+
+
+end event
+
+event u_premuto_enter;//
+	event ue_b_esporta()
+
+end event
+
+event ue_b_esporta();//
+int k_rc_stampa
+long k_rc
+string k_path="",k_nome_file, k_rcx="",k_path_init=""
+st_profilestring_ini kst_profilestring_ini
+kuf_file_explorer kuf1_file_explorer
+
+
+	SetPointer(kkg.pointer_attesa)
+
+	this.accepttext( )
+	
+	this.modify("b_esporta.enabled = '0'")  // disbilita pulsante
+	
+//=== Scelgo file x Esportare i dati DW
+	kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_leggi
+	kst_profilestring_ini.file = "ambiente" 
+	kst_profilestring_ini.titolo = "ambiente" 
+	kst_profilestring_ini.nome = "arch_export_xls"
+	kst_profilestring_ini.valore = " " 
+	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+	k_nome_file = trim(kst_profilestring_ini.valore)
+	if Len(k_nome_file) > 0 then
+		k_rcx = k_nome_file
+		k_rc = Len(k_rcx)
+		do while Mid(k_rcx, k_rc, 1) <> "\" and k_rc > 1
+			k_rcx = Replace(k_rcx, k_rc, 1, " ")  
+			k_rc= k_rc - 1
+		loop
+		k_path_init = trim(k_rcx)
+	end if
+
+	k_path=kist_stampe.nome_file
+	
+	k_rc_stampa = GetFileSaveName("Genera documento Excel", &
+										k_path, k_nome_file, "xlsx", "Excel (*.xlsx),*.xlsx",k_path_init, 32770) 
+	
+	if k_rc_stampa <= 0 or LenA(trim(k_nome_file)) = 0 then
+		kguo_exception.messaggio_utente( "Genera documento Excel", "Elaborazione interrotta dall'utente.")
+		this.event u_close( )
+		return
+	end if
+
+	this.event u_set_default_value(kist_stampe.dataobject)
+
+	this.event u_open( )
+		
+//--- Genera XLSX
+	if u_dw2xls(k_path) then
+
+		kst_profilestring_ini.operazione = kGuf_data_base.ki_profilestring_operazione_scrivi
+		kst_profilestring_ini.file = "ambiente" 
+		kst_profilestring_ini.titolo = "ambiente" 
+		kst_profilestring_ini.nome = "arch_export_xls"
+		kst_profilestring_ini.valore = trim(k_path) 
+		k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+		
+		SetPointer(kkg.pointer_default)
+		if messagebox("Operazione terminata correttamente",  "Vuoi aprire subito il file " &
+																+ kkg.acapo + trim(k_path), Question!, yesno!, 1) = 1 then
+			SetPointer(kkg.pointer_attesa)
+			kuf1_file_explorer = create kuf_file_explorer
+			kuf1_file_explorer.of_execute( trim(k_path))
+			destroy kuf1_file_explorer
+		end if
+					
+	end if
+
+	this.event u_close( )
+
+
+end event
+
+event buttonclicked;//
+
+if dwo.name = "b_esporta" then
+	
+	event ue_b_esporta()
+
+end if
+
+end event
+
+type dw_xls from datawindow within w_stampe
+boolean visible = false
+integer x = 869
+integer y = 1304
+integer width = 1257
+integer height = 828
+integer taborder = 140
+boolean bringtotop = true
+boolean titlebar = true
+string title = "Esporta nel formato xlsx"
+string dataobject = "d_nulla"
+boolean controlmenu = true
+boolean border = false
 end type
 

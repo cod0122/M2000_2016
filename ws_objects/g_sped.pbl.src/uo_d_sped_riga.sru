@@ -24,7 +24,7 @@ public function boolean u_retrieve (st_tab_arsp ast_tab_arsp) throws uo_exceptio
 //
 boolean k_return = false
 string k_sql_orig, k_stringn, k_string 
-int k_ctr
+long k_ctr
 
 
 	if ast_tab_arsp.id_arsp = 0 then

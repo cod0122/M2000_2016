@@ -683,6 +683,8 @@ int k_ret, k_sn
 long ll_p
 
 
+kguo_exception.inizializza(this.classname())
+
 k_file = dw_dett_0.getitemstring (1, "link_lettera")
 if len(trim(k_file)) > 0 then
 else
@@ -700,22 +702,27 @@ if k_ret = 1 then
 		kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
 		kguo_exception.setmessage( "Non trovo il file selezionato: ~n~r" + k_path_file+k_file)
 		kguo_exception.messaggio_utente( )
-	else
-		k_sn = 1
-		if FileExists(ki_path_email+ kkg.path_sep +k_file) then 
-			k_sn = messagebox("File già presente", "Vuoi ricoprire il file? ", question!, yesno!, 2) 	
-		end if
-		if k_sn = 1 then
-			setpointer(kkg.pointer_attesa)
-			filedelete(ki_path_email+ kkg.path_sep +k_file)
-			if filecopy(k_path_file, ki_path_email+ kkg.path_sep +k_file, true) > 0 then
-				dw_dett_0.setitem(1, "link_lettera", trim(ki_path_email+ kkg.path_sep +k_file))
-				setpointer(kkg.pointer_default)
-			else
-				kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
-				kguo_exception.setmessage( "Errore durante tentativo di Importare il file: ~n~r" + ki_path_email+ kkg.path_sep +k_file)
-				kguo_exception.messaggio_utente( )
-			end if
+		return
+	end if
+	if k_path_file = (ki_path_email+ kkg.path_sep + k_file) then 
+		kguo_exception.messaggio_utente("File già presente", "Selezionato lo stesso file, copia non necessaria.")
+		return
+	end if		
+	k_sn = 1
+	if FileExists(ki_path_email+ kkg.path_sep +k_file) then 
+		k_sn = messagebox("File già presente", "Vuoi ricoprire il file? ", question!, yesno!, 2) 	
+	end if
+	if k_sn = 1 then
+		setpointer(kkg.pointer_attesa)
+		filedelete(ki_path_email+ kkg.path_sep +k_file)
+		if filecopy(k_path_file, ki_path_email+ kkg.path_sep +k_file, true) > 0 then
+			kguo_exception.messaggio_utente("Operazione completata", "File copiato nella cartella operativa.")
+			dw_dett_0.setitem(1, "link_lettera", trim(ki_path_email+ kkg.path_sep +k_file))
+			setpointer(kkg.pointer_default)
+		else
+			kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_dati_anomali )
+			kguo_exception.setmessage( "Errore durante tentativo di Importare il file: ~n~r" + ki_path_email+ kkg.path_sep +k_file)
+			kguo_exception.messaggio_utente( )
 		end if
 	end if
 else
@@ -827,6 +834,59 @@ end on
 
 event close;call super::close;//
 if isvalid(kiuf_email) then destroy kiuf_email
+
+end event
+
+event u_ricevi_da_elenco;call super::u_ricevi_da_elenco;//
+int k_return
+long k_row_selected
+string k_email_add, k_email, k_field_name
+
+
+if isvalid(kst_open_w) then
+
+//--- Dalla finestra di ZOOM
+	if (ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica or ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento) then
+	
+		if not isvalid(kdsi_elenco_input) then kdsi_elenco_input = create datastore
+	
+		kdsi_elenco_input = kst_open_w.key12_any 
+	
+		k_row_selected = 0
+		if isnumber(kst_open_w.key3) then k_row_selected = long(kst_open_w.key3)
+
+		if kdsi_elenco_input.rowcount() > 0 and k_row_selected > 0  then
+
+			k_return = k_row_selected
+			
+	 		choose case kst_open_w.key6
+				case "email_rubrica"
+					k_field_name = "email_to"
+				case "email_rubrica_cc"
+					k_field_name = "email_cc"
+				case "email_rubrica_ccn"
+					k_field_name = "email_ccn"
+			end choose
+			if k_field_name > " " then	
+				k_email_add = trim(kdsi_elenco_input.getitemstring(k_row_selected, "email"))  + ";"
+				k_email = trim(dw_dett_0.getitemstring( 1, k_field_name))
+				if isnull(k_email) then k_email = ""
+				if k_email = "" or right(k_email,1) = ";" or right(k_email,1) = "," then
+					k_email += k_email_add
+				else
+					k_email += ";" + k_email_add
+				end if
+				dw_dett_0.setitem( 1, k_field_name, k_email)
+				post attiva_tasti( )
+			end if
+	
+		end if
+
+	end if
+
+end if
+
+return k_return
 
 end event
 

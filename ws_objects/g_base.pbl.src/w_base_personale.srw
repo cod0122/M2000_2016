@@ -195,8 +195,8 @@ end type
 end forward
 
 global type w_base_personale from w_g_tab_3
-integer width = 5257
-integer height = 2324
+integer width = 55
+integer height = 196
 string title = "Proprietà"
 long backcolor = 67108864
 string icon = "Form!"
@@ -252,7 +252,6 @@ private subroutine get_fgrp_out_path ()
 private subroutine get_path_report_export_dir ()
 private subroutine get_path_aco_exp_regcdp_dir ()
 private subroutine get_path_e1_certif_saved_dir ()
-public subroutine u_resize_1 ()
 private subroutine get_path_smart_pickup_lots_dir ()
 private function st_esito u_base_update ()
 private subroutine get_path_dir_cust_packing_in ()
@@ -933,7 +932,7 @@ string k_record="0 ", k_stampanti
 string k_nome_db, k_parametro_db, k_path_db, k_path_dw
 string k_nome_dbf, k_parametro_dbf, k_path_dbf
 int k_ctr, k_ctr_1, k_punt, k_len, k_errore
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 datawindowchild kdwc_menu, kdwc_menu_1
 
 
@@ -1010,16 +1009,15 @@ end if
 if k_errore = 0 then
 	
 //--- Inabilita campi alla modifica se Visualizzazione
-	kuf1_utility = create kuf_utility 
 	if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.visualizzazione &
 	   or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.cancellazione then
 		
-		kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
 
 	else		
 		
 //--- S-protezione campi per riabilitare la modifica 
-     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+     	tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 
 //--- legge le stampanti disponibili
 		k_stampanti = kiuf_stampe.get_stampanti_dwddlb_values()
@@ -1028,7 +1026,6 @@ if k_errore = 0 then
      	tab_1.tabpage_1.dw_1.object.stbarcode.Values = k_stampanti
 
 	end if
-	destroy kuf1_utility
 	
 //--- se cancellazione
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione then
@@ -1298,7 +1295,7 @@ protected subroutine open_start_window ();//
 kiuf_stampe = create kuf_stampe
 
 //tab_1.tabpage_7.picturename = kguo_path.get_risorse() + "\pklist.ico"
-tab_1.tabpage_4.dw_4.object.p_esempio_piede_fattura.filename = kguo_path.get_risorse() + "\fatt_piede.png"
+tab_1.tabpage_4.dw_4.object.p_esempio_piede_fattura.filename = "fatt_piede.png"
 
 end subroutine
 
@@ -2256,51 +2253,6 @@ end if
 
 end subroutine
 
-public subroutine u_resize_1 ();//
-//long kk_width=0, kk_height= 0
-
-	super::u_resize_1()
- 
-
-// //--- per un bug di PB sono costretto a fare questo per far vedere le barre
-//	 	if tab_1.tabposition <> tabsonleft! and tab_1.height - tab_1.tabpage_10.height - 120 < 0 then 
-//			kk_height = 120	
-//		end if
-//		if tab_1.tabposition = tabsonleft! and tab_1.width - tab_1.tabpage_10.width - 950 < 0 then 
-//			kk_width = 950
-//		end if
-	
-	if tab_1.tabpage_10.dw_10.enabled then
-		tab_1.tabpage_10.dw_10.width = tab_1.tabpage_10.width //- kk_width
-		tab_1.tabpage_10.dw_10.height = tab_1.tabpage_10.height //- kk_height
-		tab_1.tabpage_10.dw_10.x =  0// (tab_1.tabpage_5.width - tab_1.tabpage_5.dw_5.width) / 2
-		tab_1.tabpage_10.dw_10.y =  0// (tab_1.tabpage_5.height - tab_1.tabpage_5.dw_5.height) / 2
-	end if
-
-	if tab_1.tabpage_11.dw_11.enabled then
-		tab_1.tabpage_11.dw_11.width = tab_1.tabpage_11.width //- kk_width
-		tab_1.tabpage_11.dw_11.height = tab_1.tabpage_11.height //- kk_height
-		tab_1.tabpage_11.dw_11.x =  0// (tab_1.tabpage_5.width - tab_1.tabpage_5.dw_5.width) / 2
-		tab_1.tabpage_11.dw_11.y =  0// (tab_1.tabpage_5.height - tab_1.tabpage_5.dw_5.height) / 2
-	end if
-
-	if tab_1.tabpage_12.dw_12.enabled then
-		tab_1.tabpage_12.dw_12.width = tab_1.tabpage_4.dw_4.width //- kk_width
-		tab_1.tabpage_12.dw_12.height = tab_1.tabpage_4.dw_4.height //- kk_height
-		tab_1.tabpage_12.dw_12.x =  0// (tab_1.tabpage_5.width - tab_1.tabpage_5.dw_5.width) / 2
-		tab_1.tabpage_12.dw_12.y =  0// (tab_1.tabpage_5.height - tab_1.tabpage_5.dw_5.height) / 2
-	end if
-
-	if tab_1.tabpage_13.dw_13.enabled then
-//		tab_1.tabpage_13.dw_13.width = tab_1.tabpage_13.width - kk_width
-//		tab_1.tabpage_13.dw_13.height = tab_1.tabpage_13.height - kk_height
-		tab_1.tabpage_13.dw_13.x =  0// (tab_1.tabpage_5.width - tab_1.tabpage_5.dw_5.width) / 2
-		tab_1.tabpage_13.dw_13.y =  0// (tab_1.tabpage_5.height - tab_1.tabpage_5.dw_5.height) / 2
-	end if
-
-
-end subroutine
-
 private subroutine get_path_smart_pickup_lots_dir ();//
 string k_path=".."
 int k_ret
@@ -2418,6 +2370,8 @@ try
 //--- dati VARI
 	kst_tab_base.smart_pickup_lots_url_xbook = tab_1.tabpage_4.dw_4.getitemstring(1, "smart_pickup_lots_url_xbook")
 	kst_tab_base.smart_pickup_lots_sha_key = tab_1.tabpage_4.dw_4.getitemstring(1, "smart_pickup_lots_sha_key")
+	kst_tab_base.adobe_clientid = tab_1.tabpage_4.dw_4.getitemstring(1, "adobe_clientid")
+	kst_tab_base.adobe_secret = tab_1.tabpage_4.dw_4.getitemstring(1, "adobe_secret")
 	kst_tab_base.st_tab_g_0.esegui_commit = "N" 
 	
 //--- dati GMT			
@@ -4982,6 +4936,7 @@ boolean focusrectangle = false
 end type
 
 type tabpage_10 from userobject within tab_1
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 1033
 integer y = 16
@@ -5004,6 +4959,20 @@ st_meca_chiude st_meca_chiude
 dw_10 dw_10
 b_clienti_cntdep_l b_clienti_cntdep_l
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_10.enabled then
+		this.dw_10.resize(this.width, this.height)
+		this.dw_10.move(0,0)
+	end if
+
+end event
 
 on tabpage_10.create
 this.st_deposito=create st_deposito
@@ -5305,6 +5274,7 @@ end try
 end event
 
 type tabpage_11 from userobject within tab_1
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 1033
 integer y = 16
@@ -5317,6 +5287,20 @@ long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 dw_11 dw_11
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_11.enabled then
+		this.dw_11.resize(this.width, this.height)
+		this.dw_11.move(0,0)
+	end if
+
+end event
 
 on tabpage_11.create
 this.dw_11=create dw_11
@@ -5334,6 +5318,7 @@ integer taborder = 62
 end type
 
 type tabpage_12 from userobject within tab_1
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 1033
 integer y = 16
@@ -5346,6 +5331,20 @@ string picturename = "Debug!"
 long picturemaskcolor = 536870912
 dw_12 dw_12
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_12.enabled then
+		this.dw_12.resize(this.width, this.height)
+		this.dw_12.move(0,0)
+	end if
+
+end event
 
 on tabpage_12.create
 this.dw_12=create dw_12
@@ -5386,6 +5385,7 @@ event doubleclicked;//
 end event
 
 type tabpage_13 from userobject within tab_1
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 1033
 integer y = 16
@@ -5403,6 +5403,20 @@ st_13_retrieve st_13_retrieve
 st_non_auth_13 st_non_auth_13
 dw_13 dw_13
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	//if this.dw_13.enabled then
+	//	this.dw_13.resize(this.width, this.height)
+	//	this.dw_13.move(0,0)
+	//end if
+
+end event
 
 on tabpage_13.create
 this.st_esiti_operazioni=create st_esiti_operazioni

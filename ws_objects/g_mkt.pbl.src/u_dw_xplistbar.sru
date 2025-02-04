@@ -165,7 +165,7 @@ END CHOOSE
 THIS.Object.item_text[ll_row] = as_text
 THIS.Object.item_number[ll_row] = ll_row
 THIS.Object.parent_handle[ll_row] = ai_parent
-THIS.Object.item_picture[ll_row] = kGuo_path.get_risorse() + "\" + as_picture
+THIS.Object.item_picture[ll_row] =  as_picture
 THIS.Object.highlighted[ll_row] = 'N'
 
 il_rowcount = THIS.RowCount()
@@ -249,7 +249,7 @@ public subroutine of_setitem (long k_riga, string k_testo, string k_picture);//
 
 THIS.Object.item_text[k_riga]  = trim(k_testo) 
 if len(trim(k_picture)) > 0 then
-	THIS.Object.item_picture[k_riga] = kGuo_path.get_risorse() + "\" + k_picture
+	THIS.Object.item_picture[k_riga] =  k_picture
 else
 	THIS.Object.item_picture[k_riga] = ""
 end if

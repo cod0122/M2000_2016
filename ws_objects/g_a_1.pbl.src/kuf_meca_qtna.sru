@@ -37,7 +37,6 @@ public function boolean aggiorna (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_
 public function boolean if_esiste (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function boolean apri (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function boolean chiudi (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
-public function boolean if_aperta (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function boolean set_apri_qtna (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function boolean set_note (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function boolean if_giaaperta (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
@@ -67,7 +66,8 @@ public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_meca_qtn
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 public function boolean chiudi_rimuovi_dati_no_ifsicurezza (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 public function string get_sped_lotto_no_completo_default ()
-public function boolean if_sped_lotto_no_completo_ok (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
+public function boolean if_aperta (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
+public function boolean if_sped_lotto_no_completo_ok (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception
 end prototypes
 
 public function boolean tb_delete (st_tab_meca_qtna kst_tab_meca_qtna) throws uo_exception;//
@@ -519,52 +519,6 @@ end try
 return k_return
 
 
-end function
-
-public function boolean if_aperta (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception;//
-//====================================================================
-//=== Torna se il record quarantena già aperto
-//=== 
-//=== Input: st_tab_meca_qtna.id_meca     
-//=== Output:                   
-//=== Ritorna true se aperto
-//===           		  
-//====================================================================
-
-boolean	k_return = false
-
-
-st_esito kst_esito
-long	k_esiste
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
-SELECT count(a.id_meca_qtna)
-INTO :k_esiste
-FROM meca_qtna a
-where a.id_meca = :ast_tab_meca_qtna.id_meca
-AND (a.x_utente_fine IS NULL OR TRIM(x_utente_fine) = '' )
-using kguo_sqlca_db_magazzino;
-
- if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore controllo esistenza Quarantena~n~r" + trim(sqlca.SQLErrText) 
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito( kst_esito)
-		throw kguo_exception
-	end if
-end if
-
-if k_esiste>0 then	k_return = true
-
-return k_return
 end function
 
 public function boolean set_apri_qtna (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception;// funzione che fa l'insert sulla tabella meca_qtna
@@ -1599,21 +1553,50 @@ string k_esito
 return k_return
 end function
 
-public function boolean if_sped_lotto_no_completo_ok (st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception;//
-//====================================================================
-//=== verifica se è possibile spedire parzialmente il Lotto
-//=== Input: st_tab_meca_qtna.id_meca     
-//=== Output:                   
-//=== Ritorna true = ok per spedizione parziale
-//===           		  
-//====================================================================
+public function boolean if_aperta (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception;/*
+Torna se il record quarantena già aperto
+	Input: st_tab_meca_qtna.id_meca     
+	Output: id_meca_qtna
+	Ritorna true = aperto
+*/
+boolean k_return = false
+st_tab_meca_qtna kst_tab_meca_qtna
 
+
+kguo_exception.inizializza(this.classname())
+
+
+SELECT a.id_meca_qtna
+	INTO :kst_tab_meca_qtna.id_meca_qtna
+	FROM meca_qtna a
+	where a.id_meca = :ast_tab_meca_qtna.id_meca
+			AND (a.x_utente_fine IS NULL OR TRIM(x_utente_fine) = '' )
+	using kguo_sqlca_db_magazzino;
+
+ if kguo_sqlca_db_magazzino.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in verifica Esistenza Quarantena, Id Lotto " + string(ast_tab_meca_qtna.id_meca))
+	throw kguo_exception
+end if
+
+if kst_tab_meca_qtna.id_meca_qtna > 0 then 
+	k_return = true
+	ast_tab_meca_qtna.id_meca_qtna = kst_tab_meca_qtna.id_meca_qtna
+end if
+
+return k_return
+
+end function
+
+public function boolean if_sped_lotto_no_completo_ok (ref st_tab_meca_qtna ast_tab_meca_qtna) throws uo_exception;/*
+Verifica se è possibile spedire parzialmente il Lotto
+   Input: st_tab_meca_qtna.id_meca_qtna    
+   Output: ast_tab_meca_qtna.sped_lotto_no_completo                  
+   Ritorna true = ok per spedizione parziale
+*/
 boolean	k_return = false
 
-
-st_esito kst_esito
-
-kst_esito = kguo_exception.inizializza(this.classname())
+kguo_exception.inizializza(this.classname())
 
 SELECT a.sped_lotto_no_completo
 	INTO :ast_tab_meca_qtna.sped_lotto_no_completo
@@ -1621,15 +1604,10 @@ SELECT a.sped_lotto_no_completo
 	where a.id_meca_qtna = :ast_tab_meca_qtna.id_meca_qtna
 	using kguo_sqlca_db_magazzino;
 
- if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore controllo Quarantena già aperta~n~r" + trim(sqlca.SQLErrText) 
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito( kst_esito)
-		throw kguo_exception
-	end if
+ if kguo_sqlca_db_magazzino.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in verifica se Quarantena può essere spedita Parzialmente, Id Quarantena " + string(ast_tab_meca_qtna.id_meca_qtna))
+	throw kguo_exception
 else
 	if ast_tab_meca_qtna.sped_lotto_no_completo = kki_sped_lotto_no_completo_SI then
 		k_return = true

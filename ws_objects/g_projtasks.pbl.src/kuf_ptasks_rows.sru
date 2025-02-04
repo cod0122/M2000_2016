@@ -29,6 +29,7 @@ public function long get_valid_modaccompn_last_by_base () throws uo_exception
 public function long get_cs_invoicen_last_by_base () throws uo_exception
 public subroutine set_cs_invoicen_last_in_base (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 public subroutine set_valid_modaccompn_last_in_base (ref st_tab_ptasks_rows ast_tab_ptasks_rows, integer a_anno_modulo) throws uo_exception
+public function integer get_n_task_dsv (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 end prototypes
 
 public subroutine _readme ();//
@@ -543,20 +544,15 @@ return kst_esito
 
 end function
 
-public function long get_id_ptasks_row (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;//
-//------------------------------------------------------------------
-//--- Torna id_ptasks_row per il Progetto id_ptasks inserito 
-//--- 
-//---  input: ID_PTASK + ID_PTASKS_TYPE
-//---  ret: id_ptasks_row
-//---                                     
-//------------------------------------------------------------------
-//
+public function long get_id_ptasks_row (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
+Torna id_ptasks_row per il Progetto id_ptasks inserito 
+	inp: ID_PTASK + ID_PTASKS_TYPE
+	ret: id_ptasks_row
+*/
 long k_return
-st_esito kst_esito
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	SELECT coalesce(id_ptasks_row, 0)
 		 INTO 
@@ -567,21 +563,14 @@ st_esito kst_esito
 		 using kguo_sqlca_db_magazzino;
 			
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura N. Attività del Progetto n. " + string(ast_tab_ptasks_rows.ID_PTASK) &
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura N. Attività del Progetto n. " + string(ast_tab_ptasks_rows.ID_PTASK) &
 										+ " Attività n. " + string(ast_tab_ptasks_rows.ID_PTASKS_TYPE) &
-										+ ", (ptasks_rows)." &
-									 	+ kkg.acapo  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+										+ ", (ptasks_rows).")
 		throw kguo_exception
 	end if
 
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		if isnull(k_return) then k_return = 0
-	else
-		k_return = 0
-	end if
+	if isnull(k_return) then k_return = 0
 	
 
 return k_return
@@ -730,22 +719,19 @@ public function long get_valid_modaccompn_last_by_base () throws uo_exception;//
 //------------------------------------------------------------------
 //
 long k_return
-st_esito kst_esito
 string k_esito_base
 kuf_base kuf1_base
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	kuf1_base = create kuf_base
 	k_esito_base = kuf1_base.prendi_dato_base( "ptasks_valid_modaccompn")
 	if left(k_esito_base,1) <> "0" then
-		kst_esito.esito = kkg_esito.db_ko  
-		kst_esito.SQLErrText = "Errore in lettura da Proprietà di 'ultimo N. Modulo di Accomp. Laboratorio' " &
+		kguo_exception.kist_esito.esito = kkg_esito.db_ko  
+		kguo_exception.kist_esito.SQLErrText = "Errore in lettura da Proprietà di 'ultimo N. Modulo di Accomp. Laboratorio' " &
 									 + "~n~r"  + trim(mid(k_esito_base,2))
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
 		throw kguo_exception
 	else
 		k_return = long(mid(k_esito_base,2))
@@ -909,6 +895,43 @@ finally
 end try
 
 end subroutine
+
+public function integer get_n_task_dsv (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
+Torna il numero di task DSV presenti nel Progetto  
+	inp: ID_PTASK 
+	ret: DSV contati
+*/
+int k_return
+string k_task_dsv
+kuf_ptasks kuf1_ptasks
+
+
+	kguo_exception.inizializza(this.classname())
+
+	k_task_dsv = kuf1_ptasks.kki_task_dose_di_verifica
+
+	SELECT isnull(count(id_ptasks_row), 0)
+		 INTO 
+				:k_return
+		 FROM ptasks_rows inner join ptasks_types on 
+		 						ptasks_rows.id_ptasks_type = ptasks_types.id_ptasks_type
+		 where ID_PTASK = :ast_tab_ptasks_rows.ID_PTASK
+		    and ptasks_types.task = :k_task_dsv
+		 using kguo_sqlca_db_magazzino;
+			
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in conteggio presenze Attività '" + k_task_dsv + "' del Progetto n. " + string(ast_tab_ptasks_rows.ID_PTASK) &
+										+ ", (ptasks_rows).")
+		throw kguo_exception
+	end if
+
+	if isnull(k_return) then k_return = 0
+
+
+return k_return
+
+end function
 
 on kuf_ptasks_rows.create
 call super::create

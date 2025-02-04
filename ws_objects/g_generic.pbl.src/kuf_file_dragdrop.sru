@@ -83,7 +83,7 @@ event ue_dropmails;// Called when Messages are dropped
 string			ls_Message, ls_Files, ls_Header
 string			ls_Pre, ls_Dir
 st_finddata	lst_FindData
-integer		li_Pos
+long		li_Pos
 long			ll_Handle
 
 IF wparam = 111 THEN

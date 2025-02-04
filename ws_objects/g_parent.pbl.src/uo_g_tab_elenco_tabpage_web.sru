@@ -2,7 +2,7 @@
 forward
 global type uo_g_tab_elenco_tabpage_web from userobject
 end type
-type wb_1 from uv_webbrowser within uo_g_tab_elenco_tabpage_web
+type wb_1 from uo_webbrowser within uo_g_tab_elenco_tabpage_web
 end type
 end forward
 
@@ -313,7 +313,7 @@ event destructor;//
 
 end event
 
-type wb_1 from uv_webbrowser within uo_g_tab_elenco_tabpage_web
+type wb_1 from uo_webbrowser within uo_g_tab_elenco_tabpage_web
 boolean visible = false
 end type
 

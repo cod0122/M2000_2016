@@ -17,6 +17,7 @@ integer height = 1428
 boolean titlebar = true
 string icon = "main.ico"
 boolean center = true
+windowanimationstyle closeanimation = fadeanimation!
 event u_key pbm_keydown
 event ue_open ( )
 event u_pbm_lbuttondown pbm_lbuttondown
@@ -31,7 +32,7 @@ type variables
 st_open_w kist_open_w
 //kuf_sr_sicurezza kiuf_sr_sicurezza
 kuf_sr_utenti kiuf_sr_utenti
-
+kuf_base kiuf_base
 
 end variables
 
@@ -62,6 +63,8 @@ try
 	
 	kpointer = setpointer(hourglass!)
 	
+	kguf_user_notification.ki_window = this
+	
 	dw_about.move(1,1)
 	dw_about.resize(this.width, this.height)
 	//st_versione.text = kkG_versione
@@ -72,6 +75,7 @@ try
 	this.title = this.title + " su " + trim(kuf1_utility.u_nome_computer()) //prendo nome del Computer
 	
 	kiuf_sr_utenti = create kuf_sr_utenti
+	kiuf_base = create kuf_base
 
 	dw_about.insertrow(0)
 
@@ -386,122 +390,103 @@ end try
 end subroutine
 
 public subroutine u_start ();//
-boolean k_chiudi = false
 boolean k_db_connected
 string k_utente,  k_passwd
-st_esito kst_esito
+//st_esito kst_esito
 kuf_utility kuf1_utility
 kuf_menu_window kuf1_menu_window
-kuf_base kuf1_base
 st_tab_base kst_tab_base
 
 
-//try
 
-	setpointer(kkg.pointer_attesa)
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-	kuf1_base = create kuf_base
+kguo_exception.inizializza(this.classname())
 
-	//st_informa.visible = false
-	dw_about.event u_set_st_informa("")
+setpointer(kkg.pointer_attesa)
 
-	try 
-		kGuf_data_base.u_set_uo_sqlca_db_magazzino()  // rifà tutta la connessione al DB principale
-		k_db_connected = if_connesso_db( )
-		if not k_db_connected then
-	
-			k_db_connected = kguo_sqlca_db_magazzino.db_connetti( ) //ritenta la connessione al DB
-		
-		end if
-	
-		set_connesso_display( k_db_connected )
-	
-	catch (uo_exception kuo_exception)
-		
-		dw_about.event u_set_st_informa("Fallita connesione alla Base Dati !" + kkg.acapo + trim(kuo_exception.kist_esito.sqlerrtext) + ".")
-		
-	end try
-		
-//	if not kiuf_sr_utenti.u_if_master(k_passwd) then
-//		if not u_authentication() then	
-//			kst_esito.esito = kkg_esito.ko
-//		end if
-//	end if
+//st_informa.visible = false
+dw_about.event u_set_st_informa("")
 
-if kst_esito.esito <> kkg_esito.ok then	
+try 
+	kGuf_data_base.u_set_uo_sqlca_db_magazzino()  // rifà tutta la connessione al DB principale
+	k_db_connected = if_connesso_db( )
+	if not k_db_connected then
 
-	//KGuo_sqlca_db_magazzino.db_disconnetti()
-	dw_about.setitem(1, "sle_password", "")
-	dw_about.setcolumn("sle_password")
+		k_db_connected = kguo_sqlca_db_magazzino.db_connetti( ) //ritenta la connessione al DB
 	
-else
+	end if
+
+	set_connesso_display( k_db_connected )
+
+catch (uo_exception kuo_exception)
+	
+	dw_about.event u_set_st_informa("Fallita connesione alla Base Dati !" + kkg.acapo + trim(kuo_exception.kist_esito.sqlerrtext) + ".")
+	return
+	
+end try		
+
+//if kst_esito.esito <> kkg_esito.ok then	
+//
+//	//KGuo_sqlca_db_magazzino.db_disconnetti()
+//	dw_about.setitem(1, "sle_password", "")
+//	dw_about.setcolumn("sle_password")
+//	
+//	return
+//	
+//end if
 	
 //--- Se Connessione OK inizio con il controllo della password digitata
-	if db_check_pwd() then
+if db_check_pwd() then
 
 //--- Segnala il logon dell'applicazione (I=messaggio Informativo)
-		kst_esito.esito = kguo_exception.KK_st_uo_exception_tipo_LOGIN
-		kst_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
-		kst_esito.sqlerrtext = "Connessione Accesso alla Procedura M2000 Accettata. " &
-								    + " Utente di login: " + kguo_utente.get_codice()
-		kguo_exception.set_esito(kst_esito)
+	kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_LOGIN
+	kguo_exception.kist_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
+	kguo_exception.kist_esito.sqlerrtext = "Connessione Accesso alla Procedura M2000 Accettata. " &
+								 + " Utente di login: " + kguo_utente.get_codice()
+	kguo_exception.scrivi_log( )
 
-////--- pswd ok
-//	if kguo_utente.get_pwd() > 0 then
-		
-		k_chiudi = true
-		
-		if isvalid(w_main) = false then
+//	kguf_user_notification.ki_timeduration = 2
+//	kguf_user_notification.send_notification(kkg.APP_NAME, "Utente " + kguo_utente.get_nome( ) + ", autorizzazione concessa.")
 
-			u_set_menu( )
+	if not isvalid(w_main) then
 
-			open(w_main)
-				
-		else
+		u_set_menu( )
+
+		open(w_main)
+			
+	else
 //--- w_main già aperta per cui lancio solo l'evento OPEN
 
-			u_set_menu( )
+		u_set_menu( )
 
-			w_main.inizializza()
-				
-		end if
+		w_main.inizializza()
+			
+	end if
 
 //--- Salvo in INI il nome utente collegato e la data-ora
-		kst_tab_base.key = "ultimo_utente_login_nome" 
-		kst_tab_base.key1 = kguo_utente.get_codice() 
-		kuf1_base.metti_dato_base(kst_tab_base)
-		kst_tab_base.key = "ultimo_utente_login_data" 
-		kst_tab_base.key1 = string(now(), "dd/mm/yy  hh:mm")
-		kuf1_base.metti_dato_base(kst_tab_base)
+	kst_tab_base.key = "ultimo_utente_login_nome" 
+	kst_tab_base.key1 = kguo_utente.get_codice() 
+	kiuf_base.metti_dato_base(kst_tab_base)
+	kst_tab_base.key = "ultimo_utente_login_data" 
+	kst_tab_base.key1 = string(now(), "dd/mm/yy  hh:mm")
+	kiuf_base.metti_dato_base(kst_tab_base)
+	
+	post close(this)
 
-////---- compatta il codice Utente
-//		kg_utente_comp = kguo_utente.get_comp()
-
-	else
-	//--- pwd non ok
-		dw_about.setitem(1, "sle_password", "")
-		dw_about.setcolumn("sle_password")
-
-//--- Segnala il login dell'applicazione (I=messaggio Informativo)
-		kst_esito.esito = kkg_esito.ok
-		kst_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
-		kst_esito.sqlerrtext = "Connessione alla Procedura M2000 Non Accettata! " &
-								    + " Tantato da Utente: " + kguo_utente.get_codice()
-		kguo_exception.set_esito(kst_esito)
-		
-	end if
-		
+	return
 end if
 
-if isvalid(kuf1_base) then destroy kuf1_base
+//--- pwd non ok
+dw_about.setitem(1, "sle_password", "")
+dw_about.setcolumn("sle_password")
+
+//--- Segnala il mancato login dell'applicazione 
+kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_noaut
+kguo_exception.kist_esito.sqlcode = KGuo_sqlca_db_magazzino.sqlcode
+kguo_exception.kist_esito.sqlerrtext = "Connessione alla Procedura M2000 Non Accettata! " &
+							 + " Tantato da Utente: " + kguo_utente.get_codice()
+kguo_exception.scrivi_log( )
 
 setpointer(kkg.pointer_default)
-	
-if k_chiudi then
-	close(this)
-end if
 
 
 end subroutine
@@ -757,7 +742,9 @@ event post ue_open()
 end event
 
 event close;//
-if isvalid(kiuf_sr_utenti) then destroy kiuf_sr_utenti
+	if isvalid(kiuf_sr_utenti) then destroy kiuf_sr_utenti
+	if isvalid(kiuf_base) then destroy kiuf_base
+
 end event
 
 type cb_start from picturebutton within w_about

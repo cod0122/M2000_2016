@@ -1580,8 +1580,8 @@ int k_inizio_riga=0, k_inizio_col=0
 	u_set_font_default( ) //--- Imposta i FONT di default
 					
 // stampa il logo ad inizio foglio
-	PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
-	PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\logo_barcode.jpg", 400, 1 + kst_barcode_stampa.num_righe,  2400, 800) //0, 0)
+	PrintBitmap(ki_id_print_etichette, "et_bcode.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
+	PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400, 1 + kst_barcode_stampa.num_righe,  2400, 800) //0, 0)
 	//PrintBitmap(ki_id_print_etichette, "et_bcode.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
 	//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400, 1 + kst_barcode_stampa.num_righe,  2400, 800) //0, 0)
 	
@@ -1675,10 +1675,10 @@ kuf_armo kuf1_armo
 					
 // stampa il logo ad inizio foglio
 	if kst_barcode_stampa.magazzino = kuf1_armo.kki_magazzino_dp then
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_dp.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
+		PrintBitmap(ki_id_print_etichette, "et_bcode_dp.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
 		//PrintBitmap(ki_id_print_etichette, "et_bcode_dp.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
 	else
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_rd.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
+		PrintBitmap(ki_id_print_etichette, "et_bcode_rd.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
 		//PrintBitmap(ki_id_print_etichette, "et_bcode_rd.bmp", 300, 1 + kst_barcode_stampa.num_righe, 7800, 5750)
 	end if
 	//PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\logo_barcode.jpg", 400, 1 + kst_barcode_stampa.num_righe,  2400, 800) //0, 0)
@@ -2092,10 +2092,10 @@ kuf_armo kuf1_armo
 //	if trim(kst_barcode_stampa.barcode_modulo) = barcode_modulo_4xpagina then
 //		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_x4.bmp", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
 //	else
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_x1.jpg", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
+		PrintBitmap(ki_id_print_etichette, "et_bcode_x1.jpg", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
 //	end if
 	kst_barcode_stampa.num_righe += 30
-	PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\logo_barcode.jpg", k_inizio_col+ 50 +kst_barcode_stampa.num_colonne, k_inizio_riga - 80 + kst_barcode_stampa.num_righe, 1600, 500)  //2500, 500)
+	PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", k_inizio_col+ 50 +kst_barcode_stampa.num_colonne, k_inizio_riga - 80 + kst_barcode_stampa.num_righe, 1600, 500)  //2500, 500)
 	//PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", k_inizio_col+ 50 +kst_barcode_stampa.num_colonne, k_inizio_riga - 80 + kst_barcode_stampa.num_righe, 1600, 500)  //2500, 500)
 
 //--- Dicitura TESTATA
@@ -2214,7 +2214,7 @@ kuf_armo kuf1_armo
 //	if trim(kst_barcode_stampa.barcode_modulo) = barcode_modulo_4xpagina then
 //		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_x4.bmp", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
 //	else
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_linea.jpg", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
+		PrintBitmap(ki_id_print_etichette, "et_bcode_linea.jpg", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
 		//PrintBitmap(ki_id_print_etichette, "et_bcode_linea.jpg", k_inizio_col+kst_barcode_stampa.num_colonne, k_inizio_riga + kst_barcode_stampa.num_righe, 0, 0) 
 //	end if
 	
@@ -2741,8 +2741,8 @@ int k_num_colonne = 0, k_len_max
 		k_num_righe = 200
 
 // stampa il logo ad inizio foglio
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\et_bcode_x4_avvertenze.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) //2400, 750) 
-		PrintBitmap(ki_id_print_etichette, kGuo_path.get_risorse() + "\logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500) //2500, 500)
+		PrintBitmap(ki_id_print_etichette, "et_bcode_x4_avvertenze.bmp", 300+k_num_colonne, 1+ k_num_righe, 0, 0) //2400, 750) 
+		PrintBitmap(ki_id_print_etichette, "logo_barcode.jpg", 400+k_num_colonne, 25 + k_num_righe, 1600, 500) //2500, 500)
 
 //--- Sezione Anagrafiche Clienti 
 		k_inizio_riga = 720

@@ -1014,7 +1014,7 @@ public function string u_stringa_pulisci (string k_stringa);//
 //
 string k_return_stringa
 string k_old_str, k_new_str
-int k_start_pos
+long k_start_pos
 
 		k_return_stringa = k_stringa
 		k_start_pos = 1
@@ -1204,7 +1204,7 @@ public function string u_stringa_pulisci_x_msg (string k_stringa);//
 //
 string k_return_stringa
 string k_old_str, k_new_str
-int k_start_pos
+long k_start_pos
 
 		k_return_stringa = k_stringa
 //		k_start_pos = 1
@@ -1378,8 +1378,8 @@ public function string u_string_replace (string k_string, readonly string k_str_
 //---      vecchio carattere
 //---      nuovo carattere
 //
-int k_pos=1
-int k_len, k_len_in
+long k_pos=1
+long k_len, k_len_in
 
 
 if k_str_old <> k_str_new then
@@ -1433,7 +1433,7 @@ string k_string
 //string k_str_split
 //int k_pos_start, k_pos_end, k_len, 
 int k_str_split_idx
-int k_pos, k_i, k_len_sep
+long k_pos, k_i, k_len_sep
 
 
 if upperbound(a_string[]) > 0 then

@@ -62,6 +62,9 @@ Kuf_base_docking KGuf_base_docking
 //--- Tratta le stringhe
 n_string kgn_string
 
+//--- Toast Notification
+kuf_user_notification kGuf_user_notification
+
 //--- Tabella e Oggetto contenente le voci di menu e la Gestione, per velocizzare la chiamata
 kuf_menu_window kGuf_menu_window
 st_tab_menu_window kGst_tab_menu_window[300]
@@ -256,7 +259,7 @@ long richtexteditx64type = 5
 long richtexteditversion = 3
 string richtexteditkey = ""
 string appicon = "main.ico"
-string appruntimeversion = "22.2.0.3391"
+string appruntimeversion = "22.2.0.3397"
 boolean manualsession = false
 boolean unsupportedapierror = false
 boolean ultrafast = false
@@ -268,7 +271,6 @@ boolean webview2checkx64 = false
 string webview2url = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/"
 event ue_open ( )
 event u_halt ( )
-integer highdpimode = 0
 end type
 global m_2000 m_2000
 
@@ -282,6 +284,10 @@ function boolean GetUserNameA (ref string userID, ref longptr len) library "ADVA
 //=== API per suono
 function boolean sndPlaySoundA(string SoundName, longptr Flags) Library "WINMM.DLL" alias for "sndPlaySoundA;Ansi" 
 function uint waveOutGetNumDevs () LIBRARY "WINMM.DLL"
+
+//--- IMPORTATA X FARE I TOAST NOTIFICATION
+// Funcion para tomar el directorio de la aplicacion  -64Bits 
+FUNCTION	uLong	GetModuleFileName ( uLong lhModule, ref string sFileName, ulong nSize )  LIBRARY "Kernel32.dll" ALIAS FOR "GetModuleFileNameW"
 
 //--- piglia il nome del computer
 //FUNCTION long GetComputerNameA(ref string compname,ref longptr slength) LIBRARY "kernel32" alias for "GetComputerNameA;Ansi"
@@ -455,6 +461,9 @@ kGuo_path.set_path_locali( )
 
 //--- Oggetto per trattare le stringhe
 kgn_string = create n_string
+
+//--- Oggetto per le TOAST NOTIFICHE WINDOWS
+kGuf_user_notification = create kuf_user_notification
 
 //--- Creo oggetto TRANSACTION  GLOBALE x gestione DB-MAGAZZINO (KGuo_sqlca_db_magazzino)
 try
@@ -639,6 +648,7 @@ if isvalid(kguo_path) then destroy kguo_path
 //if isvalid(kguo_g) then destroy kguo_g 
 if isvalid(kguo_utente) then destroy kguo_utente 
 if isvalid(kgn_string) then destroy kgn_string 
+if isvalid(kguf_user_notification) then destroy kguf_user_notification
 
 
 end event

@@ -4,6 +4,7 @@ global type st_tab_clienti_altro from structure
 	long		contati
 	long		id_cliente
 	integer		e1_asn_ehvr01		descriptor "comment" = "Tipo di campo da passare a E1-ASN (tab f5547013 campo ehvr01): 0=n.ddt mandante, 1=n.ordine"
+	integer		parzialecolli_warning		descriptor "comment" = "Fare Scattare Avviso (email) per Colli Parziali (0=no, 1=si)"
 	datetime		x_datins
 	string		x_utente
 end type

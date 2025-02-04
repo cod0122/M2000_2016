@@ -147,6 +147,7 @@ public subroutine xxxuse_col_background_input_field (ref datawindow adw, string 
 public function datetime get_datetime_current_local ()
 public function string get_month (integer a_month, string a_lang)
 private subroutine set_month ()
+public function decimal u_round_fixed (decimal a_numero, integer a_decimal)
 end prototypes
 
 public subroutine set_attiva_suoni (boolean a_attiva_suoni);
@@ -723,7 +724,7 @@ public function string u_replace (string k_str, string k_str_old, string k_str_n
 //--- ricopre nella stringa k_str i caratteri k_str_old con k_str_new 
 //
 string k_return 
-int kstart_pos = 1
+long kstart_pos = 1
 
 // Find the first occurrence of old_str.
 
@@ -913,6 +914,24 @@ kg_month[11,1] = "Nov"; kg_month[11,2] = "Nov"
 kg_month[12,1] = "Dic"; kg_month[12,2] = "Dec"
 
 end subroutine
+
+public function decimal u_round_fixed (decimal a_numero, integer a_decimal);/*
+ Il ROUND è inaffidabile per arrotondamenti del 5, quindi forza 1 
+*/
+decimal {5} k_numero
+string k_x
+
+	k_x = string((a_numero * (10 ^ a_decimal)), ".00000")
+	k_numero = dec(k_x)
+	
+	if k_numero >= 0.50 then
+		return Round(a_numero + 0.001, 2)
+	else
+		return round(a_numero, 2)
+	end if
+
+
+end function
 
 on uo_g.create
 call super::create

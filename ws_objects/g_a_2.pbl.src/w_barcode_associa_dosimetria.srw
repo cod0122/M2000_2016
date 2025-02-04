@@ -463,7 +463,7 @@ public function boolean u_check_dosim_tipo (long k_row);//
 boolean k_return = true
 string k_dosim_tipo, k_barcode_dosimetro,  k_barcode_dosimetro2,  k_barcode_dosimetro1
 long k_rows, k_row_i
-int k_pos
+long k_pos
 
 		
 		k_barcode_dosimetro = dw_dett_0.getitemstring(k_row, "barcode_dosimetro")

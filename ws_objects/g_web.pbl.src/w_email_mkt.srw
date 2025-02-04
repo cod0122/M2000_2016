@@ -447,7 +447,10 @@ st_profilestring_ini kst_profilestring_ini
 
 end subroutine
 
-protected subroutine open_start_window ();//
+protected subroutine open_start_window ();long k_pos
+long kstart_pos = 1
+
+
 	kiuf_memo_utenti = create kuf_memo_utenti
 	kiuf_memo = create kuf_memo
 
@@ -475,8 +478,6 @@ protected subroutine open_start_window ();//
 //	this.tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\" + "cliente.gif"
 
 //--- Funzione di TROVA: Salva la Query di Origine (devo pero' add il TILDE altrimenti quando ripristino non va bene!!!-------------
-	int k_pos
-	int kstart_pos = 1
 	
 	ki_sqlsyntax_origine = upper(dw_lista_0.Describe("DataWindow.Table.Select"))
 	// Aggiunge al APICE la TILDE ( ' con ~~')
@@ -566,8 +567,8 @@ public subroutine lancia_ricerca_valore (string k_par_valore);//---
 //--- Manipola la query aggiungendo la parte della WHERE
 //---
 string k_query,k_select_orig, k_select, k_order_by, k_select_new, k_rc
-int k_pos
-int kstart_pos = 1
+long k_pos
+long kstart_pos = 1
 string k_valore
 
 
@@ -1173,6 +1174,9 @@ end if
 
 end event
 
+type dw_print_0 from w_g_tab0`dw_print_0 within w_email_mkt
+end type
+
 type st_ritorna from w_g_tab0`st_ritorna within w_email_mkt
 end type
 
@@ -1289,6 +1293,9 @@ event dw_lista_0::losefocus;call super::losefocus;//---- Spegne il timer (vedi l
 end event
 
 type dw_guida from w_g_tab0`dw_guida within w_email_mkt
+end type
+
+type st_duplica from w_g_tab0`st_duplica within w_email_mkt
 end type
 
 type dw_xplistbar from u_dw_xplistbar within w_email_mkt
@@ -1445,8 +1452,6 @@ string title = "Proprietà Memo"
 string dataobject = "d_memo"
 boolean controlmenu = true
 boolean maxbox = true
-boolean hscrollbar = true
-boolean vscrollbar = true
 boolean resizable = true
 boolean hsplitscroll = false
 boolean ki_link_standard_sempre_possibile = true
@@ -1498,8 +1503,6 @@ string title = "Allegati Memo"
 string dataobject = "d_memo_link_l"
 boolean controlmenu = true
 boolean maxbox = true
-boolean hscrollbar = true
-boolean vscrollbar = true
 boolean resizable = true
 boolean hsplitscroll = false
 boolean ki_link_standard_sempre_possibile = true

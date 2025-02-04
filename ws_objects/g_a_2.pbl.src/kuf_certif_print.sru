@@ -505,11 +505,11 @@ try
 	
 //--- deve produrre una sola riga se oltre qualcosa non va!	
 	if k_row > 1 then
-		kst_esito.SQLErrText = "Anomalia in generazione Attestato n.: "+ string(kist_tab_certif.num_certif) + "~n~r"&
-					 + "Errore: Sono state prodotte " + string(k_row) + " pagine anzichè una! Stampa interrotta verificare i dati del documento."
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
+		kguo_exception.kist_esito.SQLErrText = "Anomalia in generazione Attestato n.: "+ string(kist_tab_certif.num_certif) + "~n~r"&
+					 + "Errore: Sono state prodotte " + string(k_row) + " pagine anzichè una! La stampa prosegue ma verificare i dati del documento."
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_anomali
+		kguo_exception.messaggio_utente( )
+		//throw kguo_exception
 	end if											
 
 //--- setta ON/OFF attestato di test	
@@ -1169,7 +1169,7 @@ public function boolean stampa_digitale_esporta_1 (string a_path_pdf) throws uo_
 boolean k_return
 int k_n_documenti_stampati=0, k_id_stampa
 string k_path
-int k_pos, k_end
+long k_pos, k_end
 st_esito kst_esito
 
 

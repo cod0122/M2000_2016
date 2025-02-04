@@ -49,6 +49,7 @@ public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function integer u_genera_barcode_lotto (long a_id_meca, st_tab_g_0 ast_tab_g_0) throws uo_exception
 public function string get_ultimo_numero_barcode () throws uo_exception
 public subroutine set_ts_stampa (st_tab_armo_campioni ast_tab_armo_campioni) throws uo_exception
+public function integer get_nr_barcode_x_id_armo (long a_id_armo) throws uo_exception
 end prototypes
 
 public function string get_ultimo_numero_barcode_da_tab (string k_inizio_barcode) throws uo_exception;/*
@@ -1559,6 +1560,47 @@ end try
 
 
 end subroutine
+
+public function integer get_nr_barcode_x_id_armo (long a_id_armo) throws uo_exception;/*
+ Torna il numero dei barcode generati
+    input: id_armo
+    out: numero bcode generati
+*/
+int k_return
+long k_rows
+uo_ds_std_1 kds_1
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+	if a_id_armo > 0 then 
+		kds_1 = create uo_ds_std_1
+		kds_1.dataobject = "ds_armo_campioni_x_id_armo"
+		kds_1.settransobject(kguo_sqlca_db_magazzino)
+		k_rows = kds_1.retrieve(a_id_armo)
+		if k_rows < 0 then
+			kguo_exception.set_esito(kds_1.kist_esito)
+			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura barcode Campioni dal Lotto id Riga " + string(a_id_armo) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+			throw kguo_exception 
+		end if
+		
+		k_return = k_rows
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	if isvalid(kds_1) then destroy kds_1
+	
+end try
+
+return k_return
+
+end function
 
 on kuf_armo_campioni.create
 call super::create

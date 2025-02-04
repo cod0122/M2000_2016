@@ -2348,8 +2348,8 @@ else
 //		end if
 	else
 		kdw_anteprima.dataobject = "d_stat_produz_dettaglio"		
-		kdw_anteprima.modify("DataWindow.Tree.Level.1.CollapsedTreeNodeIconName='" + string(kGuo_path.get_risorse() + "\cartella.ico") + "' ")
-		kdw_anteprima.modify("DataWindow.Tree.Level.operazione.ExpandedTreeNodeIconName='" + string(kGuo_path.get_risorse() + "\cartella_open.ico") + "' ")
+		kdw_anteprima.modify("DataWindow.Tree.Level.1.CollapsedTreeNodeIconName='" + string("cartella.ico") + "' ")
+		kdw_anteprima.modify("DataWindow.Tree.Level.operazione.ExpandedTreeNodeIconName='" + string("cartella_open.ico") + "' ")
 	end if
 
 	if kst_tab_meca.id > 0 then

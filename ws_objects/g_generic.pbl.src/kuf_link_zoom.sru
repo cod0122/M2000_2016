@@ -513,7 +513,7 @@ choose case k_nome_link
 	case "meca_ddt_in_view_all", "meca_ddt_in_add"
 		kuf1_parent = create using "kuf_meca_ddt_in"
 		
-	case "email_rubrica"
+	case "email_rubrica", "email_rubrica_cc", "email_rubrica_ccn"
 		kuf1_parent = create using "kuf_email_invio"
 		
 	case "n_ptask", "n_ptask_x", "id_ptask"

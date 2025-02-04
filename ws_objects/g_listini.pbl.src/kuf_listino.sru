@@ -2878,20 +2878,12 @@ st_open_w kst_open_w
 boolean k_autorizza
 
 
-
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
-
+kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- controlla se utente autorizzato alla funzione in atto
-	if_sicurezza(kkg_flag_modalita.visualizzazione)
+if_sicurezza(kkg_flag_modalita.visualizzazione)
 
 if kst_tab_listino.id > 0 then
-	
 	
 //--- toglie valori NULL
 	select
@@ -2919,6 +2911,7 @@ if kst_tab_listino.id > 0 then
 					  contratto_co_data_ins,   
 					  id_contratto_co,   
 					  attiva_listino_pregruppi,
+					  e1litm,
 					  x_datins,   
 					  x_utente 
 		  into 
@@ -2946,6 +2939,7 @@ if kst_tab_listino.id > 0 then
 					  :kst_tab_listino.contratto_co_data_ins,   
 					  :kst_tab_listino.id_contratto_co,   
 					  :kst_tab_listino.attiva_listino_pregruppi,
+					  :kst_tab_listino.e1litm,
 					  :kst_tab_listino.x_datins,   
 					  :kst_tab_listino.x_utente 
 			from  listino  

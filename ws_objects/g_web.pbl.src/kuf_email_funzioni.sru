@@ -16,6 +16,7 @@ public constant string kki_cod_funzione_fatturaSIallegati = "FTAL"    // fattura
 public constant string kki_cod_funzione_prontoMerce = "MTPR"   // pronto merce - lotti pronti x il ricevente
 public constant string kki_cod_funzione_Attestati = "CRTF"   // attestati stampa pdf da E1 e M2000
 public constant string kki_cod_funzione_avvGiacenzaLotti = "AVIN"   // avvisi email interni all'azienda es x Lotti in Giacenza
+public constant string kki_cod_funzione_avvLottoPltParziale = "AVPP"   // avvisi email interno all'azienda per Pallet Lotti Parziali
 
 end variables
 

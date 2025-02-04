@@ -142,7 +142,7 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero3.visible = true
 		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = "DDT lib.,"+m_main.m_strumenti.m_fin_gest_libero3.text
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = kGuo_path.get_risorse() + kkg.path_sep + "document_new16.png"
+		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName =  "document_new16.png"
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = true
 		

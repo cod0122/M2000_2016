@@ -2116,9 +2116,9 @@ kst_esito.SQLErrText = ""
 //	end if
 			
 	if len(trim(kGuo_path.get_risorse())) > 0 then
-		k_rcx=kdw_1.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img.text"))+ "'") //"logo_orig_blu.JPG" + "'")
-		k_rcx=kdw_1.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img_0.text")) + "'")  //"logo_iso_blu.JPG"  + "'")
-		k_rcx=kdw_1.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img_1.text")) + "'")  //"logo_iso_blu.JPG"  + "'")
+		k_rcx=kdw_1.Modify("p_img.Filename='" +  trim(kdw_1.Describe("txt_p_img.text"))+ "'") //"logo_orig_blu.JPG" + "'")
+		k_rcx=kdw_1.Modify("p_img_0.Filename='" +   trim(kdw_1.Describe("txt_p_img_0.text")) + "'")  //"logo_iso_blu.JPG"  + "'")
+		k_rcx=kdw_1.Modify("p_img_1.Filename='" +   trim(kdw_1.Describe("txt_p_img_1.text")) + "'")  //"logo_iso_blu.JPG"  + "'")
 	end if
 	
 
@@ -2161,9 +2161,9 @@ kst_esito.nome_oggetto = this.classname()
 			
 	if len(trim(kGuo_path.get_risorse())) > 0 then
 		k_rcx= trim(kdw_1.Describe("txt_p_img.text"))
-		k_rcx=kdw_1.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img.text")) + "'")  // "logo_orig_blu.JPG" + "'")
-		k_rcx=kdw_1.Modify("p_img_0.Filename='" + kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img_0.text")) + "'")  // "logo_iso_blu.JPG"  + "'")
-		k_rcx=kdw_1.Modify("p_img_1.Filename='" + kGuo_path.get_risorse() + "\" + trim(kdw_1.Describe("txt_p_img_1.text")) + "'")  // "logo_iso_blu.JPG"  + "'")
+		k_rcx=kdw_1.Modify("p_img.Filename='" +  trim(kdw_1.Describe("txt_p_img.text")) + "'")  // "logo_orig_blu.JPG" + "'")
+		k_rcx=kdw_1.Modify("p_img_0.Filename='" +  trim(kdw_1.Describe("txt_p_img_0.text")) + "'")  // "logo_iso_blu.JPG"  + "'")
+		k_rcx=kdw_1.Modify("p_img_1.Filename='" +  trim(kdw_1.Describe("txt_p_img_1.text")) + "'")  // "logo_iso_blu.JPG"  + "'")
 	end if
 	
 
@@ -7990,6 +7990,7 @@ uo_exception kuo1_exception
 			kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 			kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
 			kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
+			kst_tab_email_invio.invio_batch = kst_tab_email.invio_batch
 			kst_tab_email_invio.id_oggetto = kst_tab_arfa.id_fattura
 		else
 			kst_tab_email_invio.oggetto = ""

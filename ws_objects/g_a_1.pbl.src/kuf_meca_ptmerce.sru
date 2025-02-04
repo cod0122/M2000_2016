@@ -262,71 +262,75 @@ public function long u_add_email_invio () throws uo_exception;/*
 	 Rit: nr di email caricate 
 */
 long k_return 
-long k_riga, k_righe, k_righe_daelab, k_riga100, k_riga_ds, k_rc, k_riga_tab
+long k_row, k_righe, k_righe_daelab, k_row100, k_row_ds, k_rc, k_row_ptmerce
 datetime k_datetime
+boolean k_ds_1_to_update
 st_tab_meca_ptmerce kst_tab_meca_ptmerce[], kst_tab_meca_ptmerce_vuoto[]
 st_tab_meca kst_tab_meca
-st_esito kst_esito
 uo_ds_std_1 kds_1
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_meca_ptmerce_noemail"
 	kds_1.settransobject( kguo_sqlca_db_magazzino )
 	k_righe = kds_1.retrieve() // estrazione avvisi senza ancora il id_email_invio
 	
-	for k_riga = 1 to k_righe
+	for k_row = 1 to k_righe
 		
 //--- Aggiorna non più di 100 righe alla volta...		
-		if (k_righe - k_riga) < 100 then
-			k_righe_daelab = k_righe - k_riga
+		if (k_righe - k_row) < 100 then
+			k_righe_daelab = k_righe - k_row
 		else
 			k_righe_daelab = 100 - 1
 		end if
-		k_riga100 = k_riga + k_righe_daelab 
+		k_row100 = k_row + k_righe_daelab 
 		
-		k_riga_tab = 0
+		k_row_ptmerce = 0
 		kst_tab_meca_ptmerce[] = kst_tab_meca_ptmerce_vuoto[]
 		
-		for k_riga_ds = k_riga to k_riga100
+		for k_row_ds = k_row to k_row100
 			
-			k_riga_tab ++
+			k_row_ptmerce ++
 //--- Prepara l'array per popolare la tabella email
-			kst_tab_meca_ptmerce[k_riga_tab].id_meca = kds_1.getitemnumber( k_riga_ds, "id_meca")
+			kst_tab_meca_ptmerce[k_row_ptmerce].id_meca = kds_1.getitemnumber( k_row_ds, "id_meca")
 			
-			kst_tab_meca.id =  kst_tab_meca_ptmerce[k_riga_tab].id_meca
-			kst_tab_meca_ptmerce[k_riga_tab].st_tab_g_0.esegui_commit = "N"
-			kst_tab_meca_ptmerce[k_riga_tab].id_email_invio = u_add_email_invio_1(kst_tab_meca) // ADD EMAIL
+			kst_tab_meca.id =  kst_tab_meca_ptmerce[k_row_ptmerce].id_meca
+			kst_tab_meca_ptmerce[k_row_ptmerce].st_tab_g_0.esegui_commit = "N"
+			kst_tab_meca_ptmerce[k_row_ptmerce].id_email_invio = u_add_email_invio_1(kst_tab_meca) // ADD EMAIL
 			
 		next
 		
 //--- Imposta id email invio in pronto merce 
-		k_riga_tab = 0
-		for k_riga_ds = k_riga to k_riga100
-			k_riga_tab ++
-			if kst_tab_meca_ptmerce[k_riga_tab].id_email_invio > 0 then  // ID invio email valorizzato?
+		k_ds_1_to_update = false
+		k_row_ptmerce = 0
+		for k_row_ds = k_row to k_row100
+			k_row_ptmerce ++
+			if kst_tab_meca_ptmerce[k_row_ptmerce].id_email_invio > 0 then  // ID invio email valorizzato?
+				k_ds_1_to_update = true
 				k_return ++
-				kds_1.setitem(k_riga_ds, "id_email_invio", kst_tab_meca_ptmerce[k_riga_tab].id_email_invio)
-				kds_1.setitem(k_riga_ds, "x_datins", kGuf_data_base.prendi_x_datins())
-				kds_1.setitem(k_riga_ds, "x_utente", kGuf_data_base.prendi_x_utente())
+				kds_1.setitem(k_row_ds, "id_email_invio", kst_tab_meca_ptmerce[k_row_ptmerce].id_email_invio)
+				kds_1.setitem(k_row_ds, "x_datins", kGuf_data_base.prendi_x_datins())
+				kds_1.setitem(k_row_ds, "x_utente", kGuf_data_base.prendi_x_utente())
 			//else
-			//	kds_1.setitem(k_riga_ds, "id_email_invio", 0)
+			//	kds_1.setitem(k_row_ds, "id_email_invio", 0)
 			end if
 		next
 		
-		k_rc = kds_1.update( )  // AGGIORNA ID_EMAIL_INVIO!!
-		if k_rc > 0 then
-			kguo_sqlca_db_magazzino.db_commit( )
-		else
-			kguo_exception.set_st_esito_err_ds(kds_1, "Errore in caricamento nuove avviso email di Pronto Merce. Il primo ID Lotto era " + string(kds_1.getitemnumber(k_riga, "id_meca")))
-			kguo_sqlca_db_magazzino.db_rollback( )
-			throw kguo_exception
+		if k_ds_1_to_update then
+			k_rc = kds_1.update( )  // AGGIORNA ID_EMAIL_INVIO!!
+			if k_rc > 0 then
+				kguo_sqlca_db_magazzino.db_commit( )
+			else
+				kguo_exception.set_st_esito_err_ds(kds_1, "Errore in caricamento nuove avviso email di Pronto Merce. Il primo ID Lotto era " + string(kds_1.getitemnumber(k_row, "id_meca")))
+				kguo_sqlca_db_magazzino.db_rollback( )
+				throw kguo_exception
+			end if
 		end if
 		
-		k_riga = k_riga_ds - 1
+		k_row = k_row_ds - 1
 	next
 	
 //--- Rimuove le righe vecchie dalla tabella Avvisi
@@ -582,7 +586,15 @@ try
 
 //--- get dell'indirizzo e-mail del cliente
 	kst_tab_clienti_web.id_cliente = ast_tab_meca.clie_3
+	
+	//--- email addresses
 	kst_tab_email_invio.email = kiuf_clienti.get_email_prontomerce(kst_tab_clienti_web)
+	if trim(kst_tab_email.email_to) > " " then
+		kst_tab_email_invio.email += ";" + trim(kst_tab_email.email_to) 
+	end if
+	kst_tab_email_invio.email_cc = trim(kst_tab_email.email_cc) 
+	kst_tab_email_invio.email_ccn = trim(kst_tab_email.email_ccn)
+
 	kst_tab_clienti.codice = ast_tab_meca.clie_3
 
 	kiuf_clienti.get_id_nazione(kst_tab_clienti)
@@ -629,6 +641,7 @@ try
 		kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
 		kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
 		kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
+		kst_tab_email_invio.invio_batch = kst_tab_email.invio_batch
 		kst_tab_email_invio.id_oggetto = ast_tab_meca.id
 		if kst_tab_email.attached > " " then
 			if trim(kst_tab_email_invio.allegati_pathfile) > " " then

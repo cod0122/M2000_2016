@@ -65,11 +65,9 @@ kuf_contratti kuf1_contratti
 
 
 try
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	
-	
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
 	if if_sicurezza(kkg_flag_modalita.inserimento) then
 	
 		k_nr_da_duplicare = upperbound(ast_listino_duplica[]) 

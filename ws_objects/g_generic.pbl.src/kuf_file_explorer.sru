@@ -327,7 +327,7 @@ public function integer u_filemove (string a_src, string a_dst, boolean a_replac
 //--- inp: 	a_src = path sorgente + nome file
 //--- 		a_dst = path destinatario + nome file
 //--- 		a_replace = true replace file
-//--- rit:	1 ok, -1 errore file input, -2 errore file output, -3 err in delete
+//--- rit:	1 ok, -9 file input non trovato, -1 errore file input, -2 errore file output, -3 err in delete
 //
 int k_return
 int k_rc_fileCopy
@@ -351,7 +351,7 @@ else
 			kguo_exception.kist_esito.sqlerrtext = "Il file sorgente '" &
 						+ trim(a_src) + "' da sostituire con '" &
 						+  trim(a_dst) + "' non esiste!"
-			k_return = -1
+			k_return = -9
 		end if
 	end if
 
@@ -381,7 +381,7 @@ public function boolean u_directory_create (string k_path);//---
 //--- Rit.: TRUE = tutto OK
 //---
 boolean k_return=false, k_primo_giro=true, k_percorso_di_rete=false
-int k_pos_ini, k_pos_fin, k_len_path, k_errore, k_len
+long k_pos_ini, k_pos_fin, k_len_path, k_errore, k_len
 string k_path_lav
 
 if right(trim(k_path),1) <>  KKG.PATH_SEP then 

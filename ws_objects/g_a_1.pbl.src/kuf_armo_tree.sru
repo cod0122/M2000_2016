@@ -80,9 +80,14 @@ st_treeview_data kst_treeview_data
 st_tab_treeview kst_tab_treeview
 st_treeview_data_any kst_treeview_data_any
 st_profilestring_ini kst_profilestring_ini
-
-kuf_armo kuf1_armo
+kuf_impianto kuf1_impianto
 kuf_meca_dosim kuf1_meca_dosim
+	
+
+	kguo_exception.messaggio_utente( "Elaborzione in corso", "Attendere prego....")
+	SetPointer(kkg.pointer_attesa)
+
+	kuf1_impianto = create kuf_impianto
 	
 //--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
 	kst_treeview_data = kuf1_treeview.u_get_st_treeview_data ()
@@ -168,6 +173,9 @@ kuf_meca_dosim kuf1_meca_dosim
 			k_campo[k_ind] = "Contratto"
 			k_align[k_ind] = left!
 			k_ind++
+			k_campo[k_ind] = "Impianto"
+			k_align[k_ind] = left!
+			k_ind++
 			k_campo[k_ind] = "Lavorazione"
 			k_align[k_ind] = left!
 			k_ind++
@@ -201,11 +209,10 @@ kuf_meca_dosim kuf1_meca_dosim
 			loop
 
 		end if
-//---
 
-		kuf1_armo = create kuf_armo
-
-		do while k_handle_item > 0
+	//	kiuf_armo  = create kiuf_armo 
+		k_ctr = 0
+		do while k_handle_item > 0 and k_ctr < 2000
 				
 			kuf1_treeview.kitv_tv1.getitem(k_handle_item, ktvi_treeviewitem)
 	
@@ -228,7 +235,7 @@ kuf_meca_dosim kuf1_meca_dosim
 										  string(kst_treeview_data_any.st_tab_meca.num_int, "####0") &
 										  + "  " + string(kst_treeview_data_any.st_tab_meca.data_int, "dd.mmm") &
  										  + "  " + trim(kst_treeview_data_any.st_tab_clienti.rag_soc_10) 
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			if date(kst_treeview_data_any.st_tab_meca.data_ent) > kkg.data_zero then
 				kst_tab_treeview.voce = string(kst_treeview_data_any.st_tab_meca.data_ent, "dd mmm hh:mm")
@@ -236,15 +243,15 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce = " "
 			end if	
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
-			if kst_treeview_data_any.st_tab_meca.aperto = kuf1_armo.kki_meca_aperto_no then
+			if kst_treeview_data_any.st_tab_meca.aperto = kiuf_armo .kki_meca_aperto_no then
 				kst_tab_treeview.voce = "CHIUSO"
 			else
 				if kst_treeview_data_any.st_tab_meca.stato > 0 then
 					try
 						kst_tab_meca_stato.codice = kst_treeview_data_any.st_tab_meca.stato
-						kst_tab_meca_stato.descrizione = kuf1_armo.get_stato_descrizione(kst_tab_meca_stato)
+						kst_tab_meca_stato.descrizione = kiuf_armo .get_stato_descrizione(kst_tab_meca_stato)
 					catch (uo_exception kuo_exception)
 					end try
 					kst_tab_meca_stato.descrizione = string(kst_treeview_data_any.st_tab_meca.stato) + " = " + trim(kst_tab_meca_stato.descrizione)
@@ -258,7 +265,7 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce =  kst_tab_meca_stato.descrizione
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			if kst_treeview_data_any.st_tab_meca.e1doco > 0 then
 				kst_tab_treeview.voce = string(kst_treeview_data_any.st_tab_meca.e1doco, "#") + " / "
@@ -271,18 +278,18 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce += "-"
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, kst_tab_treeview.voce)
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, kst_tab_treeview.voce)
 			
 			kst_tab_treeview.voce =  string(trim(kst_treeview_data_any.st_tab_meca.area_mag), "@@ @@@@@@@@@@")
 //										  string(kst_treeview_data_any.st_tab_armo.magazzino)  &
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			kst_tab_treeview.voce = &
 									  string(kst_treeview_data_any.st_tab_meca.data_bolla_in, "dd.mm.yy") &
 									  + "   " + trim(kst_treeview_data_any.st_tab_meca.num_bolla_in) 
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 
 			if kst_treeview_data_any.st_tab_meca.id_wm_pklist > 0 then
@@ -291,13 +298,13 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce =  "NO"
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			kst_tab_treeview.voce =  &
 											  string(kst_treeview_data_any.st_tab_meca.clie_1, "####0") &
 											  + "  " + trim(kst_treeview_data_any.st_tab_clienti.rag_soc_10) 
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			if kst_treeview_data_any.st_tab_artr.colli_trattati  > 0 then
 				if kst_treeview_data_any.st_tab_certif.data_stampa > date(0) then
@@ -311,7 +318,7 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce = " "
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			if kst_treeview_data_any.st_tab_contratti.codice > 0 then
 				kst_tab_treeview.voce =  &
@@ -323,13 +330,15 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce = " "
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
+			k_ind++
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kuf1_impianto.get_descr(kst_treeview_data_any.st_tab_meca.impianto)))
 
 			kst_tab_treeview.voce = "" 
 			if kst_treeview_data_any.st_tab_contratti.codice > 0 then
 				if kst_treeview_data_any.st_tab_meca.data_lav_fin > date(0) then
-					if kst_treeview_data_any.st_tab_meca.err_lav_fin = kuf1_armo.ki_err_lav_fin_ko then
+					if kst_treeview_data_any.st_tab_meca.err_lav_fin = kiuf_armo .ki_err_lav_fin_ko then
 						kst_tab_treeview.voce += "con Anomalia " 
 					else
 						kst_tab_treeview.voce += "TRATTATO " 
@@ -345,11 +354,11 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce +=  " " 
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			if kst_treeview_data_any.st_tab_artr.colli_trattati  > 0 then
 				if kst_treeview_data_any.st_tab_meca.err_lav_ok <> kuf1_meca_dosim.ki_err_lav_ok_da_conv then
-					kst_tab_treeview.voce = kuf1_armo.err_lav_ok_dammi_descr(kst_treeview_data_any.st_tab_meca)
+					kst_tab_treeview.voce = kiuf_armo .err_lav_ok_dammi_descr(kst_treeview_data_any.st_tab_meca)
 				else
 					kst_tab_treeview.voce =  "da convalidare" 
 				end if
@@ -357,7 +366,7 @@ kuf_meca_dosim kuf1_meca_dosim
 				kst_tab_treeview.voce =  " " 
 			end if
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 			kst_tab_treeview.voce =  &
 											  string(kst_treeview_data_any.st_tab_meca.clie_2, "####0") &
@@ -366,17 +375,25 @@ kuf_meca_dosim kuf1_meca_dosim
 											  + "  -  " + trim(kst_treeview_data_any.st_tab_clienti.rag_soc_20)  &
 											  + "     (id Lotto=" + string(kst_treeview_data_any.st_tab_meca.id) + ") " 
 			k_ind++
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_ind, trim(kst_tab_treeview.voce) )
 
 				
 			k_handle_item = kuf1_treeview.kitv_tv1.finditem(NextTreeItem!, k_handle_item)
 			
 		loop
 		
-		destroy kuf1_armo
+		if k_ctr >= 2000 then 
+			kguo_exception.messaggio_utente( "Elaborzione Interrotta", "Troppe righe presenti (" + string(k_ctr) + ")!")
+		else
+			if k_ctr = 0 then 
+				kguo_exception.messaggio_utente( "Elaborzione Terminata", "Nessuna riga trovata.")
+			else
+				kguo_exception.messaggio_utente( "Elaborzione Terminata", "Sono state estratte " + string(k_ctr) + " righe.")
+			end if
+		end if
+	//	destroy kiuf_armo 
 		
 	end if
-
 
 	if k_handle_item_rit > 0 then
 		kst_treeview_data.handle_padre = k_handle_item_corrente
@@ -391,8 +408,9 @@ kuf_meca_dosim kuf1_meca_dosim
 		kuf1_treeview.kilv_lv1.setitem(k_handle_item_rit, klvi_listviewitem)
 	end if
 
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
 
-
+	SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -907,6 +925,7 @@ try
 					+ "meca.num_int, " &
 					+ "meca.data_int, " &
 					+ "meca.data_ent, " &
+					+ "meca.impianto, " &
 					+ "meca.aperto, " &
 					+ "meca.clie_1,  " &
 					+ "c1.rag_soc_10 " &
@@ -922,6 +941,7 @@ try
 					+ "meca.num_int, " &
 					+ "meca.data_int, " &
 					+ "meca.data_ent, " &
+					+ "meca.impianto, " &
 					+ "meca.aperto, " &
 					+ "meca.area_mag, " &
 					+ "meca.clie_1,  " &
@@ -1078,6 +1098,7 @@ try
 					+ "meca.num_int, " &
 					+ "meca.data_int, " &
 					+ "meca.data_ent, " &
+					+ "meca.impianto, " &
 					+ "meca.aperto, " &
 					+ "meca.area_mag, " &
 					+ "meca.clie_1,  " &
@@ -1163,6 +1184,7 @@ try
 						 ,:kst_tab_meca.num_int   
 						 ,:kst_tab_meca.data_int   
 						 ,:kst_tab_meca.data_ent   
+						 ,:kst_tab_meca.impianto   
 						 ,:kst_tab_meca.aperto   
 						 ,:kst_tab_meca.clie_1  
 						 ,:kst_tab_clienti.rag_soc_10 
@@ -1176,6 +1198,7 @@ try
 						 ,:kst_tab_meca.num_int   
 						 ,:kst_tab_meca.data_int   
 						 ,:kst_tab_meca.data_ent   
+						 ,:kst_tab_meca.impianto   
 						 ,:kst_tab_meca.aperto   
 						 ,:kst_tab_meca.area_mag   
 						 ,:kst_tab_meca.clie_1  
@@ -1323,6 +1346,7 @@ try
 						 ,:kst_tab_meca.num_int   
 						 ,:kst_tab_meca.data_int   
 						 ,:kst_tab_meca.data_ent   
+						 ,:kst_tab_meca.impianto   
 						 ,:kst_tab_meca.aperto   
 						 ,:kst_tab_meca.clie_1  
 						 ,:kst_tab_clienti.rag_soc_10 
@@ -1336,6 +1360,7 @@ try
 							 ,:kst_tab_meca.num_int   
 							 ,:kst_tab_meca.data_int   
 							 ,:kst_tab_meca.data_ent   
+							 ,:kst_tab_meca.impianto   
 							 ,:kst_tab_meca.aperto   
 							 ,:kst_tab_meca.area_mag   
 							 ,:kst_tab_meca.clie_1  

@@ -2021,7 +2021,7 @@ public function string u_get_idpkl_duplicato (ref st_tab_wm_pklist ast_tab_wm_pk
 //====================================================================
 //
 string k_return
-int k_prg = 1, k_len_pref, k_pos
+long k_prg = 1, k_len_pref, k_pos
 string k_pref = "STGN"
 st_tab_wm_pklist kst_tab_wm_pklist
 st_esito kst_esito

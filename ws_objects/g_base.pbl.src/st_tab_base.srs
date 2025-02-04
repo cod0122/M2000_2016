@@ -118,6 +118,8 @@ global type st_tab_base from structure
 	string		stamp_pdf
 	string		stato_liquidazione		descriptor "comment" = "LS la società è in stato di liquidazione - LN la società NON è in stato di liquidazione"
 	string		update_last_vers
+	string		adobe_clientid		descriptor "comment" = "codice API key di ADOBE per conv. pdf in docx"
+	string		adobe_secret		descriptor "comment" = "codice Secret di ADOBE per conv. pdf in docx"
 	datetime		x_datins
 	string		x_utente
 end type

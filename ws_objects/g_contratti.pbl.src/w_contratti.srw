@@ -1472,8 +1472,8 @@ boolean ki_d_std_1_attiva_sort = false
 end type
 
 event dw_dett_0::u_note_calc_len(string a_data);//
-int k_len[10], k_ini=1, k_last_pos=0
-int k_i = 1, k_ctr
+long k_len[10], k_ini=1, k_last_pos=0
+long k_i = 1, k_ctr
 string k_str
 
 
@@ -2023,6 +2023,10 @@ end if
 end event
 
 event dw_guida::itemfocuschanged;//
+end event
+
+event dw_guida::ue_retrieve_dinamico;//
+
 end event
 
 type st_duplica from w_g_tab0`st_duplica within w_contratti

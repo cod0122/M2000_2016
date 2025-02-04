@@ -42,6 +42,7 @@ event type string ue_get_display_dddw ( string a_col_name )
 event u_dragdrop_mouse_pos ( )
 event u_constructor_post ( )
 event u_dragging ( )
+event u_personalizza_dw_forza ( )
 end type
 global uo_d_std_1 uo_d_std_1
 
@@ -74,7 +75,7 @@ protected boolean ki_border
 //--- attiva colore in background in Evidenza x riga aggiornata di recente
 public boolean ki_colora_riga_aggiornata = true
 
-public string ki_clicked_colname
+public string ki_clickedRightButton_colname //ki_clicked_colname
 //public string ki_SQLsyntax = " "
 //public string ki_SQLErrText = " "
 //public long ki_SQLdbcode = 0
@@ -214,6 +215,7 @@ private function boolean u_colmodified (string as_col)
 private function boolean u_rowmodified (long al_row, dwbuffer a_buf)
 private function boolean u_rowmodified (long al_row)
 private function boolean u_rowmodified ()
+public function string u_getitemstring (integer a_col_num, long a_row)
 end prototypes
 
 event ue_dwnkey;//
@@ -653,7 +655,7 @@ end if
 end event
 
 event ue_lbuttondown;//
-int k_pos
+long k_pos
 long k_row
 string k_col_name, k_col_pointer
 String k_band, k_row_x
@@ -879,6 +881,27 @@ event u_constructor_post();//
 ki_transparency = this.transparency
 ki_border = this.border
 //ki_borderstyle = this.borderstyle
+end event
+
+event u_personalizza_dw_forza();//
+//--- Fa sempre veder i link 
+//		
+try
+			
+	kiuf_link_zoom.link_standard_imposta_p(kidw_this) // configura graficamente i campi per il LINK
+	kiuf_link_zoom.link_standard_imposta_hyperlink(kidw_this) // mette il puntatore a manina sui LINK			
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+
+	u_set_immagini( ) // imposta le immagini degli oggetti del dw tipo png icone ecc..
+	
+end try
+
+	
+
 end event
 
 public function boolean u_filtra_record (string k_filtro);//
@@ -1632,7 +1655,7 @@ private subroutine u_drag_scroll (long a_row);//---
 //---
 
 long k_rows_tot, k_last_row, k_first_row
-int k_col_n, k_row_scroll = 2, i
+long k_col_n, k_row_scroll = 2, i
 string k_rc
 string k_col_pointer, k_col_name
 string k_mod_string
@@ -2084,12 +2107,13 @@ string k_val
 int k_rc
 		
 		
+		
 //--- prima tenta il Ctrl+C diretto con il COPY (campi di edit)
 	if	this.copy() > 0 then  
 		return ""
 	end if
 
-//--- poi tenta se testo selezionato (su campi protetti ma con Mouse-selection attivo)
+//--- poi tenta di prendere il testo selezionato (su campi protetti ma con Mouse-selection attivo)
 	k_val = trim(this.Describe("DataWindow.Selected.Data"))
 	if k_val > " " then
 		return k_val
@@ -2097,8 +2121,9 @@ int k_rc
 
 //--- poi tenta con il nome della colonna di prendere il valore del campo su cui è
 	if this.getrow() > 0 then
-		if trim(this.ki_clicked_colname) > " " then
-			k_val = trim(this.u_getitemstring(this.ki_clicked_colname, this.getrow()))
+		//if this.GetClickedColumn( ) > 0 then
+		if trim(this.ki_clickedRightButton_colname) > " " then //   ki_clicked_colname) > " " then
+			k_val = trim(this.u_getitemstring(this.ki_clickedRightButton_colname, this.getrow()))
 			if k_val > " " then
 				return k_val
 			end if
@@ -2232,6 +2257,21 @@ for k_row = 1 to k_rows
 next
 
 return false
+end function
+
+public function string u_getitemstring (integer a_col_num, long a_row);//
+string k_col_name
+
+
+if a_col_num > 0 then
+	k_col_name = trim(this.describe("#" + string(a_col_num) + ".Name"))
+	if k_col_name > " " and (k_col_name <> "!" or k_col_name <> "?") then
+		return u_getitemstring(k_col_name, a_row)
+	end if
+end if
+
+return ""
+	
 end function
 
 on uo_d_std_1.create
@@ -2382,6 +2422,8 @@ event rbuttondown;//
 
 	ki_riga_rbuttondown = row
 	kidwo_1 = dwo
+
+	ki_clickedRightButton_colname = dwo.name
 
 //--- Calendario
 //	if row > 0 then

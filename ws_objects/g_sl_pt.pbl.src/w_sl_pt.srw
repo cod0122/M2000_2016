@@ -1423,8 +1423,8 @@ end subroutine
 
 private subroutine u_get_path_packingformin_file ();//
 string k_root, k_path_file, k_file, k_path
-int k_ret
-int k_pos
+long k_ret
+long k_pos
 
 
 k_root = trim(tab_1.tabpage_1.dw_1.getitemstring (1, "dir_cust_packing_in"))
@@ -2091,7 +2091,6 @@ string k_errore="0"
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_sl_pt
-integer x = 0
 integer y = 4
 integer width = 3227
 end type

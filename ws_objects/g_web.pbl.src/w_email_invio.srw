@@ -4,6 +4,8 @@ global type w_email_invio from w_g_tab0
 end type
 type dw_segnaposto_l from uo_d_std_1 within w_email_invio
 end type
+type dw_periodo from uo_dw_periodo within w_email_invio
+end type
 end forward
 
 global type w_email_invio from w_g_tab0
@@ -13,6 +15,7 @@ string title = ""
 boolean maxbox = false
 boolean ki_toolbar_window_presente = true
 dw_segnaposto_l dw_segnaposto_l
+dw_periodo dw_periodo
 end type
 global w_email_invio w_email_invio
 
@@ -27,6 +30,7 @@ private string ki_mostra_nascondi_in_lista = "S"
 private long ki_ultimo_clie_3_cercato=999999
 private string ki_guida_da_cercare
 
+
 end variables
 
 forward prototypes
@@ -35,7 +39,6 @@ private function string check_dati ()
 private function string cancella ()
 protected function integer visualizza ()
 protected subroutine attiva_menu ()
-public subroutine mostra_nascondi_in_lista ()
 protected subroutine smista_funz (string k_par_in)
 protected function integer inserisci ()
 private function integer modifica ()
@@ -54,6 +57,8 @@ public subroutine u_placeholder_show ()
 private subroutine u_modifica_comunicazione () throws uo_exception
 public subroutine u_open_files_allegati (string k_files)
 public subroutine u_open_path_allegati (string k_path)
+private subroutine cambia_periodo_elenco ()
+public subroutine mostra_nascondi_in_lista ()
 end prototypes
 
 public function string inizializza ();//
@@ -76,12 +81,7 @@ pointer oldpointer  // Declares a pointer variable
 //=== Puntatore Cursore da attesa.....
 	oldpointer = SetPointer(HourGlass!)
 
-
-//	if ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento then 
-//		
-//		cb_inserisci.postevent(clicked!)
-//		
-//	else
+	kguo_exception.inizializza(this.classname())
 
 //=== Legge le righe del dw salvate l'ultima volta (importfile)
 		if ki_st_open_w.flag_primo_giro = "S" then 
@@ -93,13 +93,16 @@ pointer oldpointer  // Declares a pointer variable
 		
 		if k_importa <= 0 then // Nessuna importazione eseguita
 	
-			if dw_lista_0.retrieve( ki_st_tab_email_invio_1.id_email_invio, ki_st_tab_email_invio_1.cod_funzione, ki_st_tab_email_invio_2.cod_funzione ) < 1 then
+			if dw_lista_0.retrieve( ki_st_tab_email_invio_1.id_email_invio &
+										, ki_st_tab_email_invio_1.cod_funzione &
+										, ki_st_tab_email_invio_2.cod_funzione &
+										, dw_periodo.ki_data_ini, dw_periodo.ki_data_fin) < 1 then
 
 				k_return = "1Email Non trovate  "
 	
 				SetPointer(oldpointer)
 				if ki_st_open_w.flag_primo_giro = "S" then 
-					messagebox("Lista 'E-mail' Vuota", "Nesun Codice Trovato per la richiesta fatta")
+					kguo_exception.messaggio_utente("Lista e-mail", "Nesun Codice Trovato per la richiesta fatta")
 				end if
 			else
 				
@@ -383,32 +386,18 @@ end function
 
 protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 
+	if not m_main.m_strumenti.m_fin_gest_libero1.visible then
+		m_main.m_strumenti.m_fin_gest_libero1.text = "Cambia il periodo di estrazione elenco"
+		m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Cambia il periodo di estrazione elenco"
+		m_main.m_strumenti.m_fin_gest_libero1.visible = true
+		m_main.m_strumenti.m_fin_gest_libero1.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemText = "Periodo,"+m_main.m_strumenti.m_fin_gest_libero1.text
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Custom015!"
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
+		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
+	end if	
 
-//
-//--- Attiva/Dis. Voci di menu personalizzate
-//
-
-//	if not ki_menu.m_strumenti.m_fin_gest_libero2.visible then
-//		ki_menu.m_strumenti.m_fin_gest_libero2.text = "Mostra/Nascondi E-mail Inviate"
-//		ki_menu.m_strumenti.m_fin_gest_libero2.microhelp = "Mostra o Nasconde le E-mail Inviate"
-//		ki_menu.m_strumenti.m_fin_gest_libero2.visible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero2.enabled = true
-//		ki_menu.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero2.toolbaritemText = "Nascondi,"+ki_menu.m_strumenti.m_fin_gest_libero2.text
-//		ki_menu.m_strumenti.m_fin_gest_libero2.toolbaritemName = "DeleteRow!"
-////		ki_menu.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
-//	end if	
-
-	if not m_main.m_strumenti.m_fin_gest_libero4.visible then
-//		ki_menu.m_strumenti.m_fin_gest_libero4.text = "-"
-//		ki_menu.m_strumenti.m_fin_gest_libero4.microhelp = ""
-//		ki_menu.m_strumenti.m_fin_gest_libero4.visible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero4.enabled = false
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemText = ""
-//		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritemName = ""
-////		ki_menu.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
-
+	if not m_main.m_strumenti.m_fin_gest_libero5.visible then
 		m_main.m_strumenti.m_fin_gest_libero5.text = "Invia E-mail"
 		m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Invia E-mail selezionate"
 		m_main.m_strumenti.m_fin_gest_libero5.visible = true
@@ -426,42 +415,16 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 
 end subroutine
 
-public subroutine mostra_nascondi_in_lista ();//
-string k_filtro
-boolean k_rc
-kuf_base kuf1_base
-
-	
-	dw_lista_0.setredraw(false)
-	
-	if ki_mostra_nascondi_in_lista = "N" then	
-		leggi_liste()
-		k_filtro = "(data_inviato = date('1899.01.01') or isnull(data_inviato))"
-	elseif ki_mostra_nascondi_in_lista = "*" then	
-		leggi_liste()
-		k_filtro = "data_inviato > date('1900.01.01')"
-	else
-		leggi_liste()
-	end if
-	if ki_st_tab_email_invio.id_cliente > 0 then
-		if k_filtro > " " then k_filtro += " and "
-		k_filtro += "id_cliente = " + string(ki_st_tab_email_invio.id_cliente)
-	end if
-	k_rc = dw_lista_0.u_filtra_record(k_filtro) 
-
-
-
-end subroutine
-
 protected subroutine smista_funz (string k_par_in);//
 //===
 
 choose case LeftA(k_par_in, 2) 
 
+	case KKG_FLAG_RICHIESTA.libero1		//cambia date di estrazione
+		cambia_periodo_elenco()
 
-
-	case KKG_FLAG_RICHIESTA.libero2		//Mostra/Nascondi righe
-		mostra_nascondi_in_lista()
+	//case KKG_FLAG_RICHIESTA.libero2		//Mostra/Nascondi righe
+	//	mostra_nascondi_in_lista()
 
 	case KKG_FLAG_RICHIESTA.libero5		//Invio EMAIL
 		invio_email()
@@ -613,18 +576,42 @@ kuf_email_funzioni kuf1_email_funzioni
 	end try
 
 	if trim(ki_st_open_w.key4) > " " then // Funzione di provenienza da elencare
-//--- se ho richiesto EMAIL di tipo FATTURA allora set dei due flag possibili		
-		if trim(ki_st_open_w.key4) = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati or trim(ki_st_open_w.key4) = kuf1_email_funzioni.kki_cod_funzione_fatturaNOallegati then
-			ki_st_tab_email_invio_1.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati
-			ki_st_tab_email_invio_2.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturanoallegati
+		ki_st_tab_email_invio_1.cod_funzione = trim(ki_st_open_w.key4)
+		ki_st_tab_email_invio_2.cod_funzione = trim(ki_st_open_w.key5)
+	end if
+////--- se ho richiesto EMAIL di tipo FATTURA allora set dei due flag possibili		
+//		if trim(ki_st_open_w.key4) = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati or trim(ki_st_open_w.key4) = kuf1_email_funzioni.kki_cod_funzione_fatturaNOallegati then
+//			ki_st_tab_email_invio_1.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati
+//			ki_st_tab_email_invio_2.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturanoallegati
+//		else
+//			ki_st_tab_email_invio_1.cod_funzione = trim(ki_st_open_w.key4)
+//			ki_st_tab_email_invio_2.cod_funzione = trim(ki_st_open_w.key4)
+//		end if
+//	else
+//		ki_st_tab_email_invio_1.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati
+//		ki_st_tab_email_invio_2.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturanoallegati
+//	end if
+
+//--- KE5= Data Inizio -   KEY6 = Data Fine 
+	if trim(ki_st_open_w.key5) = "" then
+		if isdate(trim(ki_st_open_w.key5)) then
+			dw_periodo.ki_data_ini = date(trim(ki_st_open_w.key5))
 		else
-			ki_st_tab_email_invio_1.cod_funzione = trim(ki_st_open_w.key4)
-			ki_st_tab_email_invio_2.cod_funzione = trim(ki_st_open_w.key4)
+			dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -35)
 		end if
 	else
-		ki_st_tab_email_invio_1.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati
-		ki_st_tab_email_invio_2.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_fatturanoallegati
+		dw_periodo.ki_data_ini = relativedate(kg_dataoggi, -35)
 	end if
+	if trim(ki_st_open_w.key6) = "" then
+		if isdate(trim(ki_st_open_w.key6)) then
+			dw_periodo.ki_data_fin = date(trim(ki_st_open_w.key6))
+		else
+			dw_periodo.ki_data_fin = kg_dataoggi
+		end if
+	else
+		dw_periodo.ki_data_fin = kg_dataoggi
+	end if
+	dw_periodo.kiw_parent = this
 
 	dw_guida.insertrow(0)
 	dw_guida.getchild("rag_soc_1", kdwc_cliente_guida)
@@ -1012,18 +999,58 @@ kuf_utility kuf1_utility
 
 end subroutine
 
+private subroutine cambia_periodo_elenco ();//---
+//--- Visualizza il box x il cambio del Periodo di elenco ddt 
+//---
+
+
+//dw_periodo.event post ue_visibile
+dw_periodo.event ue_visible( )
+
+end subroutine
+
+public subroutine mostra_nascondi_in_lista ();//
+string k_filtro
+boolean k_rc
+kuf_base kuf1_base
+
+	
+	dw_lista_0.setredraw(false)
+	
+	if ki_mostra_nascondi_in_lista = "N" then	
+		leggi_liste()
+		k_filtro = "(data_inviato = date('1899.01.01') or isnull(data_inviato))"
+	elseif ki_mostra_nascondi_in_lista = "*" then	
+		leggi_liste()
+		k_filtro = "data_inviato > date('1900.01.01')"
+	else
+		leggi_liste()
+	end if
+	if ki_st_tab_email_invio.id_cliente > 0 then
+		if k_filtro > " " then k_filtro += " and "
+		k_filtro += "id_cliente = " + string(ki_st_tab_email_invio.id_cliente)
+	end if
+	k_rc = dw_lista_0.u_filtra_record(k_filtro) 
+
+
+
+end subroutine
+
 on w_email_invio.create
 int iCurrent
 call super::create
 this.dw_segnaposto_l=create dw_segnaposto_l
+this.dw_periodo=create dw_periodo
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.dw_segnaposto_l
+this.Control[iCurrent+2]=this.dw_periodo
 end on
 
 on w_email_invio.destroy
 call super::destroy
 if IsValid(MenuID) then destroy(MenuID)
 destroy(this.dw_segnaposto_l)
+destroy(this.dw_periodo)
 end on
 
 event close;call super::close;//
@@ -1033,38 +1060,44 @@ end event
 
 event u_ricevi_da_elenco;call super::u_ricevi_da_elenco;//
 int k_return
-long k_riga_zoom
-st_esito kst_esito
-string k_email_add, k_email
+long k_row_selected
+string k_email_add, k_email, k_field_name
 
 
 if isvalid(kst_open_w) then
 
 //--- Dalla finestra di ZOOM
-	if (ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica or ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento) & 
-				and kst_open_w.id_programma = kkg_id_programma_elenco then
+	if (ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.modifica or ki_st_open_w.flag_modalita = KKG_FLAG_RICHIESTA.inserimento) then
 	
 		if not isvalid(kdsi_elenco_input) then kdsi_elenco_input = create datastore
 	
 		kdsi_elenco_input = kst_open_w.key12_any 
 	
-		k_riga_zoom = 0
-		if isnumber(kst_open_w.key3) then k_riga_zoom = long(kst_open_w.key3)
+		k_row_selected = 0
+		if isnumber(kst_open_w.key3) then k_row_selected = long(kst_open_w.key3)
 
-		if kdsi_elenco_input.rowcount() > 0 and k_riga_zoom > 0  then
+		if kdsi_elenco_input.rowcount() > 0 and k_row_selected > 0  then
 
-			k_return = k_riga_zoom
+			k_return = k_row_selected
 			
-	 		if kst_open_w.key6 = "b_email_rubrica"  then  
-		
-				k_email_add = trim(kdsi_elenco_input.getitemstring(k_riga_zoom, "email"))  + ","
-				k_email = trim(dw_dett_0.getitemstring( 1, "email"))
-				if right(k_email,1) = ";" or right(k_email,1) = "," then
+	 		choose case kst_open_w.key6
+				case "email_rubrica"
+					k_field_name = "email"
+				case "email_rubrica_cc"
+					k_field_name = "email_cc"
+				case "email_rubrica_ccn"
+					k_field_name = "email_ccn"
+			end choose
+			if k_field_name > " " then	
+				k_email_add = trim(kdsi_elenco_input.getitemstring(k_row_selected, "email"))  + ";"
+				k_email = trim(dw_dett_0.getitemstring( 1, k_field_name))
+				if isnull(k_email) then k_email = ""
+				if k_email = "" or right(k_email,1) = ";" or right(k_email,1) = "," then
 					k_email += k_email_add
 				else
-					k_email += "," + k_email_add
+					k_email += ";" + k_email_add
 				end if
-				dw_dett_0.setitem( 1, "email", k_email)
+				dw_dett_0.setitem( 1, k_field_name, k_email)
 				post attiva_tasti( )
 			end if
 	
@@ -1491,4 +1524,43 @@ boolean ki_colora_riga_aggiornata = false
 boolean ki_attiva_standard_select_row = false
 boolean ki_dw_visibile_in_open_window = false
 end type
+
+type dw_periodo from uo_dw_periodo within w_email_invio
+integer x = 114
+integer y = 868
+integer width = 955
+integer height = 504
+integer taborder = 70
+boolean bringtotop = true
+boolean enabled = true
+end type
+
+event ue_clicked;call super::ue_clicked;//
+	this.accepttext( )
+	this.visible = false
+	
+	dw_periodo.ki_data_ini  = this.getitemdate( 1, "data_dal")
+	dw_periodo.ki_data_fin  = this.getitemdate( 1, "data_al")
+	inizializza()
+
+end event
+
+event ue_visible;call super::ue_visible;////
+//int k_rc
+//
+//	this.width = long(this.object.data_al.x) + long(this.object.data_al.width) + 100
+//	this.height = long(this.object.b_ok.y) + long(this.object.b_ok.height) + 160
+//
+//	this.x = (kiw_this_window.width  - this.width) / 4
+//	this.y = (kiw_this_window.height - this.height) / 4
+//
+//	this.reset()
+//	k_rc = this.insertrow(0)
+//	k_rc = this.setitem(1, "data_dal", ki_data_ini)
+//	k_rc = this.setitem(1, "data_al", ki_data_fin)
+//	this.visible = true
+//	this.setfocus()
+
+
+end event
 

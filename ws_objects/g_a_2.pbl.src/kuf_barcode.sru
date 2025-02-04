@@ -197,13 +197,13 @@ public subroutine get_lav_fila (ref st_tab_barcode kst_tab_barcode) throws uo_ex
 public function boolean select_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine check_anomalie_lavorazione_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public function integer get_impianto_x_id_armo_pl_barcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception
-public function long set_imptime_second_g3 (st_tab_barcode ast_tab_barcode) throws uo_exception
-public function long set_imptime_second_g2 (st_tab_barcode ast_tab_barcode) throws uo_exception
 public function boolean set_imptime_second (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public function long get_g3lav_ciclo_firstbarcode (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public function date get_data_lav_fin (ref st_tab_barcode kst_tab_barcode) throws uo_exception
 private function st_esito tb_update_json (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 public subroutine u_update_campo (ref st_tab_barcode kst_tab_barcode, string k_campo) throws uo_exception
+public function boolean get_imptime_second_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
+public function long get_imptime_second_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception
 end prototypes
 
 public function string togli_pl_barcode (ref st_tab_barcode kst_tab_barcode);//
@@ -846,6 +846,8 @@ kuf_base kuf1_base
 				if isnull(kst_tab_barcode.g3lav_ciclo) then kst_tab_barcode.g3lav_ciclo = 0
 				if isnull(kst_tab_barcode.g3lav_npass) then kst_tab_barcode.g3lav_npass = 0
 				
+				if isnull(kst_tab_barcode.imptime_second) then kst_tab_barcode.imptime_second = 0
+				
 				update barcode set 	 
 						 lav_fila_1 = :kst_tab_barcode.lav_fila_1,
 						 lav_fila_2 = :kst_tab_barcode.lav_fila_2,
@@ -864,6 +866,7 @@ kuf_base kuf1_base
 						 g3lav_ngiri = :kst_tab_barcode.g3lav_ngiri,
 						 g3lav_ciclo = :kst_tab_barcode.g3lav_ciclo,
 						 g3lav_npass = :kst_tab_barcode.g3lav_npass,
+   					      imptime_second = :kst_tab_barcode.imptime_second,
 						 x_datins = :kst_tab_barcode.x_datins,
 						 x_utente = :kst_tab_barcode.x_utente
 					where barcode = :kst_tab_barcode.barcode
@@ -1129,53 +1132,33 @@ public function st_tab_barcode get_primo_barcode_in_lav () throws uo_exception;/
 //====================================================================
 //
 st_tab_barcode kst_tab_barcode
-string k_dataoggi_x
-kuf_base kuf1_base
-st_esito kst_esito
 
+	
+	kguo_exception.inizializza(this.classname())
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-
-
-	kuf1_base = create kuf_base
-	k_dataoggi_x = MidA(kuf1_base.prendi_dato_base("dataoggi"),2)
-	if isdate(k_dataoggi_x) then
-		kst_tab_barcode.data_lav_ini = relativedate (date(k_dataoggi_x), -30)  //indietro di 1 mese
-	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Errore in Lettura Data-oggi:  " + k_dataoggi_x
-		kst_esito.esito = kkg_esito.err_formale
-		kguo_exception.set_esito (kst_esito)
-		throw kguo_exception
-	end if
+	kst_tab_barcode.data_lav_ini = relativedate (kguo_g.get_dataoggi( ) , -30)  //indietro di 1 mese
 
 	select distinct min(barcode)
 	         ,data_lav_ini
 		into
-	          :kst_tab_barcode.barcode,
+	       :kst_tab_barcode.barcode,
 			 :kst_tab_barcode.data_lav_ini
 		from barcode
-		where data_lav_ini = :kst_tab_barcode.data_lav_ini
+		where data_lav_ini in (
+		select min(data_lav_ini) from barcode
+				where data_lav_ini >= :kst_tab_barcode.data_lav_ini)
 		group by barcode.data_lav_ini
-		using sqlca;
-
+		using kguo_sqlca_db_magazzino ;
 
 	if sqlca.sqlcode >= 0 then
-		if sqlca.sqlcode > 0 then
-			kst_tab_barcode.barcode = " "
-			kst_tab_barcode.data_lav_ini = date(0)
+		if kst_tab_barcode.barcode > " " then
+		else
+			kst_tab_barcode.data_lav_ini = relativedate (kguo_g.get_dataoggi( ) , -30)
 		end if
 	else
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Tab.Barcode: " + trim(sqlca.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in ricerca primo barcode il lavorazione dalla data del " + string(kst_tab_barcode.data_lav_ini))		
 		throw kguo_exception
 	end if
-
 
 return kst_tab_barcode
 
@@ -4616,31 +4599,29 @@ public function integer set_flg_dosimetro_all (st_tab_barcode ast_tab_barcode) t
 long k_righe_barcode
 int k_ctr, k_nr_dosimetri
 string K_barcode_update=""
-st_esito kst_esito 
 uo_ds_std_1 kds_1
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_barcode.st_tab_g_0 
+	kguo_exception.inizializza(this.classname())
 
 //	if_sicurezza(kkg_flag_modalita.inserimento) 
 
 	if ast_tab_barcode.id_meca > 0 then 
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Impostazione indicatori di presenza Dosimetro sul Barcode per l'intero Lotto non eseguito, id Lotto non indicato"
+		throw kguo_exception
+	end if
                
 //--- 20/7/15 leggo i barcode del lotto x impostare il flag del dosimetro
-		kds_1 = create uo_ds_std_1
-		kds_1.dataobject = "ds_barcode_set_flg_dosimetro"
-		kds_1.settransobject(kguo_sqlca_db_magazzino)
-		k_righe_barcode = kds_1.retrieve(ast_tab_barcode.id_meca)
-
-	else
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Impostazione indicatori Dosimetro sul Barcode per l'intero Lotto non eseguito, id Lotto non indicato"
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
+	kds_1 = create uo_ds_std_1
+	kds_1.dataobject = "ds_barcode_set_flg_dosimetro"
+	kds_1.settransobject(kguo_sqlca_db_magazzino)
+	k_righe_barcode = kds_1.retrieve(ast_tab_barcode.id_meca)
+	if k_righe_barcode < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in Impostazione indicatori di presenza Dosimetro sul Barcode per l'intero Lotto, id " + string(ast_tab_barcode.id_meca) + ". ")
 		throw kguo_exception
 	end if
 	
@@ -4650,32 +4631,21 @@ try
 
 		if k_nr_dosimetri > 0 then
 	 
-			k_ctr = kds_1.update( )			// AGGIORNA I FLAG!!!
-			
-			if k_ctr >= 0 then
-				if ast_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_barcode.st_tab_g_0.esegui_commit) then
-					kst_esito = kguo_sqlca_db_magazzino.db_commit()
-				end if
-			else
-				kst_esito = kds_1.kist_esito
-				kst_esito.sqlerrtext = "Errore in aggiornamento indicatori presenza Dosimetro sui Barcode per Id Lotto: " + string(ast_tab_barcode.id_meca) + " " &
-				                        + kkg.acapo + kst_esito.sqlerrtext
-				if ast_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_barcode.st_tab_g_0.esegui_commit) then
-					kguo_sqlca_db_magazzino.db_rollback()
-				end if
-				kguo_exception.set_esito(kst_esito)
+			k_ctr = kds_1.update( )			// AGGIORNA
+			if k_ctr < 0 then
+				kguo_exception.set_st_esito_err_ds(kds_1, "Errore in aggiornamento indicatori di presenza Dosimetro sui Barcode per Id Lotto: " + string(ast_tab_barcode.id_meca))
 				throw kguo_exception
+			end if
+
+			if ast_tab_barcode.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_barcode.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit()
 			end if
 	 
 		end if
 
 	else
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Impostazione indicatori Dosimetri Barcode non necessario per Id Lotto: " + string(ast_tab_barcode.id_meca)
-		kguo_exception.inizializza()
-		kguo_exception.set_esito(kst_esito)
-//		throw kguo_exception    // il problema non scatena un messaggio di errore poichè probabilmente NON è un errore
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Impostazione indicatori di presenza Dosimetri Barcode non necessario per Id Lotto: " + string(ast_tab_barcode.id_meca)
 	end if
 
 	
@@ -5335,108 +5305,133 @@ return k_return
 
 end function
 
-public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref uo_ds_std_1 ads_1) throws uo_exception;//
-//====================================================================
-//=== Imposta in automatico il flag_dosimetro sul Barcode x Lotto
-//=== 
-//=== Input:  st_tab_barcode.id_meca, datastore = 'ds_barcode_set_flg_dosimetro' 
-//=== out: ds ds_barcode_set_flg_dosimetro tutti i barcode con impostato la col flg_dosimetro
-//=== ret: nr dosimetri impostati 
-//===
-//=== lancia EXCEPTION
-//=== 
-//====================================================================
-//
+public function integer set_flg_dosimetro (ref st_tab_barcode ast_tab_barcode, ref uo_ds_std_1 ads_1) throws uo_exception;/*
+ Imposta in automatico il flag_dosimetro sul Barcode x Lotto
+
+ Inp: st_tab_barcode.id_meca, datastore = 'ds_barcode_set_flg_dosimetro' 
+ out: ds ds_barcode_set_flg_dosimetro tutti i barcode con impostato flg_dosimetro
+ ret: nr dosimetri impostati 
+*/
 integer k_return, k_resto
+boolean k_lotto_spezzato
 //decimal{2} k_resto                    
-int k_num, k_riga_flegga_barcode, k_righe_barcode, k_riga_flegga_barcode_ultimo
+int k_num, k_riga_flegga_barcode, k_n_barcode_lotto, k_riga_flegga_barcode_ultimo, k_n_adsrackcode
+int k_n_barcode_lotto_inelab, k_riga_ds_spezzato
 decimal{1} k_unita_ditrattamento = 0.0
 kuf_armo kuf1_armo
 kuf_sl_pt kuf1_sl_pt
 st_tab_sl_pt kst_tab_sl_pt
 st_tab_armo kst_tab_armo
-st_esito kst_esito 
+uo_ds_std_1 kds_asdrackcode_n_x_sl_pt
+kuf_armo_campioni kuf1_armo_campioni
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_barcode.st_tab_g_0 
+	kguo_exception.inizializza(this.classname())
 
-	k_righe_barcode = ads_1.rowcount()
-
-	if k_righe_barcode > 0 then
-
+	k_n_barcode_lotto = ads_1.rowcount()
+	if k_n_barcode_lotto > 0 then
+	else
+		return 0
+	end if
+		
 //--- get del codice PT per leggere i dati di dove mettere i Dosimetri
-		kuf1_armo = create kuf_armo
-		kst_tab_armo.id_armo = ads_1.getitemnumber(1, "id_armo")
-		kst_tab_sl_pt.impianto = ads_1.getitemnumber(1, "meca_impianto")
-		kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
+	kuf1_armo = create kuf_armo
+	kst_tab_armo.id_armo = ads_1.getitemnumber(1, "id_armo")
+	kst_tab_sl_pt.impianto = ads_1.getitemnumber(1, "meca_impianto")
+	kst_tab_sl_pt.cod_sl_pt = kuf1_armo.get_cod_sl_pt(kst_tab_armo)
 //--- get dei dati da PT circa il nr dosimetri per barcode ecc... x IMPIANTO		
-		if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
-			kuf1_sl_pt = create kuf_sl_pt
-			kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
-		else
-			kst_tab_sl_pt.dosim_delta_bcode = 0 
-		end if
+	if trim(kst_tab_sl_pt.cod_sl_pt) > " " then
+		kuf1_sl_pt = create kuf_sl_pt
+		kuf1_sl_pt.get_dosim_dati(kst_tab_sl_pt)
+	else
+		kst_tab_sl_pt.dosim_delta_bcode = 0 
+	end if
+	if kst_tab_sl_pt.unitwork > 0.0 then
+		k_unita_ditrattamento = (100 / kst_tab_sl_pt.unitwork)
+	else
+		k_unita_ditrattamento = 1.0
+	end if
 
-		if kst_tab_sl_pt.unitwork > 0.0 then
-			k_unita_ditrattamento = (100 / kst_tab_sl_pt.unitwork)
-		else
-			k_unita_ditrattamento = 1.0
-		end if
+//--- verifica se ci sono ControCampioni se ci sono allora verifica se spezzare per Rack
+	kuf1_armo_campioni = create kuf_armo_campioni
+	if kuf1_armo_campioni.get_nr_barcode_x_id_armo(kst_tab_armo.id_armo) = 0 then
+	
+//--- get numero dei rack per pt
+		kds_asdrackcode_n_x_sl_pt = create uo_ds_std_1
+		kds_asdrackcode_n_x_sl_pt.dataobject = "ds_asdrackcode_n_x_sl_pt"
+		kds_asdrackcode_n_x_sl_pt.settransobject(kguo_sqlca_db_magazzino)
+		if kds_asdrackcode_n_x_sl_pt.retrieve(kst_tab_sl_pt.cod_sl_pt) > 0 then
+			k_n_adsrackcode = kds_asdrackcode_n_x_sl_pt.getitemnumber(1, "n_asdrackcode")
+		end if	
+		
+	end if
 
-//--- piazza il dosimetro ogni tot di barcode 
+	do 
+//--- se non ci sono RACK oppure il n.dei Rack è superiore a quelli del lotto procedo normale 
+		if k_n_adsrackcode = 0 or k_n_adsrackcode > k_n_barcode_lotto then
+			k_n_barcode_lotto_inelab = k_n_barcode_lotto
+		else
+			k_lotto_spezzato = true
+			k_n_barcode_lotto_inelab = k_n_adsrackcode   // spezza il lotto
+		end if
+		
+	//--- piazza il dosimetro ogni tot di barcode 
 		if kst_tab_sl_pt.dosim_delta_bcode > 0 then
-//--- ricalcola il delta con l'unità di trattamento 
+	//--- ricalcola il delta con l'unità di trattamento 
 			kst_tab_sl_pt.dosim_delta_bcode = k_unita_ditrattamento * kst_tab_sl_pt.dosim_delta_bcode
 			
-			k_riga_flegga_barcode = 1
-			do while k_riga_flegga_barcode <= k_righe_barcode
-				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    // flegga il dosimetro
-				ads_1.setitem(k_riga_flegga_barcode, "x_datins", kGuf_data_base.prendi_x_datins())
-				ads_1.setitem(k_riga_flegga_barcode, "x_utente", kGuf_data_base.prendi_x_utente())
+			k_riga_flegga_barcode = 1 
+			do while k_riga_flegga_barcode <= k_n_barcode_lotto_inelab //k_n_barcode_lotto
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "flg_dosimetro", ki_flg_dosimetro_si)    // flegga il dosimetro
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "x_datins", kGuf_data_base.prendi_x_datins())
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "x_utente", kGuf_data_base.prendi_x_utente())
 				
 				k_return += kst_tab_sl_pt.dosim_x_bcode  // i dosimetri x barcode possono essere anche più di 1
 				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode
 			loop
 			k_riga_flegga_barcode -= kst_tab_sl_pt.dosim_delta_bcode
 		end if
-
-		if k_righe_barcode = 1 and k_riga_flegga_barcode = 0 then
+	
+		if k_n_barcode_lotto_inelab = 1 and k_riga_flegga_barcode = 0 then //  k_n_barcode_lotto = 1 and k_riga_flegga_barcode = 0 then
 			k_riga_flegga_barcode = 1
 		else
-//--- dosimetro se attivato il risparmio in ultimo pallet condizionato
-			if kst_tab_sl_pt.savedosimeter = 1 then
+	//--- dosimetro se attivato il risparmio in ultimo pallet condizionato Ma non vale se è spezzato per il Rack
+			if kst_tab_sl_pt.savedosimeter = 1 and not k_lotto_spezzato then
 				//--- se il n. dei barcode rimasti è minore del numero dell'unità di trattamento indicata allora no dosimetro
-				if (k_righe_barcode - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
-					k_riga_flegga_barcode = k_righe_barcode   	// flegga dosimetro sull'ultima riga
+				//if (k_n_barcode_lotto - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
+				if (k_n_barcode_lotto_inelab - k_riga_flegga_barcode) > int(k_unita_ditrattamento)  then
+					k_riga_flegga_barcode = k_n_barcode_lotto_inelab //k_n_barcode_lotto   	// flegga dosimetro sull'ultima riga
 				else
 					k_riga_flegga_barcode = 0   //no dosimetro
 				end if
 			else				
-//--- 27/8/2019 deprecato (REZIO): 20/7/2010 se il numero colli e' pari o dispari? devo mettere il dosimetro sull'ultimo pari
-//--- 27/8/2019				k_resto = mod(k_righe_barcode, 2)
-//--- 27/8/2019				if k_resto = 0 then  // pari
-					k_riga_flegga_barcode = k_righe_barcode		//flegga dosimetro sull'ultima riga
-//--- 27/8/2019				else
-//--- 27/8/2019					k_riga_flegga_barcode = k_righe_barcode - 1		// flegga il dosimetro sul penultimo
-//--- 27/8/2019				end if
+	//--- 27/8/2019 deprecato (REZIO): 20/7/2010 se il numero colli e' pari o dispari? devo mettere il dosimetro sull'ultimo pari
+	//--- 27/8/2019				k_resto = mod(k_n_barcode_lotto, 2)
+	//--- 27/8/2019				if k_resto = 0 then  // pari
+					k_riga_flegga_barcode = k_n_barcode_lotto_inelab //k_n_barcode_lotto		//flegga dosimetro sull'ultima riga
+	//--- 27/8/2019				else
+	//--- 27/8/2019					k_riga_flegga_barcode = k_n_barcode_lotto - 1		// flegga il dosimetro sul penultimo
+	//--- 27/8/2019				end if
 			end if
 		end if
-
-//--- controllo se è già stato marcato
+	
+	//--- controllo se è già stato marcato
 		if k_riga_flegga_barcode > 0 then
-			if ads_1.getitemstring(k_riga_flegga_barcode, "flg_dosimetro") = ki_flg_dosimetro_si then
+			if ads_1.getitemstring(k_riga_flegga_barcode+k_riga_ds_spezzato, "flg_dosimetro") = ki_flg_dosimetro_si then
 			else
-				ads_1.setitem(k_riga_flegga_barcode, "flg_dosimetro", ki_flg_dosimetro_si)    
-				ads_1.setitem(k_riga_flegga_barcode, "x_datins", kGuf_data_base.prendi_x_datins())
-				ads_1.setitem(k_riga_flegga_barcode, "x_utente", kGuf_data_base.prendi_x_utente())
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "flg_dosimetro", ki_flg_dosimetro_si)    
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "x_datins", kGuf_data_base.prendi_x_datins())
+				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "x_utente", kGuf_data_base.prendi_x_utente())
 				k_return += kst_tab_sl_pt.dosim_x_bcode  // incrementa i dosimetri sul barcode finale
 			end if		
 		end if
 
-	end if
+		k_n_barcode_lotto -= k_n_barcode_lotto_inelab
+		k_riga_ds_spezzato += k_n_barcode_lotto_inelab
+
+	loop while k_n_barcode_lotto > 0
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -5444,7 +5439,9 @@ catch (uo_exception kuo_exception)
 finally
 	if isvalid(kuf1_sl_pt) then destroy kuf_sl_pt
 	if isvalid(kuf1_armo) then destroy kuf1_armo
-
+	if isvalid(kds_asdrackcode_n_x_sl_pt) then destroy kds_asdrackcode_n_x_sl_pt
+	if isvalid(kuf1_armo_campioni) then destroy kuf1_armo_campioni
+	
 end try
 
 
@@ -6611,129 +6608,6 @@ return ast_tab_barcode.impianto
 
 end function
 
-public function long set_imptime_second_g3 (st_tab_barcode ast_tab_barcode) throws uo_exception;/*
- Imposta il tempo (secondi) impiegato dal barcode nell'irraggiamento 
- 	Inp: st_tab_barcode.barcode + g3lav_ngiri
-*/
-long k_return
-long k_giro_insecondi, k_time_fila_1, k_time_fila_2
-
-
-try
-	
-	kguo_exception.inizializza(this.classname())
-
-//	if_sicurezza(kkg_flag_modalita.inserimento) 
-
-	if trim(ast_tab_barcode.barcode) > " " then 
-
-		if ast_tab_barcode.g3lav_ngiri > 0 then
-			
-//--- get del CICLO (tempo in sec) del primo barcode entrato 
-			get_g3lav_ciclo_firstbarcode(ast_tab_barcode)
-
-//--- calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto (Tempo CICLO * GIRI * 36 stazioni)
-			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo * ast_tab_barcode.g3lav_ngiri * 36  
-
-			set_imptime_second(ast_tab_barcode)  // UPDATE!
-				
-		end if
-		
-	else
-		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Tempi Impianto G3 sul Barcode non eseguito, codice non indicato"
-		throw kguo_exception
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kguo_exception
-
-finally					
-
-end try
-
-return k_return
-
-
-end function
-
-public function long set_imptime_second_g2 (st_tab_barcode ast_tab_barcode) throws uo_exception;//
-//------------------------------------------------------------------------
-//--- Imposta il tempo (secondi) impiegato dal barcode nell'irraggiamento 
-//--- 
-//--- Input:  st_tab_barcode.barcode 
-//---
-//--- lancia EXCEPTION
-//--- 
-//------------------------------------------------------------------------
-//
-long k_return
-long k_giro_insecondi, k_time_fila_1, k_time_fila_2
-st_esito kst_esito
-st_tab_imptime kst_tab_imptime
-st_tab_barcode kst_tab_barcode 
-kuf_ausiliari kuf1_ausiliari
-
-
-try
-	
-	kguo_exception.inizializza(this.classname())
-	kst_esito.st_tab_g_0 = ast_tab_barcode.st_tab_g_0 
-
-//	if_sicurezza(kkg_flag_modalita.inserimento) 
-
-	if trim(ast_tab_barcode.barcode) > " " then 
-
-		kst_tab_barcode = ast_tab_barcode
-
-//--- get del numero giri effettuato dal barcode
-		get_lav_fila(kst_tab_barcode) 
-		
-		if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_2 > 0 then
-			
-//--- get della data di fine lavorazione
-			kst_tab_imptime.data_ini = get_data_lav_fin(kst_tab_barcode)
-
-//--- get dei tempi impiegati in impianto per UN ciclo
-			kuf1_ausiliari = create kuf_ausiliari
-			if kuf1_ausiliari.tb_imptime_get(kst_tab_imptime) then
-			
-//--- modificato il 18-9-17 //--- calcolo del tempo totale impiegato dal barcode per compiere il trattamento in impianto ((GiriF1 * C1 * 8 * Tbase)  + (GiriF2 * C2 *8 * Tbase))
-//--- modificato il 18-9-17 
-//--- calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto ((C1 * Tbase)  + (C2 * Tbase))
-				k_giro_insecondi = kst_tab_imptime.tminute * 60 + kst_tab_imptime.tsecond 
-				k_time_fila_1 = (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) * k_giro_insecondi * kst_tab_imptime.fila_1_tcoeff //18-9-17 * 8
-				k_time_fila_2 = (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) * k_giro_insecondi * kst_tab_imptime.fila_2_tcoeff //18-9-17 * 8
-//--- 18-9-17 calcolo del tempo medio impiegato dal barcode per compiere il trattamento in impianto x uno step 
-//				k_time_fila_1 = k_giro_insecondi * kst_tab_imptime.fila_1_tcoeff * 8
-//				k_time_fila_2 = 0
-				kst_tab_barcode.imptime_second = long((k_time_fila_1 + k_time_fila_2) &
-				     / (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p + kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p))
-				
-				set_imptime_second(kst_tab_barcode)  // UPDATE!
-				
-			end if
-		end if
-		
-	else
-		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Tempi Impianto Barcode non eseguito, codice non indicato"
-		throw kguo_exception
-	end if
-
-catch (uo_exception kuo_exception)
-	throw kguo_exception
-	
-finally					
-	if isvalid(kuf1_ausiliari) then destroy kuf1_ausiliari
-
-end try
-
-return k_return
-
-
-end function
-
 public function boolean set_imptime_second (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
  Aggiorna imptime_second in tabella
  	Inp: st_tab_barcode.barcode + imptime_second
@@ -6979,6 +6853,141 @@ st_esito kst_esito
 	
 
 end subroutine
+
+public function boolean get_imptime_second_g2 (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Get tempo (secondi) impiegato dal barcode nell'irraggiamento 
+    Inp:  st_tab_barcode.barcode, st_tab_barcode.data_lav_fin, st_tab_barcode.ora_lav_fin, st_tab_barcode.lav_fila_*
+	Rit: st_tab_barcode.imptime_second
+	out: true= ok
+*/
+boolean k_return
+long k_giro_insecondi, k_time_fila_1, k_time_fila_2
+datetime k_data_evento
+time k_tempo
+//st_esito kst_esito
+//st_tab_imptime kst_tab_imptime
+//st_tab_barcode kst_tab_barcode 
+//kuf_ausiliari kuf1_ausiliari
+ds_storico_mastertimer_g2 kds_storico_mastertimer_g2
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+//	if_sicurezza(kkg_flag_modalita.inserimento) 
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Tempi Impianto Barcode non eseguito, codice non indicato"
+		throw kguo_exception
+	end if
+
+//--- get del numero giri effettuato dal barcode
+//	get_lav_fila(kst_tab_barcode) 
+		
+	if ast_tab_barcode.lav_fila_1 > 0 or ast_tab_barcode.lav_fila_1p > 0 or ast_tab_barcode.lav_fila_2 > 0  or ast_tab_barcode.lav_fila_2p > 0 then
+	else
+		return false
+	end if
+		
+//--- get della data di fine lavorazione per pigliare il giusto tempo dalla tabella dei tempi-impianto
+//	get_data_lav_fin(kst_tab_barcode)
+	if ast_tab_barcode.data_lav_fin > kkg.data_zero then
+	else
+		return false
+	end if	
+			
+//--- get dei tempi impiegati in impianto per UN ciclo
+			//kuf1_ausiliari = create kuf_ausiliari
+			//if kuf1_ausiliari.tb_imptime_get(kst_tab_imptime) then
+	kds_storico_mastertimer_g2 = create ds_storico_mastertimer_g2
+	k_data_evento = datetime(ast_tab_barcode.data_lav_fin, ast_tab_barcode.ora_lav_fin)
+	k_tempo = kds_storico_mastertimer_g2.get_tempo(k_data_evento)
+	if k_tempo > time(0) then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Tempi Impianto Barcode non eseguito, Tempo Impianto G2 non valorizzato sul PILOTA"
+		throw kguo_exception
+		return false
+	end if
+
+//--- modificato il 18-9-17 //--- calcolo del tempo totale impiegato dal barcode per compiere il trattamento in impianto ((GiriF1 * C1 * 8 * Tbase)  + (GiriF2 * C2 *8 * Tbase))
+//--- modificato il 18-9-17 
+//--- calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto ((C1 * Tbase)  + (C2 * Tbase))
+	k_giro_insecondi = Minute(k_tempo) * 60 + Second(k_tempo)
+	k_time_fila_1 = (ast_tab_barcode.lav_fila_1 + ast_tab_barcode.lav_fila_1p) * k_giro_insecondi //* kst_tab_imptime.fila_1_tcoeff //18-9-17 * 8
+	k_time_fila_2 = (ast_tab_barcode.lav_fila_2 + ast_tab_barcode.lav_fila_2p) * k_giro_insecondi * 2 //kst_tab_imptime.fila_2_tcoeff //18-9-17 * 8
+//--- 18-9-17 calcolo del tempo medio impiegato dal barcode per compiere il trattamento in impianto x uno step 
+//				k_time_fila_1 = k_giro_insecondi * kst_tab_imptime.fila_1_tcoeff * 8
+//				k_time_fila_2 = 0
+	ast_tab_barcode.imptime_second = long((k_time_fila_1 + k_time_fila_2) &
+		 				 / (ast_tab_barcode.lav_fila_1 + ast_tab_barcode.lav_fila_1p + ast_tab_barcode.lav_fila_2 + ast_tab_barcode.lav_fila_2p))
+	
+	//set_imptime_second(kst_tab_barcode)  // UPDATE!
+				
+	k_return = true
+
+catch (uo_exception kuo_exception)
+	throw kguo_exception
+	
+finally					
+	if isvalid(kds_storico_mastertimer_g2) then destroy kds_storico_mastertimer_g2
+
+end try
+
+return k_return
+
+
+end function
+
+public function long get_imptime_second_g3 (ref st_tab_barcode ast_tab_barcode) throws uo_exception;/*
+ Get tempo (secondi) impiegato dal barcode nell'irraggiamento 
+ 	Inp: st_tab_barcode.barcode + g3lav_ngiri
+	Rit: st_tab_barcode.imptime_second
+	out: true= ok
+*/
+long k_return
+long k_giro_insecondi, k_time_fila_1, k_time_fila_2
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+
+//	if_sicurezza(kkg_flag_modalita.inserimento) 
+
+	if trim(ast_tab_barcode.barcode) > " " then 
+
+		if ast_tab_barcode.g3lav_ngiri > 0 then
+			
+//--- get del CICLO (tempo in sec) del primo barcode entrato 
+			get_g3lav_ciclo_firstbarcode(ast_tab_barcode)
+
+//--- calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto (Tempo CICLO * GIRI * 36 stazioni)
+			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo * ast_tab_barcode.g3lav_ngiri * 36  
+
+			//set_imptime_second(ast_tab_barcode)  // UPDATE!
+				
+		end if
+		
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlerrtext = "Aggiornamento Tempi Impianto G3 sul Barcode non eseguito, codice non indicato"
+		throw kguo_exception
+	end if
+
+catch (uo_exception kuo_exception)
+	throw kguo_exception
+
+finally					
+
+end try
+
+return k_return
+
+
+end function
 
 on kuf_barcode.create
 call super::create

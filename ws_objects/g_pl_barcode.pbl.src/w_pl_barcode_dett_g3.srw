@@ -93,6 +93,10 @@ private constant int kki_impianto = kiuf_impianto.kki_impiantog3 //G3
 private string ki_impianto_des
 
 private uo_ds_std_1 kdsi_elenco_output_1
+
+private ds_pilota_queue_g3_last_in kids_pilota_queue_g3_last_in
+private ds_storico_mastertimer_tempo_last kids_storico_mastertimer_tempo_last
+
 end variables
 
 forward prototypes
@@ -229,6 +233,8 @@ try
 
 	kuf1_base = create kuf_base
 	kuf1_impianto = create kuf_impianto
+
+	kids_storico_mastertimer_tempo_last = create ds_storico_mastertimer_tempo_last
 	
 	ki_toolbar_window_presente=true
 	
@@ -2728,22 +2734,23 @@ datastore kds_1
 	else
 		dw_meca.title += "Pass: TUTTI "
 	end if
-	k_ciclo = dw_guida.getitemnumber(1, "g3ciclo")
-	if k_ciclo > 0 then
-		dw_meca.title += "Ciclo: " + string(k_ciclo) + " "
-	else
-		dw_meca.title += "Ciclo: TUTTI "
-	end if
-	if dw_guida.getitemnumber(1, "filtrocicli") = 1 then
-		k_ciclo_min = dw_guida.getitemnumber(1, "ciclo_min")
-		k_ciclo_max = dw_guida.getitemnumber(1, "ciclo_max")
-	end if
-	if k_ciclo_min > 0 or k_ciclo_max > 0 then
-		dw_meca.title += "Filtro per Ciclo: " + string(k_ciclo_min) + " - " + string(k_ciclo_max) + "."
-	else
-		dw_meca.title += "Nessun Filtro. "
-	end if
 	
+	choose case dw_guida.getitemnumber(1, "filtrocicli")
+		case 0
+			k_ciclo = dw_guida.getitemnumber(1, "g3ciclo")
+			if k_ciclo > 0 then
+				dw_meca.title += "Ciclo: " + string(k_ciclo) + " "
+			else
+				dw_meca.title += "Ciclo: TUTTI "
+			end if
+		case 1
+			k_ciclo_min = dw_guida.getitemnumber(1, "ciclo_min")
+			k_ciclo_max = dw_guida.getitemnumber(1, "ciclo_max")
+			dw_meca.title += "Filtro per Ciclo: " + string(k_ciclo_min) + " - " + string(k_ciclo_max) + "."
+		case 2
+			dw_meca.title += "Ciclo: TUTTI "
+	end choose
+
 	dw_meca.retrieve(k_pl_barcode, ki_data_ini, k_npass, k_ciclo, k_ciclo_min, k_ciclo_max)   //--- leggo su DB
 		
 //=== Salva le righe del dw (saveas)
@@ -5530,6 +5537,8 @@ if isvalid(kids_sl_pt_g3_lav_if_datilav_ok) then destroy kids_sl_pt_g3_lav_if_da
 if isvalid(kiuf_pilota_previsioni_g3) then destroy kiuf_pilota_previsioni_g3
 if isvalid(kiuf_prodotti) then destroy kiuf_prodotti
 if isvalid(kiuf_sl_pt) then destroy kiuf_sl_pt
+if isvalid(kids_storico_mastertimer_tempo_last) then destroy kids_storico_mastertimer_tempo_last
+if isvalid(kids_pilota_queue_g3_last_in) then destroy kids_pilota_queue_g3_last_in
 
 end event
 
@@ -5950,26 +5959,26 @@ event dw_guida::u_enabled_if();//
 
 end event
 
-event dw_guida::u_resize();//
-long k_b_view_default_width 
-long k_newwidth
-
-k_b_view_default_width = long(this.describe("b_view_default.width"))
-k_newwidth = this.width //PixelsToUnits(this.width, XPixelsToUnits!)
-
-if (k_newwidth) > long(this.describe("ciclo_max.x")) + long(this.describe("ciclo_max.width")) &
-						+ ( k_b_view_default_width * 1.2)  then
-	this.modify("b_view_default.x = " + string((k_newwidth - (k_b_view_default_width * 1.2) )))
-	this.modify("b_view_default.visible = '1'")
-else
-	this.modify("b_view_default.visible = '0'")
-end if
+event dw_guida::u_resize();////
+//long k_b_view_default_width 
+//long k_newwidth, k_objectToRight
+//
+//
+//k_b_view_default_width = long(this.describe("b_view_default.width"))
+//k_newwidth = this.width //PixelsToUnits(this.width, XPixelsToUnits!)
+//k_objectToRight = long(this.describe("storico_mastertimer_data_evento.x")) + long(this.describe("storico_mastertimer_data_evento.width"))
+//
+//if (k_newwidth) > (k_objectToRight + (k_b_view_default_width * 1.2)) then
+//	this.modify("b_view_default.x = " + string((k_newwidth - (k_b_view_default_width * 1.2) )))
+//	this.modify("b_view_default.visible = '1'")
+//else
+//	this.modify("b_view_default.visible = '0'")
+//end if
 end event
 
 event dw_guida::u_inizializza();//
 int k_rc
 datetime k_datetime_bck
-ds_pilota_queue_g3_last_in kds_pilota_queue_g3_last_in
 datawindow kdw_this
 
 
@@ -5983,36 +5992,46 @@ try
 		k_rc = kguf_data_base.dw_ripri_righe( "v.1", "dwguida", kdw_this, k_datetime_bck)
 		if k_rc > 0 then 
 		else
-			dw_guida.insertrow(0)
+			this.insertrow(0)
 		end if
 	
 		if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
 			
-			kds_pilota_queue_g3_last_in = create ds_pilota_queue_g3_last_in
+			if not isvalid(kids_pilota_queue_g3_last_in) then kids_pilota_queue_g3_last_in = create ds_pilota_queue_g3_last_in
 		
-			if kds_pilota_queue_g3_last_in.retrieve( ) > 0 then
+//--- estrazione dal PILOTA ultimi dati inviate del N-PASS e CICLO per riproporli  
+			if kids_pilota_queue_g3_last_in.retrieve( ) > 0 then
 				
-				this.setitem(1, "g3npass", kds_pilota_queue_g3_last_in.u_get_npass(1))
-				this.setitem(1, "g3ciclo", kds_pilota_queue_g3_last_in.u_get_ciclo(1))
+				this.setitem(1, "g3npass", kids_pilota_queue_g3_last_in.u_get_npass(1))
+				this.setitem(1, "g3ciclo", kids_pilota_queue_g3_last_in.u_get_ciclo(1))
 				
 			end if
-		end if
-		
+		end if		
 	end if
+
+		
+//--- estrazione dal PILOTA dei dati in tempo reale del CICLO
+	if kids_storico_mastertimer_tempo_last.retrieve( ) > 0 then
+		this.setitem(1, "storico_mastertimer_tempo", kids_storico_mastertimer_tempo_last.getitemnumber(1, "tempo"))	
+		this.setitem(1, "storico_mastertimer_data_evento", kids_storico_mastertimer_tempo_last.getitemdatetime(1, "data_evento"))	
+	else
+		this.setitem(1, "storico_mastertimer_tempo", 0)	
+		this.setitem(1, "storico_mastertimer_data_evento", kguo_g.get_datetime_zero( ) )	
+	end if
+
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente("Dati dal Pilota G3")
 	
 finally
 	SetPointer(kkg.pointer_default)
-	if isvalid(kds_pilota_queue_g3_last_in) then destroy kds_pilota_queue_g3_last_in
 
 end try
 	
 
 end event
 
-event dw_guida::getfocus;call super::getfocus;//
+event dw_guida::getfocus;//
 this.describe( "g3npass.protect = '0'")
 
 //-- NPASS impostabile solo se non c'è nulla nei Pianificati e sono in aggiornamento
@@ -6025,14 +6044,17 @@ end if
 end event
 
 event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//
-string k_rcx
-
-k_rcx = this.describe("b_ok.enabled" )
-k_rcx = "~"" + Right(k_rcx, Len(k_rcx) - Pos(k_rcx, "~t")) // Get the expression following the tab (~t)   
-
-if this.describe("Evaluate(" + k_rcx + ", 1)" ) = "1" then
-	leggi_liste( )
-end if
+//string k_rcx
+//
+//k_rcx = this.describe("b_ok.enabled" )
+//k_rcx = "~"" + Right(k_rcx, Len(k_rcx) - Pos(k_rcx, "~t")) // Get the expression following the tab (~t)   
+//
+//if this.describe("Evaluate(" + k_rcx + ", 1)" ) = "1" then
+//	leggi_liste( )
+//end if
+//
+this.post accepttext( )
+leggi_liste( )
 	
 
 end event
@@ -6048,7 +6070,65 @@ end if
 end event
 
 event dw_guida::resize;call super::resize;//
+this.width = parent.width
+
 this.event post u_resize()
+end event
+
+event dw_guida::constructor;call super::constructor;move(0, 0)
+
+end event
+
+event dw_guida::clicked;call super::clicked;/*
+  filtrocicli = 1 Attivo range 
+  filtrocicli = 2 range non attivo 
+*/
+string k_name
+
+k_name = dwo.name
+choose case k_name
+	case "kfrangeoff" &
+			,"kfrangeon" 
+		choose case getitemnumber(row, "filtrocicli")	
+			case 2, 0 
+				this.setitem(row, "filtrocicli", 1)
+			case else
+				this.setitem(row, "filtrocicli", 0)
+		end choose
+	case "kftuttooff" &
+	      ,"kftuttoon"
+		choose case getitemnumber(row, "filtrocicli")	
+			case 1, 0 
+				this.setitem(row, "filtrocicli", 2)
+			case else
+				this.setitem(row, "filtrocicli", 0)
+		end choose
+end choose
+
+	
+end event
+
+event dw_guida::itemchanged;//
+if dwo.name = "ciclo_min"  then
+	if trim(data) > " " then
+		if isnumber(trim(data)) then
+			if this.getitemnumber(row, "ciclo_max") > 0 then
+			else
+				this.setitem(row, "ciclo_max", long(trim(data)))
+//				this.post setcolumn("ciclo_max")
+//				this.post SelectText(0, Len(String(this.GetItemNumber(row, "ciclo_max"))))
+			end if
+		end if
+	end if
+end if
+
+end event
+
+event dw_guida::itemfocuschanged;//
+end event
+
+event dw_guida::losefocus;//
+
 end event
 
 type st_duplica from w_g_tab0`st_duplica within w_pl_barcode_dett_g3

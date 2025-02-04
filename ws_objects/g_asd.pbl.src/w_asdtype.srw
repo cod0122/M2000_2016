@@ -42,7 +42,6 @@ string k_return="0 "
 //string k_key
 long k_riga
 int k_importa = 0
-kuf_utility kuf1_utility
 
 
 	setpointer(kkg.pointer_attesa)
@@ -86,10 +85,8 @@ kuf_utility kuf1_utility
 		end if		
 	end if
 
-	kuf1_utility = create kuf_utility
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-	destroy kuf1_utility
+	dw_dett_0.u_proteggi_sproteggi_dw()
 
 	setpointer(kkg.pointer_default)
 	
@@ -172,15 +169,10 @@ end subroutine
 protected function integer modifica ();//
 //--- Torna : <=0=Ko, >0=Ok
 int k_return=1
-kuf_utility kuf1_utility
 
-
-	kuf1_utility = create kuf_utility
 
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-
-	destroy kuf1_utility
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 
@@ -194,15 +186,10 @@ end function
 protected function integer inserisci ();//
 long k_return
 long k_row
-kuf_utility kuf1_utility
 
-
-	kuf1_utility = create kuf_utility
 
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-
-	destroy kuf1_utility
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	k_row = dw_dett_0.getselectedrow(0)
 	if k_row = 0 then
@@ -228,15 +215,10 @@ end function
 protected function integer visualizza ();//
 //--- Torna : <=0=Ko, >0=Ok
 int k_return=1
-kuf_utility kuf1_utility
 
-
-	kuf1_utility = create kuf_utility
 
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-
-	destroy kuf1_utility
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 

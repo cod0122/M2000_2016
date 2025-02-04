@@ -10,11 +10,14 @@ global kuf_ptasks kuf_ptasks
 
 type variables
 //
-string kki_status_APERTO = "O"
-string kki_status_SOSPESO = "S"
-string kki_status_ANNULLATO = "A"
-string kki_status_CHIUSO = "D"
+public: 
 
+constant string kki_status_APERTO = "O"
+constant string kki_status_SOSPESO = "S"
+constant string kki_status_ANNULLATO = "A"
+constant string kki_status_CHIUSO = "D"
+
+constant string kki_task_dose_di_verifica = "DSV"
 end variables
 
 forward prototypes

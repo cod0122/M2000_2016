@@ -33,6 +33,7 @@ int k_rc
 datastore kds_1
 
 
+if a_impianto > 0 then
 	kds_1 = create datastore
 	kds_1.dataobject = "dd_impianto"
 	kds_1.retrieve( )
@@ -43,6 +44,9 @@ datastore kds_1
 		end if
 	end if
 	if isvalid(kds_1) then destroy kds_1
+else
+	k_return = "ND"
+end if
 	
 return trim(k_return)
 

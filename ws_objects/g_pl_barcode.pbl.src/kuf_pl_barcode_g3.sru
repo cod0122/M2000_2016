@@ -20,8 +20,8 @@ public function integer importa_inizio_lav_pilota_g3 () throws uo_exception
 private function integer importa_trattati_pilota_g3_1 (ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, kuf_barcode auf1_barcode) throws uo_exception
 public function integer importa_trattati_pilota_g3 () throws uo_exception
 private subroutine importa_trattati_pilota_g3_e1 (long a_riga_pallet, ref ds_pilota_pallet_out_g3 ads_pilota_pallet_out_g3, ref st_tab_barcode kst_tab_barcode, ref kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014, ref kuf_barcode kuf1_barcode, ref st_tab_meca ast_tab_meca) throws uo_exception
-private subroutine u_set_tab_barcode (long a_row, readonly uo_ds_std_1 kds_pilota_pallet_in_out_g3, ref st_tab_barcode kst_tab_barcode)
 public function st_esito u_batch_run () throws uo_exception
+private subroutine u_set_tab_barcode (long a_row, readonly uo_ds_std_1 ads_pilota_pallet_in_out_g3, ref st_tab_barcode ast_tab_barcode)
 end prototypes
 
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//
@@ -495,6 +495,7 @@ try
 	catch (uo_exception k2uo_exception)
 		if k2uo_exception.kist_esito.esito <> kkg_esito.ok then
 			kguo_sqlca_db_magazzino.db_rollback( )
+			k2uo_exception.kist_esito.sqlerrtext += " Codice barcode " + trim(kst_tab_barcode.barcode) + " "
 			throw k2uo_exception
 		else
 			kguo_sqlca_db_magazzino.db_commit( )  
@@ -573,8 +574,6 @@ try
 		SetPointer(kkg.pointer_default)
 
 end try	
-	
-
 
 return k_riga_impo
 
@@ -619,7 +618,7 @@ st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
 			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 		end if
 
-//--- verifica se è il primo/ultimo barcode deil trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
+//--- verifica se è il primo/ultimo barcode del trattamento e lo salva in e1_wo_f5548014 per poi comunicarlo a E1
 		kst_tab_e1_wo_f5548014.data_osa801 = string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "dd/mm/yy")
 		k_anno = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "yyyy"))
 		k_anno_rid = integer(string(ads_pilota_pallet_out_g3.getitemdatetime(a_riga_pallet, "data_scarico"), "yy"))
@@ -643,43 +642,6 @@ st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
 	end if
 
 						
-
-end subroutine
-
-private subroutine u_set_tab_barcode (long a_row, readonly uo_ds_std_1 kds_pilota_pallet_in_out_g3, ref st_tab_barcode kst_tab_barcode);//
-//--- copia i campi dalla struttura pilota_pallet a barcode
-//--- inp: riga, ds_pilota_pallet_in_g3 ,  st_tab_barcode in OUT
-//--- Out: st_tab_barcode
-//
-
-		kst_tab_barcode.data_lav_ini = date(kds_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_carico"))
-		kst_tab_barcode.ora_lav_ini = time(kds_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_carico"))
-		
-		if date(kds_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico")) > kkg.data_zero then
-			kst_tab_barcode.data_lav_fin = date(kds_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico"))
-			kst_tab_barcode.ora_lav_fin = time(kds_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico"))
-		end if		
-		
-		if isnumber(trim(kds_pilota_pallet_in_out_g3.getitemstring(a_row, "id_modo"))) then
-			kst_tab_barcode.g3lav_npass = integer(trim(kds_pilota_pallet_in_out_g3.getitemstring(a_row, "id_modo")))
-		else
-			kst_tab_barcode.g3lav_npass = 0
-		end if
-		if kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "mastertimer_entrata") > 0 then
-			kst_tab_barcode.g3lav_ciclo = kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "mastertimer_entrata")
-		else
-			kst_tab_barcode.g3lav_ciclo = 0
-		end if
-		if not isnull(kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "giri")) then
-			kst_tab_barcode.g3lav_ngiri = kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "giri")
-		else
-			kst_tab_barcode.g3lav_ngiri = 0
-		end if
-
-		kst_tab_barcode.Bilancella = kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "carrier")  
-		kst_tab_barcode.g3lav_cicloIn = kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "ciclo_entrata")   // codice Ciclo NORTRACK in Entrata
-		kst_tab_barcode.g3lav_cicloOut = kds_pilota_pallet_in_out_g3.getitemnumber(a_row, "ciclo_uscita")   // codice Ciclo NORTRACK in Uscita
-
 
 end subroutine
 
@@ -730,6 +692,43 @@ end try
 
 return kst_esito
 end function
+
+private subroutine u_set_tab_barcode (long a_row, readonly uo_ds_std_1 ads_pilota_pallet_in_out_g3, ref st_tab_barcode ast_tab_barcode);//
+//--- copia i campi dalla struttura pilota_pallet a barcode
+//--- inp: riga, ds_pilota_pallet_in_g3 ,  st_tab_barcode in OUT
+//--- Out: st_tab_barcode
+//
+
+		ast_tab_barcode.data_lav_ini = date(ads_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_carico"))
+		ast_tab_barcode.ora_lav_ini = time(ads_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_carico"))
+		
+		if date(ads_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico")) > kkg.data_zero then
+			ast_tab_barcode.data_lav_fin = date(ads_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico"))
+			ast_tab_barcode.ora_lav_fin = time(ads_pilota_pallet_in_out_g3.getitemdatetime(a_row, "data_scarico"))
+		end if		
+		
+		if isnumber(trim(ads_pilota_pallet_in_out_g3.getitemstring(a_row, "id_modo"))) then
+			ast_tab_barcode.g3lav_npass = integer(trim(ads_pilota_pallet_in_out_g3.getitemstring(a_row, "id_modo")))
+		else
+			ast_tab_barcode.g3lav_npass = 0
+		end if
+		if ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "mastertimer_entrata") > 0 then
+			ast_tab_barcode.g3lav_ciclo = ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "mastertimer_entrata")
+		else
+			ast_tab_barcode.g3lav_ciclo = 0
+		end if
+		if not isnull(ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "giri")) then
+			ast_tab_barcode.g3lav_ngiri = ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "giri")
+		else
+			ast_tab_barcode.g3lav_ngiri = 0
+		end if
+
+		ast_tab_barcode.Bilancella = ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "carrier")  
+		ast_tab_barcode.g3lav_cicloIn = ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "ciclo_entrata")   // codice Ciclo NORTRACK in Entrata
+		ast_tab_barcode.g3lav_cicloOut = ads_pilota_pallet_in_out_g3.getitemnumber(a_row, "ciclo_uscita")   // codice Ciclo NORTRACK in Uscita
+
+
+end subroutine
 
 on kuf_pl_barcode_g3.create
 call super::create

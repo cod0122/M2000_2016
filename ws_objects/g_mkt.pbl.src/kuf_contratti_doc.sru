@@ -1050,13 +1050,13 @@ try
 					kds_print.dataobject = kki_form_di_stampa_attuale
 				end if
 //--- Imposta  Risorse Grafiche
-				if len(trim(kGuo_path.get_risorse())) > 0 then
+//				if len(trim(kGuo_path.get_risorse())) > 0 then
 //					k_rcx=kds_print.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img.text"))+ "'") 
 //					k_rcx=kds_print.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
 //					k_rcx=kds_print.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
 					kds_print.object.DataWindow.Export.PDF.Method = NativePDF!
-					k_rcx=kds_print.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
-				end if
+					k_rcx=kds_print.Modify("p_img_2.Filename='" +   trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
+//				end if
    
 				kds_print.settransobject(sqlca)
    

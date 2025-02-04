@@ -266,7 +266,7 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero5.microhelp =  "Produce Fattura Elettronica (formato XML) " 
 		m_main.m_strumenti.m_fin_gest_libero5.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemText = "XML,"+m_main.m_strumenti.m_fin_gest_libero5.text
-		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = kguo_path.get_risorse() + kkg.path_sep + "aereo32.png"
+		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName =  "aereo32.png"
 //		ki_menu.m_strumenti.m_fin_gest_libero5.toolbaritembarindex=2
 		m_main.m_strumenti.m_fin_gest_libero5.visible = true
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = true

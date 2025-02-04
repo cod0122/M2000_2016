@@ -2,13 +2,17 @@
 forward
 global type w_clienti from w_g_tab_3
 end type
+type wb_graph from uo_webbrowser within tabpage_7
+end type
+type st_orizzontal from statictext within tabpage_7
+end type
 type dw_periodo from uo_dw_periodo within w_clienti
 end type
 end forward
 
 global type w_clienti from w_g_tab_3
-integer width = 3035
-integer height = 2180
+integer width = 3209
+integer height = 2696
 string title = "Anagrafica "
 boolean ki_toolbar_window_presente = true
 boolean ki_sincronizza_window_consenti = false
@@ -103,7 +107,6 @@ st_tab_clienti_fatt kst_tab_clienti_fatt
 st_tab_clienti_mkt kst_tab_clienti_mkt
 st_tab_clienti_web kst_tab_clienti_web
 st_tab_clienti_altro kst_tab_clienti_altro
-kuf_utility kuf1_utility
 
 
 try
@@ -169,9 +172,7 @@ try
 		kst_tab_clienti_fatt.fattura_per = tab_1.tabpage_1.dw_1.getitemstring(k_riga, "fattura_per")
 		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_fatt)
 
-		kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
 		kst_tab_clienti_altro.e1_asn_ehvr01 = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "e1_asn_ehvr01")
-		kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)
 
 	end if 
 	
@@ -229,7 +230,12 @@ try
 				
 		tab_1.tabpage_3.dw_3.resetupdate( )
 		
+		kst_tab_clienti_altro.parzialecolli_warning = tab_1.tabpage_3.dw_3.getitemnumber(k_riga, "parzialecolli_warning")
+
 	end if
+
+	kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+	kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)   // aggiorno campi altro
 	
 	//=== Aggiorna, se modificato, la TAB_4 CONTATTI
 	if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0 	then
@@ -657,7 +663,6 @@ st_esito kst_esito
 pointer oldpointer
 //datawindowchild  kdwc_clienti_1, kdwc_clienti_2 
 datawindowchild kdwc_iva, kdwc_pag
-kuf_utility kuf1_utility
 datawindowchild kdwc_contatto, kdwc_divisione, kdwc_tipo, kdwc_protocollo
 
 
@@ -758,10 +763,8 @@ if NOT ki_exit_si then
 	if ki_st_open_w.flag_primo_giro = 'S' then //se giro di prima volta
 	
 	//--- Inabilita campi alla modifica se Vsualizzazione
-		kuf1_utility = create kuf_utility 
 		tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
-		kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
-		destroy kuf1_utility
+		tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 		
 		if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento then
 	//--- Identifica il tipo Anagrafica
@@ -861,21 +864,7 @@ st_tab_clienti kst_tab_clienti
 kuf_base kuf1_base
 kuf_memo kuf1_memo
 kuf_memo_inout kuf1_memo_inout
-kuf_utility kuf1_utility 
 kuf_sr_sicurezza kuf1_sr_sicurezza
-
-
-//=== Controllo se ho modificato dei dati nella DW DETTAGLIO
-//if left(dati_modif(""), 1) = "1" then //Richisto Aggiornamento
-
-//=== Controllo congruenza dei dati caricati e Aggiornamento  
-//=== Ritorna 1 char : 0=tutto OK; 1=errore grave;
-//===                : 2=errore non grave dati aggiornati;
-//===			         : 3=LIBERO
-//===      il resto della stringa contiene la descrizione dell'errore   
-//	k_errore = aggiorna_dati()
-
-//end if
 
 
 if left(k_errore, 1) = "0" then
@@ -948,7 +937,6 @@ if left(k_errore, 1) = "0" then
 				kuo_exception.messaggio_utente()
 			end try
 
-
 		case  3 
 			if tab_1.tabpage_1.dw_1.rowcount() > 0 then
 				k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
@@ -960,11 +948,9 @@ if left(k_errore, 1) = "0" then
 			end if
 			tab_1.tabpage_3.dw_3.setitem(k_riga, "id_cliente", k_codice)
 			tab_1.tabpage_3.dw_3.SetItemStatus( 1, 0, Primary!, NotModified!)
-
 		
 		case 4 // Contatti
 			call_contatto(kst_tab_clienti, kkg_flag_modalita.inserimento)
-
 		
 		case 5 // Legami
 			k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
@@ -973,8 +959,7 @@ if left(k_errore, 1) = "0" then
 			if k_codice > 0 then
 				k_riga = tab_1.tabpage_5.dw_5.insertrow(0)
 
-				kuf1_utility = create kuf_utility 
-				kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_5.dw_5)  //--- Abilita campi alla modifica 
+				tab_1.tabpage_5.dw_5.u_proteggi_dw("0", 0)  //--- Abilita campi alla modifica 
 	
 				tab_1.tabpage_5.dw_5.setitem(k_riga, "clie_3", k_codice)
 	
@@ -995,13 +980,11 @@ if left(k_errore, 1) = "0" then
 			tab_1.tabpage_8.dw_8.setitem(1, "id_meca_ultimo", 0)
 			tab_1.tabpage_8.dw_8.setitem(1, "codice", "")
 			tab_1.tabpage_8.dw_8.SetItemStatus( 1, 0, Primary!, NotModified!)
-			
-			
+						
 	end choose	
 
 	k_return = 0
 
-//=== 
 	attiva_tasti()
 
 end if
@@ -1170,7 +1153,6 @@ long k_codice, k_id_cliente
 string k_scelta, k_codice_prec
 int k_rc
 kuf_utility kuf1_utility
-
 boolean k_return
 kuf_sicurezza kuf1_sicurezza
 kuf_listino kuf1_listino
@@ -1178,7 +1160,6 @@ st_open_w kst_open_w
 
 
 ki_selectedtab = 5
-
 
 kuf1_listino = create kuf_listino
 kst_open_w.flag_modalita = kkg_flag_modalita.elenco
@@ -1608,6 +1589,7 @@ string k_codice_prec
 			tab_1.tabpage_7.dw_7.retrieve(tab_1.tabpage_1.dw_1.getitemnumber(1, "codice"), &
 													dw_periodo.get_data_ini( ), dw_periodo.get_data_fin( ))
 	
+			tab_1.tabpage_7.wb_graph.event u_graph_show() // mostra grafico
 	
 		end if
 		
@@ -1769,7 +1751,6 @@ int k_ctr=0
 st_tab_clienti kst_tab_clienti
 st_esito kst_esito
 pointer oldpointer
-kuf_utility kuf1_utility
 
 
 //=== Puntatore Cursore da attesa.....
@@ -1779,7 +1760,6 @@ ki_selectedtab = 3
 
 tab_1.tabpage_3.dw_3.ki_flag_modalita = ki_st_open_w.flag_modalita
 
-	
 if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then	
 	kst_tab_clienti.codice = tab_1.tabpage_1.dw_1.getitemnumber( 1, "codice")
 else
@@ -1829,11 +1809,8 @@ end if
 tab_1.tabpage_3.dw_3.resetupdate( )
 
 //--- Inabilita campi alla modifica se Vsualizzazione
-kuf1_utility = create kuf_utility 
 tab_1.tabpage_3.dw_3.ki_flag_modalita = ki_st_open_w.flag_modalita
-kuf1_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_3.dw_3)
-destroy kuf1_utility
-
+tab_1.tabpage_3.dw_3.u_proteggi_sproteggi_dw()
 
 //--- attiva eventuale Drag&Drop di files da Windows	Explorer
 if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
@@ -2360,7 +2337,6 @@ long k_codice
 int k_anno
 string k_codice_prec
 datawindowchild kdwc_lotti
-kuf_utility kuf1_utility
 
 
 	k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
@@ -2395,18 +2371,13 @@ kuf_utility kuf1_utility
 
 	end if
 
-	kuf1_utility = create kuf_utility
 	if trim(tab_1.tabpage_8.dw_8.ki_flag_modalita) <> kkg_flag_modalita.inserimento and trim(tab_1.tabpage_8.dw_8.ki_flag_modalita) <> kkg_flag_modalita.modifica then
-     	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_8.dw_8)
+     	tab_1.tabpage_8.dw_8.u_proteggi_dw("1", 0)
 	else		
-     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_8.dw_8)
+     	tab_1.tabpage_8.dw_8.u_proteggi_dw("0", 0)
 	end if
-	destroy kuf1_utility
-
 
 	attiva_tasti()
-
-
 
 end subroutine
 
@@ -2442,14 +2413,12 @@ protected function string check_dati_1 ();//
 //===                        : 5=OK con degli avvertimenti
 //===      il resto della stringa contiene la descrizione dell'errore   
 //======================================================================
-
 string k_return = " "
 string k_errore = "0"
 long k_nr_righe
 int k_riga, k_ctr
 int k_nr_errori, k_anno
 string k_key_str
-string k_stato, k_tipo
 long k_key
 st_esito kst_esito
 st_tab_clienti kst_tab_clienti
@@ -2483,6 +2452,8 @@ if dati_modif_dw(tab_1.tabpage_1.dw_1) then
 		k_errore = "3"
 		k_nr_errori++
 	end if
+
+	kst_tab_clienti.tipo = trim(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "clienti_tipo"))
 
 //--- Se nazione assente forza IT: 18-10-2011 Marisa
 	if len(trim(tab_1.tabpage_1.dw_1.getitemstring ( k_riga, "id_nazione_1"))) = 0 &
@@ -2717,6 +2688,8 @@ if tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0  then
 			k_riga = tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) 
 			if k_riga > 0 then
 			
+				kst_tab_clienti_mkt.qualifica = tab_1.tabpage_3.dw_3.getitemstring( k_riga, "clienti_mkt_qualifica")
+			
 //--- controllo se il codice doc_esporta_prefpath è  già usato per lo stesso ruolo
 				kst_tab_clienti_mkt.id_cliente =  tab_1.tabpage_3.dw_3.getitemnumber( k_riga, "id_cliente")
 				kst_tab_clienti_mkt.doc_esporta_prefpath = tab_1.tabpage_3.dw_3.getitemstring(k_riga, "doc_esporta_prefpath")
@@ -2845,8 +2818,7 @@ if tab_1.tabpage_3.dw_3.getnextmodified(0, primary!) > 0  then
 				destroy kuf1_web
 			end if
 		end if
-		
-	
+			
 	catch(uo_exception kuo_exception)
 		kst_esito = kuo_exception.get_st_esito()
 		k_errore = "1" + trim(kst_esito.sqlerrtext)
@@ -2891,6 +2863,14 @@ if tab_1.tabpage_4.dw_4.getnextmodified(0, primary!) > 0  then
 
 	loop
 
+end if
+
+//--- se Contatto allora deve avere una Qualifica
+if kst_tab_clienti.tipo = kiuf_clienti.kki_tipo_CONTATTO &
+				and (trim(kst_tab_clienti_mkt.qualifica) = "" or isnull(kst_tab_clienti_mkt.qualifica)) then
+	k_return = trim(k_return) +  tab_1.tabpage_1.text + ": Indicare la Qualifica per questo Contatto! " + kkg.acapo 
+	k_errore = "1"
+	k_nr_errori++
 end if
 
 destroy kuf1_ausiliari
@@ -3072,15 +3052,14 @@ protected subroutine inizializza_4 () throws uo_exception;////==================
 long k_codice, k_codice_5, k_rc
 string k_scelta, k_codice_prec
 int k_ctr=0
-datawindowchild kdwc_clienti_1, kdwc_clienti_2, kdwc_gru
 kuf_utility kuf1_utility
+datawindowchild kdwc_clienti_1, kdwc_clienti_2, kdwc_gru
 
 
 ki_selectedtab = 4
 
 k_codice = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")  
 k_scelta = trim(ki_st_open_w.flag_modalita)
-
 
 if k_codice = 0 then
 	tab_1.tabpage_5.dw_5.reset()
@@ -3116,14 +3095,14 @@ else
 		k_rc = kdwc_gru.settransobject(sqlca)
 		if kdwc_gru.rowcount() = 0 then
 			kdwc_gru.insertrow(1)
-		end if
-			
+		end if			
 	end if
 	
 //--- salvo i parametri cosi come sono stati immessi
 	k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
 	kuf1_utility = create kuf_utility
 	tab_1.tabpage_5.st_5_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	destroy kuf1_utility
 	
 	if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
 
@@ -3133,18 +3112,14 @@ else
 			end if
 		else
 			if ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione or ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione then
-			   kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_5.dw_5)
+			   tab_1.tabpage_5.dw_5.u_proteggi_dw("1", 0)
 			end if		
 		end if
 	end if
 
 	attiva_tasti()
-
 		
 end if
-
-
-
 	
 
 
@@ -3345,10 +3320,9 @@ long k_riga=0
 st_memo kst_memo
 st_open_w k_st_open_w
 datastore kds_1
-//kuf_menu_window kuf1_menu_window
-kuf_utility kuf1_utility
 kuf_memo kuf1_memo
 st_tab_clienti kst_tab_clienti
+
 
 try
 			
@@ -3411,8 +3385,7 @@ try
 
 			tab_1.tabpage_8.dw_8.ki_flag_modalita = kkg_flag_modalita.modifica
 			inizializza_7( )
-			
-			
+						
 	end choose
 	
 catch (uo_exception kuo_exception)
@@ -3438,8 +3411,8 @@ fontcharset fontcharset = ansi!
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_clienti
-integer width = 2999
-integer height = 5552
+integer width = 3200
+integer height = 1400
 end type
 
 on tab_1.create
@@ -3472,8 +3445,8 @@ end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 string text = " Anagrafica"
 string picturename = "cliente.gif"
 end type
@@ -3766,8 +3739,8 @@ end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 string text = " memo"
 string picturename = "Copy!"
 end type
@@ -3799,8 +3772,8 @@ end type
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 string text = " Marketing~r~n & Web"
 string picturename = "Custom073!"
@@ -3919,8 +3892,8 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 long backcolor = 32435950
 string text = " Contatti"
@@ -3966,8 +3939,8 @@ end type
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 long backcolor = 32435950
 string text = " Mandanti~r~n & Riceventi"
@@ -4025,8 +3998,8 @@ end type
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 string text = " Listino"
 string picturename = "FormatDollar!"
@@ -4046,16 +4019,77 @@ string dataobject = "d_clienti_listino_l"
 end type
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
+event u_resize_1 ( )
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 string text = " Movimenti ~r~n Magazzino"
 long tabbackcolor = 32896501
 string picturename = "ControlGraph!"
 string powertiptext = "Elenco Lotti movimentati dall~'anagrafica"
+wb_graph wb_graph
+st_orizzontal st_orizzontal
 end type
+
+event tabpage_7::u_resize_1();//
+	this.dw_7.move(0,0)
+
+	this.st_orizzontal.width = this.width
+	this.wb_graph.width = this.width
+
+	if not this.st_orizzontal.visible then // la prima volta
+		this.st_orizzontal.move(0, this.height * 0.66)
+		this.st_orizzontal.visible = true
+		this.wb_graph.visible = true
+
+	else
+
+		if this.PointerY() > (this.height * 0.90) then  // se tiro giù molto allora scompare la finestra di dettaglio
+			this.st_orizzontal.y = this.height - this.st_orizzontal.height
+			this.wb_graph.visible = false
+		else
+			this.wb_graph.visible = true
+		end if
+	end if
+	this.dw_7.resize(this.width, this.st_orizzontal.y - 2)
+
+	if this.wb_graph.visible then
+		this.wb_graph.move(0, this.st_orizzontal.y + this.st_orizzontal.height + 2 )
+		this.wb_graph.height = this.height - this.wb_graph.y - 2
+		this.wb_graph.event u_graph_show( )
+	end if
+	
+
+end event
+
+event tabpage_7::u_resize;/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	this.event u_resize_1()
+	
+end event
+
+on tabpage_7.create
+this.wb_graph=create wb_graph
+this.st_orizzontal=create st_orizzontal
+int iCurrent
+call super::create
+iCurrent=UpperBound(this.Control)
+this.Control[iCurrent+1]=this.wb_graph
+this.Control[iCurrent+2]=this.st_orizzontal
+end on
+
+on tabpage_7.destroy
+call super::destroy
+destroy(this.wb_graph)
+destroy(this.st_orizzontal)
+end on
 
 type st_7_retrieve from w_g_tab_3`st_7_retrieve within tabpage_7
 end type
@@ -4096,8 +4130,8 @@ end event
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 boolean visible = true
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 boolean enabled = true
 string text = "A.C.O.~r~nCto Deposito"
 string powertiptext = "Configura esportazione dati Registro Conto Deposito"
@@ -4160,8 +4194,8 @@ end event
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
 integer y = 176
-integer width = 2962
-integer height = 5360
+integer width = 3163
+integer height = 1208
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
@@ -4172,6 +4206,94 @@ end type
 
 type st_duplica from w_g_tab_3`st_duplica within w_clienti
 end type
+
+type wb_graph from uo_webbrowser within tabpage_7
+event u_graph_show ( )
+boolean visible = false
+integer x = 9
+integer y = 916
+boolean bringtotop = true
+boolean border = false
+string is_graph_name = "kgr_1"
+end type
+
+event u_graph_show();//
+String k_Option, k_data, k_title, k_cat_label
+
+			
+	k_title = tab_1.tabpage_7.dw_7.Describe(this.is_graph_name + ".Title") //.Dispattr.DisplayExpression")
+	this.of_SetTitle(k_title)
+	this.of_set_haxis_title(tab_1.tabpage_7.dw_7.Describe(this.is_graph_name + ".Category.label"))
+	this.of_set_vaxis_title(tab_1.tabpage_7.dw_7.Describe(this.is_graph_name + ".Value.label"))
+//Style
+	this.of_SetStyle("line")
+//Width
+	this.of_SetWidth(UnitsToPixels(this.width, XUnitsToPixels! ))//   750)
+//Height
+	this.of_SetHeight(UnitsToPixels(this.height, YUnitsToPixels! )) //400)
+
+	k_data = this.of_createdata_graph(tab_1.tabpage_7.dw_7)
+	this.of_setData(k_data)
+	
+//CreateOption
+	k_Option = this.of_createoption()
+	
+//SetOption
+	this.of_SetOption(k_Option)
+
+	this.of_apply_async( )
+
+end event
+
+type st_orizzontal from statictext within tabpage_7
+event mousemove pbm_mousemove
+event mouseup pbm_lbuttonup
+boolean visible = false
+integer x = 23
+integer y = 872
+integer width = 2359
+integer height = 36
+boolean bringtotop = true
+integer textsize = -8
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string pointer = "SizeNS!"
+long textcolor = 17900580
+long backcolor = 17900580
+boolean border = true
+long bordercolor = 17900580
+borderstyle borderstyle = styleraised!
+boolean focusrectangle = false
+end type
+
+event mousemove;//Check for move in progess
+If KeyDown(keyLeftButton!) Then
+	if Parent.PointerY() > parent.height / 10 then
+//		if Parent.PointerY() > (parent.height - (this.height * 10)) then  // se tiro giù molto allora scompare la finestra di dettaglio
+//			// mostra_nascondi_dw()
+//			this.y = 0
+//		else
+			This.y = Parent.PointerY()
+			parent.event u_resize_1( )
+//		end if
+	end if
+End If
+
+
+end event
+
+event mouseup;//
+parent.event u_resize_1( )
+
+end event
+
+event constructor;//
+	this.backcolor = parent.backcolor
+
+end event
 
 type dw_periodo from uo_dw_periodo within w_clienti
 integer x = 279

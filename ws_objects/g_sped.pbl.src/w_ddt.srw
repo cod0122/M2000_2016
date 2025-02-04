@@ -38,7 +38,7 @@ private kuf_clienti kiuf_clienti
 private kuf_prodotti kiuf_prodotti
 private kuf_ausiliari kiuf_ausiliari
 private kuf_barcode kiuf_barcode
-private kuf_utility kiuf_utility
+//private kuf_utility kiuf_utility
 
 
 private st_tab_sped kist_tab_sped, kist_tab_sped_orig
@@ -693,7 +693,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 				kguo_exception.inizializza()
 				kguo_exception.set_tipo( kguo_exception.KK_st_uo_exception_tipo_internal_bug )
 				kguo_exception.setmessage(  &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
+					"Attenzione è verificato un errore interno al programma. " + &
 					"(ID Documento cercato: " + string(kist_tab_sped_orig.id_sped) + ") " )
 				kguo_exception.messaggio_utente( )	
 				return ki_exitNow
@@ -710,8 +710,8 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 					kst_esito = kguo_exception.inizializza(this.classname())
 					kst_esito.esito = kkg_esito.not_fnd 
 					kst_esito.sqlerrtext = &
-						"Mi spiace ma il Documento cercato non e' in archivio ~n~r" + &
-						"(ID Documento cercato: " + string(kist_tab_sped_orig.id_sped) + ") " 
+						"Il Documento cercato non è in archivio " + &
+						"Id: " + string(kist_tab_sped_orig.id_sped) + " " 
 					u_message(kst_esito)
 //					kguo_exception.messaggio_utente( )	
 					//post close(this)
@@ -730,7 +730,7 @@ if tab_1.tabpage_1.dw_1.rowcount() = 0 then
 				//--- se sono entrato x cancellazione...				
 					ki_esci_dopo_cancella = true
 					tab_1.tabpage_1.dw_1.ki_flag_modalita = kkg_flag_modalita.cancellazione
-					kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+					tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 					cb_cancella.post event clicked( )
 				
 				else
@@ -770,7 +770,7 @@ end function
 protected function integer inserisci ();//
 int k_return=0
 st_tab_caus kst_tab_caus
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 
 
 //if ki_tab_1_index_new <> 1 then 
@@ -802,8 +802,7 @@ try
 			tab_1.tabpage_1.dw_1.insertrow(0)
 			
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-			kuf1_utility = create kuf_utility
-			kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 			
 			tab_1.tabpage_1.dw_1.setitem( 1, "k_competenza_dal",  ki_data_competenza)
 			tab_1.tabpage_1.dw_1.setitem( 1, "stampa", kiuf_sped.kki_sped_flg_stampa_bolla_da_stamp)
@@ -1075,7 +1074,7 @@ boolean k_attiva
 			m_main.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
 			
 			m_main.m_strumenti.m_fin_gest_libero1.enabled = k_attiva
-			m_main.m_strumenti.m_fin_gest_libero1.toolbaritemname = kGuo_path.get_risorse() + kkg.path_sep + "lotto16x16.gif"
+			m_main.m_strumenti.m_fin_gest_libero1.toolbaritemname =  "lotto16x16.gif"
 		end if
 
 		if m_main.m_strumenti.m_fin_gest_libero2.enabled <> k_attiva or ki_st_open_w.flag_primo_giro = "S" then 
@@ -1088,7 +1087,7 @@ boolean k_attiva
 			m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 			
 			m_main.m_strumenti.m_fin_gest_libero2.enabled = k_attiva
-			m_main.m_strumenti.m_fin_gest_libero2.toolbaritemname = kGuo_path.get_risorse() + kkg.path_sep + "lotto16x16_red.gif"
+			m_main.m_strumenti.m_fin_gest_libero2.toolbaritemname =  "lotto16x16_red.gif"
 		end if
 
 		if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione &
@@ -1107,7 +1106,7 @@ boolean k_attiva
 			m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 
 			m_main.m_strumenti.m_fin_gest_libero3.enabled = k_attiva
-			m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = kGuo_path.get_risorse() + kkg.path_sep + "find16.png"
+			m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName =  "find16.png"
 		end if
 
 		if tab_1.tabpage_1.dw_1.object.id_sped[1] > 0 then
@@ -1301,7 +1300,7 @@ protected subroutine inizializza_3 () throws uo_exception;//====================
 //string k_cadenza_fattura
 int k_rc, k_ctr //, k_nriga
 st_tab_sped kst_tab_sped, kst_tab_sped_prec
-kuf_utility kuf1_utility 
+//kuf_utility kuf1_utility 
 uo_exception kuo_exception
 
 if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
@@ -2530,23 +2529,22 @@ end subroutine
 private subroutine set_video_vett (st_tab_sped ast_tab_sped);//
 //--- Imposta i campi di Vettore
 //
-kuf_utility kuf1_utility
+//kuf_utility kuf1_utility
 
 
 if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica or trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.inserimento then
 
-	kuf1_utility = create kuf_utility
 	if ast_tab_sped.cura_trasp <> "V" then // se diverso da VETTORE allora protegge i campi
 		tab_1.tabpage_1.dw_1.setitem(1, "id_vettore", 0)
 		tab_1.tabpage_1.dw_1.setitem(1, "vett_1", " ")
 		tab_1.tabpage_1.dw_1.setitem(1, "vett_2", " ")
-		kuf1_utility.u_proteggi_dw("1", "id_vettore", tab_1.tabpage_1.dw_1)
-		kuf1_utility.u_proteggi_dw("1", "vett_1", tab_1.tabpage_1.dw_1)
-		kuf1_utility.u_proteggi_dw("1", "vett_2", tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "id_vettore")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "vett_1")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "vett_2")
 	else
-		kuf1_utility.u_proteggi_dw("0", "id_vettore", tab_1.tabpage_1.dw_1)
-		kuf1_utility.u_proteggi_dw("0", "vett_1", tab_1.tabpage_1.dw_1)
-		kuf1_utility.u_proteggi_dw("0", "vett_2", tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "id_vettore")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "vett_1")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "vett_2")
 	end if
 
 end if
@@ -3305,29 +3303,25 @@ st_esito kst_esito
 try 
 	SetPointer(kkg.pointer_attesa)
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 //--- posso modificare il documento?
 	if not kiuf_sped.if_modifica(kist_tab_sped) then
 		ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-		kst_esito = kguo_exception.inizializza(this.classname())
-		kst_esito.esito = kkg_esito.no_esecuzione 
-		kst_esito.sqlerrtext = &
-			"Attenzione, il DDT non può essere Modificato (ad esempio il lotto è già stato Chiuso). ~n~r" + &
-			"(ID Documento cercato:" + string(kist_tab_sped_orig.id_sped) + ") " 
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = &
+			"Attenzione, il DDT non può essere Modificato (ad esempio il lotto è già stato Chiuso). " + &
+			"(ID Documento: " + string(kist_tab_sped_orig.id_sped) + ") " 
 		throw kguo_exception
 	end if
 
 	//--- documento già STAMPATO allora ATTENZIONE alle Modifiche	!!!!!	
 	if kiuf_sped.if_stampato(kist_tab_sped) then
 		ki_alarm_todo_msg = false   // nel caso non espone il msg di alert
-		kst_esito = kguo_exception.inizializza(this.classname())
-		kst_esito.esito = kkg_esito.dati_wrn
-		kst_esito.sqlerrtext = &
-			"Attenzione, DDT già stato Stampato. La Modifica potrebbe comprometterne l'integrità. ~n~r" + &
-			"(ID Documento cercato:" + string(kist_tab_sped_orig.id_sped) + ") " 
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_generico
+		kguo_exception.kist_esito.sqlerrtext = &
+			"Attenzione, DDT già stato Stampato. La Modifica potrebbe comprometterne l'integrità. " + &
+			"(ID Documento: " + string(kist_tab_sped_orig.id_sped) + ") " 
 		throw kguo_exception
 	end if
 				 
@@ -3422,16 +3416,16 @@ datawindowchild kdwc_1, kdwc_2, kdwc_3
 	end if
 	
 	tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+	tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 	
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
 	//--- Inabilita alcuni campi alla modifica se giorno di inserimento più vecchio di 2 giorni
 		k_data2gg = relativedate(kguo_g.get_dataoggi( ), -2)
 		if kist_tab_sped_orig.data_bolla_out < k_data2gg then
-			kiuf_utility.u_proteggi_dw("1", "clie_2", tab_1.tabpage_1.dw_1)
-			kiuf_utility.u_proteggi_dw("1", "rag_soc_10", tab_1.tabpage_1.dw_1)
-			kiuf_utility.u_proteggi_dw("1", "p_iva", tab_1.tabpage_1.dw_1)
-			kiuf_utility.u_proteggi_dw("1", "cf", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "clie_2")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "rag_soc_10")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "p_iva")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "cf")
 		end if
 
 		u_popola_dwc( )
@@ -3583,7 +3577,6 @@ event u_open_preliminari;call super::u_open_preliminari;//
 	kiuf_report_merce_da_sped = create kuf_report_merce_da_sped
 	kiuf_sped_checkmappa = create kuf_sped_checkmappa
 	kiuf_barcode = create kuf_barcode
-	kiuf_utility = create kuf_utility
 	
 end event
 
@@ -3599,7 +3592,6 @@ event close;call super::close;//
 	if isvalid(kiuf_prodotti) then destroy kiuf_prodotti
 	if isvalid(kiuf_ausiliari) then destroy kiuf_ausiliari
 	if isvalid(kiuf_barcode) then destroy kiuf_barcode
-	if isvalid(kiuf_utility) then destroy kiuf_utility
 
 end event
 
@@ -3684,13 +3676,13 @@ end type
 
 event cb_inserisci::clicked;//
 //=== 
-string k_errore="0"
-string k_cod_art
-long k_cod_cli, k_mis_x, k_mis_y, k_mis_z
-double k_dose
-st_open_w k_st_open_w
-kuf_menu_window kuf1_menu_window
-kuf_utility kuf1_utility
+//string k_errore="0"
+//string k_cod_art
+//long k_cod_cli, k_mis_x, k_mis_y, k_mis_z
+//double k_dose
+//st_open_w k_st_open_w
+//kuf_menu_window kuf1_menu_window
+//kuf_utility kuf1_utility
 
 
 //=== Nuovo Rekord
@@ -3710,8 +3702,6 @@ kuf_utility kuf1_utility
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_ddt
-integer x = 0
-integer y = 0
 end type
 
 on tab_1.create
@@ -4150,7 +4140,7 @@ integer y = 1220
 end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
-event u_resize ( )
+event u_resize_1 ( boolean a_visible )
 boolean visible = true
 boolean enabled = true
 string text = "righe"
@@ -4159,11 +4149,58 @@ dw_riga_0 dw_riga_0
 st_orizzontal st_orizzontal
 end type
 
-event tabpage_4::u_resize();//---
+event tabpage_4::u_resize_1(boolean a_visible);//
 
-this.dw_riga_0.event u_resize(true)
+	this.dw_4.move(0, 0) 
+	//this.dw_4.y = 0 //5 
 
+	if not a_visible then
+		
+		this.st_orizzontal.visible = false
+		dw_riga_0.enabled = false
+		dw_riga_0.visible = false
 
+		this.dw_4.resize(this.width, this.height)
+		
+	else
+	
+		dw_riga_0.setredraw(false)
+
+//--- posizionamento della barra orizzontale
+		this.st_orizzontal.x = 0
+		this.st_orizzontal.height = 30
+		this.st_orizzontal.width = this.dw_4.width //kiw_dw_riga_0_window.WorkSpaceWidth() - kkg.scrollbarY_width
+		if this.st_orizzontal.y <= 0 then
+			this.st_orizzontal.y = this.height/3 - this.st_orizzontal.height 
+		end if
+		
+		dw_riga_0.y = this.st_orizzontal.y + this.st_orizzontal.height
+		dw_riga_0.x = 0 //this.st_orizzontal.x
+			
+		this.dw_4.height = this.st_orizzontal.y - this.dw_4.y 
+		dw_riga_0.height = this.height - this.st_orizzontal.y - this.st_orizzontal.height // kiw_dw_riga_0_window.WorkSpaceHeight() - kkg.scrollbarX_height - this.st_orizzontal.y - this.st_orizzontal.height 
+		this.dw_4.width = this.width
+		dw_riga_0.width = this.width
+		
+		dw_riga_0.enabled = true
+		dw_riga_0.visible = true
+		this.st_orizzontal.visible = true
+	
+		dw_riga_0.setredraw(true)
+	end if
+	
+end event
+
+on tabpage_4.destroy
+call super::destroy
+destroy(this.dw_riga_0)
+destroy(this.st_orizzontal)
+end on
+
+event tabpage_4::u_resize;//
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	this.event u_resize_1(false)
 
 end event
 
@@ -4175,12 +4212,6 @@ call super::create
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.dw_riga_0
 this.Control[iCurrent+2]=this.st_orizzontal
-end on
-
-on tabpage_4.destroy
-call super::destroy
-destroy(this.dw_riga_0)
-destroy(this.st_orizzontal)
 end on
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
@@ -4214,13 +4245,6 @@ else
 end if
 	
 	
-end event
-
-event dw_4::resize;call super::resize;//
-if tab_1.tabpage_4.dw_riga_0.visible then
-	tab_1.tabpage_4.dw_riga_0.event u_resize(true) //(newwidth, newheight)
-end if
-
 end event
 
 type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
@@ -4308,8 +4332,8 @@ event u_aggiungi ( )
 event u_modifica ( )
 event u_posiziona ( )
 event u_visualizza ( )
-event u_resize ( boolean a_visible )
-event u_resize_false ( )
+event u_resize_old ( boolean a_visible )
+event u_resize_false_old ( )
 integer x = 37
 integer y = 720
 integer taborder = 60
@@ -4380,7 +4404,7 @@ st_tab_meca kst_tab_meca
 					kst_tab_arsp.id_sped = tab_1.tabpage_4.dw_4.getitemnumber( k_riga_elenco, "id_sped")
 					riga_modifica_in_lista(k_riga_elenco, kst_tab_arsp, kst_tab_armo, kst_tab_prodotti, kst_tab_meca)  
 					//this.visible = false  // dopo la modifica Nascondo la DW
-					this.event u_resize(false) // dopo la modifica Nascondo la DW
+					parent.event u_resize_1(false) // dopo la modifica Nascondo la DW
 				end if					
 			else
 				
@@ -4391,7 +4415,7 @@ st_tab_meca kst_tab_meca
 				
 				riga_nuova_in_lista_1(kst_tab_arsp, kst_tab_armo, kst_tab_prodotti, kst_tab_meca)  
 	//			this.visible = false  // dopo la aggiunta Nascondo la DW
-				this.event u_resize(false) // dopo la modifica Nascondo la DW
+				parent.event u_resize_1(false) // dopo la modifica Nascondo la DW
 					
 			end if
 		end if
@@ -4421,7 +4445,7 @@ event u_aggiungi();//===========================================================
 	this.insertrow(0)
 
 	this.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-   kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_4.dw_riga_0)
+   tab_1.tabpage_4.dw_riga_0.u_proteggi_sproteggi_dw()
 
 	this.object.b_ok.visible = true 
 	this.object.b_esci.visible = true 
@@ -4442,11 +4466,11 @@ event u_modifica();//===========================================================
 	this.object.b_armo_note.enabled = true
 	
 	this.ki_flag_modalita = kkg_flag_modalita.modifica
-	kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_4.dw_riga_0)
+	tab_1.tabpage_4.dw_riga_0.u_proteggi_sproteggi_dw()
 	 
 //	this.insertrow(0)
 
-	this.event u_resize(true)
+	parent.event u_resize_1(true)
 	setredraw(true)
 	this.setfocus( )
 
@@ -4473,9 +4497,9 @@ event u_visualizza();//=========================================================
 	this.object.b_armo_note.enabled = false
 	
 	this.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-   kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_4.dw_riga_0)
+   tab_1.tabpage_4.dw_riga_0.u_proteggi_sproteggi_dw()
 	 
-	this.event u_resize(true)
+	parent.event u_resize_1(true)
 	
 	setredraw(true)
 	
@@ -4485,7 +4509,7 @@ event u_visualizza();//=========================================================
 
 end event
 
-event u_resize(boolean a_visible);//
+event u_resize_old(boolean a_visible);//
 
 
 	if not a_visible then
@@ -4526,10 +4550,10 @@ event u_resize(boolean a_visible);//
 	
 end event
 
-event u_resize_false();//
+event u_resize_false_old();//
 
 
-	this.event u_resize(false)
+	//this.event u_resize(false)
 	
 
 	
@@ -4633,7 +4657,7 @@ else
 		
 			if dwo.name = "b_esci" then
 				
-				event u_resize(false)
+				parent.event u_resize_1(false)
 			
 			end if
 		end if
@@ -4669,11 +4693,11 @@ event mousemove;//Check for move in progess
 If KeyDown(keyLeftButton!) Then
 	if Parent.PointerY() > parent.height / 10 then
 		if Parent.PointerY() > (parent.height - (this.height * 10)) then  // se tiro giù molto allora scompare la finestra di dettaglio
-			dw_riga_0.event u_resize(false)
+			parent.event u_resize_1(false)
 			this.y = 0
 		else
 			This.y = Parent.PointerY()
-			parent.event u_resize()
+			parent.event u_resize_1(true)
 		end if
 	end if
 End If
@@ -4682,7 +4706,7 @@ End If
 end event
 
 event mouseup;//
-parent.event u_resize()
+parent.event u_resize_1(true)
 
 end event
 

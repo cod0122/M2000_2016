@@ -40,7 +40,6 @@ Protected:
 kuf_memo kiuf_memo
 kuf_memo_utenti kiuf_memo_utenti
 kuf_clienti kiuf_clienti
-kuf_utility kiuf_utility
 
 st_tab_memo_utenti kist_tab_memo_utenti
 st_tab_memo kist_tab_memo
@@ -271,7 +270,7 @@ try
 				ki_id_memo_letto_proprieta = kst_tab_memo.id_memo
 				dw_mkt.retrieve(kst_tab_memo.id_memo)  // legge i dati di MKT
 				dw_mkt.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-				kiuf_utility.u_proteggi_sproteggi_dw(dw_mkt)
+				dw_mkt.u_proteggi_sproteggi_dw()
 			end if
 			
 			if NOT k_dw_web_sized_icon and ki_id_memo_letto_allegati <> kst_tab_memo.id_memo then
@@ -279,7 +278,7 @@ try
 				ki_id_memo_letto_allegati = kst_tab_memo.id_memo
 				dw_web.retrieve(kst_tab_memo.id_memo) // legge i dati WEB
 				dw_web.ki_flag_modalita = kkg_flag_modalita.visualizzazione
-				kiuf_utility.u_proteggi_sproteggi_dw(dw_web)
+				dw_web.u_proteggi_sproteggi_dw()
 			end if
 	
 		end if
@@ -434,9 +433,12 @@ st_profilestring_ini kst_profilestring_ini
 end subroutine
 
 protected subroutine open_start_window ();//
+long k_pos
+long kstart_pos = 1
+
+
 	kiuf_memo_utenti = create kuf_memo_utenti
 	kiuf_memo = create kuf_memo
-	kiuf_utility = create kuf_utility
 	kiuf_clienti = create kuf_clienti
 
 //--- param di input	
@@ -473,8 +475,6 @@ protected subroutine open_start_window ();//
 //	this.tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\" + "cliente.gif"
 
 //--- Funzione di TROVA: Salva la Query di Origine (devo pero' add il TILDE altrimenti quando ripristino non va bene!!!-------------
-	int k_pos
-	int kstart_pos = 1
 	
 	ki_sqlsyntax_origine = upper(dw_lista_0.Describe("DataWindow.Table.Select"))
 	// Aggiunge al APICE la TILDE ( ' con ~~')
@@ -566,8 +566,8 @@ public subroutine lancia_ricerca_valore (string k_par_valore);//---
 //--- Manipola la query aggiungendo la parte della WHERE
 //---
 string k_query,k_select_orig, k_select, k_order_by, k_select_new, k_rc
-int k_pos
-int kstart_pos = 1
+long k_pos
+long kstart_pos = 1
 string k_valore
 
 
@@ -1147,7 +1147,6 @@ salva_impostazioni()
 
 if isvalid(kiuf_memo) then destroy kiuf_memo
 if isvalid(kiuf_memo_utenti) then destroy  kiuf_memo_utenti
-if isvalid(kiuf_utility) then destroy kiuf_utility
 if isvalid(kiuf_clienti) then destroy kiuf_clienti
 
 end event
@@ -1250,7 +1249,7 @@ string k_titolo
 
 
 	if ki_xpl_SCELTA > 0 then
-		k_titolo = kiuf_utility.u_stringa_pulisci_x_msg( dw_xplistbar.of_getItem(ki_xpl_SCELTA) )
+		k_titolo = kgn_string.u_stringa_pulisci_x_msg( dw_xplistbar.of_getItem(ki_xpl_SCELTA) )
 		this.title = "ELENCO " + upper( k_titolo )
 	end if
 			

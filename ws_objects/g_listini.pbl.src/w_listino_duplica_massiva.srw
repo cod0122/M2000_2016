@@ -37,9 +37,10 @@ end type
 end forward
 
 global type w_listino_duplica_massiva from w_g_tab
-integer width = 3602
-integer height = 3036
+integer width = 3575
+integer height = 3012
 string title = "Duplica Listini"
+boolean resizable = false
 long backcolor = 67108864
 string icon = "RunReport5!"
 boolean ki_toolbar_window_presente = true
@@ -80,16 +81,16 @@ protected subroutine u_seleziona_tutti ()
 protected subroutine u_deseleziona_tutti ()
 protected subroutine smista_funz (string k_par_in)
 protected function string inizializza () throws uo_exception
-public function long esegui ()
 public subroutine elenco_esiti (boolean k_visibile)
 protected function string check_dati ()
 private subroutine popola_lista_da_st ()
 private subroutine popola_st_da_lista ()
 protected subroutine u_esegui ()
 public subroutine u_set_dw_documenti_prezzo_nuovo ()
-public function boolean u_get_prezzo_nuovo (ref double a_prezzo)
 private function long u_get_nr_da_dup ()
 public subroutine u_set_dw_documenti_reset ()
+public function boolean u_get_prezzo_nuovo (ref decimal a_prezzo)
+protected function long esegui ()
 end prototypes
 
 protected subroutine open_start_window ();//---
@@ -285,52 +286,6 @@ return "0"
 
 end function
 
-public function long esegui ();//
-//--- lancia l'operazione di inserimento Conferme Ordine e Listini  da  Contratto Commerciale
-//
-long k_return = 0
-long k_ctr=0, k_ctr_contratti_co=0, k_ctr_da_trasferire=0
-st_contratti_co_to_listini kst_contratti_co_to_listini
-st_tab_contratti_co kst_tab_contratti_co
-
-	
-	try 
-		
-//--- apri il LOG
-		kiuf_esito_operazioni = kiuf_listino_duplica_massiva.log_inizializza( )
-
-		
-		if this.rb_definitiva_si.checked then // è di simulazione?
-			k_ctr = messagebox("Operazione DEFINITIVA", "Proseguire con la Duplica di " + string(u_get_nr_da_dup()) + " Listini?", Question!, yesno!, 2)
-		else
-			k_ctr = 1  // simulazione non chiedo nulla
-		end if
-
-//--- se ho risposto OK 
-		if k_ctr = 1 then
-
-			u_esegui()
-			
-		else
-			kguo_exception.setmessage("Operazione interrotta dall'utente")
-			kguo_exception.messaggio_utente( )
-		end if		
-
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-
-	finally
-		kiuf_listino_duplica_massiva.log_destroy( )
-		
-		
-	end try
-
-
-return k_return
-
-
-end function
-
 public subroutine elenco_esiti (boolean k_visibile);//
 kuf_esito_operazioni kuf1_esito_operazioni
 datetime k_ts
@@ -523,6 +478,7 @@ try
 				dw_documenti.setitem(k_riga_ins,"prezzo_3", kst_tab_listino.prezzo_3)
 				dw_documenti.setitem(k_riga_ins,"cod_cli", kst_tab_listino.cod_cli)
 				dw_documenti.setitem(k_riga_ins,"cod_art", kst_tab_listino.cod_art)
+				dw_documenti.setitem(k_riga_ins,"e1litm", kst_tab_listino.e1litm)
 				dw_documenti.setitem(k_riga_ins,"contratto", kst_tab_listino.contratto)
 				dw_documenti.setitem(k_riga_ins,"attiva_listino_pregruppi", kst_tab_listino.attiva_listino_pregruppi)
 				dw_documenti.setitem(k_riga_ins,"dose", kst_tab_listino.dose)
@@ -815,9 +771,17 @@ try
 
 				kuo_exception.set_tipo(kuo_exception.kk_st_uo_exception_tipo_ok )
 				if k_nr_duplicati = 1 then
-					kuo_exception.setmessage(k_titolo, "Fine elaborazione, 1 Listino duplicato")
+					if this.rb_definitiva_si.checked then // è di simulazione?
+						kuo_exception.setmessage(k_titolo, "Fine elaborazione, 1 Listino duplicato")
+					else
+						kuo_exception.setmessage(k_titolo, "Simulazione Terminata, 1 Listino duplicato")
+					end if
 				else
-					kuo_exception.setmessage(k_titolo, "Fine elaborazione, " + string(k_nr_duplicati) + " Listini duplicati")
+					if this.rb_definitiva_si.checked then // è di simulazione?
+						kuo_exception.setmessage(k_titolo, "Fine elaborazione, " + string(k_nr_duplicati) + " Listini duplicati")
+					else
+						kuo_exception.setmessage(k_titolo, "Simulazione Terminata, " + string(k_nr_duplicati) + " Listini sarebbero stati duplicati")
+					end if
 				end if
 				kiuf_esito_operazioni.tb_add_riga("-----------> Elaborazione Terminata LISTINI duplicati: " + string(k_nr_duplicati) +" <-----------", false)
 			end if
@@ -869,11 +833,14 @@ public subroutine u_set_dw_documenti_prezzo_nuovo ();//
 //---- Calcola PREZZO simulato nuovo
 //
 string  k_rcx
-dec k_soglia_min = 0.00, k_soglia_max = 0.00, k_percento = 0.00, k_importo=0.00
-kuf_utility kuf1_utility
+dec{5} k_soglia_min = 0.00, k_soglia_max = 0.00, k_percento = 0.00, k_importo=0.00
 string k_percento_x
 string k_espressione = "if (prezzo > 0 "
+int k_yn
+kuf_utility kuf1_utility
 
+
+	kguo_exception.inizializza(this.classname())
 
 	kuf1_utility = create kuf_utility
 	
@@ -889,9 +856,24 @@ string k_espressione = "if (prezzo > 0 "
 	choose case dw_box.getitemstring( 1, "tipo")
 		case "P"
 			k_percento = dw_box.getitemnumber( 1, "percento")
+			k_yn = 1
+			if k_percento > 10.00 then
+				k_yn = messagebox("Attenzione", "Prego, confermare il " + string(k_percento, "#0.00") + "% di aumento dei Prezzi.", Question!, yesno!, 2)
+			else
+				if k_percento < -10.00 then
+					k_yn = messagebox("Attenzione", "Prego, confermare il " + string(k_percento, "#0.00") + "% di diminuzione dei Prezzi.", Question!, yesno!, 2)
+				end if
+			end if
+			if k_yn = 2 then
+				dw_box.post setitem( 1, "percento", 0.00)
+				dw_box.post setcolumn("percento")
+				kguo_exception.messaggio_utente("Modifica Massiva", "Operazione Interrotta dell'utente.")
+				return
+			end if
 			if k_percento <> 0 then
+				k_percento = (1.00 + k_percento / 100)       // / 100
 				k_percento_x = kuf1_utility.u_num_itatousa(string(k_percento))
-				k_espressione += ", prezzo * (1 + " + k_percento_x + "/100), 0) "
+				k_espressione += ", round(prezzo * " + k_percento_x + ",2), 0) "
 			end if
 		case "I"
 			k_importo = dw_box.getitemnumber( 1, "importo")
@@ -907,52 +889,6 @@ string k_espressione = "if (prezzo > 0 "
 	destroy kuf1_utility
 	
 end subroutine
-
-public function boolean u_get_prezzo_nuovo (ref double a_prezzo);//
-//--- Calcola PREZZO nuovo
-//--- inp: prezzo vecchio
-//--- out: prezzo nuovo
-//--- rit: TRUE = da elaborare; FALSE = non rientra nelle soglie
-//
-//
-boolean k_return = false
-double k_soglia_min = 0.00, k_soglia_max = 0.00, k_percento = 0.00, k_importo=0.00
-
-
-	k_soglia_min = dw_box.getitemnumber( 1, "soglia_min")
-	if k_soglia_min > 0 then
-	else
-		k_soglia_min = 0
-	end if
-	k_soglia_max = dw_box.getitemnumber( 1, "soglia_max")
-	if k_soglia_max > 0 then
-	else
-		k_soglia_max = 9999999.99
-	end if
-	
-	if a_prezzo >= k_soglia_min and a_prezzo <= k_soglia_max then
-		k_return = true
-		choose case dw_box.getitemstring( 1, "tipo")
-			case "P"
-				k_percento = dw_box.getitemnumber( 1, "percento")
-				if k_percento <> 0 then
-					a_prezzo = a_prezzo * (1 + k_percento/100)
-				end if
-			case "I"
-				k_importo = dw_box.getitemnumber( 1, "importo")
-				if k_importo <> 0 then
-					a_prezzo = k_importo
-				end if
-			case "N"
-				
-		end choose
-	end if
-	
-return k_return
-
-
-
-end function
 
 private function long u_get_nr_da_dup ();//
 //---
@@ -999,6 +935,99 @@ public subroutine u_set_dw_documenti_reset ();//
 
 
 end subroutine
+
+public function boolean u_get_prezzo_nuovo (ref decimal a_prezzo);//
+//--- Calcola PREZZO nuovo
+//--- inp: prezzo vecchio
+//--- out: prezzo nuovo
+//--- rit: TRUE = da elaborare; FALSE = non rientra nelle soglie
+//
+//
+boolean k_return = false
+decimal{5} k_soglia_min = 0.000, k_soglia_max = 0.000, k_percento = 0.000, k_importo=0.000
+
+
+	k_soglia_min = dw_box.getitemnumber( 1, "soglia_min")
+	if k_soglia_min > 0 then
+	else
+		k_soglia_min = 0
+	end if
+	k_soglia_max = dw_box.getitemnumber( 1, "soglia_max")
+	if k_soglia_max > 0 then
+	else
+		k_soglia_max = 9999999.99
+	end if
+	
+	if a_prezzo >= k_soglia_min and a_prezzo <= k_soglia_max then
+		k_return = true
+		choose case dw_box.getitemstring( 1, "tipo")
+			case "P"
+				k_percento = dw_box.getitemnumber( 1, "percento")
+				if k_percento <> 0 then
+					k_percento = (1 + k_percento/100)
+					a_prezzo = kguo_g.u_round_fixed(a_prezzo * k_percento, 2)
+				end if
+			case "I"
+				k_importo = dw_box.getitemnumber( 1, "importo")
+				if k_importo <> 0 then
+					a_prezzo = round(k_importo, 2)
+				end if
+			case "N"
+				
+		end choose
+	end if
+	
+return k_return
+
+
+
+end function
+
+protected function long esegui ();//
+//--- lancia l'operazione di inserimento Conferme Ordine e Listini  da  Contratto Commerciale
+//
+long k_return = 0
+long k_ctr=0, k_ctr_contratti_co=0, k_ctr_da_trasferire=0
+st_contratti_co_to_listini kst_contratti_co_to_listini
+st_tab_contratti_co kst_tab_contratti_co
+
+	
+	try 
+		
+//--- apri il LOG
+		kiuf_esito_operazioni = kiuf_listino_duplica_massiva.log_inizializza( )
+
+		
+		if this.rb_definitiva_si.checked then // è di simulazione?
+			k_ctr = messagebox("Operazione DEFINITIVA", "Proseguire con la Duplica di " + string(u_get_nr_da_dup()) + " Listini?", Question!, yesno!, 2)
+		else
+			k_ctr = 1  // simulazione non chiedo nulla
+		end if
+
+//--- se ho risposto OK 
+		if k_ctr = 1 then
+
+			u_esegui()
+			
+		else
+			kguo_exception.setmessage("Operazione interrotta dall'utente")
+			kguo_exception.messaggio_utente( )
+		end if		
+
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+
+	finally
+		kiuf_listino_duplica_massiva.log_destroy( )
+		
+		
+	end try
+
+
+return k_return
+
+
+end function
 
 on w_listino_duplica_massiva.create
 int iCurrent

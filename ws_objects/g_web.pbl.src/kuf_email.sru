@@ -32,7 +32,6 @@ end variables
 forward prototypes
 public function st_esito tb_delete (st_tab_email kst_tab_email)
 public function st_esito anteprima (datastore kdw_anteprima, st_tab_email kst_tab_email)
-public function st_esito get_oggetto (ref st_tab_email kst_tab_email)
 public function boolean if_presente (st_tab_email kst_tab_email) throws uo_exception
 public function boolean if_sintassi_email_ok (string kst_email)
 public function integer get_email_from_string (ref st_email_address ast_email_address) throws uo_exception
@@ -42,6 +41,8 @@ public subroutine if_isnull (ref st_tab_email kst_tab_email)
 public function string get_link_lettera (ref st_tab_email kst_tab_email) throws uo_exception
 public function string get_attached (ref st_tab_email kst_tab_email) throws uo_exception
 public function string get_riga (ref st_tab_email kst_tab_email) throws uo_exception
+public function string get_oggetto (ref st_tab_email kst_tab_email) throws uo_exception
+public function boolean if_presente_x_cod_funzione (string a_cod_funzione) throws uo_exception
 end prototypes
 
 public function st_esito tb_delete (st_tab_email kst_tab_email);//
@@ -195,82 +196,17 @@ return kst_esito
 
 end function
 
-public function st_esito get_oggetto (ref st_tab_email kst_tab_email);//
-//====================================================================
-//=== 
-//=== Leggo tabella e-mail per prendere il campo OGGETTO
-//=== 
-//=== input: st_tab_email con valorizzato il campo id_email
-//=== out: oggetto
-//=== Ritorna tab. ST_ESITO
-//=== 
-//====================================================================
-//
-st_esito kst_esito
-
-
-
-kst_esito = kguo_exception.inizializza(this.classname())
-
-if kst_tab_email.id_email > 0 then
-
-  SELECT
-         trim(email.oggetto),   
-         case
-				when trim(email.oggetto_lang) > ' ' then trim(email.oggetto_lang)
-				else trim(email.oggetto) 
-			end
-    INTO 
-         :kst_tab_email.oggetto 
-         ,:kst_tab_email.oggetto_lang
-    FROM email  
-	where email.id_email = :kst_tab_email.id_email
-	using sqlca;
-
-	if sqlca.sqlcode <> 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Fallita lettura tab. E-mail (oggetto) ~n~r" + trim(sqlca.SQLErrText)
-		if sqlca.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if sqlca.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-	end if
-else
-	kst_esito.esito = kkg_esito.no_esecuzione
-end if
-
-
-return kst_esito
-
-end function
-
-public function boolean if_presente (st_tab_email kst_tab_email) throws uo_exception;//
-//====================================================================
-//=== 
-//=== Presenza della riga e-mail per ID
-//=== 
-//=== input: st_tab_email con valorizzato il campo id_email
-//=== out: 
-//=== Ritorna: TRUE = presente
-//=== 
-//====================================================================
-//
-boolean k_return = false
+public function boolean if_presente (st_tab_email kst_tab_email) throws uo_exception;/*
+Presenza della riga e-mail per ID
+	inp: st_tab_email con valorizzato il campo id_email
+	out: 
+	rit: TRUE = presente
+*/
+boolean k_return
 string k_trovato = ""
-st_esito kst_esito
 
 
-
-kst_esito.esito = kkg_esito.ok
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kguo_exception.inizializza(this.classname())
 
 if kst_tab_email.id_email > 0 then
 	k_trovato = ""
@@ -282,18 +218,13 @@ if kst_tab_email.id_email > 0 then
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Fallita lettura tab. E-mail (presenza) ~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Fallita lettura tabella Configurazione e-mail, id " + string(kst_tab_email.id_email))		
 		throw kguo_exception
 	end if
 else
-	kst_esito.SQLErrText = "Manca id x lettura E-mail (presenza) ~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-	kst_esito.esito = kkg_esito.no_esecuzione
-	kguo_exception.inizializza( )
-	kguo_exception.set_esito(kst_esito)
+	kguo_exception.kist_esito.SQLErrText = "Manca id per leggere la Configurazione E-mail."
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 	throw kguo_exception
 end if
 
@@ -396,7 +327,7 @@ private function any u_get_email_array (ref string k_email_all);//
 //--- inp: stringa con tutte le email separate da un carattere tipo "," ";" ":"....
 //--- out: any = array con elenco email
 //
-int k_pos_start, k_pos_end, k_len, k_email_idx
+long k_pos_start, k_pos_end, k_len, k_email_idx
 string k_email_address[], k_email
 
 
@@ -452,6 +383,8 @@ if isnull(kst_tab_email.flg_lettera_html) then kst_tab_email.flg_lettera_html = 
 if isnull(kst_tab_email.flg_ritorno_ricev) then kst_tab_email.flg_ritorno_ricev = ""
 if isnull(kst_tab_email.flg_lettera_html) then kst_tab_email.flg_lettera_html = ""
 if isnull(kst_tab_email.email_di_ritorno) then kst_tab_email.email_di_ritorno = ""
+if isnull(kst_tab_email.invio_batch) then kst_tab_email.invio_batch = 0
+
 
 end subroutine
 
@@ -578,6 +511,10 @@ if kst_tab_email.id_email > 0 then
          trim(email.flg_ritorno_ricev),  
          trim(email.email_di_ritorno)  
          ,trim(coalesce(email.attached,''))
+         ,trim(coalesce(email.email_to,''))  
+         ,trim(coalesce(email.email_cc,''))  
+         ,trim(coalesce(email.email_ccn,''))  
+	      ,coalesce(email.invio_batch,0) invio_batch
     INTO :kst_tab_email.codice,   
          :kst_tab_email.stato,   
          :kst_tab_email.des,   
@@ -587,13 +524,17 @@ if kst_tab_email.id_email > 0 then
          :kst_tab_email.flg_lettera_html,   
          :kst_tab_email.flg_ritorno_ricev, 
 			:kst_tab_email.email_di_ritorno 
-			,:kst_tab_email.attached  
+		  ,:kst_tab_email.attached
+		  ,:kst_tab_email.email_to
+		  ,:kst_tab_email.email_cc
+		  ,:kst_tab_email.email_ccn
+		  ,:kst_tab_email.invio_batch
     FROM email  
 	where email.id_email = :kst_tab_email.id_email
 	using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallita lettura dati di configurazione E-mail Id '" + string(kst_tab_email.id_email) + "' (email)! ")
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallita lettura dati di Configurazione e-mail, id '" + string(kst_tab_email.id_email) + "' (email)! ")
 		throw kguo_exception
 	end if
 	
@@ -602,10 +543,87 @@ if kst_tab_email.id_email > 0 then
 	end if
 	
 else
-	kguo_exception.kist_esito.SQLErrText = "Lettura dati di configurazione E-mail (email) non eseguito, manca Id di configurazione email! "
+	kguo_exception.kist_esito.SQLErrText = "Lettura dati di Configurazione e-mail (email) non eseguito, manca id di configurazione email! "
 	kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
 	throw kguo_exception
 end if
+
+return k_return
+
+end function
+
+public function string get_oggetto (ref st_tab_email kst_tab_email) throws uo_exception;/*
+Leggo tabella e-mail per prendere il campo OGGETTO
+	inp: st_tab_emai.id_email
+	out: st_tab_email.oggetto e oggetto_lang
+	rit: Oggetto (in italiano)
+*/
+string k_return
+
+
+kguo_exception.inizializza(this.classname())
+
+if kst_tab_email.id_email > 0 then
+
+  SELECT
+         trim(isnull(email.oggetto,'')),   
+         case
+				when trim(email.oggetto_lang) > ' ' then trim(email.oggetto_lang)
+				else trim(isnull(email.oggetto,''))
+			end
+    INTO 
+         :kst_tab_email.oggetto 
+         ,:kst_tab_email.oggetto_lang
+    FROM email  
+	where email.id_email = :kst_tab_email.id_email
+	using sqlca;
+
+	if sqlca.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura Oggetto da tabella di Configurazione email, id " + string(kst_tab_email.id_email))		
+		throw kguo_exception
+	end if
+
+	if kst_tab_email.oggetto > " " then k_return = kst_tab_email.oggetto
+
+end if
+
+return k_return
+
+end function
+
+public function boolean if_presente_x_cod_funzione (string a_cod_funzione) throws uo_exception;/*
+Presenza della riga e-mail per ID
+	inp: st_tab_email con valorizzato il campo id_email
+	out: 
+	rit: TRUE = presente
+*/
+boolean k_return
+string k_trovato = ""
+
+
+kguo_exception.inizializza(this.classname())
+
+if a_cod_funzione > " " then
+	k_trovato = ""
+	SELECT distinct "1"
+	    INTO :k_trovato
+    		FROM email_funzioni inner join email on email_funzioni.id_email = email.id_email
+		where email_funzioni.cod_funzione = :a_cod_funzione
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Fallita lettura tabella Configurazione e-mail, codice " + trim(a_cod_funzione))		
+		throw kguo_exception
+	end if
+else
+	kguo_exception.kist_esito.SQLErrText = "Manca codice funzione per leggere la Configurazione e-mail."
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+	throw kguo_exception
+end if
+
+if k_trovato = "1" then k_return = true   // TROVATO!!!
 
 return k_return
 

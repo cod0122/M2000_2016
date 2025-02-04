@@ -44,7 +44,6 @@ string k_return="0 "
 string k_show_all
 long k_riga
 int k_importa = 0
-kuf_utility kuf1_utility
 st_tab_asdslpt kst_tab_asdslpt
 
 
@@ -95,10 +94,8 @@ st_tab_asdslpt kst_tab_asdslpt
 		end if		
 	end if
 
-	kuf1_utility = create kuf_utility
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-	destroy kuf1_utility
+	dw_dett_0.u_proteggi_sproteggi_dw()
 
 	setpointer(kkg.pointer_default)
 	

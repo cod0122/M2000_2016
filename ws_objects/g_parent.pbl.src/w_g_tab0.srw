@@ -262,9 +262,7 @@ st_open_w kst_open_w
 				ki_st_open_w.flag_modalita = kkg_flag_modalita.cancellazione
 		
 //--- Protezione campi per disabilitare la modifica 
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("1", 0, dw_dett_0)
-				destroy kuf1_utility
+				dw_dett_0.u_proteggi_dw("1", 0)
 
 			end if
 		end if		

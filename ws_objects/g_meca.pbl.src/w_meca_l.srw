@@ -652,7 +652,7 @@ end type
 event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//---
 boolean k_elabora, k_dato_valido
 string k_codice_x, k_numero_x, k_anno_x, k_cliente_x, k_msg
-int k_pos
+long k_pos
 long k_codice, k_rows, k_row
 st_esito kst_esito
 st_tab_armo kst_tab_armo

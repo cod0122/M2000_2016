@@ -379,7 +379,7 @@ private function boolean u_trova_in_lv ();//
 boolean k_return = false
 
 long k_riga,  k_righe_tot
-int k_nr_colonna, k_pos, k_ctr, k_ctr_1, k_rc
+long k_nr_colonna, k_pos, k_ctr, k_ctr_1, k_rc
 string  k_tipo_campo, k_cerca="", k_rigax, k_cerca_storico
 boolean k_extendedselect
 string k_find, k_nome_colonna="", k_valore_col

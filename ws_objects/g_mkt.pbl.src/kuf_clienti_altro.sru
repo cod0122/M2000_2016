@@ -10,7 +10,9 @@ global kuf_clienti_altro kuf_clienti_altro
 
 type variables
 //
-public constant integer kki_e1_asn_ehvr01_nrord_si = 1
+public:
+constant byte kki_e1_asn_ehvr01_nrord_si = 1
+constant byte kki_parzialecolli_warning_si = 1
 
 end variables
 
@@ -25,6 +27,8 @@ public function boolean u_aggiona (st_tab_clienti_altro kst_tab_clienti_altro) t
 public function boolean tb_delete (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
 public function integer get_e1_asn_ehvr01 (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
 public function boolean if_e1_asn_ehvr01_nrord_si (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
+public function boolean if_parzialecolli_warning_si (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
+public function integer get_parzialecolli_warning (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception
 end prototypes
 
 public subroutine _readme ();//
@@ -50,12 +54,14 @@ try
 	  
   	INSERT INTO clienti_altro  
 			( id_cliente,   
-			  e1_asn_ehvr01,   
+			  e1_asn_ehvr01, 
+			  parzialecolli_warning,
 			  x_datins,   
 			  x_utente)  
   		VALUES ( 
 			  :kst_tab_clienti_altro.id_cliente,   
 			  :kst_tab_clienti_altro.e1_asn_ehvr01,   
+			  :kst_tab_clienti_altro.parzialecolli_warning,
 			  :kst_tab_clienti_altro.x_datins,   
 			  :kst_tab_clienti_altro.x_utente )  
 		USING kguo_sqlca_db_magazzino;
@@ -132,6 +138,7 @@ try
   
 	update clienti_altro  
 	  set e1_asn_ehvr01 = :kst_tab_clienti_altro.e1_asn_ehvr01   
+		  ,parzialecolli_warning = :kst_tab_clienti_altro.parzialecolli_warning
 		  ,x_datins = :kst_tab_clienti_altro.x_datins
 		  ,x_utente = :kst_tab_clienti_altro.x_utente 
 		USING kguo_sqlca_db_magazzino;
@@ -173,6 +180,7 @@ public subroutine if_isnull (st_tab_clienti_altro kst_tab_clienti_altro);//---
 
 if isnull(kst_tab_clienti_altro.id_cliente) then kst_tab_clienti_altro.id_cliente = 0
 if isnull(kst_tab_clienti_altro.e1_asn_ehvr01) then kst_tab_clienti_altro.e1_asn_ehvr01 = 0
+if isnull(kst_tab_clienti_altro.parzialecolli_warning) then kst_tab_clienti_altro.parzialecolli_warning = 0
 
 end subroutine
 
@@ -234,13 +242,15 @@ try
 
 		if if_esiste(kst_tab_clienti_altro) then
 			
-			if kst_tab_clienti_altro.e1_asn_ehvr01 > 0 then
+			if kst_tab_clienti_altro.e1_asn_ehvr01 > 0 &
+					or kst_tab_clienti_altro.parzialecolli_warning > 0 then
 	  			k_return = tb_update(kst_tab_clienti_altro)
 			else
 				k_return = tb_delete(kst_tab_clienti_altro)
 			end if
 		else
-			if kst_tab_clienti_altro.e1_asn_ehvr01 > 0 then
+			if kst_tab_clienti_altro.e1_asn_ehvr01 > 0  &
+					or kst_tab_clienti_altro.parzialecolli_warning > 0 then
 	  			k_return = tb_add(kst_tab_clienti_altro)
 			end if
 		end if
@@ -309,20 +319,16 @@ return k_return
 
 end function
 
-public function integer get_e1_asn_ehvr01 (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;//
-//====================================================================
-//=== Legge e1_asn_ehvr01 (dato da passare a E1) in tabella clienti_altro 
-//=== 
-//=== Input: st_tab_clienti_altro.id_cliente
-//=== Out: st_tab_clienti_altro.e1_asn_ehvr01       
-//=== Ritorna: e1_asn_ehvr01  
-//=== 
-//====================================================================
-st_esito kst_esito
+public function integer get_e1_asn_ehvr01 (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;/*
+Legge e1_asn_ehvr01 (dato da passare a E1) in tabella clienti_altro 
+	Inp: st_tab_clienti_altro.id_cliente
+	Out: st_tab_clienti_altro.e1_asn_ehvr01       
+	Rit: e1_asn_ehvr01  
+*/
 int k_return = 0
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
   	SELECT
 		  e1_asn_ehvr01
@@ -332,20 +338,14 @@ int k_return = 0
         WHERE id_cliente = :kst_tab_clienti_altro.id_cliente
 		using kguo_sqlca_db_magazzino;
 
- if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in Lettura del tipo dati da passare a E1 in Altri dati Cliente codice " +string(kst_tab_clienti_altro.id_cliente) + "~n~r" + trim(sqlca.SQLErrText) 
-		kguo_exception.set_esito( kst_esito)
-		throw kguo_exception
-	end if
-else
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		if kst_tab_clienti_altro.e1_asn_ehvr01 > 0 then
-			k_return =  kst_tab_clienti_altro.e1_asn_ehvr01
-		end if
-	end if
+ if kguo_sqlca_db_magazzino.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				 "Errore in Lettura del Tipo dati da passare a E1 in tabella Altri dati del Cliente " +string(kst_tab_clienti_altro.id_cliente))
+	throw kguo_exception
+end if
+
+if kst_tab_clienti_altro.e1_asn_ehvr01 > 0 then
+	k_return =  kst_tab_clienti_altro.e1_asn_ehvr01
 end if
 
 
@@ -355,15 +355,12 @@ return k_return
 
 end function
 
-public function boolean if_e1_asn_ehvr01_nrord_si (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;//
-//------------------------------------------------------------------
-//--- Verifica se passare a E1 il 'Numero Ordine'
-//--- 
-//--- Input: st_tab_clienti_altro.id_cliente
-//--- Out:      
-//--- Ritorna: TRUE ok passare il numero ordine  
-//--- 
-//------------------------------------------------------------------
+public function boolean if_e1_asn_ehvr01_nrord_si (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;/*
+Verifica se passare a E1 il 'Numero Ordine'
+	Inp: st_tab_clienti_altro.id_cliente
+	Out:      
+	Rit: TRUE ok passare il numero ordine  
+*/
 boolean k_return
 
 
@@ -375,6 +372,62 @@ boolean k_return
 
 
 return k_return
+
+end function
+
+public function boolean if_parzialecolli_warning_si (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;/*
+Verifica se passare Attivo Avviso per Lotti con pallet Parziali
+	Inp: st_tab_clienti_altro.id_cliente
+	Out:      
+	Rit: TRUE ok passare il numero ordine  
+*/
+boolean k_return
+
+
+	get_parzialecolli_warning(kst_tab_clienti_altro)
+
+	if kst_tab_clienti_altro.parzialecolli_warning = kki_parzialecolli_warning_si then
+		k_return = true
+	end if
+
+
+return k_return
+
+end function
+
+public function integer get_parzialecolli_warning (ref st_tab_clienti_altro kst_tab_clienti_altro) throws uo_exception;/*
+Legge parzialecolli_warning Attiva Avviso Lotto con pallet Parziali in tabella clienti_altro 
+	Inp: st_tab_clienti_altro.id_cliente
+	Out: st_tab_clienti_altro.parzialecolli_warning       
+	Rit: e1_asn_ehvr01  
+*/
+int k_return = 0
+
+
+	kguo_exception.inizializza(this.classname())
+
+  	SELECT
+		  parzialecolli_warning
+    INTO 
+	 	  :kst_tab_clienti_altro.parzialecolli_warning
+        FROM clienti_altro
+        WHERE id_cliente = :kst_tab_clienti_altro.id_cliente
+		using kguo_sqlca_db_magazzino;
+
+ if kguo_sqlca_db_magazzino.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				 "Errore in Lettura dell'attivazione di Avviso Lotto con pallet Parziali in tabella Altri dati del Cliente " +string(kst_tab_clienti_altro.id_cliente))
+	throw kguo_exception
+end if
+
+if kst_tab_clienti_altro.parzialecolli_warning > 0 then
+	k_return = kst_tab_clienti_altro.parzialecolli_warning
+end if
+
+
+return k_return
+
+
 
 end function
 

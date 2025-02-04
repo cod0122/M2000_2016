@@ -602,6 +602,7 @@ end function
 public function string prendi_path_corrente_da_registro ();//
 string k_return, k_file, k_ext 
 int k_nrc
+long k_pos
 
 
 
@@ -620,8 +621,10 @@ int k_nrc
 //--- Chiave non trovata
 	if k_nrc < 0 or LenA(trim(k_return)) > 0 then
 		
-		k_nrc = Pos(kki_nome_profile_base,  kkg.path_sep, 1)
-		k_file = Replace (kki_nome_profile_base, k_nrc, 1, " ")
+		k_pos = Pos(kki_nome_profile_base,  kkg.path_sep, 1)
+		if k_pos > 0 then
+			k_file = Replace (kki_nome_profile_base, k_pos, 1, " ")
+		end if
 		k_file = trim(k_file)
 		
 		do 
@@ -1748,11 +1751,7 @@ kuf_file_explorer kuf1_file_explorer
 //=== Puntatore Cursore da attesa.....
 //oldpointer = SetPointer(HourGlass!)
 
-	
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_utility = create kuf_utility
 	kuf1_file_explorer = create kuf_file_explorer
@@ -2077,7 +2076,7 @@ public subroutine u_set_ds_change_name_tab (ref datastore kds_1, string k_nome_t
 //--------------------------------------------------------------------------------------
 //
 //
-int k_rc, k_ctr
+long k_rc, k_ctr
 string k_sql_orig, k_string, k_stringn
 	
 	try
@@ -2161,7 +2160,7 @@ private function string u_change_nometab_xutente_1 (string k_nome_tab, string k_
 //--------------------------------------------------------------------------------------
 //
 //
-int k_rc, k_ctr1, k_ctr2
+long k_rc, k_ctr1, k_ctr2
 string k_return
 	
 	try
@@ -2224,7 +2223,7 @@ private subroutine u_set_ds_change_name_tab_1 (ref datawindow kdw_1, string k_no
 //--------------------------------------------------------------------------------------
 //
 //
-int k_rc, k_ctr
+long k_rc, k_ctr
 string k_sql_orig, k_string, k_stringn
 	
 	try

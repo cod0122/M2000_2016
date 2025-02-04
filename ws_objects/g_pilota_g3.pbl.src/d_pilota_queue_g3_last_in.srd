@@ -18,9 +18,8 @@ table(column=(type=long updatewhereclause=yes key=yes name=ordine dbname="queue_
           , coalesce(giri, 0) giri
           , Codice_Lavorazione codice_lavorazione
          FROM queue_table 
-		where ordine = 
-            (select max(Ordine)
-                   from queue_table)
+		  order by Ordine desc
+     limit 1
 " update="queue_table" updatewhere=0 updatekeyinplace=no )
 text(band=header alignment="2" text="Ordine
 " border="0" color="0" x="9" y="4" height="112" width="229" html.valueishtml="0"  name=ordine_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )

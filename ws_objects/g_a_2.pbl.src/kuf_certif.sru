@@ -2442,7 +2442,7 @@ public function long get_id_da_nome (string a_nome_file);//
 //---
 long k_return
 string k_idx
-int k_ctr_id, k_ctr_pdf
+long k_ctr_id, k_ctr_pdf
 
 
 	if left(a_nome_file,3) = "att" then
@@ -2478,7 +2478,7 @@ public function long get_num_certif_da_nome (string a_nome_file);//
 //---
 long k_return
 string k_idx
-int k_ctr_num, k_ctr_end
+long k_ctr_num, k_ctr_end
 
 
 	if left(a_nome_file,3) = "att" then

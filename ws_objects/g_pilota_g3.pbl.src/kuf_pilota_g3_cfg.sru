@@ -29,6 +29,7 @@ public subroutine if_isnull (ref st_tab_pilota_g3_cfg kst_tab_pilota_g3_cfg)
 private function boolean set_blocca_conn (st_tab_pilota_g3_cfg kst_tab_pilota_g3_cfg) throws uo_exception
 public function boolean get_pilota_g3_cfg (ref st_tab_pilota_g3_cfg ast_tab_pilota_g3_cfg) throws uo_exception
 public function boolean if_conn_bloccata (st_tab_pilota_g3_cfg ast_tab_pilota_g3_cfg) throws uo_exception
+public subroutine _readme ()
 end prototypes
 
 public function boolean set_blocco_conn_no () throws uo_exception;//--- Sblocca Importazione
@@ -437,6 +438,29 @@ end try
 return k_return
 
 end function
+
+public subroutine _readme ();/*
+tabella WIP 
+  colonna: StatusCode
+      il '>>' indica gli stati relativi ai giri multipli:
+
+    101: in arresto sulla stazione di carico
+    102: carico in corso
+    103: carico completato, in attesa della stazione di misura
+    201: stazione di misura superata
+    401: in arresto sulla stazione di scarico
+    402: scarico in corso
+    403: scarico completato
+    112: scaricato prima di completare il trattamento per un problema di dimensioni o di peso
+  >>  420: in passaggio senza arresto sulla stazione di scarico
+  >>  421: completato passaggio senza arresto sulla stazione di scarico
+  >>  120: in passaggio senza arresto sulla stazione di carico
+  >>  121: completato passaggio senza arresto sulla stazione di carico
+	 
+  colonna: Giri
+    ad esempio il valore 2 nella tabella WIP indica che è il pallet è arrivato per due volte sulla stazione di scarico	 
+*/	 
+end subroutine
 
 on kuf_pilota_g3_cfg.create
 call super::create

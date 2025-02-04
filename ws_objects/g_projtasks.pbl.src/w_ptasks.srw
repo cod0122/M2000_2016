@@ -27,7 +27,7 @@ private st_tab_ptasks_rows kist_tab_ptasks_rows
 private kuf_ptasks kiuf_ptasks
 
 private kuf_ptasks_rows kiuf_ptasks_rows
-private kuf_utility kiuf_utility
+//private kuf_utility kiuf_utility
 private kuf_armo kiuf_armo
 
 private datastore kids_1
@@ -71,12 +71,13 @@ private function integer u_dw_1_inizializza () throws uo_exception
 private subroutine u_protegge_sprotegge_dw ()
 private subroutine u_aggiorna () throws uo_exception
 public function long u_get_cs_invoicen ()
-public subroutine u_stampa_mod ()
 public subroutine u_stampa_mod_invoice (long a_row)
 public subroutine u_stampa_mod_laboratorio (long a_row)
 protected subroutine attiva_tasti_0 ()
 protected function integer cancella ()
 public function long u_cancella_attivita ()
+private subroutine u_stampa_mod ()
+public subroutine u_stampa_label_dsv ()
 end prototypes
 
 protected subroutine u_resize_1 ();//
@@ -161,7 +162,6 @@ protected subroutine u_resize_1 ();//
 end subroutine
 
 protected subroutine open_start_window ();//
-	kiuf_utility = create kuf_utility
 	kiuf_ptasks = create kuf_ptasks
 	kiuf_ptasks_rows = create kuf_ptasks_rows
 	kiuf_armo = create kuf_armo
@@ -317,14 +317,14 @@ try
 //--- Aggiunge una riga al data windows
 	choose case ki_tab_1_index_new 
 		case  1
-			this.setredraw(false)
+			this.setredraw(false) 
 	
 			u_tab_1_tabpage_dw_reset( )
 			
 			tab_1.tabpage_1.dw_1.insertrow(0)
 			
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-			kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 
 			this.setredraw(true)
 
@@ -549,7 +549,7 @@ int k_rows
 	end if
 	
 	tab_1.tabpage_2.dw_2.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kiuf_utility.u_proteggi_sproteggi_dw_no_protect(tab_1.tabpage_2.dw_2)
+	tab_1.tabpage_2.dw_2.u_proteggi_sproteggi_dw_no_protect()
 	
 
 end subroutine
@@ -772,7 +772,7 @@ if tab_1.tabpage_3.dw_3.ki_flag_modalita = kkg_flag_modalita.modifica &
 end if
 	
 tab_1.tabpage_3.dw_3.ki_flag_modalita = ki_st_open_w.flag_modalita
-kiuf_utility.u_proteggi_sproteggi_dw_no_protect(tab_1.tabpage_3.dw_3)
+tab_1.tabpage_3.dw_3.u_proteggi_sproteggi_dw_no_protect()
 
 
 end subroutine
@@ -1026,7 +1026,7 @@ if tab_1.tabpage_4.dw_4.rowcount() = 0 then
 end if	
 
 tab_1.tabpage_4.dw_4.ki_flag_modalita = ki_st_open_w.flag_modalita
-kiuf_utility.u_proteggi_sproteggi_dw_no_protect(tab_1.tabpage_4.dw_4)
+tab_1.tabpage_4.dw_4.u_proteggi_sproteggi_dw_no_protect()
 
 end subroutine
 
@@ -1148,7 +1148,7 @@ if tab_1.tabpage_5.dw_5.rowcount() = 0 then
 end if	
 
 tab_1.tabpage_5.dw_5.ki_flag_modalita = ki_st_open_w.flag_modalita
-kiuf_utility.u_proteggi_sproteggi_dw_no_protect(tab_1.tabpage_5.dw_5)
+tab_1.tabpage_5.dw_5.u_proteggi_sproteggi_dw_no_protect()
 
 end subroutine
 
@@ -1298,7 +1298,6 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 	
 finally
-//	kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_7.dw_7)
 	SetPointer(kkg.pointer_default)
 	
 end try
@@ -1425,7 +1424,6 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 	
 finally
-//	kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_9.dw_9)
 	SetPointer(kkg.pointer_default)
 	
 end try
@@ -1437,6 +1435,18 @@ end function
 protected subroutine attiva_menu ();//
 //--- Attiva/Dis. Voci di menu personalizzate
 //
+	m_main.m_strumenti.m_fin_gest_libero6.text = "Stampa etichette Dose di Verifica (DSV)"
+	m_main.m_strumenti.m_fin_gest_libero6.microhelp = m_main.m_strumenti.m_fin_gest_libero6.text
+	m_main.m_strumenti.m_fin_gest_libero6.visible = true
+	if tab_1.tabpage_1.dw_task.Find("task = 'DSV'", 1, tab_1.tabpage_1.dw_task.RowCount()) > 0 then
+		m_main.m_strumenti.m_fin_gest_libero6.enabled = true
+	else
+		m_main.m_strumenti.m_fin_gest_libero6.enabled = false
+	end if
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemVisible = true
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemText = "Etich," + m_main.m_strumenti.m_fin_gest_libero6.text
+	m_main.m_strumenti.m_fin_gest_libero6.toolbaritemName = "label14.png"
+
 	m_main.m_strumenti.m_fin_gest_libero9.text = "Stampa Moduli Laboratorio e Fatture (Invoice)"
 	m_main.m_strumenti.m_fin_gest_libero9.microhelp = "Stampa Moduli Laboratorio e Fatture (Invoice)"
 	m_main.m_strumenti.m_fin_gest_libero9.visible = true
@@ -1446,9 +1456,8 @@ protected subroutine attiva_menu ();//
 		m_main.m_strumenti.m_fin_gest_libero9.enabled = false
 	end if
 	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemVisible = true
-	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemText = "Moduli,"+m_main.m_strumenti.m_fin_gest_libero9.text
+	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemText = "Moduli," + m_main.m_strumenti.m_fin_gest_libero9.text
 	m_main.m_strumenti.m_fin_gest_libero9.toolbaritemName = "printa16.png"
-
 		
 if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.visualizzazione then
 	if tab_1.selectedtab > 1 and tab_1.selectedtab < 6 then
@@ -1473,6 +1482,9 @@ public subroutine smista_funz (string k_par_in);//===
 
 
 choose case k_par_in 
+
+	case KKG_FLAG_RICHIESTA.libero6	//stampa etichette Dose di verifica
+		u_stampa_label_dsv( )
 
 	case KKG_FLAG_RICHIESTA.libero9	//stampa modulo Laboratorio
 		u_stampa_mod( )
@@ -1587,7 +1599,7 @@ st_esito kst_esito
 				//--- se sono entrato x cancellazione...				
 					ki_esci_dopo_cancella = true
 					tab_1.tabpage_1.dw_1.ki_flag_modalita = kkg_flag_modalita.cancellazione
-					kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+					tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 					tab_1.tabpage_1.dw_1.visible = true
 					cancella()
 				
@@ -1637,14 +1649,14 @@ private subroutine u_protegge_sprotegge_dw ();//
 	end if
 
 	tab_1.tabpage_1.dw_1.ki_flag_modalita = ki_st_open_w.flag_modalita
-	kiuf_utility.u_proteggi_sproteggi_dw(tab_1.tabpage_1.dw_1)
+	tab_1.tabpage_1.dw_1.u_proteggi_sproteggi_dw()
 
 //--- Inabilita alcuni campi alla modifica se Funzione MODIFICA
 	if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
 		
-		kiuf_utility.u_proteggi_dw("1", "id_ptasks_types_grp", tab_1.tabpage_1.dw_1)
-		kiuf_utility.u_proteggi_dw("1", "rag_soc_10", tab_1.tabpage_1.dw_1)
-		kiuf_utility.u_proteggi_dw("1", "id_cliente", tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "id_ptasks_types_grp")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "rag_soc_10")
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "id_cliente")
 		
 		tab_1.tabpage_1.dw_1.event u_ddwc( )
 	end if
@@ -1660,9 +1672,9 @@ private subroutine u_protegge_sprotegge_dw ();//
 //	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
 //			or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 		if ki_status_enable then
-			kiuf_utility.u_proteggi_dw("0", "status", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "status")
 		else
-			kiuf_utility.u_proteggi_dw("1", "status", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "status")
 		end if
 //	end if
 
@@ -1871,52 +1883,6 @@ end try
 	
 return k_return	
 end function
-
-public subroutine u_stampa_mod ();//
-string k_tipo
-int k_rc, k_row
-
-
-try
-
-	SetPointer(kkg.pointer_attesa)
-	if tab_1.tabpage_9.dw_9.rowcount( ) = 1 then
-		tab_1.tabpage_9.dw_9.selectrow(1, true)
-		tab_1.tabpage_9.dw_9.setrow(1)
-	end if
-	k_row = tab_1.tabpage_9.dw_9.getselectedrow(0)
-	if k_row = 0 then
-		messagebox("Stampa Modulo", "Selezionare almeno una riga dall'elenco")
-	end if
-	do while k_row > 0
-	
-		k_tipo = tab_1.tabpage_9.dw_9.getitemstring(k_row, "k_tipo_modulo")
-		if k_tipo = "INVOICE" then
-
-			u_stampa_mod_invoice(k_row)
-
-		else
-			
-			u_stampa_mod_laboratorio(k_row)
-			
-		end if
-
-		if tab_1.tabpage_4.dw_4.rowcount( ) > 0 then
-			tab_1.tabpage_4.dw_4.ReselectRow(1)
-		end if
-		tab_1.tabpage_9.dw_9.ReselectRow(k_row)
-		
-		k_row = tab_1.tabpage_9.dw_9.getselectedrow(k_row)
-	loop
-	
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-	
-end try
-
-
-
-end subroutine
 
 public subroutine u_stampa_mod_invoice (long a_row);//
 //long k_num_riga, k_riga
@@ -2144,6 +2110,92 @@ return k_return
 
 end function
 
+private subroutine u_stampa_mod ();//
+string k_tipo
+int k_rc, k_row
+
+
+try
+
+	SetPointer(kkg.pointer_attesa)
+	if tab_1.tabpage_9.dw_9.rowcount( ) = 1 then
+		tab_1.tabpage_9.dw_9.selectrow(1, true)
+		tab_1.tabpage_9.dw_9.setrow(1)
+	end if
+	k_row = tab_1.tabpage_9.dw_9.getselectedrow(0)
+	if k_row = 0 then
+		messagebox("Stampa Modulo", "Selezionare almeno una riga dall'elenco")
+	end if
+	do while k_row > 0
+	
+		k_tipo = tab_1.tabpage_9.dw_9.getitemstring(k_row, "k_tipo_modulo")
+		if k_tipo = "INVOICE" then
+
+			u_stampa_mod_invoice(k_row)
+
+		else
+			
+			u_stampa_mod_laboratorio(k_row)
+			
+		end if
+
+		if tab_1.tabpage_4.dw_4.rowcount( ) > 0 then
+			tab_1.tabpage_4.dw_4.ReselectRow(1)
+		end if
+		tab_1.tabpage_9.dw_9.ReselectRow(k_row)
+		
+		k_row = tab_1.tabpage_9.dw_9.getselectedrow(k_row)
+	loop
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+end try
+
+
+
+end subroutine
+
+public subroutine u_stampa_label_dsv ();//
+string k_stampa
+int k_rc
+st_tab_ptasks_rows kst_tab_ptasks_rows
+st_stampe kst_stampe
+
+
+try
+
+	SetPointer(kkg.pointer_attesa)
+	kst_tab_ptasks_rows.id_ptask = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_ptask")
+	kst_tab_ptasks_rows.valid_proddescr = tab_1.tabpage_4.dw_4.getitemstring(1, "validation_proddescr")
+	if kst_tab_ptasks_rows.valid_proddescr > " " then
+	else
+		kst_tab_ptasks_rows.valid_proddescr = "*non indicato*"
+	end if
+	k_stampa = "Etichette DSV '" + kst_tab_ptasks_rows.valid_proddescr + "'" &
+				+ " id " + string(kst_tab_ptasks_rows.id_ptask) + " " 
+
+	if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
+	kst_stampe.ds_print.reset( )
+	kst_stampe.ds_print.dataobject = "d_ptasks_label"
+	kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
+	k_rc = kst_stampe.ds_print.retrieve(kst_tab_ptasks_rows.id_ptask)
+	if k_rc > 0 then
+		kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta
+		kst_stampe.titolo = trim(k_stampa)
+		kGuf_data_base.stampa_dw(kst_stampe)
+		kst_stampe.titolo = trim(k_stampa)
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+end try
+
+
+
+end subroutine
+
 on w_ptasks.create
 int iCurrent
 call super::create
@@ -2157,7 +2209,6 @@ end on
 event close;call super::close;//
 	if isvalid(kiuf_ptasks) then destroy kuf_ptasks
 	if isvalid(kiuf_ptasks_rows) then destroy kuf_ptasks_rows
-	if isvalid(kiuf_utility) then destroy kiuf_utility
 	if isvalid(kiuf_armo) then destroy kiuf_armo
 
 end event
@@ -2229,8 +2280,6 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_ptasks
-integer x = 0
-integer y = 0
 end type
 
 on tab_1.create

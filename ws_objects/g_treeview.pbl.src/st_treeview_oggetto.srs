@@ -180,12 +180,15 @@ global type st_treeview_oggetto from structure
 	string		pklist_da_imp
 	string		pklist_tutti
 	string		pklist_anno_mese
+	string		pklist_dett_anno_mese
 	string		pklist_dett_da_imp
 	string		pklist_dett
 	string		pklist_righe
 	string		pklist_wm
 	string		pklist_wm_da_imp
 	string		pklist_wm_da_web_dett
+	string		pklist_camion
+	string		pklist_dett_camion
 	string		file_root
 	string		file_dett
 end type

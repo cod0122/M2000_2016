@@ -33,6 +33,8 @@ type m_statistichegenerico from menu within m_ottimizzadb
 end type
 type m_generaemailavvisilotti from menu within m_ottimizzadb
 end type
+type m_generaemailavvisipltparziali from menu within m_ottimizzadb
+end type
 type m_emailprontomerce from menu within m_ottimizzadb
 end type
 type m_emailattestati0 from menu within m_ottimizzadb
@@ -64,6 +66,7 @@ m_generadatawarehouse m_generadatawarehouse
 m_generatabtempimedigiriimpianto m_generatabtempimedigiriimpianto
 m_statistichegenerico m_statistichegenerico
 m_generaemailavvisilotti m_generaemailavvisilotti
+m_generaemailavvisipltparziali m_generaemailavvisipltparziali
 m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
@@ -359,6 +362,8 @@ m_lista_riceventi m_lista_riceventi
 m_lista_fatturati m_lista_fatturati
 m_lista_legami m_lista_legami
 end type
+type m_rubricaemail from menu within m_archivi
+end type
 type m_articoli from menu within m_archivi
 end type
 type m_sd_md from menu within m_archivi
@@ -432,6 +437,7 @@ type m_codabarre from menu within m_archivi
 end type
 type m_archivi from menu within m_main
 m_anagrafiche m_anagrafiche
+m_rubricaemail m_rubricaemail
 m_articoli m_articoli
 m_sd_md m_sd_md
 m_a_t1 m_a_t1
@@ -1569,7 +1575,7 @@ end type
 
 on m_file.create
 call super::create
-this.text = "M&2000"
+this.text = "&M2000"
 this.microhelp = "Proprietà della Procedura"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
@@ -2073,6 +2079,7 @@ m_generadatawarehouse m_generadatawarehouse
 m_generatabtempimedigiriimpianto m_generatabtempimedigiriimpianto
 m_statistichegenerico m_statistichegenerico
 m_generaemailavvisilotti m_generaemailavvisilotti
+m_generaemailavvisipltparziali m_generaemailavvisipltparziali
 m_emailprontomerce m_emailprontomerce
 m_emailattestati0 m_emailattestati0
 m_emailinviobatch m_emailinviobatch
@@ -2109,6 +2116,7 @@ this.m_generadatawarehouse=create m_generadatawarehouse
 this.m_generatabtempimedigiriimpianto=create m_generatabtempimedigiriimpianto
 this.m_statistichegenerico=create m_statistichegenerico
 this.m_generaemailavvisilotti=create m_generaemailavvisilotti
+this.m_generaemailavvisipltparziali=create m_generaemailavvisipltparziali
 this.m_emailprontomerce=create m_emailprontomerce
 this.m_emailattestati0=create m_emailattestati0
 this.m_emailinviobatch=create m_emailinviobatch
@@ -2126,6 +2134,7 @@ this.Item[UpperBound(this.Item)+1]=this.m_generadatawarehouse
 this.Item[UpperBound(this.Item)+1]=this.m_generatabtempimedigiriimpianto
 this.Item[UpperBound(this.Item)+1]=this.m_statistichegenerico
 this.Item[UpperBound(this.Item)+1]=this.m_generaemailavvisilotti
+this.Item[UpperBound(this.Item)+1]=this.m_generaemailavvisipltparziali
 this.Item[UpperBound(this.Item)+1]=this.m_emailprontomerce
 this.Item[UpperBound(this.Item)+1]=this.m_emailattestati0
 this.Item[UpperBound(this.Item)+1]=this.m_emailinviobatch
@@ -2147,6 +2156,7 @@ destroy(this.m_generadatawarehouse)
 destroy(this.m_generatabtempimedigiriimpianto)
 destroy(this.m_statistichegenerico)
 destroy(this.m_generaemailavvisilotti)
+destroy(this.m_generaemailavvisipltparziali)
 destroy(this.m_emailprontomerce)
 destroy(this.m_emailattestati0)
 destroy(this.m_emailinviobatch)
@@ -2380,7 +2390,7 @@ try
 	kuf1_alarm_instock = create kuf_alarm_instock
 	kuf1_email_invio = create kuf_email_invio
 
-	if messagebox ("Genera Avvisi email", &
+	if messagebox ("Genera Avvisi email Oltre Giacenza", &
 						"L'operazione genera le email per i Lotti in giacenza come indicato in 'Avviso Lotti in Giacenza'~n~r" &
 						+ "ATTENZIONE, non chiudere l'applicativo fino al termine dell'operazione." &
 						+" ~n~r" &
@@ -2388,9 +2398,9 @@ try
 						 ,question!, YesNo!, 2) = 1 then
 		SetPointer(kkg.pointer_attesa)
 		kst_esito = kuf1_alarm_instock.u_batch_run( )
-		messagebox ("Operazione Conlusa", &
-					"Avvisi email per Lotti in giacenza. " &
-					+ "Esito:~n~r" &
+		messagebox ("Operazione Avvisi email Oltre Giacenza", &
+					"Operazione conclusa. " &
+					+ kkg.acapo &
 					+ trim(kst_esito.sqlerrtext) &
 					 ,Information!) 
 	
@@ -2431,7 +2441,7 @@ end event
 on m_generaemailavvisilotti.create
 call super::create
 this.text = "Email Avvisi Lotti oltre Giacenza"
-this.microhelp = "genera email per Lotti in giacenza oltre al periodo previsto e invia in automatico le email se previsto"
+this.microhelp = "Genera email per Lotti in giacenza oltre al periodo previsto e le invia se previsto in automatico"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -2448,6 +2458,85 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_generaemailavvisilotti.destroy
+call super::destroy
+end on
+
+type m_generaemailavvisipltparziali from menu within m_ottimizzadb
+end type
+
+event clicked;//
+st_esito kst_esito
+kuf_alarm_pltparz_email kuf1_alarm_pltparz_email
+kuf_email_invio kuf1_email_invio
+
+
+try
+	kuf1_alarm_pltparz_email = create kuf_alarm_pltparz_email
+	kuf1_email_invio = create kuf_email_invio
+
+	if messagebox ("Genera Avvisi email Lotti Parziali", &
+						"L'operazione genera le email per i Lotti con pallet Parziali. " &
+						+ kkg.acapo + "Almeno un avviso nell'anno oppure sempre se è indicato sul Cliente " &
+						+ kkg.acapo + "ATTENZIONE, non chiudere l'applicativo fino al termine dell'operazione." &
+						+ kkg.acapo + "Vuoi procedere con l'esecuzione?" &
+						 ,question!, YesNo!, 2) = 1 then
+		SetPointer(kkg.pointer_attesa)
+		kst_esito = kuf1_alarm_pltparz_email.u_batch_run( )
+		messagebox ("Operazione conclusa", "Avvisi email per Lotti con pallet Parziali. " &
+						+ kkg.acapo + trim(kst_esito.sqlerrtext) &
+					 	,Information!) 
+	
+	end if
+
+	SetPointer(kkg.pointer_default)
+	if messagebox ("Invio email", &
+						"Invio in automatico le email ancora da inviare. " &
+						+ kkg.acapo + "ATTENZIONE, non chiudere l'applicativo fino al termine dell'operazione." &
+						+ kkg.acapo + "Vuoi procedere con l'esecuzione? " &
+						 ,question!, YesNo!, 2) = 1 then
+		SetPointer(kkg.pointer_attesa)
+		kst_esito = kuf1_email_invio.u_batch_run( )
+		messagebox ("Operazione Conlusa", "Invio email in automatico. " &
+						+ "Esito: " + kkg.acapo + trim(kst_esito.sqlerrtext) &
+					 	,Information!) 
+	
+	end if
+
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+
+finally
+	SetPointer(kkg.pointer_default)
+	destroy kuf1_alarm_pltparz_email
+	destroy kuf1_email_invio
+
+end try
+
+setpointer(kkg.pointer_default)
+
+end event
+
+on m_generaemailavvisipltparziali.create
+call super::create
+this.text = "Email Avvisi Lotti Parziali"
+this.microhelp = "Genera email per Lotti con pallet parziali e le invia in automatico se previsto"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_generaemailavvisipltparziali.destroy
 call super::destroy
 end on
 
@@ -2470,11 +2559,9 @@ try
 						 ,question!, YesNo!, 2) = 1 then
 		SetPointer(kkg.pointer_attesa)
 		kst_esito = kuf1_meca_ptmerce.u_batch_run( )
-		messagebox ("Operazione Conlusa", &
+		messagebox ("Operazione Conclusa", &
 					"Avvisi email per Pronto Merce. " &
-					+ "Esito:~n~r" &
-					+ trim(kst_esito.sqlerrtext) &
-					 ,Information!) 
+					+ kkg.acapo + trim(kst_esito.sqlerrtext), Information!) 
 	
 	end if
 
@@ -3887,7 +3974,7 @@ end type
 
 on m_magazzino.create
 call super::create
-this.text = "&Magazzino"
+this.text = "Ma&gazzino"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -4044,7 +4131,7 @@ call super::create
 this.tag = "treeview"
 this.text = "Navigatore "
 this.microhelp = "Esplora Lotti"
-this.toolbaritemname = "treeviewmain16.png"
+this.toolbaritemname = "TreeView!"
 this.toolbaritemtext = "Naviga,Navigatore"
 this.toolbaritemorder = 1
 this.menuimage = "TreeView!"
@@ -5412,6 +5499,7 @@ event clicked;//
 	K_st_open_w.key2 = " " //
 	K_st_open_w.key3 = ""
 	K_st_open_w.key4 = kuf1_email_funzioni.kki_cod_funzione_prontomerce
+	K_st_open_w.key5 = ""
 	
 	kGuf_menu_window.open_w_tabelle(k_st_open_w)
 								
@@ -5536,7 +5624,7 @@ event clicked;//
 	K_st_open_w.key2 = " " //
 	K_st_open_w.key3 = ""
 	K_st_open_w.key4 = kuf1_email_funzioni.kki_cod_funzione_fatturasiallegati
-	K_st_open_w.key5 = " " // 
+	K_st_open_w.key5 = kuf1_email_funzioni.kki_cod_funzione_fatturanoallegati 
 	K_st_open_w.key6 = " " // 
 	K_st_open_w.flag_where = " "
 	
@@ -5601,7 +5689,7 @@ event clicked;//
 	K_st_open_w.key2 = " " //
 	K_st_open_w.key3 = ""
 	K_st_open_w.key4 = kuf1_email_funzioni.kki_cod_funzione_avvGiacenzaLotti
-	K_st_open_w.key5 = " " // 
+	K_st_open_w.key5 = kuf1_email_funzioni.kki_cod_funzione_avvlottopltparziale
 	K_st_open_w.key6 = " " // 
 	K_st_open_w.flag_where = " "
 	
@@ -7735,6 +7823,7 @@ end on
 
 type m_archivi from menu within m_main
 m_anagrafiche m_anagrafiche
+m_rubricaemail m_rubricaemail
 m_articoli m_articoli
 m_sd_md m_sd_md
 m_a_t1 m_a_t1
@@ -7769,7 +7858,7 @@ end type
 
 on m_archivi.create
 call super::create
-this.text = "Arc&hivi"
+this.text = "A&rchivi"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736
@@ -7785,6 +7874,7 @@ this.toolbartextcolor = 134217746
 this.toolbarbackcolor = 10789024
 this.toolbarhighlightcolor = 10789024
 this.m_anagrafiche=create m_anagrafiche
+this.m_rubricaemail=create m_rubricaemail
 this.m_articoli=create m_articoli
 this.m_sd_md=create m_sd_md
 this.m_a_t1=create m_a_t1
@@ -7816,6 +7906,7 @@ this.m_-=create m_-
 this.m_opf=create m_opf
 this.m_codabarre=create m_codabarre
 this.Item[UpperBound(this.Item)+1]=this.m_anagrafiche
+this.Item[UpperBound(this.Item)+1]=this.m_rubricaemail
 this.Item[UpperBound(this.Item)+1]=this.m_articoli
 this.Item[UpperBound(this.Item)+1]=this.m_sd_md
 this.Item[UpperBound(this.Item)+1]=this.m_a_t1
@@ -7851,6 +7942,7 @@ end on
 on m_archivi.destroy
 call super::destroy
 destroy(this.m_anagrafiche)
+destroy(this.m_rubricaemail)
 destroy(this.m_articoli)
 destroy(this.m_sd_md)
 destroy(this.m_a_t1)
@@ -8218,6 +8310,57 @@ this.toolbarhighlightcolor = 10789024
 end on
 
 on m_lista_legami.destroy
+call super::destroy
+end on
+
+type m_rubricaemail from menu within m_archivi
+end type
+
+event clicked;//
+kuf_email_invio kuf1_email_invio
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	kuf1_email_invio = create kuf_email_invio
+	
+	kuf1_email_invio.link_call("email_rubrica")	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_email_invio) then destroy kuf1_email_invio
+
+end try
+
+end event
+
+on m_rubricaemail.create
+call super::create
+this.tag = "cll"
+this.text = "Rubrica email"
+this.microhelp = "Elenco email interne e delle anagrafiche"
+this.menuimage = "rubrica13.png"
+this.menustyle = contemporarymenu!
+this.menubackcolor = 12632256
+this.menuhighlightcolor = 8388736
+this.textsize = -10
+this.weight = 400
+this.facename = "Verdana"
+this.titlebackcolor = 12632256
+this.bitmapbackcolor = 12632256
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 10789024
+this.toolbarhighlightcolor = 10789024
+end on
+
+on m_rubricaemail.destroy
 call super::destroy
 end on
 
@@ -9941,7 +10084,7 @@ end type
 
 on m_finestra.create
 call super::create
-this.text = "&Finestra"
+this.text = "Fi&nestra"
 this.microhelp = "Esegue operazioni nella finestra in cui si sta operando "
 this.toolbaritemvisible = false
 this.menustyle = contemporarymenu!

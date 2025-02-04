@@ -123,7 +123,7 @@ end event
 public subroutine aggiungi_voce ();//
 //--- aggiunge una voce
 //
-int k_ind, k_pos 
+long k_ind, k_pos 
 
 check_voci() // cancella voci zombie
 

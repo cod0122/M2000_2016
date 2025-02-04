@@ -182,7 +182,6 @@ end function
 protected function integer visualizza ();//
 int k_return, k_rc
 long k_key
-kuf_utility kuf1_utility
 
 
 	k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), "id_asddevice")
@@ -192,19 +191,16 @@ kuf_utility kuf1_utility
 	k_return = dw_dett_0.retrieve( k_key ) 
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-	kuf1_utility = create kuf_utility
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	dw_asdrackcode.ki_flag_modalita = ki_st_open_w.flag_modalita
 	dw_asdrackcode.retrieve( k_key ) 
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_asdrackcode)
+   dw_asdrackcode.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 
 	dw_dett_0.SetColumn(2)
-
-	destroy kuf1_utility
 
 return k_return
 
@@ -298,7 +294,6 @@ end function
 private function integer modifica ();//
 int k_return, k_rc
 long k_key
-kuf_utility kuf1_utility
 
 
 	k_key = dw_lista_0.getitemnumber(dw_lista_0.getrow(), "id_asddevice")
@@ -308,20 +303,17 @@ kuf_utility kuf1_utility
 	k_return = dw_dett_0.retrieve( k_key ) 
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-	kuf1_utility = create kuf_utility
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 //--- elenco RACK code
 	dw_asdrackcode.ki_flag_modalita = ki_st_open_w.flag_modalita
 	k_rc = dw_asdrackcode.retrieve( k_key ) 
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_asdrackcode)
+   dw_asdrackcode.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 
 	dw_dett_0.SetColumn(2)
-
-	destroy kuf1_utility
 
 return k_return
 
@@ -386,7 +378,6 @@ public function boolean u_duplica () throws uo_exception;//
 //
 int k_return, k_rc
 long k_key
-kuf_utility kuf1_utility
 
 
 try
@@ -403,16 +394,13 @@ try
 	dw_dett_0.setitemstatus(1, 0, primary!, newmodified!)
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-	kuf1_utility = create kuf_utility
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita 
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 //--- elenco RACK code
 	dw_asdrackcode.ki_flag_modalita = ki_st_open_w.flag_modalita
 	k_rc = dw_asdrackcode.reset( )
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_asdrackcode)
-
-	destroy kuf1_utility
+   dw_asdrackcode.u_proteggi_sproteggi_dw()
 
 	ki_resize_dw_dett = true
 	u_resize()
@@ -1046,5 +1034,10 @@ end choose
 end event
 
 event doubleclicked;//
+end event
+
+event editchanged;call super::editchanged;//
+if u_dati_modificati( ) then attiva_tasti( )
+
 end event
 

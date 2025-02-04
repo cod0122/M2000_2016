@@ -15,8 +15,8 @@ end type
 end forward
 
 global type w_meca_1 from w_g_tab_3
-integer width = 2976
-integer height = 1616
+integer width = 3086
+integer height = 2188
 string title = "Lotto"
 long backcolor = 67108864
 boolean ki_toolbar_window_presente = true
@@ -2727,6 +2727,8 @@ inserisci( )
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_meca_1
+integer width = 2944
+integer height = 1932
 end type
 
 on tab_1.create
@@ -2757,6 +2759,8 @@ end if
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
+integer width = 2907
+integer height = 1804
 long backcolor = 67108864
 string text = " Lotto"
 long tabbackcolor = 67108864
@@ -2910,6 +2914,8 @@ type st_1_retrieve from w_g_tab_3`st_1_retrieve within tabpage_1
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
+integer width = 2907
+integer height = 1804
 long backcolor = 67108864
 string text = " righe "
 long tabbackcolor = 67108864
@@ -2929,6 +2935,8 @@ end type
 
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
+integer width = 2907
+integer height = 1804
 boolean enabled = true
 string text = " Barcode"
 string picturename = "barcode.BMP"
@@ -2945,6 +2953,8 @@ type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
 end type
 
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
+integer width = 2907
+integer height = 1804
 string text = "Voci aperte"
 string picturename = "IncrementalBuildTarget!"
 string powertiptext = "Ulteriori voci di costo aperte caricate "
@@ -2960,6 +2970,8 @@ type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
 
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
+integer width = 2907
+integer height = 1804
 string text = "Voci Prezzi"
 string picturename = "carrello16.png"
 string powertiptext = "Voci prezzi lotto in fattura"
@@ -2977,6 +2989,8 @@ end type
 
 type tabpage_6 from w_g_tab_3`tabpage_6 within tab_1
 boolean visible = true
+integer width = 2907
+integer height = 1804
 boolean enabled = true
 string text = " Memo"
 string picturename = "Copy!"
@@ -3009,6 +3023,8 @@ end event
 
 type tabpage_7 from w_g_tab_3`tabpage_7 within tab_1
 boolean visible = true
+integer width = 2907
+integer height = 1804
 boolean enabled = true
 string text = "E1-ASN"
 string picturename = "e1Lotto.png"
@@ -3027,6 +3043,8 @@ end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
 boolean visible = true
+integer width = 2907
+integer height = 1804
 boolean enabled = true
 string text = "E1-dati"
 string picturename = "e1Lotto.png"
@@ -3050,6 +3068,8 @@ boolean ki_dw_visibile_in_open_window = false
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1
+integer width = 2907
+integer height = 1804
 end type
 
 type st_9_retrieve from w_g_tab_3`st_9_retrieve within tabpage_9
@@ -3066,7 +3086,8 @@ event ue_inizializza ( readonly st_tab_armo kst_tab_armo,  string k_flag_modalit
 event ue_nuovo ( st_tab_armo kst_tab_armo )
 event ue_aggiorna ( ) throws uo_exception
 event type integer ue_dati_modif ( )
-integer y = 96
+integer x = 123
+integer y = 992
 integer width = 2757
 integer taborder = 60
 boolean bringtotop = true
@@ -3387,8 +3408,8 @@ st_tab_armo kst_tab_armo
 if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 	if k_visibile then
 	
-		this.x = (parent.width - this.width) / 2
-		this.y = (parent.height - this.height ) / 3
+		this.x = parent.width/2 - this.width / 2
+		this.y = parent.height/3 - this.height / 3
 		
 		kst_tab_armo.id_armo = this.getitemnumber( 1, "id_armo")
 		kst_tab_armo.num_int = this.getitemnumber( 1, "num_int")
@@ -3494,8 +3515,8 @@ SetPointer(kp_oldpointer)
 end event
 
 type dw_cambia_numero from uo_d_std_1 within w_meca_1
-integer x = 69
-integer y = 568
+integer x = 942
+integer y = 368
 integer width = 1893
 integer height = 604
 integer taborder = 60
@@ -3570,8 +3591,8 @@ end try
 end event
 
 type dw_cambia_aperto from uo_d_std_1 within w_meca_1
-integer x = 1458
-integer y = 48
+integer x = 1253
+integer y = 528
 integer width = 1317
 integer height = 740
 integer taborder = 60
@@ -3621,8 +3642,8 @@ end event
 
 type dw_print_barcode from uo_d_std_1 within w_meca_1
 event u_display ( boolean a_visible )
-integer x = 366
-integer y = 196
+integer x = 389
+integer y = 596
 integer width = 1509
 integer height = 652
 integer taborder = 70
@@ -3666,8 +3687,8 @@ end event
 
 type dw_rigenera_dosimetri from uo_d_std_1 within w_meca_1
 event u_display ( boolean a_visible )
-integer x = 1033
-integer y = 400
+integer x = 1138
+integer y = 760
 integer width = 1751
 integer height = 1036
 integer taborder = 80

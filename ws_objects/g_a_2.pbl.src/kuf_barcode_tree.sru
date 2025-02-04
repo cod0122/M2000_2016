@@ -435,9 +435,10 @@ listviewitem klvi_listviewitem
 st_profilestring_ini kst_profilestring_ini
 kuf_barcode kuf1_barcode
 kuf_armo kuf1_armo
+kuf_impianto kuf1_impianto
 
 
-
+SetPointer(kkg.pointer_attesa)
 
 k_query_select = &
 			"	SELECT " + &
@@ -459,6 +460,7 @@ k_query_select = &
 			"  meca.clie_3, 	  "       + &
 			"	meca.num_bolla_in,    " + &
 			"	meca.data_bolla_in,	 " + &
+			"	meca.impianto,		 " + &
 			"	meca.contratto,		 " + &
 			"	contratti.mc_co,		 " + &
 			"	contratti.sc_cf,      " + &
@@ -568,6 +570,9 @@ k_query_select = &
 			k_align[k_ind] = left!
 			k_ind++
 			k_campo[k_ind] = "Magazzino"
+			k_align[k_ind] = left!
+			k_ind++
+			k_campo[k_ind] = "Impianto"
 			k_align[k_ind] = left!
 			k_ind++
 			k_campo[k_ind] = "Dimensioni"
@@ -765,6 +770,7 @@ k_query_select = &
 		
 		if sqlca.sqlcode = 0 then
 			
+			kuf1_impianto = create kuf_impianto
 			kuf1_barcode = create kuf_barcode
 			
 			fetch kc_listview 
@@ -787,6 +793,7 @@ k_query_select = &
 					 ,:kst_tab_meca.clie_3  
 					 ,:kst_tab_meca.num_bolla_in 
 					 ,:kst_tab_meca.data_bolla_in 
+					 ,:kst_tab_meca.impianto
 					 ,:kst_tab_contratti.codice
 					 ,:kst_tab_contratti.mc_co
 					 ,:kst_tab_contratti.sc_cf
@@ -863,7 +870,7 @@ k_query_select = &
 				else
 					k_barcode += " (" + left(trim(kst_tab_barcode.barcode), 3) + ") " 
 				end if
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 1, k_barcode)
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 1, k_barcode)
 				
 
 				if kst_tab_barcode.groupage = "S" then
@@ -906,7 +913,7 @@ k_query_select = &
 						k_stato_barcode = "Sospeso il " + string(kst_tab_barcode.data_sosp, "dd.mm.yy") + " * " + trim(k_stato_barcode)
 					end if
 				end if
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 2, k_stato_barcode)
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 2, k_stato_barcode)
 
 				choose case kst_tab_armo.magazzino
 					case kuf1_armo.kki_magazzino_DATRATTARE
@@ -916,51 +923,54 @@ k_query_select = &
 					case kuf1_armo.kki_magazzino_RD
 						k_stato_magazzino =  "Studio & Sviluppo"
 				end choose
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 3, k_stato_magazzino)
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 3, k_stato_magazzino)
+
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 4, trim(kuf1_impianto.get_descr(kst_tab_meca.impianto)))
 
 				if isnull(kst_tab_armo.alt_2) then kst_tab_armo.alt_2 = 0
 				if isnull(kst_tab_armo.lung_2) then kst_tab_armo.lung_2 = 0
 				if isnull(kst_tab_armo.larg_2) then kst_tab_armo.larg_2 = 0
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 4, string(kst_tab_armo.alt_2, "###0") &
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 5, string(kst_tab_armo.alt_2, "###0") &
 				                  + "x" + string(kst_tab_armo.lung_2, "###0")  &
 				                  + "x" + string(kst_tab_armo.larg_2, "###0"))
 				
 				if isnull(kst_tab_armo.dose) then kst_tab_armo.dose = 0
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 5, string(kst_tab_armo.dose, "#,##0.00"))
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 6, string(kst_tab_armo.dose, "#,##0.00"))
+				
 				if isnull(kst_tab_armo.peso_kg) then kst_tab_armo.peso_kg = 0
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 6, string(kst_tab_armo.peso_kg, "##,##0.00"))
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 7, string(kst_tab_armo.peso_kg, "##,##0.00"))
 
 				if kst_tab_barcode.lav_fila_1 > 0 or kst_tab_barcode.lav_fila_1p > 0 then
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 7, string(kst_tab_barcode.lav_fila_1, "##0") + " - " &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 8, string(kst_tab_barcode.lav_fila_1, "##0") + " - " &
 			                          + string(kst_tab_barcode.lav_fila_1p, "##0"))
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 7, string(kst_tab_barcode.fila_1, "##0") + " - " &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 8, string(kst_tab_barcode.fila_1, "##0") + " - " &
 			                          + string(kst_tab_barcode.fila_1p, "##0"))
 				end if
 
 				if kst_tab_barcode.lav_fila_2 > 0 or kst_tab_barcode.lav_fila_2p > 0 then
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_barcode.lav_fila_2, "##0") + " - " &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 9, string(kst_tab_barcode.lav_fila_2, "##0") + " - " &
 				                          + string(kst_tab_barcode.lav_fila_2p, "##0"))
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 8, string(kst_tab_barcode.fila_2, "##0") + " - " &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 9, string(kst_tab_barcode.fila_2, "##0") + " - " &
 				                          + string(kst_tab_barcode.fila_2p, "##0"))
 				end if
 
 				if kst_tab_barcode.g3lav_ngiri > 0 then
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, string(kst_tab_barcode.g3lav_ngiri, "##0"))
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 10, string(kst_tab_barcode.g3lav_ngiri, "##0"))
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 9, "")
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 10, "")
 				end if
 				
 				if len(trim(kst_tab_sl_pt.cod_sl_pt)) > 0 then
 					if isnull(kst_tab_sl_pt.descr) then kst_tab_sl_pt.descr = " "
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, trim(kst_tab_sl_pt.cod_sl_pt) &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 11, trim(kst_tab_sl_pt.cod_sl_pt) &
 										 + " " + trim(kst_tab_sl_pt.descr))
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 10, "---")
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 11, "---")
 				end if
 
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, 11, string(kst_tab_barcode.data_int , "dd/mm/yy") + string(kst_tab_barcode.num_int , "  ####0"))
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 12, string(kst_tab_barcode.data_int , "dd/mm/yy") + string(kst_tab_barcode.num_int , "  ####0"))
 				
 				if isnull(kst_tab_contratti.codice) then kst_tab_contratti.codice = 0
 				if isnull(kst_tab_contratti.sc_cf) then kst_tab_contratti.sc_cf = "NO   "
@@ -969,7 +979,7 @@ k_query_select = &
 				
 				if kst_tab_meca.clie_3 <> kst_tab_meca.clie_2 then
 					
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 12, &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 13, &
 										   "cap.: " + trim(kst_tab_contratti.sc_cf) &
 										 + "  comm.: " + trim(kst_tab_contratti.mc_co) &
 										 + "  cliente: " + string(kst_tab_meca.clie_3, "#####") &
@@ -981,7 +991,7 @@ k_query_select = &
 										 + "  contratto: " + string(kst_tab_contratti.codice, "#####") & 
 										 + "  " + trim(kst_tab_contratti.descr) )
 				else
-					kuf1_treeview.kilv_lv1.setitem(k_ctr, 12, &
+					kuf1_treeview.u_kilv_lv1_setitem(k_ctr, 13, &
 										   "cap.: " + trim(kst_tab_contratti.sc_cf) &
 										 + "  comm.: " + trim(kst_tab_contratti.mc_co) &
 										 + "  cliente: " + string(kst_tab_meca.clie_3, "#####") &
@@ -1013,6 +1023,7 @@ k_query_select = &
 					 ,:kst_tab_meca.clie_3  
 					 ,:kst_tab_meca.num_bolla_in 
 					 ,:kst_tab_meca.data_bolla_in 
+					 ,:kst_tab_meca.impianto
 					 ,:kst_tab_contratti.codice
 					 ,:kst_tab_contratti.mc_co
 					 ,:kst_tab_contratti.sc_cf
@@ -1067,7 +1078,9 @@ k_query_select = &
 			
 	end if
 
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
 
+	SetPointer(kkg.pointer_default)
  
 return k_return
 
@@ -1587,7 +1600,8 @@ st_tab_contratti kst_tab_contratti
 			+ " 	barcode.pl_barcode, " &
 			+ "   meca.num_int,    " &
 			+ "   meca.data_int,   " & 
-			+ "     min(barcode.data_stampa), " &
+			+ "   meca.impianto, " &
+			+ "   min(barcode.data_stampa), " &
 			+ " 	min(barcode.data_lav_ini), " &
 			+ " 	max(barcode.data_lav_fin), " &
 			+ " 	min(barcode.data_lav_ok), " &
@@ -1735,6 +1749,7 @@ st_tab_contratti kst_tab_contratti
 			+ " 	barcode.pl_barcode, " & 
 			+ "    meca.num_int,   " &  
 			+ "    meca.data_int,   " &  
+			+ "    meca.impianto,   " &  
 			+ " 	barcode.data_sosp, " & 
 			+ "   meca.id,  " &
 			+ "   meca.clie_1,  " & 
@@ -1816,6 +1831,7 @@ st_tab_contratti kst_tab_contratti
 					 :kst_tab_barcode.pl_barcode 
 					 ,:kst_tab_barcode.num_int   
 					 ,:kst_tab_barcode.data_int   
+ 					 ,:kst_tab_meca.impianto
 					 ,:kst_tab_barcode.data_stampa   
 					 ,:kst_tab_barcode.data_lav_ini 
 					 ,:kst_tab_barcode.data_lav_fin 
@@ -1919,6 +1935,7 @@ st_tab_contratti kst_tab_contratti
 						 :kst_tab_barcode.pl_barcode 
 						 ,:kst_tab_barcode.num_int   
 						 ,:kst_tab_barcode.data_int   
+	 					 ,:kst_tab_meca.impianto
 						 ,:kst_tab_barcode.data_stampa   
 						 ,:kst_tab_barcode.data_lav_ini 
 						 ,:kst_tab_barcode.data_lav_fin 
@@ -1986,6 +2003,7 @@ date k_save_data_int, k_data_da, k_data_a, k_data_0
 treeviewitem ktvi_treeviewitem
 kuf_armo kuf1_armo
 kuf_barcode kuf1_barcode
+kuf_impianto kuf1_impianto
 st_esito kst_esito
 st_treeview_data kst_treeview_data
 st_treeview_data_any kst_treeview_data_any
@@ -2004,6 +2022,7 @@ datastore kds_tree
 		 
 	kuf1_armo = create kuf_armo
 	kuf1_barcode = create kuf_barcode
+	kuf1_impianto = create kuf_impianto
 		 
 //--- Ricavo l'oggetto figlio dal DB 
 	kst_tab_treeview.id = k_tipo_oggetto
@@ -2200,6 +2219,7 @@ datastore kds_tree
 			kst_tab_barcode.num_int = kds_tree.getitemnumber(k_row, "num_int")   
 			kst_tab_barcode.data_int = kds_tree.getitemdate(k_row, "data_int")
 			kst_tab_meca.id = kds_tree.getitemnumber(k_row, "id")
+			kst_tab_meca.impianto = kds_tree.getitemnumber(k_row, "impianto")
 			kst_tab_meca.e1doco = kds_tree.getitemnumber(k_row, "e1doco")
 			kst_tab_meca.e1rorn = kds_tree.getitemnumber(k_row, "e1rorn")
 			kst_tab_meca.clie_1 = kds_tree.getitemnumber(k_row, "clie_1")
@@ -2273,8 +2293,9 @@ datastore kds_tree
  
 	if isvalid(kuf1_armo) then destroy kuf1_armo
 	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
 	if isvalid(kds_tree) then destroy kds_tree
- 
+	
 return k_return
 
 end function
@@ -2669,8 +2690,11 @@ st_tab_contratti kst_tab_contratti
 st_tab_treeview kst_tab_treeview
 st_treeview_data_any kst_treeview_data_any
 st_profilestring_ini kst_profilestring_ini
+kuf_impianto kuf1_impianto
 
-		 
+		
+	SetPointer(kkg.pointer_attesa)
+	kuf1_impianto = create kuf_impianto	
 		 
 //--- Ricavo l'oggetto figlio dal DB 
 	kst_tab_treeview.id = k_tipo_oggetto
@@ -2754,6 +2778,9 @@ st_profilestring_ini kst_profilestring_ini
 			k_align[k_ind] = left!
 			k_ind++
 			k_campo[k_ind] = "Area"
+			k_align[k_ind] = left!
+			k_ind++
+			k_campo[k_ind] = "Impianto"
 			k_align[k_ind] = left!
 			k_ind++
 			k_campo[k_ind] = "DDT mittente"
@@ -2868,63 +2895,66 @@ st_profilestring_ini kst_profilestring_ini
 			end if
 
 			k_riga_item = 1
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_barcode.num_int, "####0") &
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_barcode.num_int, "####0") &
 								  + " - " + string(kst_tab_barcode.data_int, "dd.mm.yy"))
 
 			k_riga_item ++
 			k_stringa =	trim(kst_tab_meca.area_mag)
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, k_stringa) 
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, k_stringa) 
+
+			k_riga_item++
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, trim(kuf1_impianto.get_descr(kst_tab_meca.impianto)))
 
 			k_riga_item ++
 			k_stringa = trim(kst_tab_meca.num_bolla_in) + " " + string(kst_tab_meca.data_bolla_in, "dd mmm") 
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, k_stringa) 
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, k_stringa) 
 			
 			k_riga_item ++
 			k_stringa =	trim(kst_tab_clienti.rag_soc_20) &
 							+ " (" + string(kst_tab_meca.clie_3) + ") " 
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, k_stringa) 
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, k_stringa) 
 					
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_treeview_data_any.contati))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_treeview_data_any.contati))
 				
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_meca.e1doco))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_meca.e1doco))
 				
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_meca.e1rorn))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_meca.e1rorn))
 
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, trim(kst_tab_contratti.mc_co))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, trim(kst_tab_contratti.mc_co))
 
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, trim(kst_tab_contratti.sc_cf))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, trim(kst_tab_contratti.sc_cf))
 
 			if isnull(kst_tab_armo.alt_2) then kst_tab_armo.alt_2 = 0
 			if isnull(kst_tab_armo.lung_2) then kst_tab_armo.lung_2 = 0
 			if isnull(kst_tab_armo.larg_2) then kst_tab_armo.larg_2 = 0
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_armo.alt_2, "###0") &
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_armo.alt_2, "###0") &
 									+ "x" + string(kst_tab_armo.lung_2, "###0")  &
 									+ "x" + string(kst_tab_armo.larg_2, "###0"))
 			
 			if isnull(kst_tab_armo.dose) then kst_tab_armo.dose = 0
 			k_riga_item ++	
 			if kst_tab_armo.dose > 0 then
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_armo.dose, "#,##0.00"))
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_armo.dose, "#,##0.00"))
 			else
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, "")
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, "")
 			end if
 			
 			if isnull(kst_tab_armo.peso_kg) then kst_tab_armo.peso_kg = 0
 			k_riga_item ++		
 			if kst_tab_armo.peso_kg > 0 then
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_armo.peso_kg, "##,##0.00"))
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_armo.peso_kg, "##,##0.00"))
 			else
-				kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, "")
+				kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, "")
 			end if
 
 			k_riga_item ++		
-			kuf1_treeview.kilv_lv1.setitem(k_ctr, k_riga_item, string(kst_tab_meca.id, "#"))
+			kuf1_treeview.u_kilv_lv1_setitem(k_ctr, k_riga_item, string(kst_tab_meca.id, "#"))
 
 			k_handle_item = kuf1_treeview.kitv_tv1.finditem(NextTreeItem!, k_handle_item)
 	
@@ -2956,7 +2986,9 @@ st_profilestring_ini kst_profilestring_ini
 		kuf1_treeview.kilv_lv1.setitem(k_handle_item_rit, klvi_listviewitem)
 	end if
 
+	if isvalid(kuf1_impianto) then destroy kuf1_impianto
 
+	SetPointer(kkg.pointer_default)
 
 return k_return
 

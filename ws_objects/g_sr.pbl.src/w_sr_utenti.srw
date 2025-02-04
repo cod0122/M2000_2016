@@ -734,7 +734,7 @@ end subroutine
 
 private function string u_get_email_compone ();//
 string k_domain, k_nome, k_cognome, k_email
-int k_pos
+long k_pos
 kuf_utility kuf1_utility
 
 

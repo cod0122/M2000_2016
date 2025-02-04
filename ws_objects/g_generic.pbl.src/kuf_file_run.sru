@@ -355,7 +355,7 @@ public function string of_get_shellexecute (string as_filename, string as_shellv
 
 String ls_regkey, ls_class, ls_runcmd
 String ls_regcmd, ls_regcmdex, ls_subkeys[]
-Integer li_rc, li_pos1, li_pos2
+long li_rc, li_pos1, li_pos2
 
 // get file extension classname
 ls_regkey = "HKEY_CLASSES_ROOT\." + Right(as_filename, 3)
@@ -731,9 +731,11 @@ end function
 
 on kuf_file_run.create
 call super::create
+TriggerEvent( this, "constructor" )
 end on
 
 on kuf_file_run.destroy
+TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 

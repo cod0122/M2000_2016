@@ -14,7 +14,7 @@ end prototypes
 
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//
 string k_x, k_titolo
-int k_pos
+long k_pos
 kuf_elenco kuf1_elenco
 
 	

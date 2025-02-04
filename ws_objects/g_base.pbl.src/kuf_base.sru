@@ -10,6 +10,9 @@ global kuf_base kuf_base
 
 type variables
 //
+public:
+st_tab_base kist_tab_base
+
 //--- costanti x il valore di ritorno statistici_stato_elab
 constant string kci_statistici_stato_ok="0"
 constant string kci_statistici_stato_in_esec="1"
@@ -3783,6 +3786,20 @@ kuf_stampe kuf1_stampe
 			k_record = string(k_long)
 			k_pos_ini = 1
 			k_lungo = len(k_record)
+//--- ADOBE: CLIENTID (API KEY)
+		case "adobe_clientid"
+			select trim(coalesce(adobe_clientid, ''))
+				 into :k_record
+				 from base_vari;
+			k_pos_ini = 1
+			k_lungo = len(k_record)
+//--- ADOBE: codice SECRET 
+		case "adobe_secret"
+			select trim(coalesce(adobe_secret, ''))
+				 into :k_record
+				 from base_vari;
+			k_pos_ini = 1
+			k_lungo = len(k_record)
 			
 		case else
 			k_stato = "9"   // k_key valore non trovato
@@ -4013,12 +4030,10 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	kst_tab_base.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_base.x_utente = kGuf_data_base.prendi_x_utente()
 
-	if isnull(kst_tab_base.smart_pickup_lots_url_xbook ) then
-		kst_tab_base.smart_pickup_lots_url_xbook = ""
-	end if
-	if isnull(kst_tab_base.smart_pickup_lots_sha_key) then
-		kst_tab_base.smart_pickup_lots_sha_key = ""
-	end if
+	if isnull(kst_tab_base.smart_pickup_lots_url_xbook ) then kst_tab_base.smart_pickup_lots_url_xbook = ""
+	if isnull(kst_tab_base.smart_pickup_lots_sha_key) then kst_tab_base.smart_pickup_lots_sha_key = ""
+	if isnull(kst_tab_base.adobe_clientid) then kst_tab_base.adobe_clientid = ""
+	if isnull(kst_tab_base.adobe_secret) then kst_tab_base.adobe_secret = ""
 	
 	k_rcn = 0
 	select count(*)
@@ -4032,8 +4047,10 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 		
 		if k_rcn > 0 then
 			UPDATE base_vari
-			  SET smart_pickup_lots_url_xbook = :kst_tab_base.smart_pickup_lots_url_xbook   
-					,smart_pickup_lots_sha_key = :kst_tab_base.smart_pickup_lots_sha_key
+			  SET smart_pickup_lots_url_xbook = trim(:kst_tab_base.smart_pickup_lots_url_xbook)
+					,smart_pickup_lots_sha_key = trim(:kst_tab_base.smart_pickup_lots_sha_key)
+					,adobe_clientid = trim(:kst_tab_base.adobe_clientid)
+					,adobe_secret = trim(:kst_tab_base.adobe_secret)
 					,x_datins = :kst_tab_base.x_datins
 					,x_utente = :kst_tab_base.x_utente  
 				WHERE id_base = :kst_tab_base.id_base 
@@ -4045,11 +4062,15 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						( id_base,   
 						  smart_pickup_lots_url_xbook,   
 						  smart_pickup_lots_sha_key,   
+						  adobe_clientid,   
+						  adobe_secret,   
 						  x_datins,   
 						  x_utente )  
 				  VALUES ( :kst_tab_base.id_base,   
-						  :kst_tab_base.smart_pickup_lots_url_xbook,   
-						  :kst_tab_base.smart_pickup_lots_sha_key,   
+						  trim(:kst_tab_base.smart_pickup_lots_url_xbook),   
+						  trim(:kst_tab_base.smart_pickup_lots_sha_key),   
+						  trim(:kst_tab_base.adobe_clientid),   
+						  trim(:kst_tab_base.adobe_secret),   
 						  :kst_tab_base.x_datins,   
 						  :kst_tab_base.x_utente )  
 				using kguo_sqlca_db_magazzino;

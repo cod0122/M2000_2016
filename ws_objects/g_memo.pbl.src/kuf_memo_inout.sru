@@ -158,17 +158,21 @@ try
 				k_settore = kds_sr_settori.getitemstring(1, "descr")
 			end if
 		end if
+		
 //		if kst_tab_clienti_memo.tipo_sv > " " then
 //			ast_tab_memo.titolo = "Informazioni da '" + kst_tab_clienti_memo.tipo_sv + "' per " + trim(kst_tab_clienti.rag_soc_10 )
 //		else
-			ast_tab_memo.titolo = "Da " + trim(kguo_utente.get_nome( )) + " per " + trim(kst_tab_clienti.rag_soc_10) + " " + trim(kst_tab_clienti.rag_soc_11) + " (" + string(kst_tab_clienti.codice) + ")"
+			ast_tab_memo.titolo = "Da " + trim(kguo_utente.get_nome( )) + " per " + trim(kst_tab_clienti.rag_soc_10) + " " + trim(kst_tab_clienti.rag_soc_11) + " (" + string(kst_tab_clienti.codice) + ")" 
 //			ast_tab_memo.titolo = "Informazioni per " + trim(kst_tab_clienti.rag_soc_10 )
 //		end if
+		ast_tab_memo.titolo = trim(left(ast_tab_memo.titolo, kguo_sqlca_db_magazzino.u_get_col_len("memo", "titolo")))
+
 		if k_settore > " " then
 			ast_tab_memo.note = "Note dal dip. '" + k_settore + "' per " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
 		else
 			ast_tab_memo.note = "Note per il " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
 		end if
+		ast_tab_memo.note = trim(left(ast_tab_memo.note, kguo_sqlca_db_magazzino.u_get_col_len("memo", "note")))
 		
 		ast_tab_memo.id_memo = kst_tab_clienti_memo.id_memo
 		

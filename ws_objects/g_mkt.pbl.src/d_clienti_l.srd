@@ -17,22 +17,22 @@ table(column=(type=char(30) updatewhereclause=yes name=rag_soc_1 dbname="rag_soc
  column=(type=char(1) updatewhereclause=yes name=stato dbname="clienti.stato" dbalias=".stato" )
  column=(type=long updatewhereclause=yes name=e1an dbname="e1an" )
  column=(type=char(12) updatewhereclause=yes name=e1ancodrs dbname="e1ancodrs" )
- retrieve="  SELECT 
-         COALESCE(trim(clienti.rag_soc_10),'') as rag_soc_1,   
-		  clienti.codice as id_cliente ,
-           COALESCE(trim(clienti.loc_1), '') as localita ,
-           COALESCE(clienti.prov_1,'') as prov ,
-           COALESCE(clienti.indi_1,'') as indirizzo ,
-           clienti.cap_1 as cap ,
-           COALESCE(clienti.id_nazione_1,'')  as id_nazione_1,
-           concat(COALESCE(trim(clienti.fono),'')
-                         ,case when v_clienti_mkt_web.cell > ' ' then ' - cell.' + v_clienti_mkt_web.cell else '' end
-                         ,case when clienti.fax > ' ' then ' - fax ' + trim(clienti.fax) else '' end ) as tel_num , 
-           clienti.banca
-           ,clienti.stato
-		  ,COALESCE(clienti.e1an, 0) as e1an
-		  ,COALESCE(trim(clienti.e1ancodrs), '') as e1ancodrs
-        FROM clienti left outer join v_clienti_mkt_web on clienti.codice = v_clienti_mkt_web.id_cliente 
+ retrieve="SELECT 
+		COALESCE(trim(clienti.rag_soc_10),'') as rag_soc_1,   
+		clienti.codice as id_cliente ,
+		COALESCE(trim(clienti.loc_1), '') as localita ,
+		COALESCE(clienti.prov_1,'') as prov ,
+		COALESCE(clienti.indi_1,'') as indirizzo ,
+		clienti.cap_1 as cap ,
+		COALESCE(clienti.id_nazione_1,'')  as id_nazione_1,
+		concat(COALESCE(trim(clienti.fono),'')
+						 ,case when v_clienti_mkt_web.cell > ' ' then ' - cell.' + v_clienti_mkt_web.cell else '' end
+						 ,case when clienti.fax > ' ' then ' - fax ' + trim(clienti.fax) else '' end ) as tel_num , 
+		clienti.banca
+		,clienti.stato
+		,COALESCE(clienti.e1an, 0) as e1an
+		,COALESCE(trim(clienti.e1ancodrs), '') as e1ancodrs
+   FROM clienti left outer join v_clienti_mkt_web on clienti.codice = v_clienti_mkt_web.id_cliente 
         WHERE 	(:k_rag_soc = '%' or clienti.rag_soc_10 like :k_rag_soc )  
         ORDER BY 1       ASC " retrieve.asneeded=yes arguments=(("k_rag_soc", string)) )
 text(band=header alignment="0" text=" Nominativo" border="0" color="8421504" x="9" y="8" height="52" width="1138" html.valueishtml="0"  name=rag_soc_1_t visible="1"  resizeable=1  font.face="Verdana" font.height="-8" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="12639424" background.transparency="0" background.gradient.color="16777215" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="5" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="53" background.gradient.scale="74" background.gradient.spread="91" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )

@@ -51,6 +51,8 @@ private function boolean u_crea_view_v_sped_deposito_anag () throws uo_exception
 private function boolean u_crea_view_v_barcode_data_json () throws uo_exception
 private function boolean u_crea_view_v_clienti_mkt_web () throws uo_exception
 private function boolean u_crea_view_v_memo () throws uo_exception
+private function boolean u_crea_view_v_rubrica_clienti () throws uo_exception
+private function boolean u_crea_view_v_rubrica_all () throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -585,7 +587,11 @@ try
 	if not krc then k_return=false	
 	krc = u_crea_view_v_memo( )
 	if not krc then k_return=false	
-	
+	krc = u_crea_view_v_rubrica_clienti()
+	if not krc then k_return=false	
+	krc = u_crea_view_v_rubrica_all( )
+	if not krc then k_return=false	
+
 	krc = u_crea_view_v_temptable_armo( )
 	if not krc then k_return=false
 	krc = u_crea_view_v_temptable_meca( )
@@ -6268,7 +6274,6 @@ string k_sql
         +" trim(isnull(c_link.rag_soc_10,'')) as c_link_rag_soc_10,   " &
         +" trim(clienti_mkt.altra_sede) as altra_sede,   " &
         +" trim(isnull(clienti_mkt.cod_atecori,'')) as cod_atecori,   " &
-        +" trim(isnull(clienti_mkt.contatto_5_qualif,'')) as contatto_5_qualif,   " &
         +" trim(isnull(clienti_mkt.note_attivita,'')) as note_attivita,   " &
         +" trim(isnull(clienti_mkt.note_prodotti,'')) as note_prodotti,   " &
         +" trim(isnull(clienti_mkt.tipo_rapporto,'')) as tipo_rapporto,   " &
@@ -6289,8 +6294,7 @@ string k_sql
         +" trim(isnull(clienti_mkt.doc_esporta,'')) as doc_esporta,   " &
         +" trim(isnull(clienti_mkt.doc_esporta_prefpath,'')) as doc_esporta_prefpath, " &
         +" trim(isnull(clienti_web.email3,'')) as email3,   " &
-        +" isnull(clienti_web.email_prontomerce, 0) as email_prontomerce,   " &
-        +" isnull(clienti_fatt.email_invio, '0') as email_invio   " &
+        +" isnull(clienti_web.email_prontomerce, 0) as email_prontomerce " &
         +" ,isnull(clienti_web.email_send_certif_off, 0) as email_send_certif_off   " &
         +" ,trim(isnull(clienti.rag_soc_10,'')) as rag_soc_10   " &
 			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_qa_italy')),'') for_qa_italy " & 
@@ -6298,16 +6302,22 @@ string k_sql
 			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.for_price_cntct')),'') for_price_cntct " & 
 			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.cell')),'') cell " & 
 			+" ,isnull(trim(JSON_VALUE(clienti_mkt.data_json ,'$.categ')),'') categ " & 
+         +" ,isnull(clienti_altro.parzialecolli_warning, 0) as parzialecolli_warning   " &
+         +" ,isnull(clienti_fatt.email_invio, '0') as email_invio " &
++ " ,'' as contatto_5_qualif " &
     +" FROM (clienti left outer join clienti_mkt on  clienti.codice = clienti_mkt.id_cliente" &
-                    +" left outer join clienti as c1 on clienti_mkt.id_contatto_1 = c1.codice" &
-   					  +" left outer join clienti as c2 on clienti_mkt.id_contatto_2 = c2.codice" &
-   					  +" left outer join clienti as c3 on clienti_mkt.id_contatto_3 = c3.codice" &
-   					  +" left outer join clienti as c4 on clienti_mkt.id_contatto_4 = c4.codice" &
-   					  +" left outer join clienti as c5 on clienti_mkt.id_contatto_5 = c5.codice" &
    					  +" left outer join clienti as c_link on clienti_mkt.id_cliente_link = c_link.codice" &
    					  +" left outer join gru on clienti_mkt.gruppo = gru.codice)" &
-                    +" left outer join clienti_web on  clienti.codice = clienti_web.id_cliente" &
-                    +" left outer join clienti_fatt on  clienti.codice = clienti_fatt.id_cliente      " 
+                    +" left outer join clienti_web on clienti.codice = clienti_web.id_cliente" &
+                    +" left outer join clienti_altro on clienti.codice = clienti_altro.id_cliente " & 
+                    +" left outer join clienti_fatt on  clienti.codice = clienti_fatt.id_cliente " 
+
+     //   +" trim(isnull(clienti_mkt.contatto_5_qualif,'')) as contatto_5_qualif,   " &
+                 //   +" left outer join clienti as c1 on clienti_mkt.id_contatto_1 = c1.codice" &
+//   					  +" left outer join clienti as c2 on clienti_mkt.id_contatto_2 = c2.codice" &
+//   					  +" left outer join clienti as c3 on clienti_mkt.id_contatto_3 = c3.codice" &
+//   					  +" left outer join clienti as c4 on clienti_mkt.id_contatto_4 = c4.codice" &
+//   					  +" left outer join clienti as c5 on clienti_mkt.id_contatto_5 = c5.codice" &
 
 	k_return = u_tb_crea_view("v_clienti_mkt_web", k_sql)
 
@@ -6366,6 +6376,125 @@ string k_sql
 //		+ " , coalesce(x_utente, '') x_utente" &
 
 	k_return = u_tb_crea_view("v_memo", k_sql)
+
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_rubrica_clienti () throws uo_exception;/*
+ Estemporanea da lanciare una sola volta
+	 Crae tabella View  'v_rubrica_clienti' 
+*/
+boolean k_return = true
+string k_sql
+ 
+
+//=== Puntatore Cursore da attesa.....
+	SetPointer(kkg.pointer_attesa)
+
+	k_sql = "create view v_rubrica_clienti  " &
+		+ " as SELECT " &
+		+ " email " &
+      + " ,rag_soc_10 " &
+      + " ,id_cliente " &
+      + " ,max(x_datins) x_datins " &
+ + " from( " &
+		+ " select trim(value) email " &
+		+ " 			,coalesce(trim(clienti.rag_soc_10),'') rag_soc_10 " &
+		+ " 			,id_cliente id_cliente " &
+		+ " 			,clienti_web.x_datins x_datins " &
+		+ " 	from clienti_web " &
+		+ " 		 left outer join clienti on clienti_web.id_cliente = clienti.codice " &
+		+ " 	cross apply STRING_SPLIT(replace(trim(email), ',', ';'), ';') " &
+		+ " where trim(value) > ' ' " &
+		+ " union  " &
+		+ " select trim(value) email " &
+		+ " 			,coalesce(trim(clienti.rag_soc_10),'') " &
+		+ " 			,id_cliente " &
+		+ " 			,clienti_web.x_datins x_datins " &
+		+ " 	from clienti_web " &
+		+ " 		 left outer join clienti on clienti_web.id_cliente = clienti.codice " &
+		+ " 	cross apply STRING_SPLIT(replace(trim(email1), ',', ';'), ';') " &
+		+ " where trim(value) > ' ' " &
+		+ " union  " &
+		+ " select trim(value) email " &
+		+ " 			,coalesce(trim(clienti.rag_soc_10),'') " &
+		+ " 			,id_cliente " &
+		+ " 			,clienti_web.x_datins x_datins " &
+		+ " 	from clienti_web " &
+		+ " 		 left outer join clienti on clienti_web.id_cliente = clienti.codice " &
+		+ " 	cross apply STRING_SPLIT(replace(trim(email2), ',', ';'), ';') " &
+		+ " where trim(value) > ' ' " &
+		+ " union  " &
+		+ " select trim(value) email " &
+		+ " 			,coalesce(trim(clienti.rag_soc_10),'') " &
+		+ " 			,id_cliente " &
+		+ " 			,clienti_web.x_datins x_datins " &
+		+ " 	from clienti_web " &
+		+ " 		 left outer join clienti on clienti_web.id_cliente = clienti.codice " &
+		+ " 	cross apply STRING_SPLIT(replace(trim(email3), ',', ';'), ';') " &
+		+ " where trim(value) > ' ' " &
+		+ " union  " &
+		+ " select trim(value) email " &
+		+ " 			,coalesce(trim(clienti.rag_soc_10),'') " &
+		+ " 			,id_cliente " &
+		+ " 			,email_invio.x_datins x_datins " &
+		+ " 	from email_invio left outer join clienti on email_invio.id_cliente = clienti.codice " &
+		+ " 	cross apply STRING_SPLIT(replace(trim(email), ',', ';'), ';') " &
+		+ " where trim(value) > ' ' " &
+	+ " ) as t1 " &
+    + " group by email " &
+		+ " ,id_cliente " &
+		+ " ,rag_soc_10 " 
+  //  + " order by t1.rag_soc_10, t1.email " 
+
+	k_return = u_tb_crea_view("v_rubrica_clienti", k_sql)
+
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_crea_view_v_rubrica_all () throws uo_exception;/*
+ Estemporanea da lanciare una sola volta
+	 Crae tabella View  'v_rubrica_all' 
+*/
+boolean k_return = true
+string k_sql
+ 
+
+//=== Puntatore Cursore da attesa.....
+	SetPointer(kkg.pointer_attesa)
+
+	k_sql = "create view v_rubrica_all  " &
+		+ " as SELECT " &
+		+ " email " &
+      + " ,rag_soc_10 " &
+      + " ,id_cliente " &
+      + " ,x_datins x_datins " &
+		+ " ,'C' tipo " &
+      + " from v_rubrica_clienti and stato = 0" &
+   + " union " &
+		+ "  select trim(sr_utenti.email) " &
+		+ " ,coalesce(trim(sr_utenti.nome),'') " &
+		+ " ,sr_utenti.id " &
+		+ " ,sr_utenti.x_datins x_datins " &
+		+ " ,'B' tipo " &
+		+ " from sr_utenti " &
+		+ " where sr_utenti.email > ' ' " &
+   + " union " &
+		+ " select trim(base.e_mail) " &
+		+ " ,coalesce(trim(base.rag_soc_1),'') " &
+		+ " ,cast(1 + ascii(upper(id)) - ascii('A') as tinyint) " &
+		+ " ,getdate() x_datins " &
+		+ " ,'A' tipo " &
+		+ " from base " 
+   // + " order by 2, 1 " 
+
+	k_return = u_tb_crea_view("v_rubrica_all", k_sql)
 
 	SetPointer(kkg.pointer_default)
 

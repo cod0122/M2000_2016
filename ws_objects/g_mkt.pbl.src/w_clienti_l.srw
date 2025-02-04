@@ -36,7 +36,7 @@ type variables
 
 private st_tab_clienti ki_st_tab_clienti
 private string ki_ultimo_clie_3_cercato="*********"
-private int ki_dw_guida_dinamico = 0
+//private int ki_dw_guida_dinamico = 0
 
 private long ki_nrows_lastretrieve=1
 end variables
@@ -149,6 +149,9 @@ int k_importa = 0
 
 //--- Se non ho indicato un cliente particolare mi fermo e chiedo all'operatore
 	if ki_st_open_w.flag_primo_giro = "S" then
+		
+		dw_guida.EVENT u_dwc_retrieve()
+		
 		if len(trim(ki_st_tab_clienti.rag_soc_10)) = 0 and ki_st_tab_clienti.tipo = "*" then
 
 			dw_guida.setfocus( )
@@ -535,7 +538,7 @@ protected subroutine open_start_window ();//
 
 	if dw_guida.insertrow(0) > 0 then
 		dw_guida.setitem(1, "rag_soc_1", "")
-		dw_guida.setitem(1, "dinamico", ki_dw_guida_dinamico)
+//		dw_guida.setitem(1, "dinamico", ki_dw_guida_dinamico)
 	end if
 
 //--- box di stampa
@@ -847,22 +850,22 @@ imposta_elenco()
 
 end event
 
-event close;call super::close;//---
-//--- Salva proprietà della funzione
-//---
-string k_rcx
-st_profilestring_ini kst_profilestring_ini
-
-
-	kst_profilestring_ini.operazione = "2"
-	kst_profilestring_ini.valore = string(dw_guida.getitemnumber(1, "dinamico"))
-	if isnull(kst_profilestring_ini.valore) then kst_profilestring_ini.valore = "0"
-	kst_profilestring_ini.file = "window" 
-	kst_profilestring_ini.titolo = trim(this.classname( ))
- 	kst_profilestring_ini.nome = "dw_guida_dinamico"
-	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
-
-
+event close;call super::close;////---
+////--- Salva proprietà della funzione
+////---
+//string k_rcx
+//st_profilestring_ini kst_profilestring_ini
+//
+//
+//	kst_profilestring_ini.operazione = "2"
+//	kst_profilestring_ini.valore = string(dw_guida.getitemnumber(1, "dinamico"))
+//	if isnull(kst_profilestring_ini.valore) then kst_profilestring_ini.valore = "0"
+//	kst_profilestring_ini.file = "window" 
+//	kst_profilestring_ini.titolo = trim(this.classname( ))
+// 	kst_profilestring_ini.nome = "dw_guida_dinamico"
+//	k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
+//
+//
 end event
 
 type dw_print_0 from w_g_tab0`dw_print_0 within w_clienti_l
@@ -1117,15 +1120,78 @@ parent.event u_premuto_enter( )
 end event
 
 type dw_guida from w_g_tab0`dw_guida within w_clienti_l
+event u_dwc_retrieve ( )
+event u_clear ( )
 boolean enabled = true
 string dataobject = "d_clienti_guida"
 end type
 
-event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//---	
-//--- 
-//---
-boolean k_elabora=true
+event dw_guida::u_dwc_retrieve();//
+datawindowchild kdwc_1
 
+
+if this.getchild("rag_soc_1", kdwc_1) > 0 then 
+	if kdwc_1.rowcount( ) = 0 then
+		kdwc_1.settransobject(kguo_sqlca_db_magazzino)
+		if kdwc_1.retrieve() > 0 then
+			kdwc_1.insertrow(0)
+		end if
+	end if
+end if
+
+
+end event
+
+event dw_guida::u_clear();//
+	this.setitem(1, "rag_soc_1", "")
+	//this.setitem(1, "id_cliente", 0)
+
+
+end event
+
+event dw_guida::ue_retrieve_dinamico;////---	
+////--- 
+////---
+//if k_campo = "rag_soc_1" and dw_guida.getitemnumber(1, "dinamico") = 1 then
+//	this.accepttext( )
+//
+//	if isnumber(trim(k_data)) then
+//		
+//		ki_st_tab_clienti.codice = long(k_data)
+//		if isnull(ki_st_tab_clienti.codice ) then
+//			ki_st_tab_clienti.codice = 0
+//		end if
+//		ki_st_tab_clienti.rag_soc_10 = ""
+//	else
+//		if isnull(k_data) then
+//			ki_st_tab_clienti.rag_soc_10 = ""
+//		else
+//			ki_st_tab_clienti.rag_soc_10 = trim(k_data)
+//		end if
+//		ki_st_tab_clienti.codice = 0
+//	end if
+//
+//
+////--- solo se ricerco un cliente diverso
+//	if ki_ultimo_clie_3_cercato <> trim(k_data) then
+//		
+//		ki_ultimo_clie_3_cercato = trim(k_data)
+//		u_retrieve_dw_lista()
+//		this.setfocus( )
+//		this.SelectText (len (k_campo) + 1, 0)  // posizione del cursose a fine campo
+//	end if
+//end if
+//
+end event
+
+event dw_guida::editchanged;call super::editchanged;////
+//	event ue_retrieve_dinamico(dwo.name, data) 
+//
+end event
+
+event dw_guida::u_premuto_enter;//---	
+
+	this.accepttext( )
 
 	if isnumber(trim(dw_guida.getitemstring(1, "rag_soc_1"))) then
 		
@@ -1144,7 +1210,6 @@ boolean k_elabora=true
 		ki_st_tab_clienti.codice = 0
 	end if
 
-
 //--- solo se ricerco un cliente diverso
 	if ki_ultimo_clie_3_cercato <> trim(dw_guida.getitemstring(1, "rag_soc_1")) then
 		
@@ -1155,43 +1220,14 @@ boolean k_elabora=true
 
 end event
 
-event dw_guida::ue_retrieve_dinamico;call super::ue_retrieve_dinamico;//---	
-//--- 
-//---
-if k_campo = "rag_soc_1" and dw_guida.getitemnumber(1, "dinamico") = 1 then
-	this.accepttext( )
-
-	if isnumber(trim(k_data)) then
-		
-		ki_st_tab_clienti.codice = long(k_data)
-		if isnull(ki_st_tab_clienti.codice ) then
-			ki_st_tab_clienti.codice = 0
-		end if
-		ki_st_tab_clienti.rag_soc_10 = ""
-	else
-		if isnull(k_data) then
-			ki_st_tab_clienti.rag_soc_10 = ""
-		else
-			ki_st_tab_clienti.rag_soc_10 = trim(k_data)
-		end if
-		ki_st_tab_clienti.codice = 0
-	end if
-
-
-//--- solo se ricerco un cliente diverso
-	if ki_ultimo_clie_3_cercato <> trim(k_data) then
-		
-		ki_ultimo_clie_3_cercato = trim(k_data)
-		u_retrieve_dw_lista()
-		this.setfocus( )
-		this.SelectText (len (k_campo) + 1, 0)  // posizione del cursose a fine campo
-	end if
-end if
-
+event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//
+event u_premuto_enter( )
 end event
 
-event dw_guida::editchanged;call super::editchanged;//
-	event ue_retrieve_dinamico(dwo.name, data) 
+event dw_guida::clicked;call super::clicked;//
+if dwo.name = "b_clear" then
+	event u_clear()
+end if
 
 end event
 

@@ -328,9 +328,7 @@ else
 	kidw_selezionata.ki_flag_modalita = kkg_flag_modalita.visualizzazione 
 	
 //--- Protezione campi
-	kuf1_utility = create kuf_utility
-	kuf1_utility.u_proteggi_dw("1", 0, kidw_selezionata)
-	destroy kuf1_utility
+	kidw_selezionata.u_proteggi_dw("1", 0)
 
 end if
 
@@ -425,7 +423,9 @@ if left(k_return, 1) = "0" then
 	if not ki_exit_si then
 
 		if ki_msg_dopo_update then
-			messagebox("Operazione eseguita", ki_msg_updated_ok)
+			kguo_exception.inizializza( this.classname())
+			kguo_exception.messaggio_utente("Operazione eseguita", ki_msg_updated_ok)
+			//messagebox("Operazione eseguita", ki_msg_updated_ok)
 		end if
 
 	//--- Disatt.moment.la funz.di 'aggiorna' fino a mod. un dato
@@ -1721,7 +1721,7 @@ end subroutine
 
 public subroutine u_resize_1 ();//
 int k_tabpage_counted, k_i
-int k_height, k_width
+long k_height, k_width
 boolean k_tabpage_multilane
 	
 	
@@ -1756,50 +1756,25 @@ boolean k_tabpage_multilane
 	tab_1.resize(this.width - 1, this.height - 1)
 
 	for k_i = 1 to k_tabpage_counted
-		tab_1.control[k_i].resize(tab_1.width - k_width, tab_1.height - k_height)
+		//tab_1.control[k_i].resize(tab_1.width - k_width, tab_1.height - k_height)
+		tab_1.control[k_i].dynamic event u_resize(k_width, k_height)
 	next
 
 	this.setredraw(true)
-	this.setredraw(false)
-
-//=== Dimensiona dw nel tab
-	tab_1.tabpage_1.dw_1.move(0,0)
-	tab_1.tabpage_1.dw_1.resize(tab_1.tabpage_1.width, tab_1.tabpage_1.height)
-
-	if tab_1.tabpage_2.dw_2.enabled then
-		tab_1.tabpage_2.dw_2.resize(tab_1.tabpage_2.width, tab_1.tabpage_2.height)
-		tab_1.tabpage_2.dw_2.move(0,0)
-	end if
-	if tab_1.tabpage_3.dw_3.enabled then
-		tab_1.tabpage_3.dw_3.resize(tab_1.tabpage_3.width, tab_1.tabpage_3.height)
-		tab_1.tabpage_3.dw_3.move(0,0)
-	end if
-	if tab_1.tabpage_4.dw_4.enabled then
-		tab_1.tabpage_4.dw_4.resize(tab_1.tabpage_4.width, tab_1.tabpage_4.height)
-		tab_1.tabpage_4.dw_4.move(0,0)
-	end if
-	if tab_1.tabpage_5.dw_5.enabled then
-		tab_1.tabpage_5.dw_5.resize(tab_1.tabpage_5.width, tab_1.tabpage_5.height)
-		tab_1.tabpage_5.dw_5.move(0,0)
-	end if
-	if tab_1.tabpage_6.dw_6.enabled then
-		tab_1.tabpage_6.dw_6.resize(tab_1.tabpage_6.width, tab_1.tabpage_6.height)
-		tab_1.tabpage_6.dw_6.move(0,0)
-	end if
-	if tab_1.tabpage_7.dw_7.enabled then
-		tab_1.tabpage_7.dw_7.resize(tab_1.tabpage_7.width, tab_1.tabpage_7.height)
-		tab_1.tabpage_7.dw_7.move(0,0)
-	end if
-	if tab_1.tabpage_8.dw_8.enabled then
-		tab_1.tabpage_8.dw_8.resize(tab_1.tabpage_8.width, tab_1.tabpage_8.height)
-		tab_1.tabpage_8.dw_8.move(0,0)
-	end if
-	if tab_1.tabpage_9.dw_9.enabled then
-		tab_1.tabpage_9.dw_9.resize(tab_1.tabpage_9.width, tab_1.tabpage_9.height)
-		tab_1.tabpage_9.dw_9.move(0,0)
-	end if
-
-	this.setredraw(true)
+//	this.setredraw(false)
+//
+////=== Dimensiona dw nel tab
+//	u_resize_1_dw(tab_1.tabpage_1.dw_1)
+//	u_resize_1_dw(tab_1.tabpage_2.dw_2)
+//	u_resize_1_dw(tab_1.tabpage_3.dw_3)
+//	u_resize_1_dw(tab_1.tabpage_4.dw_4)
+//	u_resize_1_dw(tab_1.tabpage_5.dw_5)
+//	u_resize_1_dw(tab_1.tabpage_6.dw_6)
+//	u_resize_1_dw(tab_1.tabpage_7.dw_7)
+//	u_resize_1_dw(tab_1.tabpage_8.dw_8)
+//	u_resize_1_dw(tab_1.tabpage_9.dw_9)
+//
+//	this.setredraw(true)
 
 end subroutine
 
@@ -2282,6 +2257,8 @@ type tab_1 from tab within w_g_tab_3
 event u_constructor ( )
 event u_post_constructor ( )
 event u_constructor_main ( )
+integer width = 2999
+integer height = 6000
 integer taborder = 10
 integer textsize = -10
 integer weight = 400
@@ -2450,10 +2427,11 @@ end event
 
 type tabpage_1 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 long backcolor = 32567536
 string text = "none"
 long tabtextcolor = 134217735
@@ -2462,6 +2440,20 @@ long picturemaskcolor = 12632256
 dw_1 dw_1
 st_1_retrieve st_1_retrieve
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_1.enabled then
+		this.dw_1.resize(this.width, this.height)
+		this.dw_1.move(0,0)
+	end if
+
+end event
 
 on tabpage_1.create
 this.dw_1=create dw_1
@@ -2548,10 +2540,11 @@ end type
 
 type tabpage_2 from userobject within tab_1
 event rbuttonup ( )
+event u_resize ( long a_scost_width,  long a_scost_height )
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 long backcolor = 32567536
 string text = "none"
 long tabtextcolor = 33554432
@@ -2560,6 +2553,20 @@ long picturemaskcolor = 536870912
 dw_2 dw_2
 st_2_retrieve st_2_retrieve
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_2.enabled then
+		this.dw_2.resize(this.width, this.height)
+		this.dw_2.move(0,0)
+	end if
+
+end event
 
 on tabpage_2.create
 this.dw_2=create dw_2
@@ -2637,11 +2644,12 @@ end type
 
 type tabpage_3 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2651,6 +2659,20 @@ long picturemaskcolor = 536870912
 dw_3 dw_3
 st_3_retrieve st_3_retrieve
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_3.enabled then
+		this.dw_3.resize(this.width, this.height)
+		this.dw_3.move(0,0)
+	end if
+
+end event
 
 on tabpage_3.create
 this.dw_3=create dw_3
@@ -2725,11 +2747,12 @@ end type
 
 type tabpage_4 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2739,6 +2762,20 @@ long picturemaskcolor = 536870912
 dw_4 dw_4
 st_4_retrieve st_4_retrieve
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_4.enabled then
+		this.dw_4.resize(this.width, this.height)
+		this.dw_4.move(0,0)
+	end if
+
+end event
 
 on tabpage_4.create
 this.dw_4=create dw_4
@@ -2812,11 +2849,12 @@ end type
 
 type tabpage_5 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2826,6 +2864,20 @@ long picturemaskcolor = 536870912
 dw_5 dw_5
 st_5_retrieve st_5_retrieve
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_5.enabled then
+		this.dw_5.resize(this.width, this.height)
+		this.dw_5.move(0,0)
+	end if
+
+end event
 
 on tabpage_5.create
 this.dw_5=create dw_5
@@ -2899,11 +2951,12 @@ end type
 
 type tabpage_6 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -2913,6 +2966,20 @@ long picturemaskcolor = 536870912
 st_6_retrieve st_6_retrieve
 dw_6 dw_6
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_6.enabled then
+		this.dw_6.resize(this.width, this.height)
+		this.dw_6.move(0,0)
+	end if
+
+end event
 
 on tabpage_6.create
 this.st_6_retrieve=create st_6_retrieve
@@ -2986,11 +3053,12 @@ end event
 
 type tabpage_7 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -3000,6 +3068,20 @@ long picturemaskcolor = 536870912
 st_7_retrieve st_7_retrieve
 dw_7 dw_7
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_7.enabled then
+		this.dw_7.resize(this.width, this.height)
+		this.dw_7.move(0,0)
+	end if
+
+end event
 
 on tabpage_7.create
 this.st_7_retrieve=create st_7_retrieve
@@ -3072,11 +3154,12 @@ end event
 
 type tabpage_8 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -3086,6 +3169,20 @@ long picturemaskcolor = 536870912
 st_8_retrieve st_8_retrieve
 dw_8 dw_8
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_8.enabled then
+		this.dw_8.resize(this.width, this.height)
+		this.dw_8.move(0,0)
+	end if
+
+end event
 
 on tabpage_8.create
 this.st_8_retrieve=create st_8_retrieve
@@ -3158,11 +3255,12 @@ end event
 
 type tabpage_9 from userobject within tab_1
 event rbuttonup pbm_rbuttonup
+event u_resize ( long a_scost_width,  long a_scost_height )
 boolean visible = false
 integer x = 18
 integer y = 112
-integer width = -37
-integer height = -128
+integer width = 2962
+integer height = 5872
 boolean enabled = false
 long backcolor = 32567536
 string text = "none"
@@ -3172,6 +3270,20 @@ long picturemaskcolor = 536870912
 st_9_retrieve st_9_retrieve
 dw_9 dw_9
 end type
+
+event u_resize(long a_scost_width, long a_scost_height);/*
+   resize del tabpage
+	inp: scostamento dalle dim del tab_1: width e height rispetto 
+*/
+
+	resize(parent.width - a_scost_width, parent.height - a_scost_height)
+
+	if this.dw_9.enabled then
+		this.dw_9.resize(this.width, this.height)
+		this.dw_9.move(0,0)
+	end if
+
+end event
 
 on tabpage_9.create
 this.st_9_retrieve=create st_9_retrieve

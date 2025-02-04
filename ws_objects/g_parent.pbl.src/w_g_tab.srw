@@ -1039,6 +1039,9 @@ elseif kgo_1.typeof( ) = datawindow! then
 		k_val = kdw_1.u_get_ctrl_c_value( )
 		if k_val > " " then
 			k_val = Clipboard(k_val)
+			if trim(k_val) > " " then
+				kGuf_user_notification.send_notification("Valore copiato", k_val)
+			end if
 		end if
 	end if
 end if

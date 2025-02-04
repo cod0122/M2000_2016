@@ -800,7 +800,7 @@ boolean k_elaborato=false
 string k_quotazione_tipo = "IRR"
 long k_codice
 string k_codice_x, k_numero_x, k_cliente_x
-int k_pos
+long k_pos
 kuf_clienti kuf1_clienti
 
 

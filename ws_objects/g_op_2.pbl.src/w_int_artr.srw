@@ -167,6 +167,7 @@ private subroutine report_30 ()
 private function long report_30_inizializza (uo_d_std_1 kdw_1) throws uo_exception
 private subroutine get_parametri_30 () throws uo_exception
 private function long report_9_inizializza (ref uo_d_std_1 kdw_1) throws uo_exception
+private function string u_get_data_ultima_estrazione ()
 end prototypes
 
 protected function string inizializza () throws uo_exception;//======================================================================
@@ -458,7 +459,7 @@ end subroutine
 private subroutine set_nome_utente_tab () throws uo_exception;//
 //--- setto il nome utente x il nome della view
 //
-int k_ctr=0
+long k_ctr=0
 
 
 	ki_st_int_artr.utente = kguo_utente.get_comp()
@@ -835,9 +836,8 @@ date k_certificato_dt_st_fin, k_certificato_dt_st_ini, k_data_fin, k_data_fin_1
 string k_rag_soc, k_indirizzo, k_localita
 string k_trattamento, k_barcode
 string k_codice_attuale, k_codice_prec
-datawindowchild   kdwc_cliente, kdwc_cliente_2, kdwc_cliente_3  //kdwc_dose,
-datawindowchild   kdwc_cliente_c, kdwc_cliente_2_c, kdwc_cliente_3_C, kdwc_1, kdwc_2
-kuf_base kuf1_base
+datawindowchild kdwc_cliente, kdwc_cliente_2, kdwc_cliente_3  //kdwc_dose,
+datawindowchild kdwc_cliente_c, kdwc_cliente_2_c, kdwc_cliente_3_C, kdwc_1, kdwc_2
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_1" then
@@ -921,18 +921,6 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 			end if
 		end if
 		
-	//---- data ultima impotrtazione dei barcode x data fine lavorazione
-		kuf1_base = create kuf_base
-		k_importato_data  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
-		if not isdate(k_importato_data) then
-			k_importato_data = "** DATA ERRATA ** " 
-		end if
-		k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
-		if not istime(k_importato_ora) then
-			k_importato_ora = "** ORA ERRATA ** " 
-		end if
-		destroy kuf1_base
-	
 		if u_dw_selezione_ripri( ) > 0 then
 		else
 			tab_1.tabpage_1.dw_1.insertrow(0)
@@ -964,7 +952,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
 		tab_1.tabpage_1.dw_1.setitem(1, "report", 1)
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato_data + "  " +k_importato_ora)
+		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", u_get_data_ultima_estrazione( ))
 
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -1750,7 +1738,6 @@ long  k_clie_3
 string k_rag_soc
 datawindowchild  kdwc_cliente_3  //kdwc_dose,
 datawindowchild   kdwc_cliente_3_C
-kuf_base kuf1_base
 
 
 if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_7" then
@@ -1769,18 +1756,6 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 			kdwc_cliente_3.insertrow(1)
 			kdwc_cliente_3.RowsCopy(1, kdwc_cliente_3.RowCount(), Primary!, kdwc_cliente_3_c, 1, Primary!)
 		end if
-
-//---- data ultima importazione dei barcode x data fine lavorazione
-		kuf1_base = create kuf_base
-		k_importato  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
-		if not isdate(k_importato) then
-			k_importato = "** DATA ERRATA ** " 
-		end if
-		k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
-		if not istime(k_importato_ora) then
-			k_importato_ora = "** ORA ERRATA ** " 
-		end if
-		destroy kuf1_base
 
 		if u_dw_selezione_ripri( ) > 0 then
 		else
@@ -1823,7 +1798,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 		end if
 		
-		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", k_importato + "  " +k_importato_ora)
+		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", u_get_data_ultima_estrazione( ))
 		
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
@@ -8048,7 +8023,9 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 				tab_1.tabpage_1.dw_1.setitem(1, "data_fin", k_data_a)
 			end if
 		end if
-		
+
+		tab_1.tabpage_1.dw_1.setitem(1, "data_ultima_estrazione_pilota_out", u_get_data_ultima_estrazione( ))
+
 //--- imposto l'utente (il "terminale") x costruire il nome della view
 		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
 		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
@@ -8274,6 +8251,24 @@ return k_righe
 
 end function
 
+private function string u_get_data_ultima_estrazione ();//---- data ultima importazione dei barcode x data fine lavorazione
+kuf_base kuf1_base
+string k_importato, k_importato_ora
+
+		kuf1_base = create kuf_base
+		k_importato  = mid(kuf1_base.prendi_dato_base( "data_ultima_estrazione_pilota_out"),2)
+		if not isdate(k_importato) then
+			k_importato = "** DATA ERRATA ** " 
+		end if
+		k_importato_ora  = mid(kuf1_base.prendi_dato_base( "ora_ultima_estrazione_pilota_out"),2)
+		if not istime(k_importato_ora) then
+			k_importato_ora = "** ORA ERRATA ** " 
+		end if
+		destroy kuf1_base
+
+return k_importato + " " + k_importato_ora
+end function
+
 on w_int_artr.create
 int iCurrent
 call super::create
@@ -8467,6 +8462,7 @@ end on
 
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 event u_set_clienti ( long k_row,  string k_colname )
+event u_dwc_mc_co_retrieve ( string a_colname )
 boolean visible = true
 integer x = 1061
 integer y = 160
@@ -8654,6 +8650,20 @@ datawindowchild kdwc_cliente
 
 end event
 
+event dw_1::u_dwc_mc_co_retrieve(string a_colname);//
+long k_id_cliente
+datawindowchild kdwc_contratti_1
+
+
+event u_set_clienti(1, a_colname)
+k_id_cliente = this.getitemnumber(1, "id_clie_3")
+
+this.getchild("mc_co", kdwc_contratti_1)
+kdwc_contratti_1.retrieve(k_id_cliente)
+kdwc_contratti_1.insertrow(1)
+
+end event
+
 event dw_1::clicked;call super::clicked;//
 u_dw_report_clicked(dwo.Name, row)
 
@@ -8692,46 +8702,27 @@ datawindowchild kdwc_contratti_1
 
 ki_colname = dwo.Name  // salva il nome colonna con il fuoco 	
 
-post event u_set_clienti(row, dwo.name)
-
 //---- se ho cambiato il cliente rileggo il Contratto
 if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
 	if dwo.name = "id_clie_3" or dwo.name = "clie_3" then
-		if dwo.name = "id_clie_3" then
-			k_id_clie = long(trim(this.gettext()))
-		else
-			k_id_clie = this.getitemnumber(row, "id_clie_3")
-		end if
-		this.getchild("mc_co", kdwc_contratti_1)
-//		if kdwc_contratti_1.rowcount() < 2 then
-			kdwc_contratti_1.retrieve(k_id_clie)
-			kdwc_contratti_1.insertrow(1)
-//		end if
+		post event u_dwc_mc_co_retrieve(dwo.name)
 	elseif dwo.name = "mc_co" then
 		this.setitem(1, "descr", "" )
 		this.setitem(1, "scadenza", "" )
 		this.setitem(1, "idem", "" )
 		this.setitem(1, "codice", 0 )
-		if trim(string(dwo)) > " " then
-			this.getchild("mc_co", kdwc_contratti_1)
-			//k_riga = kdwc_contratti_1.getrow()
-			k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
-			if k_riga > 0 then
-				this.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
-				this.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
-				this.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
-				k_mc_co = kdwc_contratti_1.getitemstring(k_riga, "mc_co")
-				k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", 1, kdwc_contratti_1.rowcount()) 
-				if k_riga > 0 then
-					k_riga = kdwc_contratti_1.find("mc_co = '"+trim(k_mc_co)+"' ", k_riga + 1, kdwc_contratti_1.rowcount()) 
-					if k_riga > 0 then
-						this.setitem(1, "idem", "Attenzione ci sono altri Contratti con lo stesso Codice " +trim(k_mc_co) )
-					end if
-				end if
-			end if
+		this.getchild("mc_co", kdwc_contratti_1)
+		k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
+		if k_riga > 0 then
+			this.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
+			this.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
+			this.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
 		end if
 	end if
 else
+	
+	post event u_set_clienti(row, dwo.name)
+
 	if dwo.name = "annodef" or dwo.name = "nrprot_def" or dwo.name = "nrpag_def" &
 				or dwo.name = "mesedef" then
 		tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '0'")

@@ -68,11 +68,9 @@ if kst_tab_alarm_instock_email.id_alarm_instock_email > 0 then
 	using kguo_sqlca_db_magazzino ;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura id_meca dalla tab. Allarmi per Lotti non ancora Trattati ~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura id Lotto dalla tab. Avvisi per Lotti in Giacenza, id " &
+					+ string(kst_tab_alarm_instock_email.id_alarm_instock_email))
 		throw kguo_exception
 	end if
 
@@ -168,7 +166,7 @@ try
 			
 	if kguo_sqlca_db_magazzino.sqlCode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in cancellazione indice Allarme Giacenza Lotto id '" + string(kst_tab_alarm_instock_email.id_alarm_instock_email) + " ~n~r" +  trim(kguo_sqlca_db_magazzino.SQLErrText)
+		kst_esito.SQLErrText = "Errore in cancellazione Avviso Giacenza Lotto id '" + string(kst_tab_alarm_instock_email.id_alarm_instock_email) + " ~n~r" +  trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 		if kst_tab_alarm_instock_email.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_alarm_instock_email.st_tab_g_0.esegui_commit) then
 			kguo_sqlca_db_magazzino.db_rollback( )
@@ -195,20 +193,15 @@ end try
 return k_return
 end function
 
-public function long get_id_alarm_instock_email () throws uo_exception;//
-//------------------------------------------------------------------
-//--- Torna l'ultimo ID inserito 
-//--- 
-//---  input: 
-//---  ret: max id_email_invio
-//---                                     
-//------------------------------------------------------------------
-//
+public function long get_id_alarm_instock_email () throws uo_exception;/*
+ Torna l'ultimo ID inserito 
+ 	inp: 
+   ret: max id
+*/
 long k_return
-st_esito kst_esito
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	SELECT max(id_alarm_instock_email)
 		 INTO 
@@ -217,11 +210,8 @@ st_esito kst_esito
 		 using kguo_sqlca_db_magazzino;
 			
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in lettura ultimo ID indice Email Giacenza Lotti in tabella (alarm_instock_email)" &
-									 + "~n~r"  + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						 "Errore in lettura ultimo ID Avviso di Giacenza Lotti (alarm_instock_email)")
 		throw kguo_exception
 	end if
 
@@ -276,7 +266,7 @@ try
 
 	if kguo_sqlca_db_magazzino.sqlCode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in inserimento indice Allarme Giacenza Lotto id '" &
+		kst_esito.SQLErrText = "Errore in inserimento Avviso Giacenza Lotto id '" &
 														+ string(kst_tab_alarm_instock_email.id_meca) + "', id allarme: '" &
 														+ string(kst_tab_alarm_instock_email.id_alarm_instock_email) + "' " &
 														+ kkg.acapo +  trim(kguo_sqlca_db_magazzino.SQLErrText)
@@ -424,12 +414,10 @@ public subroutine tb_clear () throws uo_exception;//
 //---   
 //------------------------------------------------------------------
 datetime k_datetime
-st_esito kst_esito
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
+	kguo_exception.inizializza(this.classname())
 	k_datetime = datetime(relativedate(today(), - 90))
 	
 	delete from st_tab_alarm_instock_email
@@ -437,10 +425,7 @@ try
 			using kguo_sqlca_db_magazzino;
 			
 	if kguo_sqlca_db_magazzino.sqlCode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore durante pulizia righe inutili dalla tabella~n~r" +  trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore durante pulizia righe inutili dalla tabella Avvisi di Giacenza Lotti.")
 		throw kguo_exception
 	end if
 				

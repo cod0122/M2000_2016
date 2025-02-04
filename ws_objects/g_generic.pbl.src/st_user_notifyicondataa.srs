@@ -1,0 +1,15 @@
+﻿$PBExportHeader$st_user_notifyicondataa.srs
+global type st_user_notifyicondataa from structure
+	ulong cbSize
+	ulong hwnd
+	ulong uID
+	ulong uFlags
+	ulong uCallbackMessage
+	ulong hIcon
+	char szTip[128]
+	char szInfo[256]
+	char szInfoTitle[64]
+	ulong dwInfoFlags
+	char guidItem[16]
+end type
+

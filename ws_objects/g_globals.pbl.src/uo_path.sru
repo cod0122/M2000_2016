@@ -15,8 +15,8 @@ string ki_PATH_APP = "."  // path utente di lavoro della procedura dove sta il c
 string ki_BASE_DEL_SERVER="" //path dove risiede il server, di solito la CONSOLE
 string ki_BASE_DEL_SERVER_JOB="" //path dove risiedono i batch da lanciare dal Server (di solito li lancia la CONSOLE)
 string ki_TEMP_SERVER=""   //path Temporanea sul Server
-string ki_BASE=""   //path archivi BASE dell'utente
-string ki_TEMP_USER=""   //path archivi BASE dell'utente
+string ki_BASE=""   //path archivi BASE utente
+string ki_TEMP_USER=""   //path temporanea utente
 string ki_arch_saveas=""   //path dove salvare le dw x accellerare le letture (ormai obsoleto)
 string ki_risorse = ""  //path dove pescare le riscorse grafiche (icone, ecc...)
 string ki_help = ""  //path file di HELP 
@@ -159,7 +159,7 @@ uo_exception kuo_exception
 end subroutine
 
 public function string get_temp ();//
-//--- torna Cartella utente x i file temporanei es.:  c:\at_m2000\temp
+//--- torna Cartella utente x i file temporanei es.:  c:\at_m2000\tempM2000
 //
 
 if ki_BASE > " " then

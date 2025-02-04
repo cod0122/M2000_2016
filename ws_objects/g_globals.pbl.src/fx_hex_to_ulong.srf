@@ -1,0 +1,29 @@
+﻿$PBExportHeader$fx_hex_to_ulong.srf
+global type fx_hex_to_ulong from function_object
+end type
+
+forward prototypes
+global function ulong fx_hex_to_ulong (string a_hexvalue)
+end prototypes
+
+global function ulong fx_hex_to_ulong (string a_hexvalue);// Converte un HEX in ULONG
+ulong result
+long len, i, digit
+len = Len(a_hexValue)
+For i = 1 To len
+  digit = Asc(Mid(a_hexValue, i, 1))
+  If digit >= 48 And digit <= 57 Then
+		digit = digit - 48
+  ElseIf digit >= 65 And digit <= 70 Then
+		digit = digit - 55
+  ElseIf digit >= 97 And digit <= 102 Then
+		digit = digit - 87
+  Else
+		Return 0 // Invalid hex character
+  End If
+  result = result * 16 + digit
+Next
+Return result
+
+end function
+

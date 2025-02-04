@@ -121,11 +121,9 @@ public function string u_get_printer_string_current () throws uo_exception
 public function string u_set_printer_system (string a_printer) throws uo_exception
 public function string u_string_replace (string k_string, readonly string k_str_old, readonly string k_str_new)
 private function st_proteggi u_proteggi_set_st_proteggi (character k_operazione)
-public subroutine u_proteggi_sproteggi_dw (ref uo_d_std_1 adw_1)
 public function string u_get_nome_file_noext (string k_path_file)
 public function string u_get_nome_file_add_one_if_exists (string a_file)
 public function string u_replace (string k_str, string k_str_old, string k_str_new)
-public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1)
 public function string u_dw_get_protect_evaluate (datawindow adw_1, integer a_field_n)
 public function string u_get_tooltip_text (string a_tooltip_tip) throws uo_exception
 public function string u_stringa_spezza (string k_stringa)
@@ -133,10 +131,8 @@ public function integer u_open_app_files (string a_file) throws uo_exception
 public function integer u_stringa_split (ref string a_string[], string a_sep)
 public function string u_url_sep_path_by_name (ref string a_url)
 public function string u_url_encode (string a_url, boolean a_replace_puls_sign)
-public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw)
 private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw)
 private subroutine old_u_dw_set_column_color (ref datawindow k_dw)
-public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw)
 public function string u_stringa_alfanum_spazio (string k_stringa)
 public function boolean u_copy_dw_composite (ref datawindow adw_source, ref datawindow adw_target)
 public function boolean u_copy_ds_dw_composite (ref datastore ads_source, ref datawindow adw_target)
@@ -151,6 +147,11 @@ public function integer u_rowscopy_ds_to_ds (ref uo_ds_std_1 ads_source, ref uo_
 public function integer u_rowscopy_ds_to_dw (ref uo_ds_std_1 ads_source, ref datawindow adw_target) throws uo_exception
 public function string u_ds_get_evaluate (ref datastore ads_1, string a_field, string a_field_describe, long a_row)
 public function string u_dw_get_evaluate (ref datawindow adw_1, string a_field, string a_field_describe, long a_row)
+public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw)
+public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw)
+public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1)
+public subroutine u_proteggi_sproteggi_dw (ref uo_d_std_1 adw_1)
+public function string u_dw_set_bitmap_not_visible (ref datawindow a_dw)
 end prototypes
 
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag);//
@@ -1258,7 +1259,7 @@ public function string u_stringa_pulisci (string k_stringa);//
 //
 string k_return_stringa
 string k_old_str, k_new_str
-int k_start_pos
+long k_start_pos
 
 		k_return_stringa = k_stringa
 		k_start_pos = 1
@@ -2027,7 +2028,7 @@ public function integer ext_popola_tab_nazioni ();//
 
 int k_errore=0
 string k_record, k_path, k_nome_file, k_ext
-int k_ctr, k_ctr1, k_rc, k_file, k_bytes, k_righe
+long k_ctr, k_ctr1, k_rc, k_file, k_bytes, k_righe
 st_tab_nazioni kst_tab_nazioni
 pointer oldpointer  // Declares a pointer variable
 
@@ -2579,7 +2580,7 @@ public function string u_stringa_pulisci_x_msg (string k_stringa);//
 //
 string k_return_stringa
 string k_old_str, k_new_str
-int k_start_pos
+long k_start_pos
 
 		k_return_stringa = k_stringa
 //		k_start_pos = 1
@@ -2691,7 +2692,7 @@ public function st_esito u_ddlb_set_item (ref dropdownlistbox kddlb_out, string 
 //---           stringa con i valori separati da "~t"
 //--- Output: st_esito
 //---
-int k_start_pos, k_trovato_pos
+long k_start_pos, k_trovato_pos
 st_esito  kst_esito
 
 
@@ -3177,7 +3178,7 @@ public function string u_get_nome_file (string k_path_file);//
 //
 string k_return_stringa=""
 string k_trova_str
-int k_start_pos, k_pos
+long k_start_pos, k_pos
 
 		k_path_file = trim(k_path_file)
 		k_start_pos = 1
@@ -3751,7 +3752,7 @@ public function string u_get_ext_file (string k_path_file);//
 //
 string k_return_stringa=""
 string k_trova_str
-int k_start_pos, k_pos
+long k_start_pos, k_pos
 
 
 //--- get del solo nome file
@@ -5061,8 +5062,8 @@ public function string u_string_replace (string k_string, readonly string k_str_
 //---      vecchio carattere
 //---      nuovo carattere
 //
-int k_pos=1
-int k_len, k_len_in
+long k_pos=1
+long k_len, k_len_in
 
 
 if k_str_old <> k_str_new then
@@ -5127,43 +5128,6 @@ st_proteggi kst_proteggi
 return kst_proteggi
 end function
 
-public subroutine u_proteggi_sproteggi_dw (ref uo_d_std_1 adw_1);/*
-Protegge o sproteggi campi del form per i campi con Tab-order > 0
-     Input: il datawindow e la proprietà ki_flag_modalita
-*/
-int k_ctr, k_colcount
-string k_tabsequence
-
-
-choose case adw_1.ki_flag_modalita
-		
-	case kkg_flag_modalita.visualizzazione &
-			,kkg_flag_modalita.cancellazione 
-		u_proteggi_dw("1", 0, adw_1) 	//--- protezione di tutto
-
-	case kkg_flag_modalita.inserimento &
-			,kkg_flag_modalita.modifica
-		k_colcount = integer(adw_1.Describe("DataWindow.Column.Count"))
-
-		for k_ctr = 1 to k_colcount 
-
-//--- estrae Describe("<Columnname>.TabSequence")
-			k_tabsequence = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".TabSequence"))
-
-			if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
-				u_proteggi_dw("0", k_ctr, adw_1) 	//--- Sprotezione del campo
-			else
-				u_proteggi_dw("1", k_ctr, adw_1) 	//--- Sprotezione del campo
-			end if
-		
-		next
-
-end choose
-
-	
-
-end subroutine
-
 public function string u_get_nome_file_noext (string k_path_file);//
 //--- restituisce solo il nome file + estensione se c'era da un Path completo
 //--- es. c:\pippo\pluto\paperino.txt  torna  paperino
@@ -5226,52 +5190,6 @@ public function string u_replace (string k_str, string k_str_old, string k_str_n
 return kguo_g.u_replace(k_str, k_str_old, k_str_new)
 
 end function
-
-public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1);//
-//--- protegge o sproteggi campi del form per i campi con Tab-order > 0
-//---          ma non imposta il Protect
-//--- Inpu: il datawindow e la proprietà ki_flag_modalita
-//---
-int k_ctr, k_colcount
-string k_tabsequence, k_protect
-string k_name
-
-
-choose case adw_1.ki_flag_modalita
-		
-	case kkg_flag_modalita.visualizzazione &
-			,kkg_flag_modalita.cancellazione 
-		u_proteggi_dw("5", 0, adw_1) 	//--- protezione di tutto
-
-	case kkg_flag_modalita.inserimento &
-			,kkg_flag_modalita.modifica
-		k_colcount = integer(adw_1.Describe("DataWindow.Column.Count"))
-
-		for k_ctr = 1 to k_colcount 
-
-//--- estrae Describe("<Columnname>.TabSequence")
-			k_protect = u_dw_get_protect_evaluate(adw_1, k_ctr)
-			k_name = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".name"))
-
-			if k_protect <> "?" and k_protect <> "!" and k_protect = "0" then
-				k_tabsequence = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".TabSequence"))
-
-				if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
-					u_proteggi_dw("4", k_ctr, adw_1) 	//--- Sprotezione del campo
-				else
-					u_proteggi_dw("5", k_ctr, adw_1) 	//--- Protezione del campo
-				end if
-			else
-				u_proteggi_dw("5", k_ctr, adw_1) 	//--- Protezione del campo
-			end if
-		
-		next
-
-end choose
-
-	
-
-end subroutine
 
 public function string u_dw_get_protect_evaluate (datawindow adw_1, integer a_field_n);string ls_protect, ls_eval
 long ll_row
@@ -5401,7 +5319,7 @@ public function integer u_stringa_split (ref string a_string[], string a_sep);/*
 */
 string k_string
 int k_str_split_idx
-int k_pos, k_i, k_len_sep
+long k_pos, k_i, k_len_sep
 
 
 if upperbound(a_string[]) > 0 then
@@ -5494,116 +5412,6 @@ end if
 
 return k_url_encode
 end function
-
-public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw);//---
-//--- meglio usare: u_proteggi_sproteggi_dw
-
-//---
-//--- Protegge/Sprotegge campi della dw
-//---
-//--- parametri di input:
-//---    k_operazione se:
-//          1=proteggi dw;
-//          3=proteggi senza modificare il colore nella dw;
-//          5=proteggi senza modificare il Protect dw;
-//          0=sproteggi dw; 
-//          2=S-proteggi senza modificare il colore nella dw;
-//          4=S-proteggi senza modificare il Protect dw;
-//--- 
-//---    k_id_campo se 0=tutta la dw; >0 solo il numero campo indicato
-//---    k_dw la datawindows da proteggere/sproteggere
-//---
-int k_rc
-string k_style, k_type, k_num_colonne, k_campo, k_appo
-int k_ctr, k_TabSequence, k_num_colonne_nr
-string k_rcx 
-string k_modify
-st_proteggi kst_proteggi
-
-
-	k_dw.setredraw(false)
-
-	if k_id_campo = 0 and (k_operazione = "1" or k_operazione = "5") then   // protegge tutta la dw
-		k_modify = "DataWindow.ReadOnly=yes "
-	else
-		k_modify = "DataWindow.ReadOnly=no "
-	end if
-
-//--- imposta i campi Colore, Protetto ....
-	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
-
-	if k_id_campo > 0 then
-		// FACCIO solo 1 campo
-		k_ctr = k_id_campo
-		k_num_colonne_nr = k_id_campo
-	else
-		// FACCIO TUTTA LA DW
-		k_ctr=1
-
-		k_num_colonne = k_dw.Object.DataWindow.Column.Count
-		if isnumber(k_num_colonne) then
-			k_num_colonne_nr = integer(k_num_colonne)
-		else
-			k_num_colonne_nr = 99
-		end if
-	end if
-	
-	do 
-
-		k_campo = trim(string(k_ctr,"###"))
-		//k_appo = k_dw.Describe("#" + k_campo + ".Name")
-
-		k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
-		
-		k_TabSequence=integer(k_dw.Describe("#" + trim(string(k_ctr,"###"))+".TabSequence"))
-		if k_TabSequence > 0 then
-				
-			k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
-			if k_style <> "checkbox" and k_style <> "radiobuttons" then
-			
-				if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
-				
-					k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Color"))
-					if k_rcx <> "!" and k_rcx <> "?" then
-						k_modify += "#" + k_campo+".Background.Color='" + kst_proteggi.color_background + "' " 
-					end if
-					
-					if k_type = "column" then
-						k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Transparency"))
-						if k_rcx <> "!" and k_rcx <> "?" and k_rcx <> "0" then
-					   	k_modify += "#" + k_campo+".Background.Transparency=1" + " "  //imposta OPACO (100=trasparente)
-						end if
-					end if
-					//k_rcx = k_dw.Modify("#" + k_campo+".Background.Color="+kst_proteggi.color+" " &
-				     //                  +"#" + k_campo+".Background.Transparency=1") 
-
-				end if
-				
-			end if
-				
-		end if
-
-		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
-			if k_type = "column" then
-				k_rcx = trim(k_dw.Describe("#" + k_campo + ".Protect"))
-				if k_rcx <> "!" and k_rcx <> "?" then
-					k_modify += "#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'" + " "
-				end if
-			end if
-		end if
-		
-		//k_rcx=k_dw.Modify("#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'")
-		k_ctr = k_ctr + 1 
-
-	loop while k_ctr <= k_num_colonne_nr and k_id_campo = 0
-
-	k_rcx=k_dw.Modify(k_modify)
-	k_dw.u_set_column_color()   // imposta il colore del testo nelle colonne
-
-	k_dw.setredraw(true)
-
-
-end subroutine
 
 private subroutine old_u_dw_set_column_color (ref uo_d_std_1 k_dw);/*
    Imposta il COLOR del testo a seconda del background
@@ -5714,93 +5522,6 @@ long k_backgroundColor, k_n
 
 	k_dw.setredraw(true)
 
-
-end subroutine
-
-public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw);//---
-//--- meglio usare: u_proteggi_sproteggi_dw
-
-//--- Protegge/Sprotegge un campo della dw
-//---
-//--- parametri di input:
-//---    k_operazione se:
-//          1=proteggi dw;
-//          3=proteggi senza modificare il colore nella dw;
-//          5=proteggi senza modificare il Protect dw;
-//          0=sproteggi dw; 
-//          2=S-proteggi senza modificare il colore nella dw;
-//          4=S-proteggi senza modificare il Protect dw;
-//--- 
-//---    k_txt_campo = "nome_campo" solo il campo indicato se non è una colonna viene nascosto (visible=0)
-//---    k_dw la datawindows da proteggere/sproteggere
-//---
-int k_rc
-string k_id_campox
-int k_id_campo
-//string k_style
-//string k_type
-//string k_visible="1"
-//int k_ctr
-//string k_rcx, k_modify
-//st_proteggi kst_proteggi
-
-
-if trim(k_txt_campo) > " " then
-
-	k_id_campox = trim(k_dw.Describe( trim(k_txt_campo) + ".ID"))
-	if IsNumber (k_id_campox) then
-		k_id_campo = integer(k_id_campox)
-
-		u_proteggi_dw(k_operazione, k_id_campo, k_dw)
-	end if 
-
-//	if k_operazione = "0" or k_operazione = "2" then  //proteggi 
-//		k_modify = "DataWindow.ReadOnly=no "
-//	end if
-//	
-////--- imposta i campi Colore, Protetto ....
-//	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
-//
-//	if trim(k_txt_campo) > " " then
-//		k_ctr=0
-//	else
-//		k_ctr=1
-//	end if
-//
-//	k_type = trim(k_dw.Describe(" " + trim(k_txt_campo)+".Type"))
-//	if k_type = "column" then
-//		
-//		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
-//			k_modify += " " + trim(k_txt_campo) + ".Protect='" + trim(kst_proteggi.protect)+"'"
-//		end if
-//		
-//		k_style=trim(k_dw.Describe(" " + trim(k_txt_campo)+".Edit.Style"))
-//		if k_style <> "checkbox" and k_style <> "radiobuttons" then
-//			
-//			if k_operazione <> "2" and k_operazione <> "3" then  //fai senza mod il colore
-//			
-//				k_modify += trim(k_txt_campo)+".Background.Color='"+kst_proteggi.color+"'" &
-//				          + trim(k_txt_campo)+".Background.Transparency=1"
-//			end if
-//			
-//		end if
-//
-//	else
-//		
-//		k_modify += " " + trim(k_txt_campo)+".Visible='"+trim(k_visible)+"'"
-//
-//	end if
-//	
-//	if k_modify > " " then
-//		
-//		k_rcx = k_dw.Modify(k_modify)
-//		u_dw_set_column_color(k_dw)   // imposta il colore del testo nelle colonne	
-//		
-//	end if
-	
-else
-	u_proteggi_dw(k_operazione, 0, k_dw)
-end if
 
 end subroutine
 
@@ -6229,7 +5950,7 @@ public function string u_ds_get_evaluate (ref datastore ads_1, string a_field, s
 		  row: riga se però è una testata si può passare zero
 */
 string ls_expression, ls_value, ls_eval
-int k_pos
+long k_pos
 
 
 a_field = trim(a_field)
@@ -6355,6 +6076,282 @@ if ls_value = "!" then return ""
 		
 return trim(ls_value)
 
+end function
+
+public subroutine u_proteggi_dw (character k_operazione, integer k_id_campo, ref uo_d_std_1 k_dw);//--- meglio chiamare subito la funzione sul DW
+
+	k_dw.u_proteggi_dw(k_operazione, k_id_campo)
+
+//--- meglio usare: u_proteggi_sproteggi_dw
+//---
+//--- Protegge/Sprotegge campi della dw
+//---
+//--- parametri di input:
+//---    k_operazione se:
+//          1=proteggi dw;
+//          3=proteggi senza modificare il colore nella dw;
+//          5=proteggi senza modificare il Protect dw;
+//          0=sproteggi dw; 
+//          2=S-proteggi senza modificare il colore nella dw;
+//          4=S-proteggi senza modificare il Protect dw;
+//--- 
+//---    k_id_campo se 0=tutta la dw; >0 solo il numero campo indicato
+//---    k_dw la datawindows da proteggere/sproteggere
+//---
+//int k_rc
+//string k_style, k_type, k_num_colonne, k_campo, k_appo
+//int k_ctr, k_TabSequence, k_num_colonne_nr
+//string k_rcx 
+//string k_modify
+//st_proteggi kst_proteggi
+//
+//
+//	k_dw.setredraw(false)
+//
+//	if k_id_campo = 0 and (k_operazione = "1" or k_operazione = "5") then   // protegge tutta la dw
+//		k_modify = "DataWindow.ReadOnly=yes "
+//	else
+//		k_modify = "DataWindow.ReadOnly=no "
+//	end if
+//
+////--- imposta i campi Colore, Protetto ....
+//	kst_proteggi = u_proteggi_set_st_proteggi(k_operazione)
+//
+//	if k_id_campo > 0 then
+//		// FACCIO solo 1 campo
+//		k_ctr = k_id_campo
+//		k_num_colonne_nr = k_id_campo
+//	else
+//		// FACCIO TUTTA LA DW
+//		k_ctr=1
+//
+//		k_num_colonne = k_dw.Object.DataWindow.Column.Count
+//		if isnumber(k_num_colonne) then
+//			k_num_colonne_nr = integer(k_num_colonne)
+//		else
+//			k_num_colonne_nr = 99
+//		end if
+//	end if
+//	
+//	do 
+//
+//		k_campo = trim(string(k_ctr,"###"))
+//
+//		k_type = lower(trim(k_dw.Describe("#" + k_campo + ".Type")))
+//		
+//		k_TabSequence=integer(k_dw.Describe("#" + trim(string(k_ctr,"###"))+".TabSequence"))
+//		if k_TabSequence > 0 then
+//				
+//			k_style = trim(k_dw.Describe("#" + k_campo + ".Edit.Style"))
+//			if k_style <> "checkbox" and k_style <> "radiobuttons" then
+//			
+//				if k_operazione <> "2" and k_operazione <> "3" then  //2 o 3 fai senza mod il colore
+//				
+//					k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Color"))
+//					if k_rcx <> "!" and k_rcx <> "?" then
+//						k_modify += "#" + k_campo+".Background.Color='" + kst_proteggi.color_background + "' " 
+//					end if
+//					
+//					if k_type = "column" then
+//						k_rcx = trim(k_dw.Describe("#" + k_campo + ".Background.Transparency"))
+//						if k_rcx <> "!" and k_rcx <> "?" and k_rcx <> "0" then
+//					   	k_modify += "#" + k_campo+".Background.Transparency=1" + " "  //imposta OPACO (100=trasparente)
+//						end if
+//					end if
+//
+//				end if
+//				
+//			end if
+//				
+//		end if
+//
+//		if k_operazione <> "4" and k_operazione <> "5" then  //4 o 5 fai senza mod il Protect
+//			if k_type = "column" then
+//				k_rcx = trim(k_dw.Describe("#" + k_campo + ".Protect"))
+//				if k_rcx <> "!" and k_rcx <> "?" then
+//					k_modify += "#" + k_campo + ".Protect='"+trim(kst_proteggi.protect)+"'" + " "
+//				end if
+//			end if
+//		end if
+//		
+//		k_ctr = k_ctr + 1 
+//
+//	loop while k_ctr <= k_num_colonne_nr and k_id_campo = 0
+//
+//	k_rcx=k_dw.Modify(k_modify)
+//	k_dw.u_set_column_color()   // imposta il colore del testo nelle colonne
+//
+//	k_dw.setredraw(true)
+//
+//
+end subroutine
+
+public subroutine u_proteggi_dw (character k_operazione, string k_txt_campo, ref uo_d_std_1 k_dw);//--- meglio chiamare subito la funzione sul DW
+
+	k_dw.u_proteggi_dw(k_operazione, k_txt_campo)
+
+
+//--- meglio usare: u_proteggi_sproteggi_dw
+//--- Protegge/Sprotegge un campo della dw
+//---
+//--- parametri di input:
+//---    k_operazione se:
+//          1=proteggi dw;
+//          3=proteggi senza modificare il colore nella dw;
+//          5=proteggi senza modificare il Protect dw;
+//          0=sproteggi dw; 
+//          2=S-proteggi senza modificare il colore nella dw;
+//          4=S-proteggi senza modificare il Protect dw;
+//--- 
+//---    k_txt_campo = "nome_campo" solo il campo indicato se non è una colonna viene nascosto (visible=0)
+//---    k_dw la datawindows da proteggere/sproteggere
+//---
+//int k_rc
+//string k_id_campox
+//int k_id_campo
+//
+//
+//if trim(k_txt_campo) > " " then
+//
+//	k_id_campox = trim(k_dw.Describe( trim(k_txt_campo) + ".ID"))
+//	if IsNumber (k_id_campox) then
+//		k_id_campo = integer(k_id_campox)
+//
+//		u_proteggi_dw_old(k_operazione, k_id_campo, k_dw)
+//	end if 
+//	
+//else
+//	u_proteggi_dw_old(k_operazione, 0, k_dw)
+//end if
+
+end subroutine
+
+public subroutine u_proteggi_sproteggi_dw_no_protect (ref uo_d_std_1 adw_1);//--- meglio chamare subito la funzione sul DW
+
+adw_1.u_proteggi_sproteggi_dw_no_protect()
+
+////
+////--- protegge o sproteggi campi del form per i campi con Tab-order > 0
+////---          ma non imposta il Protect
+////--- Inpu: il datawindow e la proprietà ki_flag_modalita
+////---
+//int k_ctr, k_colcount
+//string k_tabsequence, k_protect
+//string k_name
+//
+//
+//choose case adw_1.ki_flag_modalita
+//		
+//	case kkg_flag_modalita.visualizzazione &
+//			,kkg_flag_modalita.cancellazione 
+//		u_proteggi_dw_old("5", 0, adw_1) 	//--- protezione di tutto
+//
+//	case kkg_flag_modalita.inserimento &
+//			,kkg_flag_modalita.modifica
+//		k_colcount = integer(adw_1.Describe("DataWindow.Column.Count"))
+//
+//		for k_ctr = 1 to k_colcount 
+//
+////--- estrae Describe("<Columnname>.TabSequence")
+//			k_protect = u_dw_get_protect_evaluate(adw_1, k_ctr)
+//			k_name = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".name"))
+//
+//			if k_protect <> "?" and k_protect <> "!" and k_protect = "0" then
+//				k_tabsequence = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".TabSequence"))
+//
+//				if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
+//					u_proteggi_dw_old("4", k_ctr, adw_1) 	//--- Sprotezione del campo
+//				else
+//					u_proteggi_dw_old("5", k_ctr, adw_1) 	//--- Protezione del campo
+//				end if
+//			else
+//				u_proteggi_dw_old("5", k_ctr, adw_1) 	//--- Protezione del campo
+//			end if
+//		
+//		next
+//
+//end choose
+//
+end subroutine
+
+public subroutine u_proteggi_sproteggi_dw (ref uo_d_std_1 adw_1);//--- meglio chamare subito la funzione sul DW
+
+	adw_1.u_proteggi_sproteggi_dw()
+
+///*
+//Protegge o sproteggi campi del form per i campi con Tab-order > 0
+//     Input: il datawindow e la proprietà ki_flag_modalita
+//*/
+//int k_ctr, k_colcount
+//string k_tabsequence
+//
+//
+//choose case adw_1.ki_flag_modalita
+//		
+//	case kkg_flag_modalita.visualizzazione &
+//			,kkg_flag_modalita.cancellazione 
+//		u_proteggi_dw_old("1", 0, adw_1) 	//--- protezione di tutto
+//
+//	case kkg_flag_modalita.inserimento &
+//			,kkg_flag_modalita.modifica
+//		k_colcount = integer(adw_1.Describe("DataWindow.Column.Count"))
+//
+//		for k_ctr = 1 to k_colcount 
+//
+////--- estrae Describe("<Columnname>.TabSequence")
+//			k_tabsequence = trim(adw_1.Describe("#" + trim(string(k_ctr,"###")) + ".TabSequence"))
+//
+//			if k_tabsequence <> "?" and k_tabsequence <> "!" and k_tabsequence > "0" then
+//				u_proteggi_dw_old("0", k_ctr, adw_1) 	//--- Sprotezione del campo
+//			else
+//				u_proteggi_dw_old("1", k_ctr, adw_1) 	//--- Sprotezione del campo
+//			end if
+//		
+//		next
+//
+//end choose
+
+	
+
+end subroutine
+
+public function string u_dw_set_bitmap_not_visible (ref datawindow a_dw);/*
+Imposta a FALSE i bitmap in testata
+	inp: datawindow 
+	out: datawindow modificato
+	rit: stringa modify o se la descrizione dell'errore 
+*/
+long k_pos, k_pos_name, k_len_name
+string k_rc, k_name, k_dw_syntax, k_modify
+
+
+
+k_dw_syntax = a_dw.Describe("DataWindow.Syntax")
+k_pos = pos(k_dw_syntax, "bitmap(") 
+
+do while k_pos > 0 
+
+	k_pos ++
+	k_pos_name = pos(k_dw_syntax, "name=", k_pos) 
+	if k_pos_name > 0 then 
+		k_pos_name += 5
+		k_len_name = pos(k_dw_syntax, " ", k_pos_name) - k_pos_name
+		if k_len_name > 0 then
+			k_name = mid(k_dw_syntax, k_pos_name, k_len_name)  
+			k_modify += k_name + ".visible='0' "
+		end if
+		k_pos = k_pos_name
+	end if	
+
+	k_pos = pos(k_dw_syntax, "bitmap(", k_pos + 1) 
+loop
+
+if k_modify > " " then
+	k_rc = a_dw.modify(k_modify)
+	if k_rc > " " then k_modify = k_rc
+end if
+
+return k_modify
 end function
 
 on kuf_utility.create

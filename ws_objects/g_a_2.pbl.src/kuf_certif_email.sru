@@ -20,9 +20,9 @@ public function date tb_pulizia () throws uo_exception
 public function st_esito u_batch_run () throws uo_exception
 public function integer tb_add (ref string k_status) throws uo_exception
 public function boolean set_certif_e1_e1doco (st_tab_certif_email kst_tab_certif_email) throws uo_exception
-private function st_tab_email u_add_email_invio_0 (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio) throws uo_exception
 public function long u_add_email_invio_2 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception
 private function long u_add_email_invio_1 (ref uo_ds_std_1 ads_1, integer a_riga_ds, ref st_tab_email_invio ast_tab_email_invio, ref st_tab_email ast_tab_email, ref kuf_email auf_email, ref st_tab_meca ast_tab_meca, ref kuf_certif_print auf_certif_print) throws uo_exception
+private function st_tab_email u_add_email_invio_0_old (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio, string a_cod_funzione) throws uo_exception
 end prototypes
 
 public function long u_add_email_invio () throws uo_exception;/*
@@ -32,14 +32,17 @@ public function long u_add_email_invio () throws uo_exception;/*
 long k_return 
 long k_riga, k_righe, k_righe_daelab, k_riga1000, k_riga_ds, k_rc, k_email_inserite
 datetime k_datetime
+string k_id_nazione_1
 //st_tab_certif_email kst_tab_certif_email[], kst_tab_certif_email_vuoto[]
 st_tab_meca kst_tab_meca
-st_tab_email_invio kst_tab_email_invio, kst_tab_email_invio_orig
+st_tab_email_invio kst_tab_email_invio, kst_tab_email_invio_void
 st_tab_email kst_tab_email
 st_esito kst_esito
 st_tab_clienti_fatt kst_tab_clienti_fatt
 kuf_certif_print kuf1_certif_print
 kuf_email kuf1_email
+kuf_email_funzioni kuf1_email_funzioni
+kuf_email_invio kuf1_email_invio
 uo_ds_std_1 kds_1
 
 
@@ -47,6 +50,8 @@ try
 	kst_esito = kguo_exception.inizializza(this.classname())
 
 	kuf1_certif_print = create kuf_certif_print
+	kuf1_email_invio = create kuf_email_invio
+	kuf1_email = create kuf_email
 	
 	kds_1 = create uo_ds_std_1
 	kds_1.dataobject = "ds_certif_email_noemail"
@@ -60,10 +65,9 @@ try
 	if k_righe = 0 then return 0   // Non fa nulla uscita!
 	
 	kst_tab_meca.x_utente = kGuf_data_base.prendi_x_utente()
-	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()
+	kst_tab_meca.x_datins = kGuf_data_base.prendi_x_datins()	 
 	
-	kuf1_email = create kuf_email
-	kst_tab_email = u_add_email_invio_0(kuf1_email, kst_tab_email_invio_orig)    // riempie area st_tab_email_invio comune a queste email
+	//kst_tab_email = u_add_email_invio_0(kuf1_email, kst_tab_email_invio_orig, kuf1_email_funzioni.kki_cod_funzione_attestati) // riempie area st_tab_email_invio comune a queste email
 	
 	for k_riga = 1 to k_righe
 		
@@ -80,11 +84,29 @@ try
 		
 		for k_riga_ds = k_riga to k_riga1000
 			
-			kst_tab_email_invio = kst_tab_email_invio_orig
+			kst_tab_email_invio = kst_tab_email_invio_void
+			k_id_nazione_1 = kds_1.getitemstring( k_riga_ds, "id_nazione_1")
+			if k_id_nazione_1 > " " and k_id_nazione_1 <> "IT" and k_id_nazione_1 <> "SM" then
+				kst_tab_email_invio.lang = "EN"
+			else
+				kst_tab_email_invio.lang = ""
+			end if
+			kst_tab_email_invio.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_attestati
+			kst_tab_email = kuf1_email_invio.u_get_st_tab_email_email_invio(kst_tab_email_invio)
+		
+			//kst_tab_email_invio = kst_tab_email_invio_orig
 
 //--- get degli indirizzi x invio Attestati
 			kst_tab_clienti_fatt.email_invio = kds_1.getitemstring(k_riga_ds, "clienti_fatt_email_invio")
+			
+			//--- email addresses
 			kst_tab_email_invio.email = kds_1.getitemstring(k_riga_ds, "clienti_web_email")
+			if trim(kst_tab_email.email_to) > " " then
+				kst_tab_email_invio.email += ";" + trim(kst_tab_email.email_to) 
+			end if
+			kst_tab_email_invio.email_cc = trim(kst_tab_email.email_cc) 
+			kst_tab_email_invio.email_ccn = trim(kst_tab_email.email_ccn)
+
 			kst_tab_email_invio.id_cliente = kds_1.getitemnumber( k_riga_ds, "clie_3")
 			
 //--- se e-mail NON impostata sul cliente NON invio nulla!!!
@@ -360,81 +382,6 @@ return k_return
 
 end function
 
-private function st_tab_email u_add_email_invio_0 (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
-//--- Imposta campi generici di invio email Certificati
-//--- Inp: 
-//--- Out: st_tab_email_invio
-//------------------------------------------------------------------------------------------------------------------------
-//
-kuf_email_invio kuf1_email_invio
-kuf_email_funzioni kuf1_email_funzioni
-st_tab_email kst_tab_email
-//st_tab_email_invio kst_tab_email_invio
-st_tab_email_funzioni kst_tab_email_funzioni
-st_esito kst_esito
-
-
-try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	
-	kuf1_email_invio = create kuf_email_invio
-	kuf1_email_funzioni = create kuf_email_funzioni
-	
-	kst_tab_email_invio.flg_allegati = kuf1_email_invio.ki_allegati_si
-	kst_tab_email_invio.cod_funzione = kuf1_email_funzioni.kki_cod_funzione_attestati  // INFO che sono i CERTIFICATI
-
-//--- get del Prototipo della e-mail
-	kst_tab_email_funzioni.cod_funzione = kst_tab_email_invio.cod_funzione
-	kst_tab_email.id_email = kuf1_email_funzioni.get_id_email_xcodfunzione(kst_tab_email_funzioni)
-	if kst_tab_email.id_email = 0 then
-		kguo_exception.inizializza( )
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.sqlerrtext = "Indicare il Prototipo E-mail da utilizzare per l'invio dei Certificati, codificato come '" &
-					+ trim(kst_tab_email_funzioni.cod_funzione) &
-					+ "' (" + kuf1_email_funzioni.get_des(kst_tab_email_funzioni) + ")"
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-	end if
-
-//--- recupero diversi dati x riempire la tab email-invio			
-	kuf1_email.get_riga(kst_tab_email)
-	
-	//kst_tab_email_invio.oggetto = kst_tab_email.oggetto
-	kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
-	kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
-	kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
-	kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
-	if kst_tab_email.attached > " " then
-		if trim(kst_tab_email_invio.allegati_pathfile) > " " then
-			kst_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
-		else
-			kst_tab_email_invio.allegati_pathfile = kst_tab_email.attached
-		end if
-	end if
-		
-	kuf1_email_invio.if_isnull(kst_tab_email_invio)
-	
-catch (uo_exception kuo_exception)	
-	kst_esito = kuo_exception.get_st_esito()
-	if kst_esito.esito = kkg_esito.no_esecuzione then
-	else
-		kuo_exception.scrivi_log()
-		throw kuo_exception
-	end if
-	
-finally
-	if isvalid(kuf1_email_invio) then destroy kuf1_email_invio
-	if isvalid(kuf1_email_funzioni) then destroy kuf1_email_funzioni
-	
-end try
-
-
-
-return kst_tab_email //_invio
-
-end function
-
 public function long u_add_email_invio_2 (ref st_tab_certif_email ast_tab_certif_email, ref st_tab_email_invio ast_tab_email_invio) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
 //--- Fa il Carico nella tabella email-invio 
 //--- Inp: st_tab_certif_email valorizzata con i campi necessari
@@ -502,16 +449,6 @@ st_tab_certif_email kst_tab_certif_email
 
 try
 
-	kst_tab_clienti.id_nazione_1 = ads_1.getitemstring( a_riga_ds, "id_nazione_1")
-	if kst_tab_clienti.id_nazione_1 > " " and kst_tab_clienti.id_nazione_1 <> "IT" and kst_tab_clienti.id_nazione_1 <> "SM" then
-		ast_tab_email_invio.lang = "EN"
-	else
-		ast_tab_email_invio.lang = ""
-	end if
-
-	auf_email.get_oggetto(ast_tab_email)
-	ast_tab_email_invio.oggetto = ast_tab_email.oggetto
-
 //--- get del DDT mandante		
 	ast_tab_meca.num_bolla_in = ads_1.getitemstring( a_riga_ds, "num_bolla_in")
 	ast_tab_meca.data_bolla_in = ads_1.getitemdate( a_riga_ds, "data_bolla_in")
@@ -567,6 +504,75 @@ finally
 end try
 
 return k_return
+
+end function
+
+private function st_tab_email u_add_email_invio_0_old (ref kuf_email kuf1_email, ref st_tab_email_invio kst_tab_email_invio, string a_cod_funzione) throws uo_exception;//------------------------------------------------------------------------------------------------------------------------
+//--- Imposta campi generici di invio email 
+//--- Inp: 
+//--- Out: st_tab_email_invio
+//------------------------------------------------------------------------------------------------------------------------
+//
+kuf_email_invio kuf1_email_invio
+kuf_email_funzioni kuf1_email_funzioni
+st_tab_email kst_tab_email
+st_tab_email_funzioni kst_tab_email_funzioni
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	
+	kuf1_email_invio = create kuf_email_invio
+	kuf1_email_funzioni = create kuf_email_funzioni
+	
+	kst_tab_email_invio.flg_allegati = kuf1_email_invio.ki_allegati_si
+	kst_tab_email_invio.cod_funzione = a_cod_funzione 
+
+//--- get del Prototipo della e-mail
+	kst_tab_email_funzioni.cod_funzione = kst_tab_email_invio.cod_funzione
+	kst_tab_email.id_email = kuf1_email_funzioni.get_id_email_xcodfunzione(kst_tab_email_funzioni)
+	if kst_tab_email.id_email = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.kist_esito.sqlerrtext = "Indicare il Prototipo E-mail da utilizzare per l'invio dei Certificati, codificato come '" &
+					+ trim(kst_tab_email_funzioni.cod_funzione) &
+					+ "' (" + kuf1_email_funzioni.get_des(kst_tab_email_funzioni) + ")"
+		throw kguo_exception
+	end if
+
+//--- recupero diversi dati x riempire la tab email-invio			
+	kuf1_email.get_riga(kst_tab_email)
+	
+	//kst_tab_email_invio.oggetto = kst_tab_email.oggetto
+	kst_tab_email_invio.link_lettera = kst_tab_email.link_lettera
+	kst_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
+	kst_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
+	kst_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
+	kst_tab_email_invio.invio_batch = kst_tab_email.invio_batch
+	if kst_tab_email.attached > " " then
+		if trim(kst_tab_email_invio.allegati_pathfile) > " " then
+			kst_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
+		else
+			kst_tab_email_invio.allegati_pathfile = kst_tab_email.attached
+		end if
+	end if
+		
+	kuf1_email_invio.if_isnull(kst_tab_email_invio)
+	
+catch (uo_exception kuo_exception)	
+	if kuo_exception.kist_esito.esito = kkg_esito.no_esecuzione then
+	else
+		kuo_exception.scrivi_log()
+		throw kuo_exception
+	end if
+	
+finally
+	if isvalid(kuf1_email_invio) then destroy kuf1_email_invio
+	if isvalid(kuf1_email_funzioni) then destroy kuf1_email_funzioni
+	
+end try
+
+return kst_tab_email
 
 end function
 

@@ -316,7 +316,7 @@ protected subroutine attiva_menu ();//--- Attiva/Dis. Voci di menu
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemVisible = true
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemText = "Esp-Fatture,"+m_main.m_strumenti.m_fin_gest_libero7.libero2.text
-		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemName = kGuo_path.get_risorse() + KKG.PATH_SEP + "cart_out32.gif"  //"fattura16x16.gif" 
+		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemName =  "cart_out32.gif"  //"fattura16x16.gif" 
 ////		ki_menu.m_strumenti.m_fin_gest_libero7.libero2.toolbaritembarindex=2
 	
 //		ki_menu.m_strumenti.m_fin_gest_libero7.libero3.text = "Estrazione Lotti non fatturati (FIDI) per ESOLVER"

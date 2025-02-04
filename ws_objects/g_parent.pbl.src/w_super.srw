@@ -327,7 +327,7 @@ public subroutine u_toolbar_save ();//---
 //--- parametro di out: 
 //---
 // Store the toolbar settings for the passed window
-integer index, row, offset, k_x, k_y, k_w, k_h, k_ctr 
+int index, row, offset, k_x, k_y, k_w, k_h, k_ctr 
 boolean k_visible 
 string visstring, alignstring, k_title, k_nome,k_rcx
 toolbaralignment alignment  

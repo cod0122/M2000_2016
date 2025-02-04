@@ -1379,7 +1379,7 @@ try
 //					k_rcx=kds_print.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
 //					k_rcx=kds_print.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
 					kds_print.object.DataWindow.Export.PDF.Method = NativePDF!
-					k_rcx=kds_print.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
+					k_rcx=kds_print.Modify("p_img_2.Filename='" +   trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
 				end if
    
 				kds_print.settransobject(sqlca)
@@ -2804,12 +2804,12 @@ if_sicurezza(kkg_flag_modalita.stampa)
 			
 //--- Imposta  Risorse Grafiche
 			if len(trim(kGuo_path.get_risorse())) > 0 then
-				k_rcx=kds_print.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img.text"))+ "'") 
-				k_rcx=kds_print.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
-				k_rcx=kds_print.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
-				k_rcx=kds_print.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
-				k_rcx=kds_print.Modify("p_img_3.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_3.text")) + "'") 
-				k_rcx=kds_print.Modify("p_img_4.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img.Filename='" +  trim(kds_print.Describe("txt_p_img.text"))+ "'") 
+				k_rcx=kds_print.Modify("p_img_0.Filename='" +   trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
+				k_rcx=kds_print.Modify("p_img_1.Filename='" +   trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img_2.Filename='" +   trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img_3.Filename='" +   trim(kds_print.Describe("txt_p_img_3.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img_4.Filename='" +   trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
 			end if
 //--- Imposta le Risorse grafiche anche delle DW innestate (composite dw)			
 			k_dwc_num=1
@@ -2817,12 +2817,12 @@ if_sicurezza(kkg_flag_modalita.stampa)
 			do while k_rcn = 1
 				string k_appo=""
 				k_appo =  trim(kdwc_1.Describe("txt_p_img.text"))
-				k_rcx=kdwc_1.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img.text"))+ "'") 
-				k_rcx=kdwc_1.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img_0.text")) + "'")  
-				k_rcx=kdwc_1.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img_1.text")) + "'") 
-				k_rcx=kdwc_1.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img_2.text")) + "'") 
-				k_rcx=kdwc_1.Modify("p_img_3.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img_3.text")) + "'") 
-				k_rcx=kdwc_1.Modify("p_img_4.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kdwc_1.Describe("txt_p_img_4.text")) + "'") 
+				k_rcx=kdwc_1.Modify("p_img.Filename='" +  trim(kdwc_1.Describe("txt_p_img.text"))+ "'") 
+				k_rcx=kdwc_1.Modify("p_img_0.Filename='" +   trim(kdwc_1.Describe("txt_p_img_0.text")) + "'")  
+				k_rcx=kdwc_1.Modify("p_img_1.Filename='" +   trim(kdwc_1.Describe("txt_p_img_1.text")) + "'") 
+				k_rcx=kdwc_1.Modify("p_img_2.Filename='" +   trim(kdwc_1.Describe("txt_p_img_2.text")) + "'") 
+				k_rcx=kdwc_1.Modify("p_img_3.Filename='" +   trim(kdwc_1.Describe("txt_p_img_3.text")) + "'") 
+				k_rcx=kdwc_1.Modify("p_img_4.Filename='" +   trim(kdwc_1.Describe("txt_p_img_4.text")) + "'") 
 				k_dwc_num ++
 				k_rcn = kds_print.GetChild("dw_"+string(k_dwc_num), kdwc_1) 
 			loop

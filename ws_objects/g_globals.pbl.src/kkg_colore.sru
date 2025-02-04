@@ -26,6 +26,7 @@ constant long BLU_CHIARO=65536 * (255) + 256 * (211) + (168)
 constant long VERDE=65536 * 64 + 256 * (128) + (0) 
 constant long GIALLO=65536 * 128 + 256 * (255) + (255) 
 constant long GIALLOCHIARO=(rgb(255,255,100)) 
+constant long GIALLOSCURO=(rgb(55,55,0)) 
 constant long OLIVE=65536 * 128 + 256 * (128) + (64) 
 
 constant string NEROX="1"
@@ -42,6 +43,7 @@ constant string BLU_CHIAROX=string(65536 * (255) + 256 * (211) + (168))
 constant string VERDEX=string(65536 * 64 + 256 * (128) + (0))
 constant string GIALLOX=string(65536 * 128 + 256 * (255) + (255)) 
 constant string GIALLOCHIAROX=string(rgb(255,255,100)) 
+constant string GIALLOSCUROX=string(rgb(55,55,0)) 
 constant string OLIVEX=string(65536 * 128 + 256 * (128) + (64)) 
 
 constant string LINK=string(65536 * (255) + 256 * (128) + (0))

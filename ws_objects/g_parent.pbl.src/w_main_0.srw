@@ -5,6 +5,8 @@ global type w_main_0 from window
 end type
 type mdi_1 from mdiclient within w_main_0
 end type
+type mdirbb_1 from ribbonbar within w_main_0
+end type
 end forward
 
 global type w_main_0 from window
@@ -41,6 +43,7 @@ long tabbeddocumentmouseovertabtextcolor = 32896
 event u_open ( ) throws uo_exception
 event u_show ( )
 mdi_1 mdi_1
+mdirbb_1 mdirbb_1
 end type
 global w_main_0 w_main_0
 
@@ -56,6 +59,7 @@ window kiw_this_window
 //m_main m_main_0
 
 constant string ki_suona_motivo_start = "Start.wav"
+
 
 end variables
 
@@ -87,6 +91,9 @@ try
 //=== Puntatore Cursore da attesa.....
 //=== Se volessi riprist. il vecchio puntatore : SetPointer(oldpointer)
 	SetPointer(kkg.pointer_attesa)
+
+	kguf_user_notification.ki_window = this
+	kguf_user_notification.ki_timeduration = 5
 
 //--- assegna il puntatore al MENU generale della MDI
 	u_menu_init( )
@@ -372,7 +379,7 @@ end subroutine
 
 private function boolean u_if_update_software ();//
 boolean k_return
-int k_ctr=0
+long k_ctr=0
 string k_versione=""
 kuf_program kuf1_program
 kuf_base kuf1_base
@@ -559,12 +566,15 @@ end event
 on w_main_0.create
 if this.MenuName = "m_main" then this.MenuID = create m_main
 this.mdi_1=create mdi_1
-this.Control[]={this.mdi_1}
+this.mdirbb_1=create mdirbb_1
+this.Control[]={this.mdi_1,&
+this.mdirbb_1}
 end on
 
 on w_main_0.destroy
 if IsValid(MenuID) then destroy(MenuID)
 destroy(this.mdi_1)
+destroy(this.mdirbb_1)
 end on
 
 event open;//
@@ -627,11 +637,13 @@ int k_ctr
 	catch (uo_exception kuo_exception)
 //		kuo_exception.messaggio_utente()
 	end try
-
+	
 //--- svuota cartella TEMP
 	kuf_utility kuf1_utility
 	kuf1_utility = create kuf_utility
 	kuf1_utility.u_svuota_temp( )
+
+	if isvalid(kguf_user_notification) then kguf_user_notification.of_delete_from_systemtray( )
 
 halt close
 
@@ -644,5 +656,16 @@ end event
 
 type mdi_1 from mdiclient within w_main_0
 long BackColor=12632256
+end type
+
+type mdirbb_1 from ribbonbar within w_main_0
+integer height = 596
+end type
+
+type mditbb_1 from tabbedbar within w_main_0
+int X=0
+int Y=0
+int Width=0
+int Height=104
 end type
 

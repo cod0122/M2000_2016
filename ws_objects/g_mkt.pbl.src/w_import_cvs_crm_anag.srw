@@ -37,7 +37,7 @@ end prototypes
 private subroutine aggiorna_db ();//---
 //--- Popola archivi da DW 
 //---
-int k_riga, k_ctr
+long k_riga, k_ctr
 string k_tel_r, k_tel
 st_tab_clienti kst_tab_clienti, kst_tab_contatto1, kst_tab_contatto2, kst_tab_contatto3,kst_tab_contatto4, kst_tab_clienti_r 
 st_tab_clienti_mkt kst_tab_clienti_mkt, kst_tab_contatto1_mkt, kst_tab_contatto2_mkt, kst_tab_contatto3_mkt, kst_tab_contatto4_mkt, kst_tab_clienti_mkt_r

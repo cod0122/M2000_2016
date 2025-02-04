@@ -289,6 +289,10 @@ try
 		kst_tab_clienti_mkt.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
 		kst_tab_clienti_mkt.id_cliente_link = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "id_cliente_link")
 		kst_tab_clienti_mkt.qualifica = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "qualifica"))
+		if kst_tab_clienti_mkt.qualifica > " " then
+		else
+			kst_tab_clienti_mkt.qualifica = "-"
+		end if
 		kst_tab_clienti_mkt.for_qa_italy = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_qa_italy"))
 		kst_tab_clienti_mkt.for_cobalt_rload = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_cobalt_rload"))
 		kst_tab_clienti_mkt.for_price_cntct = trim(tab_1.tabpage_1.dw_1.getitemstring(k_riga, "for_price_cntct"))

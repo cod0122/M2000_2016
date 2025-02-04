@@ -1121,9 +1121,9 @@ public function integer get_capitolati (string k_capitolati, ref string k_capito
 //---
 //--------------------------------------------------------------------------------------------------------------------------------------------------		
 //
-int k_return = 0
-int k_nr_capitolato=0, k_pos=0, k_start=0
-string k_trova=""
+int k_return, k_nr_capitolato
+long k_pos, k_start=0
+string k_trova
 st_tab_contratti kst_tab_contratti
 st_esito kst_esito
 

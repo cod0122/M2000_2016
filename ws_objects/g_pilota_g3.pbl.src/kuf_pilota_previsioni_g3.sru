@@ -198,7 +198,7 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 					 	+ " , ordine_figlio int " &
 					 	+ " , num_int_figlio char(16) " &
 					 	+ " , carrier int " &
-					 	+ " , fase int " &
+					 	+ " , posizione int " &
 						 + ", id_modo char(2) " &
 						 + ", ciclo varchar(16) " &
 						 + ", giri smallint " &
@@ -208,7 +208,11 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
  					 	 + ", dataora_lav_fin_min_prev datetime " &
 					 	 + ", dataora_lav_fin_max_prev datetime " &
 					 	 + ", dataora_lav_fin_prev_dtpl datetime " &
-						 + ", avg_time_io_minute integer" 
+						 + ", avg_time_io_minute integer "  &
+						 + ", statuscode integer "  &
+					 	 + ", update_last datetime "
+						 
+						 
 	   kguo_sqlca_db_magazzino.db_crea_temp_table(ki_temptab_pilota_workqueue, k_campi, "")      
 				
 		kds_pilota_pallet_workqueue_g3 = CREATE ds_pilota_pallet_workqueue_g3
@@ -250,11 +254,14 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 			end if
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "dataora_lav_ini", kst_tab_pilota_pallet.data_entrata )
 			
-			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "fase", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "fase"))
+			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "posizione", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "posizione"))
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "id_modo", trim(kds_pilota_pallet_workqueue_g3.getitemstring(k_riga, "id_modo")))
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "ciclo", trim(kds_pilota_pallet_workqueue_g3.getitemstring(k_riga, "ciclo")))
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "giri", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "giri"))
 			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "giri_eseguiti", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "giri_eseguiti"))
+			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "statuscode", kds_pilota_pallet_workqueue_g3.getitemnumber(k_riga, "statuscode"))
+			ads_pilota_pallet_workqueue_temp_g3.setitem( k_rigainsert, "update_last", kds_pilota_pallet_workqueue_g3.getitemdatetime(k_riga, "update_last"))
+
 		end for
 
 		if ads_pilota_pallet_workqueue_temp_g3.rowcount() > 0 then

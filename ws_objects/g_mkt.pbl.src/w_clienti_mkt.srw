@@ -439,62 +439,62 @@ boolean k_insert = true
 
 
 //--- se sono già visualizzate non ci ripasso...
-	if not m_main.m_strumenti.m_fin_gest_libero1.visible then 
+	if not m_main.m_strumenti.m_fin_gest_libero2.visible then 
 
-		m_main.m_strumenti.m_fin_gest_libero1.text = "Capitolati per l'anagrafica selezionata"
-		m_main.m_strumenti.m_fin_gest_libero1.microhelp = "Capitolato,Elenco Capitolati per l'anagrafica selezionata"
-		m_main.m_strumenti.m_fin_gest_libero1.visible = true
-		m_main.m_strumenti.m_fin_gest_libero1.enabled = true
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemText =  "Capit.,Elenco Capitolati per l'anagrafica selezionata"
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritemName = "Custom004!"
-		m_main.m_strumenti.m_fin_gest_libero1.toolbaritembarindex=2
-	
-		m_main.m_strumenti.m_fin_gest_libero2.text = "Elenco Contratti e Quotazioni per l'anagrafica selezionata"
-		m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Contr.," + m_main.m_strumenti.m_fin_gest_libero2.text
+		m_main.m_strumenti.m_fin_gest_libero2.text = "Capitolati per l'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero2.microhelp = "Capitolato,Elenco Capitolati per l'anagrafica selezionata"
 		m_main.m_strumenti.m_fin_gest_libero2.visible = true
 		m_main.m_strumenti.m_fin_gest_libero2.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero2.microhelp
-		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "DataWindow!"
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemText =  "Capit.,Elenco Capitolati per l'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero2.toolbaritemName = "Custom004!"
 		m_main.m_strumenti.m_fin_gest_libero2.toolbaritembarindex=2
 	
-		m_main.m_strumenti.m_fin_gest_libero3.text = "Elenco Listini dell'anagrafica selezionata"
-		m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Listini,Elenco Listini dell'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero3.text = "Elenco Contratti e Quotazioni per l'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero3.microhelp = "Contr.," + m_main.m_strumenti.m_fin_gest_libero3.text
 		m_main.m_strumenti.m_fin_gest_libero3.visible = true
 		m_main.m_strumenti.m_fin_gest_libero3.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemVisible = true
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero3.microhelp
-		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "FormatDollar!"
+		m_main.m_strumenti.m_fin_gest_libero3.toolbaritemName = "DataWindow!"
 		m_main.m_strumenti.m_fin_gest_libero3.toolbaritembarindex=2
 	
-		m_main.m_strumenti.m_fin_gest_libero4.text = "Stampa Report E1"
-		m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Report, Stampa Contact List per E1. "
+		m_main.m_strumenti.m_fin_gest_libero4.text = "Elenco Listini dell'anagrafica selezionata"
+		m_main.m_strumenti.m_fin_gest_libero4.microhelp = "Listini,Elenco Listini dell'anagrafica selezionata"
 		m_main.m_strumenti.m_fin_gest_libero4.visible = true
 		m_main.m_strumenti.m_fin_gest_libero4.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemVisible = true
-		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = "Rprt E1, Stampa Contact List E1. "
-		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "printa16.png"
-//		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = kGuo_path.get_risorse() +  "\fattura16x16.gif"
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemText = m_main.m_strumenti.m_fin_gest_libero4.microhelp
+		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemName = "FormatDollar!"
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritembarindex=2
 	
-		m_main.m_strumenti.m_fin_gest_libero5.text = "Nuovo Contatto "
-		m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Contatto, Nuovo Contatto  "
+		m_main.m_strumenti.m_fin_gest_libero5.text = "Stampa Report E1"
+		m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Report, Stampa Contact List per E1. "
 		m_main.m_strumenti.m_fin_gest_libero5.visible = true
 		m_main.m_strumenti.m_fin_gest_libero5.enabled = true
-		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = false
-		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemText = "Cont.,Carica nuovo Contatto"
-		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = "contatti_rubrica_nuovo.gif"
-//		ki_menu.m_strumenti.m_fin_gest_libero5.toolbaritemName = kGuo_path.get_risorse() +  "\contatti_rubrica_nuovo.gif"
+		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemVisible = true
+		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemText = "Rprt E1, Stampa Contact List E1. "
+		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = "printa16.png"
+//		m_main.m_strumenti.m_fin_gest_libero5.toolbaritemName = kGuo_path.get_risorse() +  "\fattura16x16.gif"
 		m_main.m_strumenti.m_fin_gest_libero5.toolbaritembarindex=2
 	
-		m_main.m_strumenti.m_fin_gest_libero6.text = "Cattura email"
-		m_main.m_strumenti.m_fin_gest_libero6.microhelp = "Cattura, Cattura indirizzi email "
+		m_main.m_strumenti.m_fin_gest_libero6.text = "Nuovo Contatto "
+		m_main.m_strumenti.m_fin_gest_libero6.microhelp = "Contatto, Nuovo Contatto  "
+		m_main.m_strumenti.m_fin_gest_libero6.visible = true
+		m_main.m_strumenti.m_fin_gest_libero6.enabled = true
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemVisible = false
-		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemText = "Cattura,Cattura indirizzi email dei Contatti"
-		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemName = "Custom025a!"
+		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemText = "Cont.,Carica nuovo Contatto"
+		m_main.m_strumenti.m_fin_gest_libero6.toolbaritemName = "contatti_rubrica_nuovo.gif"
 //		ki_menu.m_strumenti.m_fin_gest_libero6.toolbaritemName = kGuo_path.get_risorse() +  "\contatti_rubrica_nuovo.gif"
 		m_main.m_strumenti.m_fin_gest_libero6.toolbaritembarindex=2
+	
+		m_main.m_strumenti.m_fin_gest_libero7.text = "Cattura email"
+		m_main.m_strumenti.m_fin_gest_libero7.microhelp = "Cattura, Cattura indirizzi email "
+		m_main.m_strumenti.m_fin_gest_libero7.toolbaritemVisible = false
+		m_main.m_strumenti.m_fin_gest_libero7.toolbaritemText = "Cattura,Cattura indirizzi email dei Contatti"
+		m_main.m_strumenti.m_fin_gest_libero7.toolbaritemName = "Custom025a!"
+//		ki_menu.m_strumenti.m_fin_gest_libero7.toolbaritemName = kGuo_path.get_risorse() +  "\contatti_rubrica_nuovo.gif"
+		m_main.m_strumenti.m_fin_gest_libero7.toolbaritembarindex=2
 	
 		m_main.m_strumenti.m_fin_gest_libero8.text = "Estrazione statistico di magazzino per l'anagrafica selezionata"
 		m_main.m_strumenti.m_fin_gest_libero8.microhelp = "Stat.Mag,Estrazione statistico di magazzino per l'anagrafica selezionata"
@@ -508,11 +508,11 @@ boolean k_insert = true
 	end if
 	
 	if ki_st_open_w.key1 = kiuf_clienti.kki_tipo_contatto then
-		m_main.m_strumenti.m_fin_gest_libero6.visible = true
-		m_main.m_strumenti.m_fin_gest_libero6.enabled = true
+		m_main.m_strumenti.m_fin_gest_libero7.visible = true
+		m_main.m_strumenti.m_fin_gest_libero7.enabled = true
 	else
-		m_main.m_strumenti.m_fin_gest_libero6.visible = false
-		m_main.m_strumenti.m_fin_gest_libero6.enabled = false
+		m_main.m_strumenti.m_fin_gest_libero7.visible = false
+		m_main.m_strumenti.m_fin_gest_libero7.enabled = false
 	end if
 	
 	
@@ -800,6 +800,8 @@ st_profilestring_ini kst_profilestring_ini
 end subroutine
 
 protected subroutine open_start_window ();//
+long k_pos
+long kstart_pos = 1
 datastore kds_1
 
 	kiuf_clienti = create kuf_clienti
@@ -816,8 +818,6 @@ datastore kds_1
 
 //--- Funzione di TROVA: Salva la Query di Origine (devo pero' add il TILDE altrimenti quando ripristino non va bene!!!-------------
 	kds_1 = create datastore
-	int k_pos
-	int kstart_pos = 1
 	kds_1.dataobject = "d_clienti_l_mkt"
 	ki_sqlsyntax_origine = upper(kds_1.Describe("DataWindow.Table.Select"))
 	// Aggiunge al APICE la TILDE ( ' con ~~')
@@ -853,24 +853,24 @@ string k_return="0 "
 
 choose case LeftA(k_par_in, 2) 
 
-	case "l1"		//Contratti...
+	case "l2"		//Contratti...
 		call_elenco_capitolati()
 
-	case "l2"		//Contratti CO...
+	case "l3"		//Contratti CO...
 		call_elenco_contratti()
 
-	case "l3"		//Listino...
+	case "l4"		//Listino...
 		call_elenco_listino()
 
 //	case "l4"		//Fatture...
 //		call_elenco_fatture()
-	case "l4"		//Report E1
+	case "l5"		//Report E1
 		stampa_report_e1()
 
-	case "l5"		//carica Contatto...
+	case "l6"		//carica Contatto...
 		call_nuovo_anag (kkg_id_programma_anag_rid) 
 		
-	case "l6"		//cattura indirizzi email...
+	case "l7"		//cattura indirizzi email...
 		u_copy_email_to_clipboard()
 
 	case "l8"		//Statistica...
@@ -1004,7 +1004,7 @@ end function
 
 private subroutine call_memo ();//
 //=== Legge il rek dalla DW lista per la modifica
-
+//
 long k_riga
 st_tab_clienti_memo kst_tab_clienti_memo 
 st_memo kst_memo
@@ -1016,12 +1016,7 @@ try
 	k_riga = dw_lista_0.getrow()
 	if k_riga > 0 then
 	
-//		kst_tab_clienti_memo.id_cliente_memo = dw_lista_0.getitemnumber( k_riga, "id_cliente_memo" ) 
-//		if kst_tab_clienti_memo.id_cliente_memo > 0 then
-//			kiuf_clienti.get_id_memo(kst_tab_clienti_memo)
-//		else
-			kst_tab_clienti_memo.id_memo = 0
-//		end if
+		kst_tab_clienti_memo.id_memo = 0
 		if dw_lista_0.dataobject = "d_contatti_l_mkt" then
 			kst_tab_clienti_memo.id_cliente = dw_lista_0.getitemnumber( k_riga, "id_cliente_1" ) 
 		else
@@ -1282,14 +1277,15 @@ end if
 
 messagebox("Cattura email", "Sono stati catturati " + string(k_n_email) &
 				+ " indirizzi. Puoi copiarli (ctrl+V o Incolla/Paste) dove desideri") 
+
 end subroutine
 
 protected subroutine lancia_ricerca_valore (string k_par_valore);//---
 //--- Manipola la query aggiungendo la parte della WHERE
 //---
 string k_query,k_select_orig, k_select, k_order_by, k_select_new, k_rc, k_utente="", k_view
-int k_pos
-int kstart_pos = 1
+long k_pos
+long kstart_pos = 1
 string k_valore
 
 try
@@ -1306,16 +1302,12 @@ try
 			 + " where CLIENTI.CODICE in ( " 
 	k_query += &
 	  " SELECT DISTINCT clienti.codice  " &
-		+ "FROM clienti LEFT OUTER JOIN clienti_mkt ON  " &
-									+ " clienti.codice = clienti_mkt.id_cliente  " &
-		  + " LEFT OUTER JOIN clienti_web ON  " &
-									+ " clienti.codice = clienti_web.id_cliente   " &
-		  + " LEFT OUTER JOIN v_clienti_mkt_web vc ON  " &
-									+ " clienti.codice = vc.id_cliente   " &
-		  + "  LEFT OUTER JOIN gru ON  " &
-								  + " clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice " &
-		  + "  LEFT OUTER JOIN province ON  " &
-							  + " clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla " &
+		+ "FROM clienti LEFT OUTER JOIN clienti_mkt ON clienti.codice = clienti_mkt.id_cliente  " &
+		  + " LEFT OUTER JOIN clienti_web ON clienti.codice = clienti_web.id_cliente   " &
+		  + " LEFT OUTER JOIN v_clienti_mkt_web vc ON clienti.codice = vc.id_cliente   " &
+		  + " LEFT OUTER JOIN gru ON clienti_mkt.gruppo > 0 and clienti_mkt.gruppo = gru.codice " &
+		  + " LEFT OUTER JOIN province ON clienti.prov_1 = province.sigla or clienti.prov_2 = province.sigla " &
+        + " left outer join v_contatti on clienti.codice = v_contatti.id_cliente " &
 		  + " WHERE  " &
 		+ " coalesce(CONVERT(VARCHAR,clienti.codice),' ')" &
 		+ " like '" + k_valore + "' "  &
@@ -1323,6 +1315,10 @@ try
 		+ " like '" + k_valore + "' "  &
 		+ " or upper(coalesce(clienti.rag_soc_10,' ')+coalesce(clienti.rag_soc_11,' ')+coalesce(clienti.rag_soc_20,' ')+coalesce(clienti.rag_soc_21,' ')) " &
 		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(v_contatti.rag_soc_10,' ')+coalesce(v_contatti.rag_soc_11,' ')) " &
+		+ " like '" + k_valore + "' "  &
+		+ " or upper(coalesce(v_contatti.qualifica,' ')) " &
+		+ " like '" + k_valore + "' "  &		
 		+ " or upper(coalesce(clienti.indi_1,' ')+coalesce(clienti.loc_1,' ')+coalesce(clienti.prov_1,' ')+coalesce(clienti.indi_2,' ')+coalesce(clienti.loc_2,' ')+ coalesce(clienti.prov_2,' ')) " &
 		+ " like '" + k_valore + "' "  &
 		+ " or upper(coalesce(clienti.cap_1,' '))" &

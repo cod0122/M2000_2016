@@ -26,6 +26,7 @@ global type st_treeview_data_any from structure
 	st_wm_pkl_file		st_wm_pkl_file		descriptor "comment" = "nuovo contenitore file pkl (web-xmp e lineare-txt)"
 	st_tab_meca_qtna		st_tab_meca_qtna
 	st_treeview_file		st_treeview_file
+	st_tab_wm_pklist_camion		st_tab_wm_pklist_camion
 	long		contati
 end type
 

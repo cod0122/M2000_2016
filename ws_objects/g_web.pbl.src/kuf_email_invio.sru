@@ -9,18 +9,22 @@ end type
 global kuf_email_invio kuf_email_invio
 
 type variables
-
+public:
 //--- flag allegati
- string ki_allegati_si = "S"
- string ki_allegati_no = "N"
+constant string ki_allegati_si = "S"
+constant string ki_allegati_no = "N"
 
 //--- in HTML
- string ki_lettera_html_si = "S"
- string ki_lettera_html_no = "N"
+constant string ki_lettera_html_si = "S"
+constant string ki_lettera_html_no = "N"
 
 //--- Ricevuta di ritorno
- string ki_ricev_ritorno_si = "S"
- string ki_ricev_ritorno_no = "N"
+constant string ki_ricev_ritorno_si = "S"
+constant string ki_ricev_ritorno_no = "N"
+
+//--- oggetto SMTP invio email
+private: 
+kuf_smtp kiuf_smtp
 
 //--- Invio automatico via batch
 constant int kki_invio_batch_si = 1
@@ -65,6 +69,11 @@ public function boolean link_call (ref datawindow adw_link, string a_campo_link)
 public function st_esito anteprima_rubrica (datastore kdw_anteprima) throws uo_exception
 public function boolean get_data_ins (ref st_tab_email_invio kst_tab_email_invio) throws uo_exception
 private function boolean invio (st_tab_email_invio ast_tab_email_invio) throws uo_exception
+public function long if_presente_x_id_cliente_last_year (st_tab_email_invio kst_tab_email_invio) throws uo_exception
+public function st_tab_email u_get_st_tab_email_email_invio (ref st_tab_email_invio ast_tab_email_invio) throws uo_exception
+private function boolean invio_old (st_tab_email_invio ast_tab_email_invio) throws uo_exception
+public function boolean link_call (string a_campo_link) throws uo_exception
+public function boolean link_call (ref datastore ads_1, string a_campo_link) throws uo_exception
 end prototypes
 
 public function st_esito anteprima (datastore kdw_anteprima, st_tab_email_invio kst_tab_email_invio);//
@@ -149,43 +158,23 @@ public function boolean tb_add (ref st_tab_email_invio kst_tab_email_invio) thro
 //=== Ritorna TRUE=ok
 //===   
 //====================================================================
-boolean k_return = true
-st_esito kst_esito
+boolean k_return
 
-
-	kst_esito = kguo_exception.inizializza(this.classname())
+try
+	
+	
+	kguo_exception.inizializza(this.classname())
 	
 	kst_tab_email_invio.id_email_invio = 0
 
 	kst_tab_email_invio.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_email_invio.x_utente = kGuf_data_base.prendi_x_utente()
 	
-	kst_esito = get_email(kst_tab_email_invio)
-//	if kst_esito.esito = kkg_esito.ok then
-//
-//		update email_invio
-//			set email = :kst_tab_email_invio.email
-//				,  data_ins = :kst_tab_email_invio.data_ins
-//				,  oggetto = :kst_tab_email_invio.oggetto
-//				,  link_lettera = :kst_tab_email_invio.link_lettera
-//				,  flg_lettera_html = :kst_tab_email_invio.flg_lettera_html
-//				,  flg_allegati = :kst_tab_email_invio.flg_allegati
-//				,  allegati_cartella = :kst_tab_email_invio.allegati_cartella
-//				,  flg_ritorno_ricev = :kst_tab_email_invio.flg_ritorno_ricev
-//				,  x_datins = :kst_tab_email_invio.x_datins
-//				,  x_utente = :kst_tab_email_invio.x_utente
-//			where id_email_invio = :kst_tab_email_invio.id_email_invio
-//			using kguo_sqlca_db_magazzino;
-//
-//	
-//	else
-//
-//	if kst_esito.esito = kkg_esito.db_not_ok then
-	
+	//????get_email(kst_tab_email_invio)
+
 	kst_tab_email_invio.data_ins = date(kst_tab_email_invio.x_datins) 
 	
 	if_isnull(kst_tab_email_invio)
-	//id_email_invio,   
 	
 	INSERT INTO email_invio  
 				( 
@@ -194,6 +183,8 @@ st_esito kst_esito
 				  id_oggetto,   
 				  id_cliente,   
 				  email,   
+				  email_cc,   
+				  email_ccn,   
 				  data_ins,   
 				  oggetto,   
 				  link_lettera,   
@@ -214,6 +205,8 @@ st_esito kst_esito
 						  :kst_tab_email_invio.id_oggetto,   
 						  :kst_tab_email_invio.id_cliente,   
 						  :kst_tab_email_invio.email,   
+						  :kst_tab_email_invio.email_cc,   
+						  :kst_tab_email_invio.email_ccn,   
 						  :kst_tab_email_invio.data_ins,   
 						  :kst_tab_email_invio.oggetto,   
 						  :kst_tab_email_invio.link_lettera,   
@@ -232,33 +225,37 @@ st_esito kst_esito
 			using kguo_sqlca_db_magazzino;
 
 
-	if kguo_sqlca_db_magazzino.sqlCode <> 0 then
-		k_return = false
-
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore durante Inserimento Invio Email (email_invio) " + kkg.acapo +  trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.no_esecuzione
-		
-		if kguo_sqlca_db_magazzino.sqlCode < 0 then
-			if kst_tab_email_invio.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_email_invio.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_rollback( )
-			end if
+	if kguo_sqlca_db_magazzino.sqlCode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore durante Inserimento Email da Inviare (email_invio). " &
+							+ kkg.acapo + "Id oggetto " + string(kst_tab_email_invio.id_oggetto) &
+							+ " cod. " + kst_tab_email_invio.cod_funzione &
+							+ " - " + kst_tab_email_invio.note)
+		throw kguo_exception
+	end if		
 			
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		end if
-	else
-		
-//--- Piglia il ID che ha appena associato alla e-mail
-		kst_tab_email_invio.id_email_invio = get_id_email_invio_max()
-		//kst_tab_email_invio.id_email_invio = long(kguo_sqlca_db_magazzino.SQLReturnData)
-		
+	if kguo_sqlca_db_magazzino.sqlCode = 0 then
+
 		if kst_tab_email_invio.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_email_invio.st_tab_g_0.esegui_commit) then
 			kguo_sqlca_db_magazzino.db_commit( )
 		end if
 
+//--- Piglia il ID che ha appena associato alla e-mail
+		kst_tab_email_invio.id_email_invio = get_id_email_invio_max()
+		//kst_tab_email_invio.id_email_invio = long(kguo_sqlca_db_magazzino.SQLReturnData)
+		
+		k_return = true
 	end if
 
+catch (uo_exception kuo_exception)
+	if kst_tab_email_invio.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_email_invio.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+
+end try
 
 return k_return
 end function
@@ -266,7 +263,7 @@ end function
 public function st_esito get_email (ref st_tab_email_invio kst_tab_email_invio);//
 //====================================================================
 //=== 
-//=== Leggo tabella e-mail 
+//=== Leggo tabella email_invio 
 //=== 
 //=== input: st_tab_email con valorizzato il campo id_email_invio
 //=== rit: email
@@ -781,111 +778,60 @@ return k_return
 
 end function
 
-public function st_esito get_riga (ref st_tab_email_invio kst_tab_email_invio) throws uo_exception;//
-//====================================================================
-//=== 
-//=== Leggo tabella e-mail 
-//=== 
-//=== input: st_tab_email con valorizzato il campo id_email
-//=== Ritorna tab. ST_ESITO
-//=== 
-//====================================================================
-//
+public function st_esito get_riga (ref st_tab_email_invio kst_tab_email_invio) throws uo_exception;/*
+ Leggo dati e-mail 
+	inp: st_tab_email con valorizzato il campo id_email
+	Rit: tab. ST_ESITO
+*/
 int k_rc
-st_esito kst_esito
 uo_ds_std_1 kds_email_invio
 
-kst_esito = kguo_exception.inizializza(this.classname())
+
+kguo_exception.inizializza(this.classname())
 
 if kst_tab_email_invio.id_email_invio > 0 then
-
-//  SELECT 
-//         email_invio.email,   
-//         email_invio.note,   
-//         email_invio.id_cliente,   
-//         email_invio.data_ins,   
-//         email_invio.data_inviato,   
-//         email_invio.ora_inviato,   
-//         email_invio.oggetto,   
-//         email_invio.lettera,   
-//         email_invio.link_lettera,   
-//         email_invio.lang,   
-//         email_invio.allegati_cartella,   
-//         email_invio.allegati_pathfile,   
-//         email_invio.flg_lettera_html,   
-//         email_invio.flg_ritorno_ricev,  
-//         email_invio.email_di_ritorno,  
-//         email_invio.flg_allegati 
-//    INTO 
-//         :kst_tab_email_invio.email,   
-//         :kst_tab_email_invio.note,   
-//         :kst_tab_email_invio.id_cliente,   
-//         :kst_tab_email_invio.data_ins,   
-//         :kst_tab_email_invio.data_inviato,   
-//         :kst_tab_email_invio.ora_inviato,   
-//         :kst_tab_email_invio.oggetto,   
-//         :kst_tab_email_invio.lettera,   
-//         :kst_tab_email_invio.link_lettera,   
-//         :kst_tab_email_invio.lang,   
-//         :kst_tab_email_invio.allegati_cartella,   
-//         :kst_tab_email_invio.allegati_pathfile,   
-//         :kst_tab_email_invio.flg_lettera_html,   
-//         :kst_tab_email_invio.flg_ritorno_ricev,  
-//         :kst_tab_email_invio.email_di_ritorno,  
-//         :kst_tab_email_invio.flg_allegati 
-//    FROM email_invio  
-//	where email_invio.id_email_invio = :kst_tab_email_invio.id_email_invio
-//	using sqlca;
-
-	kds_email_invio = create uo_ds_std_1
-	kds_email_invio.dataobject = "ds_email_invio"
-	kds_email_invio.settransobject(kguo_sqlca_db_magazzino )
-	
-	k_rc = kds_email_invio.retrieve(kst_tab_email_invio.id_email_invio)
-
-	if k_rc > 0 then
-		
-		kst_tab_email_invio.email              = kds_email_invio.getitemstring(1, "email")
-		kst_tab_email_invio.note               = kds_email_invio.getitemstring(1, "note")
-		kst_tab_email_invio.id_cliente         = kds_email_invio.getitemnumber(1, "id_cliente")
-		kst_tab_email_invio.data_ins           = kds_email_invio.getitemdate(1, "data_ins")
-		kst_tab_email_invio.data_inviato       = kds_email_invio.getitemdate(1, "data_inviato")
-		kst_tab_email_invio.ora_inviato        = kds_email_invio.getitemstring(1, "ora_inviato")
-		kst_tab_email_invio.oggetto            = kds_email_invio.getitemstring(1, "oggetto")
-		kst_tab_email_invio.lettera            = kds_email_invio.getitemstring(1, "lettera")
-		kst_tab_email_invio.link_lettera       = kds_email_invio.getitemstring(1, "link_lettera")
-		kst_tab_email_invio.lang               = kds_email_invio.getitemstring(1, "lang")
-		kst_tab_email_invio.allegati_cartella  = kds_email_invio.getitemstring(1, "allegati_cartella")
-		kst_tab_email_invio.allegati_pathfile  = kds_email_invio.getitemstring(1, "allegati_pathfile")
-		kst_tab_email_invio.flg_lettera_html   = kds_email_invio.getitemstring(1, "flg_lettera_html")
-		kst_tab_email_invio.flg_ritorno_ricev  = kds_email_invio.getitemstring(1, "flg_ritorno_ricev")
-		kst_tab_email_invio.email_di_ritorno   = kds_email_invio.getitemstring(1, "email_di_ritorno")
-		kst_tab_email_invio.flg_allegati       = kds_email_invio.getitemstring(1, "flg_allegati")		
-		
-	else
-		kst_esito.SQLErrText =  "Fallita lettura tab. Invio E-mail." + kkg.acapo+ "Esito: " + trim(kds_email_invio.kist_esito.SQLErrText)
-		kst_esito.sqlcode = kds_email_invio.kist_esito.sqlcode
-
-		if kst_esito.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kst_esito.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-				
-			end if
-		end if
-	end if
 else
-	kst_esito.esito = kkg_esito.no_esecuzione
+	kguo_exception.kist_esito.esito = kkg_esito.not_fnd
+	kguo_exception.kist_esito.sqlerrtext = "Lettura EMAIL non eseguita, manca il codice id. "
+	return kguo_exception.kist_esito
 end if
 
+kds_email_invio = create uo_ds_std_1
+kds_email_invio.dataobject = "ds_email_invio"
+kds_email_invio.settransobject(kguo_sqlca_db_magazzino )
 
-return kst_esito
+k_rc = kds_email_invio.retrieve(kst_tab_email_invio.id_email_invio)
+if k_rc < 0 then
+	kguo_exception.set_st_esito_err_ds(kds_email_invio, &
+			"Errore in lettura EMAIL id " + string(kst_tab_email_invio.id_email_invio))
+	throw kguo_exception
+end if
+if k_rc = 0 then 
+	kguo_exception.kist_esito.esito = kkg_esito.not_fnd
+	kguo_exception.kist_esito.sqlerrtext = "Non trovata EMAIL id " + string(kst_tab_email_invio.id_email_invio)
+	return kguo_exception.kist_esito
+end if
+
+kst_tab_email_invio.email              = kds_email_invio.getitemstring(1, "email")
+kst_tab_email_invio.email_cc           = kds_email_invio.getitemstring(1, "email_cc")
+kst_tab_email_invio.email_ccn          = kds_email_invio.getitemstring(1, "email_ccn")
+kst_tab_email_invio.note               = kds_email_invio.getitemstring(1, "note")
+kst_tab_email_invio.id_cliente         = kds_email_invio.getitemnumber(1, "id_cliente")
+kst_tab_email_invio.data_ins           = kds_email_invio.getitemdate(1, "data_ins")
+kst_tab_email_invio.data_inviato       = kds_email_invio.getitemdate(1, "data_inviato")
+kst_tab_email_invio.ora_inviato        = kds_email_invio.getitemstring(1, "ora_inviato")
+kst_tab_email_invio.oggetto            = kds_email_invio.getitemstring(1, "oggetto")
+kst_tab_email_invio.lettera            = kds_email_invio.getitemstring(1, "lettera")
+kst_tab_email_invio.link_lettera       = kds_email_invio.getitemstring(1, "link_lettera")
+kst_tab_email_invio.lang               = kds_email_invio.getitemstring(1, "lang")
+kst_tab_email_invio.allegati_cartella  = kds_email_invio.getitemstring(1, "allegati_cartella")
+kst_tab_email_invio.allegati_pathfile  = kds_email_invio.getitemstring(1, "allegati_pathfile")
+kst_tab_email_invio.flg_lettera_html   = kds_email_invio.getitemstring(1, "flg_lettera_html")
+kst_tab_email_invio.flg_ritorno_ricev  = kds_email_invio.getitemstring(1, "flg_ritorno_ricev")
+kst_tab_email_invio.email_di_ritorno   = kds_email_invio.getitemstring(1, "email_di_ritorno")
+kst_tab_email_invio.flg_allegati       = kds_email_invio.getitemstring(1, "flg_allegati")		
+
+return kguo_exception.kist_esito
 
 end function
 
@@ -1295,22 +1241,15 @@ return k_return
 
 end function
 
-public function long if_presente_x_id_oggetto (st_tab_email_invio kst_tab_email_invio) throws uo_exception;//
-//-----------------------------------------------------------------------------------------------------------------------
-//--- 
-//--- Torna il ID_EMAIL_INVIO più alto per id_oggetto (=id_fattura o id_meca o ...)
-//--- 
-//--- input: st_tab_email id_oggetto e cod_funzione
-//--- 
-//--- ritorna: id_email_invio
-//--- 
-//-----------------------------------------------------------------------------------------------------------------------
-//
+public function long if_presente_x_id_oggetto (st_tab_email_invio kst_tab_email_invio) throws uo_exception;/*
+Torna il ID_EMAIL_INVIO più alto per id_oggetto (=id_fattura o id_meca o ...)
+	inp: st_tab_email id_oggetto e cod_funzione
+	rit: id_email_invio
+*/
 long k_return = 0
-st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+kguo_exception.inizializza(this.classname())
 
 if kst_tab_email_invio.id_oggetto > 0 then
 
@@ -1323,28 +1262,21 @@ if kst_tab_email_invio.id_oggetto > 0 then
 		        and email_invio.cod_funzione = :kst_tab_email_invio.cod_funzione
 		using kguo_sqlca_db_magazzino;
 	
-	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		if kst_tab_email_invio.id_email_invio > 0 then
-			k_return = kst_tab_email_invio.id_email_invio
-		else
-			kst_tab_email_invio.id_email_invio = 0
-		end if
-	else
-		kst_tab_email_invio.id_email_invio = 0
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Fallita lettura E-mail inviate (email_invio) per id oggetto " + string(kst_tab_email_invio.id_oggetto) + "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallita lettura e-mail inviate (email_invio) per Id Oggetto " + string(kst_tab_email_invio.id_oggetto))
 		throw kguo_exception
 	end if
+	
+	if kst_tab_email_invio.id_email_invio > 0 then
+		k_return = kst_tab_email_invio.id_email_invio
+	else
+		kst_tab_email_invio.id_email_invio = 0
+	end if
+
 else
 	kst_tab_email_invio.id_email_invio = 0
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = "Manca id oggetto per la lettura E-mail inviata (email_invio) " 
-	kst_esito.esito = kkg_esito.db_ko
-	kguo_exception.inizializza( )
-	kguo_exception.set_esito(kst_esito)
+	kguo_exception.kist_esito.SQLErrText = "Manca id oggetto per la lettura e-mail inviate (email_invio) " 
+	kguo_exception.kist_esito.esito = kkg_esito.ko
 	throw kguo_exception
 end if
 
@@ -1360,13 +1292,15 @@ public subroutine if_isnull (ref st_tab_email_invio kst_tab_email_invio);//---
 
 if isnull(kst_tab_email_invio.id_email_invio) then kst_tab_email_invio.id_email_invio = 0
 if isnull(kst_tab_email_invio.cod_funzione) then kst_tab_email_invio.cod_funzione = ""
-if isnull(kst_tab_email_invio.note) then kst_tab_email_invio.note= ""
+if isnull(kst_tab_email_invio.note) then kst_tab_email_invio.note = ""
 if isnull(kst_tab_email_invio.id_oggetto) then kst_tab_email_invio.id_oggetto = 0
 if isnull(kst_tab_email_invio.id_cliente) then kst_tab_email_invio.id_cliente = 0
-if isnull(kst_tab_email_invio.data_ins) then kst_tab_email_invio.data_ins= date(0)
-if isnull(kst_tab_email_invio.data_inviato) then kst_tab_email_invio.data_inviato= date(0)
-if isnull(kst_tab_email_invio.email) then kst_tab_email_invio.email= ""
-if isnull(kst_tab_email_invio.ora_inviato) then kst_tab_email_invio.ora_inviato= ""
+if isnull(kst_tab_email_invio.data_ins) then kst_tab_email_invio.data_ins = date(0)
+if isnull(kst_tab_email_invio.data_inviato) then kst_tab_email_invio.data_inviato = date(0)
+if isnull(kst_tab_email_invio.email) then kst_tab_email_invio.email = ""
+if isnull(kst_tab_email_invio.email_cc) then kst_tab_email_invio.email_cc = ""
+if isnull(kst_tab_email_invio.email_ccn) then kst_tab_email_invio.email_ccn = ""
+if isnull(kst_tab_email_invio.ora_inviato) then kst_tab_email_invio.ora_inviato = ""
 if isnull(kst_tab_email_invio.allegati_cartella) then kst_tab_email_invio.allegati_cartella = ""
 if isnull(kst_tab_email_invio.allegati_pathfile) then kst_tab_email_invio.allegati_pathfile = ""
 if isnull(kst_tab_email_invio.flg_allegati) then kst_tab_email_invio.flg_allegati = ""
@@ -1412,7 +1346,8 @@ try
 	
 	choose case ast_tab_email_invio.cod_funzione
 		
-		case kuf1_email_funzioni.kki_cod_funzione_prontoMerce
+		case kuf1_email_funzioni.kki_cod_funzione_prontoMerce &
+			 ,kuf1_email_funzioni.kki_cod_funzione_avvlottopltparziale
 			k_return = ast_tab_email_invio.id_oggetto
 	
 		case kuf1_email_funzioni.kki_cod_funzione_Attestati
@@ -1501,56 +1436,41 @@ end function
 public function long get_id_oggetto (ref st_tab_email_invio kst_tab_email_invio) throws uo_exception;//
 //====================================================================
 //=== 
-//=== Torna il ID_OGGETTO
-//=== 
-//=== input: st_tab_email.id_email_invio
-//=== rit: id_oggetto
-//=== Out: id_oggetto
-//=== 
-//====================================================================
-//
-long k_return
-st_esito kst_esito
+/*
+Torna il ID_OGGETTO
+  inp: st_tab_email.id_email_invio
+  rit: id_oggetto
+  Out: id_oggetto
+*/
 
-
-kst_esito = kguo_exception.inizializza(this.classname())
+kguo_exception.inizializza(this.classname())
 
 if kst_tab_email_invio.id_email_invio > 0 then
-
-  SELECT id_oggetto
-    INTO 
-         :kst_tab_email_invio.id_oggetto  
-    FROM email_invio  
-	where email_invio.id_email_invio = :kst_tab_email_invio.id_email_invio
-	using kguo_sqlca_db_magazzino;
-
-	if sqlca.sqlcode = 0 then
-		if isnull(kst_tab_email_invio.id_oggetto) then kst_tab_email_invio.id_oggetto = 0
-	else
-		kst_tab_email_invio.id_oggetto = 0
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Fallita lettura 'id oggetto' in tab. Invio E-mail. ID " + string(kst_tab_email_invio.id_email_invio) + "~n~r" + trim(sqlca.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
-		if sqlca.sqlcode < 0 then
-			throw kguo_exception
-		else
-			kguo_exception.scrivi_log( )
-		end if
-	end if
-	
 else	
 
-	kst_esito.SQLErrText = "Errore in lettura 'id oggetto' tab. Invio E-mail. Manca ID email."
-	kst_esito.esito = kkg_esito.no_esecuzione
-	kguo_exception.set_esito(kst_esito)
+	kguo_exception.kist_esito.SQLErrText = "Errore in lettura 'id oggetto' tab. Invio E-mail. Manca ID email."
+	kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 	throw kguo_exception
 	
 end if
+	
 
-k_return = kst_tab_email_invio.id_oggetto
+SELECT id_oggetto
+ INTO 
+		:kst_tab_email_invio.id_oggetto  
+ FROM email_invio  
+where email_invio.id_email_invio = :kst_tab_email_invio.id_email_invio
+using kguo_sqlca_db_magazzino;
 
-return k_return
+if sqlca.sqlcode < 0 then
+	kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+			"Fallita lettura 'id oggetto' in tab. Invio E-mail. ID " + string(kst_tab_email_invio.id_email_invio))
+	throw kguo_exception
+end if
+
+if isnull(kst_tab_email_invio.id_oggetto) then kst_tab_email_invio.id_oggetto = 0
+
+return kst_tab_email_invio.id_oggetto
 
 
 end function
@@ -1569,12 +1489,11 @@ public function string u_anteprima_comunicazone (ref st_tab_email_invio ast_tab_
 string k_file, k_msg, k_path
 integer li_FileNum, k_rc
 long ll_FLength
-st_esito kst_esito
 kuf_file_explorer kuf1_file_explorer
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	if ast_tab_email_invio.id_email_invio > 0 then
 	
@@ -1603,9 +1522,8 @@ try
 		
 	else	
 	
-		kst_esito.SQLErrText = "Errore in Anteprima della comunicazione. Manca ID email."
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Errore in Anteprima della comunicazione. Manca ID email."
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 		throw kguo_exception
 		
 	end if
@@ -1768,66 +1686,16 @@ end try
 
 end subroutine
 
-public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//
-//=== 
-//====================================================================
+public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception;//====================================================================
 //=== Attiva LINK cliccato 
 //===
 //=== Par. Inut: 
 //===               datawindow su cui è stato attivato il LINK
 //===               nome campo di LINK
 //=== 
-//=== Ritorna tab. ST_ESITO, Esiti: 0=OK; 1=Errore Grave
-//===                                     2=Errore gestito
-//===                                     3=altro errore
-//===                                     100=Non trovato 
-//=== 
 //====================================================================
-//
-//=== 
-long k_rc=0, k_riga=0
-string k_rcx="", k_titolo
-boolean k_return=true
-st_esito kst_esito
-datastore kdsi_elenco_output  
-kuf_elenco kuf1_elenco
-kuf_web kuf1_web
 
-
-	SetPointer(kkg.pointer_attesa)
-	
-	kdsi_elenco_output = create datastore
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	choose case a_campo_link
-	
-		case "email_rubrica"
-			kst_esito = this.anteprima_rubrica(kdsi_elenco_output)
-			if kst_esito.esito <> kkg_esito.ok then
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-			k_titolo = "Rubrica indirizzi email" 
-			
-	end choose
-	
-	if k_return then
-	
-		if kdsi_elenco_output.rowcount() > 0 then
-			kuf1_elenco = create kuf_elenco 
-			kuf1_elenco.u_open_zoom(k_titolo, a_campo_link, kdsi_elenco_output) //CAMPO DI LINK + DATASTORE CON I DATI
-			destroy kuf1_elenco
-		else
-			kguo_exception.inizializza()
-			kguo_exception.setmessage( "Nessun valore disponibile. " )
-			throw kguo_exception
-		end if
-	end if
-
-	SetPointer(kkg.pointer_default)
-
-return k_return
+return link_call(a_campo_link)
 
 end function
 
@@ -1930,6 +1798,174 @@ return k_return
 end function
 
 private function boolean invio (st_tab_email_invio ast_tab_email_invio) throws uo_exception;//--- 
+//--- Invio e-mail attraverso SMTP
+//---
+boolean k_return = false
+string k_message
+
+
+try
+	//SetPointer(HourGlass!)
+	
+	kguo_exception.inizializza(this.classname())
+	
+	if not isvalid(kiuf_smtp) then kiuf_smtp = create kuf_smtp
+	
+	//--- Imposto l'oggetto
+	ast_tab_email_invio.oggetto = u_message_replace_placeholder(ast_tab_email_invio, ast_tab_email_invio.oggetto) // sostituisce i segnaposto con i valori
+	
+	//--- Imposto il corpo della comunicazione da Inviare!!!!!!!
+	k_message = get_comunicazione(ast_tab_email_invio) // recupera il messaggio da file o lettera
+	k_message = u_message_replace_placeholder(ast_tab_email_invio, k_message) // sostituisce i segnaposto con i valori
+
+	kiuf_smtp.invio(ast_tab_email_invio, k_message)
+	k_return = kiuf_smtp.ki_sendAsync_result 
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	
+	
+end try
+
+return k_return
+
+end function
+
+public function long if_presente_x_id_cliente_last_year (st_tab_email_invio kst_tab_email_invio) throws uo_exception;/*
+Torna il ID_EMAIL_INVIO più alto per il Codice Funzione e per id_cliente 
+	inp: st_tab_email id_oggetto e cod_funzione
+	rit: id_email_invio se 0 = non Trovato
+*/
+long k_return = 0
+
+
+kguo_exception.inizializza(this.classname())
+
+if kst_tab_email_invio.id_cliente > 0 then
+
+  	SELECT 
+         max(email_invio.id_email_invio) 
+	    INTO 
+         :kst_tab_email_invio.id_email_invio  
+		FROM email_invio  
+		where email_invio.id_cliente = :kst_tab_email_invio.id_cliente
+		        and email_invio.cod_funzione = :kst_tab_email_invio.cod_funzione
+				  and email_invio.data_ins > DATEADD(day, -365, getdate()) 
+		using kguo_sqlca_db_magazzino;
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Fallita lettura e-mail inviate (email_invio) per il Cliente " + string(kst_tab_email_invio.id_cliente))
+		throw kguo_exception
+	end if
+	
+	if kst_tab_email_invio.id_email_invio > 0 then
+		k_return = kst_tab_email_invio.id_email_invio
+	else
+		kst_tab_email_invio.id_email_invio = 0
+	end if
+
+else
+	kst_tab_email_invio.id_email_invio = 0
+	kguo_exception.kist_esito.SQLErrText = "Manca codice Cliente per la lettura e-mail inviate (email_invio) " 
+	kguo_exception.kist_esito.esito = kkg_esito.ko
+	throw kguo_exception
+end if
+
+
+return k_return
+
+
+end function
+
+public function st_tab_email u_get_st_tab_email_email_invio (ref st_tab_email_invio ast_tab_email_invio) throws uo_exception;/*
+Prepara i campi generici di invio email (st_tab_email_invio e st_tab_email)
+	Inp: 	ast_tab_email_invio.cod_funzione
+	                         .id_cliente
+									 .id_oggetto
+			opz. ast_tab_email_invio.flg_allegati = ki_allegati_si/no
+			opz. ast_tab_email_invio.lang
+   Out: st_tab_email_invio
+	rit: st_tab_email
+*/
+kuf_email kuf1_email
+kuf_email_funzioni kuf1_email_funzioni
+st_tab_email kst_tab_email
+st_tab_email_funzioni kst_tab_email_funzioni
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	kuf1_email = create kuf_email
+	kuf1_email_funzioni = create kuf_email_funzioni
+	
+//--- get del Prototipo della e-mail
+	kst_tab_email_funzioni.cod_funzione = ast_tab_email_invio.cod_funzione
+	kst_tab_email.id_email = kuf1_email_funzioni.get_id_email_xcodfunzione(kst_tab_email_funzioni)
+	if kst_tab_email.id_email = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.ko
+		kguo_exception.kist_esito.sqlerrtext = "Indicare il Prototipo E-mail da utilizzare per l'invio, codificato come '" &
+					+ trim(kst_tab_email_funzioni.cod_funzione) &
+					+ "' (" + kuf1_email_funzioni.get_des(kst_tab_email_funzioni) + ")"
+		throw kguo_exception
+	end if
+
+//--- recupero dati di configurazione email x riempire la tab email-invio			
+	kuf1_email.get_riga(kst_tab_email)
+	
+	kuf1_email.get_oggetto(kst_tab_email)  // dati di configurazione Oggetto 
+	ast_tab_email_invio.oggetto = kst_tab_email.oggetto
+
+	if kst_tab_email.email_to > " " then
+		if ast_tab_email_invio.email > " " then
+			ast_tab_email_invio.email += ";" 
+		end if
+		ast_tab_email_invio.email += kst_tab_email.email_to
+	end if
+	if kst_tab_email.email_cc > " " then
+		ast_tab_email_invio.email_cc = kst_tab_email.email_cc
+	end if
+	if kst_tab_email.email_ccn > " " then
+		ast_tab_email_invio.email_ccn = kst_tab_email.email_ccn
+	end if
+	
+	//kst_tab_email_invio.oggetto = kst_tab_email.oggetto
+	ast_tab_email_invio.link_lettera = kst_tab_email.link_lettera
+	ast_tab_email_invio.flg_lettera_html = kst_tab_email.flg_lettera_html
+	ast_tab_email_invio.flg_ritorno_ricev = kst_tab_email.flg_ritorno_ricev
+	ast_tab_email_invio.email_di_ritorno = kst_tab_email.email_di_ritorno
+	ast_tab_email_invio.invio_batch = kst_tab_email.invio_batch
+	if kst_tab_email.attached > " " then
+		ast_tab_email_invio.flg_allegati = ki_allegati_si
+		if trim(ast_tab_email_invio.allegati_pathfile) > " " then
+			ast_tab_email_invio.allegati_pathfile += ";" + kst_tab_email.attached  // aggiunge allegato a un precedente
+		else
+			ast_tab_email_invio.allegati_pathfile = kst_tab_email.attached
+		end if
+	end if
+		
+	if_isnull(ast_tab_email_invio)
+	
+catch (uo_exception kuo_exception)	
+	if kuo_exception.kist_esito.esito = kkg_esito.no_esecuzione then
+	else
+		kuo_exception.scrivi_log()
+		throw kuo_exception
+	end if
+	
+finally
+	if isvalid(kuf1_email) then destroy kuf1_email
+	if isvalid(kuf1_email_funzioni) then destroy kuf1_email_funzioni
+	
+end try
+
+return kst_tab_email
+
+end function
+
+private function boolean invio_old (st_tab_email_invio ast_tab_email_invio) throws uo_exception;//--- 
 //--- Invio e-mail attraverso SMTP
 //---
 boolean k_return = false
@@ -2263,6 +2299,59 @@ return k_return
 
 end function
 
+public function boolean link_call (string a_campo_link) throws uo_exception;/*
+Attiva LINK cliccato 
+	Inp: nome campo di LINK
+*/ 
+string k_rcx="", k_titolo
+boolean k_return=true
+uo_ds_std_1 kdsi_elenco_output  
+kuf_elenco kuf1_elenco
+
+
+	SetPointer(kkg.pointer_attesa)
+	
+	kdsi_elenco_output = create uo_ds_std_1
+	
+	kguo_exception.inizializza(this.classname())
+
+	choose case a_campo_link
+	
+		case "email_rubrica", "email_rubrica_cc", "email_rubrica_ccn"
+			kguo_exception.kist_esito = this.anteprima_rubrica(kdsi_elenco_output)
+			if kguo_exception.kist_esito.esito <> kkg_esito.ok then
+				throw kguo_exception
+			end if
+			k_titolo = "Rubrica indirizzi email" 
+			
+	end choose
+	
+	if k_return then
+	
+		if kdsi_elenco_output.rowcount() > 0 then
+			kuf1_elenco = create kuf_elenco 
+			kuf1_elenco.u_open_zoom(k_titolo, a_campo_link, kdsi_elenco_output) //CAMPO DI LINK + DATASTORE CON I DATI
+			destroy kuf1_elenco
+		else
+			kguo_exception.inizializza()
+			kguo_exception.messaggio_utente( "Nessun valore disponibile. " )
+			throw kguo_exception
+		end if
+	end if
+
+	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+public function boolean link_call (ref datastore ads_1, string a_campo_link) throws uo_exception;//
+
+
+return link_call(a_campo_link)
+
+end function
+
 on kuf_email_invio.create
 call super::create
 end on
@@ -2273,6 +2362,7 @@ end on
 
 event destructor;call super::destructor;//
 if isvalid(kiuf_msg_replace_placeholder) then destroy kiuf_msg_replace_placeholder
+if isvalid(kiuf_smtp) then destroy kiuf_smtp 
 
 end event
 

@@ -40,6 +40,7 @@ constant string KK_st_uo_exception_tipo_SINO="N"
 constant string KK_st_uo_exception_tipo_LOGIN=kkg_esito.LOGIN //Info di Entrata/Uscita Applicazione 
  
 //uo_path kiuo_path
+
 end variables
 
 forward prototypes
@@ -159,7 +160,6 @@ end subroutine
 
 public function string getmessage ();//
 	return trim(kist_esito.sqlerrtext)
-	
 
 end function
 
@@ -1045,92 +1045,105 @@ public function integer messaggio_utente (string a_titolo, string a_msg);//---
 //--- 
 //---
 int k_return = 0
-st_esito kst_esito
-
-
-//--- se il campo msg è vuoto allora tento di reperire da quello che ho già
-kst_esito = get_st_esito()
-if trim(kst_esito.sqlerrtext) > " " then
-	if trim(a_msg) > " " then
-	else
-		a_msg = trim(kst_esito.sqlerrtext)
-	end if
-	if trim(kst_esito.nome_oggetto) > " " then
-		a_msg += " " + kkg.acapo + "(" +  trim(kst_esito.nome_oggetto) + ") "
-	end if
-end if
-
-if NOT isvalid(kguo_utente) or kguo_utente.if_virtual_user() then  // se oggetto ok oppure Utente virtuale allora salta messaggio
+	
+if trim(a_titolo) > " " then
+	ki_titolo = a_titolo
 else
-	//--- e il tipo x fare l'icona giusta
-	choose case get_tipo()
-		case KK_st_uo_exception_tipo_generico
-				messagebox (a_titolo, a_msg, information!)
-		case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_dati_utente &
-			,KK_st_uo_exception_tipo_noaut
-				messagebox (a_titolo, a_msg, StopSign!)
-		case KK_st_uo_exception_tipo_db_ko
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_ko
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_not_fnd
-				messagebox (a_titolo, a_msg, Exclamation!)
-		case KK_st_uo_exception_tipo_internal_bug
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_allerta
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
-				messagebox (a_titolo, a_msg, stopsign!)
-		case KK_st_uo_exception_tipo_OK
-				messagebox (a_titolo, a_msg, Information!)
-		case KK_st_uo_exception_tipo_SINO
-				k_return = messagebox (a_titolo, a_msg, Question!, YesNo!, 2)
-		case KK_st_uo_exception_tipo_non_eseguito
-				messagebox (a_titolo, a_msg, stopsign!)
-		case else
-				messagebox (a_titolo, a_msg, Information!)
-	end choose
+	ki_titolo = ""
 end if
-
-//--- se ESITO non ancora impostato...
-if trim(kist_esito.esito) > " " then
+if trim(a_msg) > " " then
+	kist_esito.sqlerrtext = a_msg
 else
-	choose case get_tipo()
-		case KK_st_uo_exception_tipo_generico
-				kist_esito.esito = kkg_esito.ko
-		case KK_st_uo_exception_tipo_dati_anomali
-				kist_esito.esito = kkg_esito.ko
-		case KK_st_uo_exception_tipo_dati_wrn
-				kist_esito.esito = kkg_esito.db_wrn
-		case KK_st_uo_exception_tipo_dati_utente &
-			,KK_st_uo_exception_tipo_noaut
-				kist_esito.esito = kkg_esito.no_aut
-		case KK_st_uo_exception_tipo_db_ko
-				kist_esito.esito = kkg_esito.db_ko
-		case KK_st_uo_exception_tipo_ko
-				kist_esito.esito = kkg_esito.ko
-		case KK_st_uo_exception_tipo_not_fnd
-				kist_esito.esito = kkg_esito.not_fnd
-		case KK_st_uo_exception_tipo_internal_bug
-				kist_esito.esito = kkg_esito.bug
-		case KK_st_uo_exception_tipo_allerta
-				kist_esito.esito = kkg_esito.no_esecuzione
-		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
-				kist_esito.esito = kkg_esito.no_esecuzione
-		case KK_st_uo_exception_tipo_OK
-				kist_esito.esito = kkg_esito.OK
-		case else
-				kist_esito.esito = kkg_esito.no_esecuzione
-	end choose
+	kist_esito.sqlerrtext = ""
 end if
 
-kst_esito = get_st_esito()
-if kst_esito.scrivi_log then
-	u_write_error()
-end if
+messaggio_utente()
 
+//st_esito kst_esito
+//
+////--- se il campo msg è vuoto allora tento di reperire da quello che ho già
+//kst_esito = get_st_esito()
+//if trim(kst_esito.sqlerrtext) > " " then
+//	if trim(a_msg) > " " then
+//	else
+//		a_msg = trim(kst_esito.sqlerrtext)
+//	end if
+//	if trim(kst_esito.nome_oggetto) > " " then
+//		a_msg += " " + kkg.acapo + "(" +  trim(kst_esito.nome_oggetto) + ") "
+//	end if
+//end if
+//
+//if NOT isvalid(kguo_utente) or kguo_utente.if_virtual_user() then  // se oggetto ok oppure Utente virtuale allora salta messaggio
+//else
+//	//--- e il tipo x fare l'icona giusta
+//	choose case get_tipo()
+//		case KK_st_uo_exception_tipo_generico
+//				messagebox (a_titolo, a_msg, information!)
+//		case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_dati_utente &
+//			,KK_st_uo_exception_tipo_noaut
+//				messagebox (a_titolo, a_msg, StopSign!)
+//		case KK_st_uo_exception_tipo_db_ko
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_ko
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_not_fnd
+//				messagebox (a_titolo, a_msg, Exclamation!)
+//		case KK_st_uo_exception_tipo_internal_bug
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_allerta
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case KK_st_uo_exception_tipo_OK
+//				messagebox (a_titolo, a_msg, Information!)
+//		case KK_st_uo_exception_tipo_SINO
+//				k_return = messagebox (a_titolo, a_msg, Question!, YesNo!, 2)
+//		case KK_st_uo_exception_tipo_non_eseguito
+//				messagebox (a_titolo, a_msg, stopsign!)
+//		case else
+//				messagebox (a_titolo, a_msg, Information!)
+//	end choose
+//end if
+//
+////--- se ESITO non ancora impostato...
+//if trim(kist_esito.esito) > " " then
+//else
+//	choose case get_tipo()
+//		case KK_st_uo_exception_tipo_generico
+//				kist_esito.esito = kkg_esito.ko
+//		case KK_st_uo_exception_tipo_dati_anomali
+//				kist_esito.esito = kkg_esito.ko
+//		case KK_st_uo_exception_tipo_dati_wrn
+//				kist_esito.esito = kkg_esito.db_wrn
+//		case KK_st_uo_exception_tipo_dati_utente &
+//			,KK_st_uo_exception_tipo_noaut
+//				kist_esito.esito = kkg_esito.no_aut
+//		case KK_st_uo_exception_tipo_db_ko
+//				kist_esito.esito = kkg_esito.db_ko
+//		case KK_st_uo_exception_tipo_ko
+//				kist_esito.esito = kkg_esito.ko
+//		case KK_st_uo_exception_tipo_not_fnd
+//				kist_esito.esito = kkg_esito.not_fnd
+//		case KK_st_uo_exception_tipo_internal_bug
+//				kist_esito.esito = kkg_esito.bug
+//		case KK_st_uo_exception_tipo_allerta
+//				kist_esito.esito = kkg_esito.no_esecuzione
+//		case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
+//				kist_esito.esito = kkg_esito.no_esecuzione
+//		case KK_st_uo_exception_tipo_OK
+//				kist_esito.esito = kkg_esito.OK
+//		case else
+//				kist_esito.esito = kkg_esito.no_esecuzione
+//	end choose
+//end if
+//
+//kst_esito = get_st_esito()
+//if kst_esito.scrivi_log then
+//	u_write_error()
+//end if
+//
 
 return k_return
 
@@ -1177,15 +1190,12 @@ string k_msg, k_titolo
 st_esito kst_esito
 
 
-ki_st_uo_exception.tipo = get_tipo() 
-
-
 if trim(getmessage()) > " " then
 else
 	kst_esito = get_st_esito() 
 	if trim(kst_esito.sqlerrtext) > " " then
 	else
-		kst_esito.sqlerrtext = "Programma in anomalia."
+		kst_esito.sqlerrtext = "Esecuzione in anomalia, errore non gestito! "
 	end if
 	if kst_esito.sqlcode <> 0 then
 		kst_esito.sqlerrtext = trim(kst_esito.sqlerrtext) + " " + kkg.acapo + "Codice: " + string(kst_esito.sqlcode)
@@ -1195,6 +1205,7 @@ else
 	end if
 	setmessage(trim(kst_esito.sqlerrtext))
 end if
+k_msg = trim(getmessage())
 
 //--- imposta il TITOLO
 if ki_titolo > " " then
@@ -1232,39 +1243,73 @@ else
 end if
 
 //--- Espone il msg all'utente
+ki_st_uo_exception.tipo = get_tipo() 
 choose case ki_st_uo_exception.tipo
+//	case KK_st_uo_exception_tipo_generico
+//		messaggio_utente (k_titolo,  getmessage())
+//	case KK_st_uo_exception_tipo_non_eseguito
+//		messaggio_utente (k_titolo,  getmessage())
+//	case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_dati_utente , KK_st_uo_exception_tipo_noAUT
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_db_ko
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_ko
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_not_fnd
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_internal_bug
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_allerta
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
+//		messaggio_utente (k_titolo, getmessage())
+//	case KK_st_uo_exception_tipo_OK
+//		messaggio_utente (k_titolo, trim(getmessage()))
+//	case KK_st_uo_exception_tipo_SINO
+//		k_return = messaggio_utente (k_titolo, trim(getmessage()))
+
 	case KK_st_uo_exception_tipo_generico
-		messaggio_utente (k_titolo,  getmessage())
-	case KK_st_uo_exception_tipo_non_eseguito
-		messaggio_utente (k_titolo,  getmessage())
-	case KK_st_uo_exception_tipo_dati_anomali, KK_st_uo_exception_tipo_dati_wrn
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_dati_utente , KK_st_uo_exception_tipo_noAUT
-		messaggio_utente (k_titolo, getmessage())
+			kGuf_user_notification.ki_icon = Information!
+			kGuf_user_notification.send_notification( k_titolo, trim(getmessage()))
+			//messagebox (k_titolo, k_msg, information!)
+	case KK_st_uo_exception_tipo_dati_anomali &
+		, KK_st_uo_exception_tipo_dati_wrn
+			messagebox (k_titolo, k_msg, stopsign!)
+	case KK_st_uo_exception_tipo_dati_utente &
+		,KK_st_uo_exception_tipo_noaut
+			messagebox (k_titolo, k_msg, StopSign!)
 	case KK_st_uo_exception_tipo_db_ko
-		messaggio_utente (k_titolo, getmessage())
+			messagebox (k_titolo, k_msg, stopsign!)
 	case KK_st_uo_exception_tipo_ko
-		messaggio_utente (k_titolo, getmessage())
+			messagebox (k_titolo, k_msg, stopsign!)
 	case KK_st_uo_exception_tipo_not_fnd
-		messaggio_utente (k_titolo, getmessage())
+			kGuf_user_notification.ki_icon = Exclamation!
+			kGuf_user_notification.send_notification( k_titolo, trim(getmessage()))
+			//messagebox (k_titolo, k_msg, Exclamation!)
 	case KK_st_uo_exception_tipo_internal_bug
-		messaggio_utente (k_titolo, getmessage())
+			messagebox (k_titolo, k_msg, stopsign!)
 	case KK_st_uo_exception_tipo_allerta
-		messaggio_utente (k_titolo, getmessage())
+			messagebox (k_titolo, k_msg, stopsign!)
 	case KK_st_uo_exception_tipo_dati_insufficienti, KK_st_uo_exception_tipo_dati_insufficienti1
-		messaggio_utente (k_titolo, getmessage())
-	case KK_st_uo_exception_tipo_OK
-		messaggio_utente (k_titolo, trim(getmessage()))
+			messagebox (k_titolo, k_msg, stopsign!)
+	case KK_st_uo_exception_tipo_OK &
+		,KK_st_uo_exception_tipo_LOGIN
+			kGuf_user_notification.ki_icon = Information!
+			kGuf_user_notification.send_notification( k_titolo, trim(getmessage()))
+			//messagebox (k_titolo, k_msg, Information!)
 	case KK_st_uo_exception_tipo_SINO
-		k_return = messaggio_utente (k_titolo, trim(getmessage()))
+			k_return = messagebox (k_titolo, k_msg, Question!, YesNo!, 2)
+	case KK_st_uo_exception_tipo_non_eseguito
+			messagebox (k_titolo, k_msg, stopsign!)
 	case else
-		k_msg = getmessage()
-		if LenA(trim(k_msg)) > 0 then 
-			messaggio_utente (k_titolo,k_msg)
-		else
-			messaggio_utente (k_titolo, "Esecuzione anomala la funzione sara' terminata")
-		end if
+			messagebox (k_titolo, k_msg, Information!)
 end choose
+
+if kst_esito.scrivi_log then
+	u_write_error()
+end if
 
 return k_return
 end function

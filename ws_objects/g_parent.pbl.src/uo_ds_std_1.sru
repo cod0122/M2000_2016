@@ -25,7 +25,7 @@ public function string u_get_evaluate (string a_field, string a_field_describe, 
 		  row: riga se però è una testata si può passare zero
 */
 string ls_expression, ls_value, ls_eval
-int k_pos
+long k_pos
 
 
 a_field = trim(a_field)

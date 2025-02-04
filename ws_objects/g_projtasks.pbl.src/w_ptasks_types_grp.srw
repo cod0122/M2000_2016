@@ -99,11 +99,8 @@ end function
 protected function integer modifica ();//
 //--- Torna : <=0=Ko, >0=Ok
 int k_return
-kuf_utility kuf1_utility
 st_tab_ptasks_types_grp kst_tab_ptasks_types_grp
 
-
-	kuf1_utility = create kuf_utility
 
 	kst_tab_ptasks_types_grp.id_ptasks_types_grp = dw_lista_0.getitemnumber(dw_lista_0.getrow(), "id_ptasks_types_grp")
 	dw_lista_0.dataobject = "d_ptasks_types_grp_h"
@@ -111,16 +108,14 @@ st_tab_ptasks_types_grp kst_tab_ptasks_types_grp
 	k_return = dw_lista_0.retrieve(kst_tab_ptasks_types_grp.id_ptasks_types_grp) 
 
 	dw_lista_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_lista_0)
+   dw_lista_0.u_proteggi_sproteggi_dw()
 
 	dw_dett_0.dataobject = "d_ptasks_types_grp_d"
 	dw_dett_0.settransobject( kguo_sqlca_db_magazzino )
 	dw_dett_0.retrieve(kst_tab_ptasks_types_grp.id_ptasks_types_grp) 
 
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-
-	destroy kuf1_utility
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 
@@ -134,11 +129,8 @@ end function
 protected function integer inserisci ();//
 //--- Torna : <=0=Ko, >0=Ok
 int k_return
-kuf_utility kuf1_utility
 st_tab_ptasks_types_grp kst_tab_ptasks_types_grp
 
-
-	kuf1_utility = create kuf_utility
 
 	dw_lista_0.dataobject = "d_ptasks_types_grp_h"
 	dw_lista_0.settransobject( kguo_sqlca_db_magazzino )
@@ -146,16 +138,14 @@ st_tab_ptasks_types_grp kst_tab_ptasks_types_grp
 	k_return = dw_lista_0.insertrow(0)
 
 	dw_lista_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_lista_0)
+   dw_lista_0.u_proteggi_sproteggi_dw()
 
 	dw_dett_0.dataobject = "d_ptasks_types_grp_d"
 	dw_dett_0.settransobject( kguo_sqlca_db_magazzino )
 	dw_dett_0.retrieve(0) 
 
 	dw_dett_0.ki_flag_modalita = ki_st_open_w.flag_modalita
-   kuf1_utility.u_proteggi_sproteggi_dw(dw_dett_0)
-
-	destroy kuf1_utility
+   dw_dett_0.u_proteggi_sproteggi_dw()
 
 	attiva_tasti()
 

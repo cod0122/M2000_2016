@@ -36,6 +36,7 @@ private long ki_tab_item_selezionato[221,2] // il primo elemento e' il handle de
 private st_treeview_data kist_treeview_data_precedente // evita la rilettura in caso che richieda lo stesso item
 
 private kuf_wm_pklist_testa kiuf_wm_pklist_testa
+private kuf_wm_pklist_camion kiuf_wm_pklist_camion
 private kuf_wm_receiptgammarad kiuf_wm_receiptgammarad
 private kuf_wm_pklist_web kiuf_wm_pklist_web
 private kuf_sped kiuf_sped
@@ -148,12 +149,15 @@ public function st_treeview_data u_get_st_treeview_data (st_treeview_data ast_tr
 public function integer u_dammi_pic_tree_alert ()
 public function st_tab_barcode u_barcode_rigenera_flg_dosimetro () throws uo_exception
 private function integer u_riempi_treeview_certif_mese (ref string k_tipo_oggetto)
-private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode)
 private function long u_stampa_barcode_get_id_meca (ref st_tab_barcode ast_tab_barcode)
-private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode)
 private function integer u_open_certif_stampa (ref st_treeview_data ast_treeview_data)
 private function integer u_stampa_barcode_dettaglio ()
 private function integer u_stampa_barcode_next (ref listviewitem alvi_listviewitem, ref st_tab_barcode ast_tab_barcode_precedente)
+public function integer u_kilv_lv1_setitem (integer a_row, integer a_item_idx, string a_item)
+private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode, integer a_n_selected)
+private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode, integer a_n_selected)
+private function integer u_open_wm_pklist_camion (string k_modalita) throws uo_exception
+private function st_esito u_open_esegui (string k_modalita, st_tab_treeview kst_tab_treeview)
 end prototypes
 
 public function boolean u_sicurezza (st_tab_treeview kst_tab_treeview);//
@@ -647,12 +651,12 @@ try
 		if k_barcode_da_stampare then
 			if not k_stampa_gia_risposto then
 				k_stampa_gia_risposto=true
-				k_stampa_esegue = u_stampa_barcode_msg_stampa(kst_tab_barcode)
+				k_stampa_esegue = u_stampa_barcode_msg_stampa(kst_tab_barcode, k_n_selezionati)
 			end if
 		else
 			if not k_ristampa_gia_risposto then
 				k_ristampa_gia_risposto=true
-				k_stampa_esegue = u_stampa_barcode_msg_ristampa(kst_tab_barcode)
+				k_stampa_esegue = u_stampa_barcode_msg_ristampa(kst_tab_barcode, k_n_selezionati)
 			end if
 		end if
 		
@@ -7072,20 +7076,17 @@ return k_return
 end function
 
 public function st_esito u_open (string k_modalita);//
-//--- Visualizza Dettaglio
+//--- Apre la funzione richiesta
 //
-integer k_return = 0, k_rc
-string k_tipo_oggetto=" ", k_str //, k_id_programma = ""
-integer k_esito=1
-long k_handle_item=0, k_riga_selezionata=0
+string k_str 
 st_treeview_data kst_treeview_data	
 st_tab_treeview kst_tab_treeview
-st_esito kst_esito, kst_esito_return
 treeviewitem ktvi_treeviewitem
-listviewitem klvi_listviewitem
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 	
 //--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
 	kst_treeview_data = u_get_st_treeview_data ()
@@ -7102,140 +7103,27 @@ listviewitem klvi_listviewitem
 
 //--- legge i dati della tabella TREEVIEW
 	kst_tab_treeview.id = trim(kst_treeview_data.oggetto)
-	kst_esito_return = u_select_tab_treeview(kst_tab_treeview, k_modalita)
+	kguo_exception.kist_esito = u_select_tab_treeview(kst_tab_treeview, k_modalita)
 
-	if kst_esito_return.esito <> kkg_esito.ok then
-
-		kst_esito_return.esito = kst_esito.esito
-		kst_esito_return.sqlcode = kst_esito.sqlcode
-		kst_esito_return.SQLErrText = "Funzione richiesta non Abilitata~n~r("+ kst_esito.sqlerrtext+")~n~r"
+	if kguo_exception.kist_esito.esito <> kkg_esito.ok then
+		kguo_exception.kist_esito.SQLErrText = "Funzione richiesta non Abilitata (" &
+													+ kkg.acapo + kguo_exception.kist_esito.sqlerrtext+") " + kkg.acapo 
 	else				
 	
-		if trim(kst_tab_treeview.open_programma) > " " then // vecchia modalità
-			
-//			kidw_1.dataobject = ""  // pulisco il valore in dw x evitare che romanga il vecchio in anteprima ad es. clienti
-
-//--- Get del ID PROGRAMMA da chiamare 			
-			choose case lower(kst_tab_treeview.open_programma)
-		
-//--- dove non ho la gestione nuova di reperimento del programma attraverso la menu_window_oggetti faccio un semplice assegnazione....					  
-				case kkg_id_programma.barcode &
-							,kkg_id_programma.pl_barcode &
-							, kkg_id_programma.dosimetria &
-							,kkg_id_programma.dosimetria_da_autorizzare &
-							,kkg_id_programma.dosimetria_da_sbloccare &
-							, kkg_id_programma.anag &
-							, kkg_id_programma.attestati & 
-							, kkg_id_programma.fatture 
-//							, kkg_id_programma.riferimenti & 
-//							, kkg_id_programma.spedizioni
-					kst_tab_treeview.id_programma = trim(lower(kst_tab_treeview.open_programma))
-				case else
-					if k_modalita <> kkg_flag_modalita.anteprima then
-						kst_esito_return.esito = kkg_esito.no_esecuzione
-						kst_esito_return.sqlcode = 0
-						kst_esito_return.SQLErrText = "Funzione di '" + k_str + "' richiesta non prevista~n~r("+ trim(lower(kst_tab_treeview.id_programma))+ ")~n~r"
-					end if					
-			end choose
-
-		end if
-
-		if len(trim(kst_tab_treeview.id_programma)) > 0 then
-//--- Lancio effettivo PROGRAMMA trovato
-			choose case lower(kst_tab_treeview.id_programma)
-				
-				case kkg_id_programma.barcode
-					k_esito = u_open_barcode(k_modalita)
-		
-				case kkg_id_programma.pl_barcode
-					k_esito = u_open_pl_barcode_testa(k_modalita)
-							  
-				case kkg_id_programma.dosimetria &
-					  ,kkg_id_programma.dosimetria_da_autorizzare &
-					  ,kkg_id_programma.dosimetria_da_sbloccare
-					k_esito = u_open_dosim_lav_ok(k_modalita )
-							  
-				case kkg_id_programma.anag
-					k_esito = u_open_anag(k_modalita )
-							  
-				case kkg_id_programma.attestati 
-					k_esito = u_open_certif(k_modalita ) 
-
-				case kkg_id_programma.fatture
-					k_esito = u_open_arfa(k_modalita )
-						
-//--- nella nuova modalità vado sulla tabella menu_window_oggetti
-//---     e lancio effettivo PROGRAMMA trovato
-				case else	
-					if not isvalid(kiuf_wm_pklist_testa) then kiuf_wm_pklist_testa = create kuf_wm_pklist_testa
-					if kst_tab_treeview.id_programma = kiuf_wm_pklist_testa.get_id_programma(k_modalita) then
-						k_esito = u_open_wm_pklist(k_modalita )
-					else
-						
-						if not isvalid(kiuf_armo) then kiuf_armo = create kuf_armo
-						if kst_tab_treeview.id_programma = kiuf_armo.get_id_programma(k_modalita) then
-							k_esito = u_open_riferimenti(k_modalita )
-						else
-							
-							if not isvalid(kiuf_wm_pklist_web) then kiuf_wm_pklist_web = create kuf_wm_pklist_web
-							if kst_tab_treeview.id_programma =  kiuf_wm_pklist_web.get_id_programma(k_modalita) then
-								k_esito = u_open_wm_pklist_web(k_modalita )
-							else
-							
-								if not isvalid(kiuf_wm_receiptgammarad) then kiuf_wm_receiptgammarad = create kuf_wm_receiptgammarad
-								if kst_tab_treeview.id_programma = kiuf_wm_receiptgammarad.get_id_programma(k_modalita) then
-									k_esito = u_open_wm_receiptgammarad(k_modalita )
-								else
-									
-									if not isvalid(kiuf_sped) then kiuf_sped = create kuf_sped
-									if kst_tab_treeview.id_programma = kiuf_sped.get_id_programma(k_modalita) then
-										k_esito = u_open_sped(k_modalita )
-									else
-										
-										if not isvalid(kiuf_certif_file) then kiuf_certif_file = create kuf_certif_file
-										if kst_tab_treeview.id_programma = kiuf_certif_file.get_id_programma(k_modalita) then
-											k_esito = u_open_certif_file(k_modalita )
-										else
-											if k_modalita <> kkg_flag_modalita.anteprima then
-												kst_esito_return.esito = kkg_esito.no_esecuzione
-												kst_esito_return.sqlcode = 0
-												kst_esito_return.SQLErrText = "Funzione di '" + k_str + "' richiesta non prevista~n~r(id programma: "+ trim(lower(kst_tab_treeview.id_programma))+ ")~n~r"
-											end if						
-										end if
-									end if
-								end if
-							end if
-						end if
-					end if
-		
-			end choose
-		
-		end if
-			
-		
-//--- se CANCELLAZIONE tolgo item selezionato dalla lista			
-		if k_esito = 0 then
-			kst_esito_return.esito = kkg_esito.ok
-			if k_modalita = kkg_flag_modalita.cancellazione then
-//				ki_forza_refresh = ki_forza_refresh_SI
-//				u_refresh()
-			end if
-		else
-			kst_esito_return.esito = kkg_esito.no_esecuzione
-			kst_esito_return.SQLErrText = "Funzione richiesta non Eseguita: (id programma: " &
-			               + trim(lower(kst_tab_treeview.id_programma))+ ", modalita: " + trim(k_modalita) + ")~n~r"
-		end if	
-
+		kguo_exception.kist_esito = u_open_esegui(k_modalita, kst_tab_treeview)
+	
 	end if
+	
+catch (uo_exception kuo_exception)
+	kguo_exception.set_esito(kuo_exception.kist_esito)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-//	kidw_1.Object.DataWindow.ReadOnly='Yes'
-
-//=== Puntatore di default
-//SetPointer(k)
+end try
 
 
-
-return kst_esito_return
+return kguo_exception.kist_esito
 end function
 
 private function integer u_open_dosim_lav_ok (string k_modalita);//
@@ -10077,9 +9965,12 @@ if kist_treeview_data_precedente <> kst_treeview_data or ki_forza_refresh = ki_f
 
 //--- Gestione Packing List Mandante				 
 			case kist_treeview_oggetto.pklist_anno_mese &
-				, kist_treeview_oggetto.pklist_da_imp &
-				, kist_treeview_oggetto.pklist_dett_da_imp &
-				, kist_treeview_oggetto.pklist_dett
+					,kist_treeview_oggetto.pklist_dett_anno_mese &
+					,kist_treeview_oggetto.pklist_da_imp &
+					,kist_treeview_oggetto.pklist_dett_da_imp &
+					,kist_treeview_oggetto.pklist_dett &
+					,kist_treeview_oggetto.pklist_camion &
+					,kist_treeview_oggetto.pklist_dett_camion
 				u_riempi_treeview_pkl (kist_treeview_oggetto.oggetto)
 
 //--- Gestione Packing List Grezzo (su WM) del Mandante				 
@@ -10255,10 +10146,14 @@ if kist_treeview_data_precedente <> kst_treeview_data or ki_forza_refresh = ki_f
 	
 	
 	//--- Gestione Packing List Mandante				 
+				//case kist_treeview_oggetto.pklist_anno_mese &
+				//		,kist_treeview_oggetto.pklist_dett_anno_mese &
 				case kist_treeview_oggetto.pklist_da_imp &
-					, kist_treeview_oggetto.pklist_dett &
-					, kist_treeview_oggetto.pklist_dett_da_imp &
-					, kist_treeview_oggetto.pklist_wm_da_imp
+						,kist_treeview_oggetto.pklist_dett &
+						,kist_treeview_oggetto.pklist_dett_da_imp &
+						,kist_treeview_oggetto.pklist_wm_da_imp &
+						,kist_treeview_oggetto.pklist_camion &
+						,kist_treeview_oggetto.pklist_dett_camion
 					u_riempi_listview_pkl (kist_treeview_oggetto.oggetto)
 				case kist_treeview_oggetto.pklist_righe
 					u_riempi_listview_pkl_righe (kist_treeview_oggetto.oggetto)
@@ -10464,10 +10359,12 @@ kuf_wm_pklist_testa kuf1_wm_pklist_testa
 //kuf_wm_pklist_web kuf1_wm_pklist_web
 kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
 kuf_wm_pklist_file kuf1_wm_pklist_file
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
 
 
 choose case k_tipo_oggetto
-	case kist_treeview_oggetto.pklist_anno_mese
+	case kist_treeview_oggetto.pklist_anno_mese &
+			,kist_treeview_oggetto.pklist_dett_anno_mese
 		kuf1_wm_pklist_testa = create kuf_wm_pklist_testa
 		k_return = kuf1_wm_pklist_testa.u_tree_riempi_treeview_x_mese( ki_this, k_tipo_oggetto )
 		destroy kuf1_wm_pklist_testa
@@ -10478,12 +10375,15 @@ choose case k_tipo_oggetto
 		destroy kuf1_wm_receiptgammarad
 		
 	case kist_treeview_oggetto.pklist_wm_da_web_dett
-//		kuf1_wm_pklist_web = create kuf_wm_pklist_web
-//		k_return = kuf1_wm_pklist_web.u_tree_riempi_treeview( ki_this, k_tipo_oggetto )
-//		destroy kuf1_wm_pklist_web
 		kuf1_wm_pklist_file = create kuf_wm_pklist_file
 		k_return = kuf1_wm_pklist_file.u_tree_riempi_treeview( ki_this, k_tipo_oggetto )
 		destroy kuf1_wm_pklist_file
+
+	case kist_treeview_oggetto.pklist_camion &
+			, kist_treeview_oggetto.pklist_dett_camion
+		kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+		k_return = kuf1_wm_pklist_camion.u_tree_riempi_treeview( ki_this, k_tipo_oggetto )
+		destroy kuf1_wm_pklist_camion
 		
 	case else
 		kuf1_wm_pklist_testa = create kuf_wm_pklist_testa
@@ -10507,21 +10407,26 @@ kuf_wm_pklist_testa kuf1_wm_pklist_testa
 //kuf_wm_pklist_web kuf1_wm_pklist_web
 kuf_wm_receiptgammarad kuf1_wm_receiptgammarad
 kuf_wm_pklist_file kuf1_wm_pklist_file
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
 
 
 choose case k_tipo_oggetto
+	
 	case kist_treeview_oggetto.pklist_wm_da_imp
 		kuf1_wm_receiptgammarad = create kuf_wm_receiptgammarad
 		k_return = kuf1_wm_receiptgammarad.u_tree_riempi_listview( ki_this, k_tipo_oggetto )
 		destroy kuf1_wm_receiptgammarad
 		
 	case kist_treeview_oggetto.pklist_wm_da_web_dett
-//		kuf1_wm_pklist_web = create kuf_wm_pklist_web
-//		k_return = kuf1_wm_pklist_web.u_tree_riempi_listview( ki_this, k_tipo_oggetto )
-//		destroy kuf1_wm_pklist_web
 		kuf1_wm_pklist_file = create kuf_wm_pklist_file
 		k_return = kuf1_wm_pklist_file.u_tree_riempi_listview( ki_this, k_tipo_oggetto )
 		destroy kuf1_wm_pklist_file
+
+	case kist_treeview_oggetto.pklist_camion &
+			, kist_treeview_oggetto.pklist_dett_camion
+		kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+		k_return = kuf1_wm_pklist_camion.u_tree_riempi_listview( ki_this, k_tipo_oggetto )
+		destroy kuf1_wm_pklist_camion
 
 	case else
 		kuf1_wm_pklist_testa = create kuf_wm_pklist_testa
@@ -10529,7 +10434,6 @@ choose case k_tipo_oggetto
 		destroy kuf1_wm_pklist_testa
 		
 end choose
-
 
 
 return k_return
@@ -11906,36 +11810,6 @@ return k_return
 
 end function
 
-private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode);//
-//--- Messaggio 'Da stampare?'
-//
-integer k_rc
-
-
-	if len(ast_tab_barcode.barcode) > 0 then
-		k_rc = messagebox("Stampa Singolo Barcode", &
-						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
-						+ string(ast_tab_barcode.data_int) + "~n~r~n~r"  &
-						+ "Barcode: " + string(ast_tab_barcode.barcode) +"~n~r" &
-						+ "Eseguire la stampa dei Barcode selezionati ?~n~r", &
-						question!, yesno!, 1) 
-	else
-		k_rc = messagebox("Stampa Intero Riferimento", &
-						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
-						+ string(ast_tab_barcode.data_int) + "~n~r~n~r"  &
-						+ "Eseguire la stampa di tutti i Barcode?~n~r", &
-						question!, yesno!, 1) 
-	end if
-
-	if k_rc = 1  then
-		return true
-	else
-		return false
-	end if
- 
-
-end function
-
 private function long u_stampa_barcode_get_id_meca (ref st_tab_barcode ast_tab_barcode);//
 //--- Stampa barcode get ID MECA se non c'è
 //--- ret: kst_tab_armo.id_meca
@@ -11972,36 +11846,6 @@ finally
 end try
  
 return kst_tab_armo.id_meca
-
-end function
-
-private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode);//
-//--- Messaggio 'Da stampare?'
-//
-integer k_rc
-
-
-	if len(ast_tab_barcode.barcode) > 0 then
-		k_rc = messagebox("Ristampa del Barcode", &
-						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
-						+ string(ast_tab_barcode.data_int) + "~n~r~n~r"  &
-						+ "Barcode: " + string(ast_tab_barcode.barcode) +"~n~r" &
-						+ "Stampa Barcode gia' emessa.~n~rRieseguire la Stampa dei Barcode selezionati?", &
-						question!, yesno!, 2) 
-	else
-		k_rc = messagebox("Ristampa Intero Riferimento", &
-						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
-						+ string(ast_tab_barcode.data_int) + "~n~r~n~r"  &
-						+ "Stampa Barcode gia' emessa.~n~rRieseguire la Stampa di tutti i Barcode?", &
-						question!, yesno!, 2) 
-	end if
-
-	if k_rc = 1 then
-		return true
-	else
-		return false
-	end if
- 
 
 end function
 
@@ -12198,6 +12042,311 @@ st_tab_barcode kst_tab_barcode
 			
 return k_lindex - 1
 
+end function
+
+public function integer u_kilv_lv1_setitem (integer a_row, integer a_item_idx, string a_item);//
+
+	if isnull(a_item) then 
+		a_item = "" 
+	else
+		a_item = trim(a_item)
+	end if
+	return kilv_lv1.setitem(a_row, a_item_idx, a_item)
+
+end function
+
+private function boolean u_stampa_barcode_msg_stampa (st_tab_barcode ast_tab_barcode, integer a_n_selected);//
+//--- Messaggio 'Da stampare?'
+//
+integer k_rc
+
+
+	if len(ast_tab_barcode.barcode) > 0 then
+		k_rc = messagebox("Stampa Singolo Barcode", &
+						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) &
+						+ kkg.acapo + "Primo barcode selezionato: " + string(ast_tab_barcode.barcode) + ". " &
+						+ kkg.acapo + kkg.acapo + "Eseguire la stampa dei Barcode selezionati ?~n~r", &
+						question!, yesno!, 1) 
+	else
+		if a_n_selected > 0 then
+			k_rc = messagebox("Stampa Riferimenti", &
+						"Primo Riferimento in stampa è " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) + ", seguiranno gli altri " + string(a_n_selected) + "selezionati."  &
+						+ kkg.acapo + kkg.acapo + "Eseguire la stampa di tutti i Barcode?", &
+						question!, yesno!, 1) 
+		else 
+			k_rc = messagebox("Stampa Intero Riferimento", &
+						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) &
+						+ kkg.acapo + kkg.acapo + "Eseguire la stampa di tutti i Barcode?~n~r", &
+						question!, yesno!, 1) 
+		end if
+	end if
+
+	if k_rc = 1  then
+		return true
+	else
+		return false
+	end if
+ 
+
+end function
+
+private function boolean u_stampa_barcode_msg_ristampa (st_tab_barcode ast_tab_barcode, integer a_n_selected);//
+//--- Messaggio 'Da stampare?'
+//
+integer k_rc
+
+
+	if len(ast_tab_barcode.barcode) > 0 then
+		k_rc = messagebox("Ristampa del Barcode", &
+						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) + ". "  &
+						+ "Barcode: " + string(ast_tab_barcode.barcode) &
+						+ kkg.acapo + "Stampa Barcode già emessa. " &
+						+ kkg.acapo + kkg.acapo + "Rieseguire la Stampa dei Barcode selezionati?", &
+						question!, yesno!, 2) 
+	else
+		if a_n_selected > 0 then
+			k_rc = messagebox("Ristampa Riferimenti", &
+						"Primo Riferimento in stampa è " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) + ", seguiranno gli altri " + string(a_n_selected) + "selezionati. "  &
+						+ kkg.acapo + "Stampa Barcode già emessa. " &
+						+ kkg.acapo + kkg.acapo + "Eseguire la stampa di tutti i Barcode?", &
+						question!, yesno!, 1) 
+		else 
+			k_rc = messagebox("Ristampa Intero Riferimento", &
+						"Riferimento " + string(ast_tab_barcode.num_int) + " del " &
+						+ string(ast_tab_barcode.data_int) + " "  &
+						+ kkg.acapo + "Stampa Barcode già emessa. " &
+						+ kkg.acapo + kkg.acapo + "Rieseguire la Stampa di tutti i Barcode?", &
+						question!, yesno!, 2) 
+		end if
+	end if
+
+	if k_rc = 1 then
+		return true
+	else
+		return false
+	end if
+ 
+
+end function
+
+private function integer u_open_wm_pklist_camion (string k_modalita) throws uo_exception;//
+//--- Chiama la funzione richiesta
+//
+integer k_return = 0, k_rc = 0
+integer k_ctr, k_index, k_totitem
+kuf_wm_pklist_camion kuf1_wm_pklist_camion
+st_tab_wm_pklist_camion kst_tab_wm_pklist_camion
+st_treeview_data kst_treeview_data, kst_treeview_data_parent
+st_treeview_data_any kst_treeview_data_any
+treeviewitem ktvi_treeviewitem, ktvi_treeviewitem_parent
+listviewitem klvi_listviewitem
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	kuf1_wm_pklist_camion = create kuf_wm_pklist_camion
+
+//--- ricavo il tipo oggetto e richiamo la windows di dettaglio 
+	kst_treeview_data = this.u_get_st_treeview_data ()
+	kst_treeview_data_parent.handle = this.kitv_tv1.finditem(ParentTreeItem!, kst_treeview_data.handle)
+	if kst_treeview_data_parent.handle > 0 then
+		if this.kitv_tv1.getitem(kst_treeview_data_parent.handle, ktvi_treeviewitem_parent) > 0 then
+			kst_treeview_data_parent = ktvi_treeviewitem_parent.data
+		end if
+	end if
+
+	kst_treeview_data_any = kst_treeview_data.struttura
+
+
+	if kilv_lv1.totalselected() = 0 then
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Selezionare almeno una riga dall'elenco"
+		throw kguo_exception
+	end if
+	
+//--- Cicla fino a che ci sono righe selezionate
+	kst_tab_wm_pklist_camion.id_wm_pklist_camion=0   // parto con il primo inizializzato
+	k_index = this.kilv_lv1.SelectedIndex()   // primo selezionato
+	if k_index > 0 then
+
+		if k_modalita = kkg_flag_modalita.anteprima then
+			return kuf1_wm_pklist_camion.u_tree_open_anteprima(kst_treeview_data_any, kidw_1) 
+		else
+			if k_modalita <> kkg_flag_modalita.stampa then
+				return 0
+			end if
+		end if
+
+		k_totitem = kilv_lv1.totalitems( )
+		do while k_index > 0 
+			k_rc = this.kilv_lv1.getitem(k_index, 1, klvi_listviewitem) 
+			if k_rc > 0 then 
+				kst_treeview_data = klvi_listviewitem.data  
+				kst_treeview_data_any = kst_treeview_data.struttura
+			else
+				exit
+			end if		
+			
+			if kuf1_wm_pklist_camion.u_tree_open_stampa(kst_treeview_data_any) = 0 then
+				klvi_listviewitem.Selected = false
+				kilv_lv1.setitem(k_index, klvi_listviewitem)
+			else
+				exit
+			end if
+			
+			do while k_index = 0 or klvi_listviewitem.Selected = false
+				k_index ++
+				if k_index > k_totitem then 
+					k_index = 0
+					exit
+				else
+					if this.kilv_lv1.getitem(k_index, klvi_listviewitem) <> 1 then  // piglia successivo
+						k_index = 0
+						exit
+					end if
+				end if
+			loop
+	
+		loop
+	
+		
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_wm_pklist_camion) then destroy kuf1_wm_pklist_camion
+
+end try
+
+
+return k_return 
+
+
+end function
+
+private function st_esito u_open_esegui (string k_modalita, st_tab_treeview kst_tab_treeview);//
+//--- Apre la funzione richiesta
+//
+string k_str 
+integer k_esito=1
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	
+//--- Get del ID PROGRAMMA da chiamare attraverso la vecchia modalità	
+	if trim(kst_tab_treeview.open_programma) > " " then 
+			
+		choose case lower(kst_tab_treeview.open_programma)
+		
+//--- dove non ho la gestione nuova di reperimento del programma attraverso la menu_window_oggetti faccio un semplice assegnazione....					  
+			case kkg_id_programma.barcode &
+							,kkg_id_programma.pl_barcode &
+							,kkg_id_programma.dosimetria &
+							,kkg_id_programma.dosimetria_da_autorizzare &
+							,kkg_id_programma.dosimetria_da_sbloccare &
+							,kkg_id_programma.anag &
+							,kkg_id_programma.attestati & 
+							,kkg_id_programma.fatture 
+				kst_tab_treeview.id_programma = trim(lower(kst_tab_treeview.open_programma))
+			
+		end choose
+
+	end if
+
+//--- Modalità attuale
+	if len(trim(kst_tab_treeview.id_programma)) > 0 then
+	else
+		if k_modalita <> kkg_flag_modalita.anteprima then
+			kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+			kguo_exception.kist_esito.SQLErrText = "Funzione di '" + k_str + "' richiesta non prevista~n~r("+ trim(lower(kst_tab_treeview.id_programma))+ ")~n~r"
+		end if					
+		return kguo_exception.kist_esito
+	end if
+		
+//--- Lancio effettivo PROGRAMMA trovato
+	choose case lower(kst_tab_treeview.id_programma)
+		
+		case kkg_id_programma.barcode
+			k_esito = u_open_barcode(k_modalita)
+
+		case kkg_id_programma.pl_barcode
+			k_esito = u_open_pl_barcode_testa(k_modalita)
+					  
+		case kkg_id_programma.dosimetria &
+			  ,kkg_id_programma.dosimetria_da_autorizzare &
+			  ,kkg_id_programma.dosimetria_da_sbloccare
+			k_esito = u_open_dosim_lav_ok(k_modalita )
+					  
+		case kkg_id_programma.anag
+			k_esito = u_open_anag(k_modalita )
+					  
+		case kkg_id_programma.attestati 
+			k_esito = u_open_certif(k_modalita ) 
+
+		case kkg_id_programma.fatture
+			k_esito = u_open_arfa(k_modalita )
+				
+//--- nella nuova modalità vado sulla tabella menu_window_oggetti
+//---     e lancio effettivo PROGRAMMA trovato
+		 case kiuf_wm_pklist_testa.get_id_programma(k_modalita)
+			  k_esito = u_open_wm_pklist(k_modalita)
+			  
+		 case kiuf_armo.get_id_programma(k_modalita)
+			  k_esito = u_open_riferimenti(k_modalita)
+			  
+		 case kiuf_wm_pklist_web.get_id_programma(k_modalita)
+			  k_esito = u_open_wm_pklist_web(k_modalita)
+			  
+		 case kiuf_wm_receiptgammarad.get_id_programma(k_modalita)
+			  k_esito = u_open_wm_receiptgammarad(k_modalita)
+			  
+		 case kiuf_sped.get_id_programma(k_modalita)
+			  k_esito = u_open_sped(k_modalita)
+			  
+		 case kiuf_certif_file.get_id_programma(k_modalita)
+			  k_esito = u_open_certif_file(k_modalita)
+			  
+		 case kiuf_wm_pklist_camion.get_id_programma(k_modalita)
+			  k_esito = u_open_wm_pklist_camion(k_modalita)
+			  
+		 case else
+			  if k_modalita <> kkg_flag_modalita.anteprima then
+					kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+					kguo_exception.kist_esito.SQLErrText = "Funzione di '" + k_str + "' richiesta non prevista~n~r(id programma: " + trim(lower(kst_tab_treeview.id_programma)) + ")~n~r"
+			  end if
+	
+	end choose
+			
+//--- se CANCELLAZIONE tolgo item selezionato dalla lista			
+	if k_esito = 0 then
+		kguo_exception.kist_esito.esito = kkg_esito.ok
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Funzione richiesta non Eseguita: (id programma: " &
+							+ trim(lower(kst_tab_treeview.id_programma))+ ", modalita: " + trim(k_modalita) + ")~n~r"
+	end if	
+	
+catch (uo_exception kuo_exception)
+	kguo_exception.set_esito(kuo_exception.kist_esito)
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+return kguo_exception.kist_esito
 end function
 
 on kuf_treeview.create
@@ -12417,8 +12566,11 @@ int k_i = 0
 	kist_treeview_oggetto.pklist_tutti = "pklist_da_imp"
 	kist_treeview_oggetto.pklist_dett_da_imp = "pklist_dett_da_imp"
 	kist_treeview_oggetto.pklist_anno_mese = "pklist_anno_mese"
+	kist_treeview_oggetto.pklist_dett_anno_mese = "pklist_dett_anno_mese"
 	kist_treeview_oggetto.pklist_dett = "pklist_dett"
 	kist_treeview_oggetto.pklist_righe = "pklist_righe"
+	kist_treeview_oggetto.pklist_camion = "pklist_camion"
+	kist_treeview_oggetto.pklist_dett_camion = "pklist_dett_camion"
 
 //--- Sezione DOCUMENTI (FILE)
 	kist_treeview_oggetto.file_root = "file_root"
@@ -12432,6 +12584,13 @@ int k_i = 0
 
 //--- crea oggetti dell'istanza
 	kiuf_certif = create kuf_certif
+	kiuf_wm_pklist_testa = create kuf_wm_pklist_testa
+	kiuf_wm_pklist_camion =  create kuf_wm_pklist_camion
+	kiuf_armo = create kuf_armo
+	kiuf_wm_pklist_web = create kuf_wm_pklist_web
+	kiuf_wm_receiptgammarad = create kuf_wm_receiptgammarad
+	kiuf_sped = create kuf_sped
+	kiuf_certif_file = create kuf_certif_file
 
 end event
 
@@ -12440,6 +12599,7 @@ event destructor;
 	u_listview_salva_dim_colonne ()
 
 	if isvalid(kiuf_wm_pklist_testa) then destroy kiuf_wm_pklist_testa
+	if isvalid(kiuf_wm_pklist_camion) then destroy kiuf_wm_pklist_camion
 	if isvalid(kiuf_wm_pklist_web) then destroy kiuf_wm_pklist_web
 	if isvalid(kiuf_wm_receiptgammarad) then destroy kiuf_wm_receiptgammarad
 	if isvalid(kiuf_sped) then destroy kiuf_sped

@@ -384,7 +384,6 @@ protected subroutine inizializza_1 ();//----------------------------------------
 //---------------------------------------------------------------------=
 //
 long k_id_listino, k_rc
-kuf_utility kuf1_utility
 
 
 ki_selectedtab = 2
@@ -412,18 +411,15 @@ if k_id_listino > 0 then
 end if
 
 //--- Inabilita campi alla modifica se Visualizzazione
-kuf1_utility = create kuf_utility 
 if tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.visualizzazione then 
-	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_2.dw_2)
-	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_2.dw_10)
+	tab_1.tabpage_2.dw_2.u_proteggi_dw("1", 0)
+	tab_1.tabpage_2.dw_10.u_proteggi_dw("1", 0)
 else
-	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_2)
-	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_10)
+	tab_1.tabpage_2.dw_2.u_proteggi_dw("0", 0)
+	tab_1.tabpage_2.dw_10.u_proteggi_dw("0", 0)
 end if
-destroy kuf1_utility
 
 attiva_tasti()
-
 
 tab_1.tabpage_2.dw_10.setfocus()
 
@@ -1029,7 +1025,6 @@ st_tab_clienti kst_tab_clienti
 st_tab_listino_prezzi kst_tab_listino_prezzi
 window kw_window
 kuf_base kuf1_base
-kuf_utility kuf1_utility
 datawindowchild kdwc_cli, kdwc_clie_cod
 
 
@@ -1054,7 +1049,7 @@ choose case ki_selectedtab
 
 ////--- S-protezione campi per abilitare l'inserimento
 //			kuf1_utility = create kuf_utility
-//	     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+//	     	tab_1.tabpage_2.dw_2.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
 //			destroy kuf1_utility
 
 //			kw_window = kGuf_data_base.prendi_win_attiva()
@@ -1149,9 +1144,7 @@ choose case ki_selectedtab
 				case else 
 
 //--- S-protezione campi per abilitare l'inserimento
-					kuf1_utility = create kuf_utility
-					kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_2)
-					destroy kuf1_utility
+					tab_1.tabpage_2.dw_2.u_proteggi_dw("0", 0)
 		
 					k_riga = tab_1.tabpage_2.dw_2.insertrow(0)
 					tab_1.tabpage_2.dw_10.reset( )	
@@ -1175,9 +1168,7 @@ choose case ki_selectedtab
 		tab_1.tabpage_3.dw_3.ki_flag_modalita = kkg_flag_modalita.inserimento
 
 //--- S-protezione campi per abilitare l'inserimento
-		kuf1_utility = create kuf_utility
-		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_3.dw_3)
-		destroy kuf1_utility
+		tab_1.tabpage_3.dw_3.u_proteggi_dw("0", 0)
 
 		if kst_tab_listino.cod_cli > 0 then
 			kst_tab_clienti.rag_soc_10 = tab_1.tabpage_1.dw_1.getitemstring(1, "rag_soc_10")
@@ -1226,12 +1217,9 @@ protected subroutine inizializza_2 () throws uo_exception;//
 string k_scelta, k_codice_prec, k_codice_attuale
 long  k_rc
 st_tab_listino kst_tab_listino
-kuf_utility kuf1_utility
 
 
 ki_selectedtab = 3
-
-kuf1_utility = create kuf_utility
 
 kst_tab_listino.cod_cli = tab_1.tabpage_1.dw_1.getitemnumber(1, "cod_cli") //fatt
 
@@ -1261,13 +1249,11 @@ if kst_tab_listino.cod_cli > 0 then
 end if
 
 //--- Inabilita campi alla modifica se Visualizzazione
-kuf1_utility = create kuf_utility 
 if tab_1.tabpage_3.dw_3.ki_flag_modalita = kkg_flag_modalita.visualizzazione then 
-	kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_3.dw_3)
+	tab_1.tabpage_3.dw_3.u_proteggi_dw("1", 0)
 else
-		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_3.dw_3)
+	tab_1.tabpage_3.dw_3.u_proteggi_dw("0", 0)
 end if
-destroy kuf1_utility
 
 attiva_tasti()
 
@@ -1738,18 +1724,13 @@ end if
 end subroutine
 
 public subroutine proteggi_campi ();//
-kuf_utility kuf1_utility
-
-
-	kuf1_utility = create kuf_utility 
-
 
 //--- se NO inserimento leggo DW-CHILD
 //	if ki_st_open_w.flag_modalita <> kkg_flag_modalita.inserimento and tab_1.tabpage_1.dw_1.getrow() > 0 then
 	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
 
 //--- S-protezione campi per abilitare l'inserimento
-		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 		
 	else
 		
@@ -1759,43 +1740,43 @@ kuf_utility kuf1_utility
 //--- Inabilita campi alla modifica se Vsualizzazione
 		if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento and trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.modifica then
 		
-			kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
 
-			kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_1", tab_1.tabpage_1.dw_1)
-			kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_2", tab_1.tabpage_1.dw_1)
-			kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_3", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_1")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_2")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_3")
 	
 		else		
 			
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-	      	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+	      	tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 
 //--- Inabilita campo cliente per la modifica se Funzione MODIFICA
 			if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
 	
 //--- protegge i campi chiave
-				kuf1_utility.u_proteggi_dw("1",  "cod_cli", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "cod_art", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "dose", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "mis_x", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "mis_y", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "mis_z", tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1",  "cod_cli")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "cod_art")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "dose")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "mis_x")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "mis_y")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "mis_z")
 			end if
 			
 //--- Protegge il Campo ATTIVO se non autorizzato			
 			if NOT ki_cambio_stato_listino_autorizzato then
-				kuf1_utility.u_proteggi_dw("1", "attivo", tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "attivo")
 			end if
 
 //--- Protegge il Campo PREZZI se non autorizzato			
 			if NOT ki_cambio_prezzi_listino_autorizzato then
-				kuf1_utility.u_proteggi_dw("1", "attiva_listino_pregruppi", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "prezzo", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "prezzo_2", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "prezzo_3", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_1", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_2", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("1", "b_cond_fatt_3", tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "attiva_listino_pregruppi")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "prezzo")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "prezzo_2")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "prezzo_3")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_1")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_2")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "b_cond_fatt_3")
 			end if
 			
 		end if
@@ -1804,7 +1785,6 @@ kuf_utility kuf1_utility
 		tab_1.tabpage_1.dw_1.setredraw(true)
 	
 	end if
-	destroy kuf1_utility
 
 end subroutine
 
@@ -1974,7 +1954,6 @@ protected function boolean inserisci_dw10 ();//
 boolean k_return = false
 long k_riga, k_riga_new 
 st_tab_listino_prezzi kst_tab_listino_prezzi
-kuf_utility kuf1_utility
 
 
 //--- ricavo la riga del GRUPPO
@@ -2006,9 +1985,7 @@ kuf_utility kuf1_utility
 		if kst_tab_listino_prezzi.id_listino_link_pregruppo > 0 then
 
 //--- S-protezione campi per abilitare l'inserimento
-			kuf1_utility = create kuf_utility
-			kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_2.dw_10)
-			destroy kuf1_utility
+			tab_1.tabpage_2.dw_10.u_proteggi_dw("0", 0)
 
 			k_riga_new = tab_1.tabpage_2.dw_10.insertrow(0)
 
@@ -2502,8 +2479,6 @@ string k_errore="0", k_dataobject
 end event
 
 type tab_1 from w_g_tab_3`tab_1 within w_listino
-integer x = 0
-integer y = 0
 integer width = 3072
 integer height = 1384
 end type
@@ -2663,7 +2638,6 @@ event dw_1::buttonclicked;call super::buttonclicked;//
 string k_errore
 int k_rc
 kuf_listino kuf1_listino
-kuf_utility kuf1_utility
 st_tab_listino kst_tab_listino
 st_tab_cond_fatt kst_tab_cond_fatt
 st_tab_meca kst_tab_meca
@@ -2671,12 +2645,10 @@ st_esito kst_esito
 st_open_w kst_open_w 
 kuf_armo kuf1_armo
 datawindowchild kdwc_articoli, kdwc_articoli_des
-
 pointer kp_oldpointer  // Declares a pointer variable
 
 
-	kp_oldpointer = SetPointer(HourGlass!)
-
+kp_oldpointer = SetPointer(HourGlass!)
 
 choose case dwo.name
 
@@ -2707,14 +2679,12 @@ choose case dwo.name
 				k_errore += " (id " + string(kst_tab_meca.id) + ")" 	
 			end if
 			if LeftA(k_errore, 1) = "0" then 
-				kuf1_utility = create kuf_utility
-				kuf1_utility.u_proteggi_dw("0",  "cod_cli", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("0", "cod_art", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("0", "dose", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("0", "mis_x", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("0", "mis_y", tab_1.tabpage_1.dw_1)
-				kuf1_utility.u_proteggi_dw("0", "mis_z", tab_1.tabpage_1.dw_1)
-				destroy kuf1_utility 
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0",  "cod_cli")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "cod_art")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "dose")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "mis_x")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "mis_y")
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "mis_z")
 				
 	//--- Attivo dw archivio Prodotto
 				k_rc = this.getchild("cod_art", kdwc_articoli)
@@ -2991,20 +2961,15 @@ event dw_2::clicked;call super::clicked;//
 string k_errore
 int k_rc
 kuf_listino kuf1_listino
-kuf_utility kuf1_utility
 st_tab_listino kst_tab_listino
 st_tab_cond_fatt kst_tab_cond_fatt
 st_esito kst_esito
 st_open_w kst_open_w 
 datawindowchild kdwc_articoli, kdwc_articoli_des
-
 pointer kp_oldpointer  // Declares a pointer variable
 
 
-
-
 choose case dwo.name
-
 
 	case "b_cond_fatt_1"
 				

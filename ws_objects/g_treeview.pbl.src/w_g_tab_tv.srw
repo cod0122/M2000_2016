@@ -82,7 +82,7 @@ private long ki_listview_index
 
 private boolean ki_focus_on_st_oizzontal, ki_focus_on_st_vertical
 
-
+private string ki_control_focus_x_print
 end variables
 
 forward prototypes
@@ -157,15 +157,15 @@ private subroutine leggi_ramo_treeviewitem ();//
 		
 	SetPointer(kkg.pointer_attesa)
 	
-	tv_root.setredraw(false)
-	lv_1.setredraw(false)
+//	tv_root.setredraw(false)
+//	lv_1.setredraw(false)
 
 	
 	kiuf_treeview.u_smista_treeview_listview( )
 
 
-	tv_root.setredraw(true)
-	lv_1.setredraw(true)
+//	tv_root.setredraw(true)
+//	lv_1.setredraw(true)
 	
 	attiva_tasti()
 	
@@ -458,10 +458,9 @@ listviewitem klvi_listviewitem
 	
 	if k_index > 0 and not ki_flag_list_appena_espanso then
 		
-		setpointer(kkg.pointer_attesa)
 		ki_flag_list_appena_espanso = true
-		tv_root.setredraw(false)
-		lv_1.setredraw(false)
+//		tv_root.setredraw(false)
+		//lv_1.setredraw(false)
 
 //--- imposta il path in alto
 		if k_index > 1 then
@@ -494,14 +493,15 @@ listviewitem klvi_listviewitem
 		
 		leggi_ramo_treeviewitem()
 
-		tv_root.setredraw(true)
-		lv_1.setredraw(true)
-
+//		tv_root.setredraw(true)
+//		lv_1.setredraw(true)
 
 //--- imposto il percorso sulla barra del titolo
 //		event u_wtitolo_path()
 
 		ki_flag_list_appena_espanso = false
+
+		dw_anteprima.post event u_get_focus( )
 		
 		setpointer(kkg.pointer_default)
 	
@@ -555,7 +555,8 @@ end subroutine
 protected subroutine crea_dw_stampa_da_listview ();//---
 //---  genera un dw da una listview
 //---
-int k_colcount=0, k_riga, k_colonna, k_larg_campo, k_pos_x
+int k_colcount=0, k_riga, k_colonna, k_larg_campo
+long k_pos_x
 string k_rc, k_visible, k_valore, k_table, k_resto, k_syntax
 string k_titolo_col, k_tipo_oggetto, k_ls_err, k_alignement 
 long k_handle_item, k_rcn, k_list_eof
@@ -813,20 +814,14 @@ if k_attiva_funzione then
 	
 	if kst_esito.esito <> kkg_esito.ok then
 	
-		if k_operazione = kkg_flag_richiesta.stampa then
-			
-			stampa_anteprima()
-			
-//			if messagebox("Operazione non Eseguita", &
-//					"Stampa per la riga selezionata non operativa.~n~r"  &
-//					  + "E' possibile stampare l'elenco delle righe del Navigatore con un altro pulsante.~n~r" &
-//					  + "Procedere con la stampa delle righe in elenco così come è visualizzata?", Question!, yesno!, 1) = 1 then
-//				stampa()
-//			end if
-		else
+//		if k_operazione = kkg_flag_richiesta.stampa then
+//			
+//			stampa_anteprima()
+//			
+//		else
 			messagebox("Operazione non Eseguita", &
 					  kst_esito.sqlerrtext)
-		end if
+//		end if
 	end if	
 
 //	kGuf_data_base.mostra_windows_attiva()
@@ -1031,31 +1026,39 @@ end subroutine
 protected subroutine stampa_esegui (st_stampe ast_stampe);//
 
 
-choose case kigrf_x_trova.classname( )
-
-	case "lv_1", "tv_root"
-		crea_dw_stampa_da_listview()
-
-		ast_stampe.dw_print = dw_stampa
-		if len(trim(this.title)) > 60 then
-			ast_stampe.titolo = Right(trim(this.title), 60) 
-		else
-			ast_stampe.titolo = this.title 
-		end if
-		if ast_stampe.dw_print.rowcount() > 0 then
-		
-			ast_stampe.dw_syntax = trim(dw_stampa.describe("DataWindow.Syntax"))
-			
-			kGuf_data_base.stampa_dw(ast_stampe)
-		
-		end if
-		
-	case else
-		
+if	ki_control_focus_x_print = dw_anteprima.classname( ) then
+	if dw_anteprima.visible then
 		stampa_anteprima()
-
-end choose
-
+	end if
+else
+	
+	choose case kigrf_x_trova.classname( )
+	
+		case "lv_1", "tv_root"
+			crea_dw_stampa_da_listview()
+	
+			ast_stampe.dw_print = dw_stampa
+			if len(trim(this.title)) > 60 then
+				ast_stampe.titolo = Right(trim(this.title), 60) 
+			else
+				ast_stampe.titolo = this.title 
+			end if
+			if ast_stampe.dw_print.rowcount() > 0 then
+			
+				ast_stampe.dw_syntax = trim(dw_stampa.describe("DataWindow.Syntax"))
+				
+				kGuf_data_base.stampa_dw(ast_stampe)
+			
+			end if
+			
+		case else
+			
+			if dw_anteprima.visible then
+				stampa_anteprima()
+			end if
+	
+	end choose
+end if
 
 
 	
@@ -1112,7 +1115,7 @@ public subroutine u_anteprima ();//
 		if dw_anteprima.visible and dw_anteprima.enabled  then
 			dw_anteprima.enabled = false
 			
-			yield()   // non impegno la window
+			//yield()   // non impegno la window
 			
 			kiuf_treeview.u_open ( kkg_flag_modalita.anteprima )
 			dw_anteprima.enabled = true
@@ -1427,60 +1430,37 @@ end subroutine
 
 public function boolean u_resize_predefinita ();//---
 
-		this.setredraw(false)
+	this.setredraw(false)
 
-		tv_root.x = 1 //15
-		tv_root.y = 1 //15
-		lv_1.y = 1
-		dw_anteprima.x = 1
-		st_vertical.y = 1
-		st_orizzontal.x = 1
-		st_vertical.width = 20
-		st_orizzontal.height = 20
+	tv_root.x = 1 //15
+	tv_root.y = 1 //15
+	lv_1.y = 1
+	dw_anteprima.x = 1
+	st_vertical.y = 1
+	st_orizzontal.x = 1
+	st_vertical.width = 20
+	st_orizzontal.height = 20
 
-		st_vertical.visible = ki_st_vertical
-		st_orizzontal.visible = ki_st_orizzontal
-      
-		if st_vertical.visible then
-			st_vertical.X = this.width / 10
-			tv_root.width = st_vertical.X - st_vertical.width 
-			lv_1.width =  this.width - st_vertical.X - st_vertical.width // -70 
-		else
-			lv_1.width = this.width //- 75 
-		end if
-
-		if st_orizzontal.visible then
-			st_orizzontal.y = this.height * 0.7 //- 200
-		else
-			st_orizzontal.y = this.height
-		end if
-
-		st_vertical.height = st_orizzontal.y
-
-//		if st_vertical.visible then
-//			lv_1.x = st_vertical.x + st_vertical.width 
-//			st_vertical.bringtotop = true
-//		end if
-//		
-//		if st_orizzontal.visible then
-//			st_orizzontal.width = this.width
-//			st_orizzontal.bringtotop = true
-//			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
-//			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
-//			dw_anteprima.width = st_orizzontal.width 
-//			 lv_1.height = this.height - st_orizzontal.y 
-//		end if
-//	
-//		lv_1.height = st_vertical.height
-//		tv_root.height = st_vertical.height 
-//
-//		lv_1.visible = true
-//		tv_root.visible = st_vertical.visible
-//		dw_anteprima.visible = st_orizzontal.visible
+	st_vertical.visible = ki_st_vertical
+	st_orizzontal.visible = ki_st_orizzontal
 	
-		this.setredraw(true)
+	if st_vertical.visible then
+		st_vertical.X = this.width / 10
+		tv_root.width = st_vertical.X - st_vertical.width 
+		lv_1.width =  this.width - st_vertical.X - st_vertical.width // -70 
+	else
+		lv_1.width = this.width //- 75 
+	end if
 
-//		this.visible = true
+	if st_orizzontal.visible then
+		st_orizzontal.y = this.height * 0.7 //- 200
+	else
+		st_orizzontal.y = this.height
+	end if
+
+	st_vertical.height = st_orizzontal.y
+
+	this.setredraw(true)
 
 return TRUE
 
@@ -1755,48 +1735,41 @@ public subroutine u_resize_init ();//---
 long k_height
 
 	this.setredraw(false)
-	
-//		if ki_st_vertical then
-//			st_vertical.X = this.width * (((100 / k_width) * st_vertical.X) / 100)
-//		end if
-//		if ki_st_orizzontal then
-//			st_orizzontal.Y = this.height * (((100 / k_height) * st_orizzontal.y) / 100)
-//		end if
 		
-		if ki_st_vertical then
-			st_vertical.visible = true
-			tv_root.width = st_vertical.X - st_vertical.width 
-			lv_1.width =  this.width - tv_root.width - st_vertical.width
-			lv_1.x = st_vertical.x + st_vertical.width 
-			st_vertical.bringtotop = true
-		else
-			st_vertical.visible = false
-			lv_1.width = this.width //- 75 
-			lv_1.x = 1
-		end if
-		
-		if ki_st_orizzontal then
-			st_orizzontal.visible = true
-			if st_orizzontal.y <= this.height / 10 then st_orizzontal.y = this.height / 3
-			st_orizzontal.width = this.width
-			dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
-			dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
-			dw_anteprima.width = st_orizzontal.width 
-			lv_1.height = this.height - st_orizzontal.y 
-			st_vertical.height = st_orizzontal.y
-			st_orizzontal.bringtotop = true
-			k_height = st_vertical.height
-		else
-			st_orizzontal.visible = false
-			st_vertical.height = this.height
-			k_height = this.height
-		end if
+	if ki_st_vertical then
+		st_vertical.visible = true
+		tv_root.width = st_vertical.X - st_vertical.width 
+		lv_1.width =  this.width - tv_root.width - st_vertical.width
+		lv_1.x = st_vertical.x + st_vertical.width 
+		st_vertical.bringtotop = true
+	else
+		st_vertical.visible = false
+		lv_1.width = this.width //- 75 
+		lv_1.x = 1
+	end if
 	
-		lv_1.height = k_height
-		tv_root.height = k_height
+	if ki_st_orizzontal then
+		st_orizzontal.visible = true
+		if st_orizzontal.y <= this.height / 10 then st_orizzontal.y = this.height / 3
+		st_orizzontal.width = this.width
+		dw_anteprima.y = st_orizzontal.y + st_orizzontal.height
+		dw_anteprima.height = this.height - st_orizzontal.y - st_orizzontal.height //- 240 
+		dw_anteprima.width = st_orizzontal.width 
+		lv_1.height = this.height - st_orizzontal.y 
+		st_vertical.height = st_orizzontal.y
+		st_orizzontal.bringtotop = true
+		k_height = st_vertical.height
+	else
+		st_orizzontal.visible = false
+		st_vertical.height = this.height
+		k_height = this.height
+	end if
 
-		lv_1.visible = true
-		dw_anteprima.visible = st_orizzontal.visible
+	lv_1.height = k_height
+	tv_root.height = k_height
+
+	lv_1.visible = true
+	dw_anteprima.visible = st_orizzontal.visible
 	
 	lv_1.visible = ki_st_vertical
 	dw_anteprima.visible = ki_st_orizzontal
@@ -1960,6 +1933,7 @@ end type
 
 type tv_root from treeview within w_g_tab_tv
 event u_rbuttondown pbm_rbuttondown
+event u_cliccato_tree ( )
 boolean visible = false
 integer x = 18
 integer width = 814
@@ -1995,6 +1969,15 @@ int k_xpos, k_ypos
 
 //	destroy kuf1_menu_popup
 
+end event
+
+event u_cliccato_tree();//
+
+	if not ki_flag_tree_appena_espanso then
+		cliccato_tree( )
+	end if	
+	
+	this.enabled = true
 end event
 
 event clicked;//
@@ -2038,6 +2021,7 @@ end event
 
 event getfocus;//
 kiuf_treeview.ki_fuoco_tree_list = kiuf_treeview.ki_fuoco_su_tree
+ki_control_focus_x_print = this.classname( )
 
 post attiva_tasti()
 
@@ -2065,13 +2049,9 @@ event selectionchanged;//
 //treeviewitem ktvi_1
 
 
-	this.enabled = false
-
-	if not ki_flag_tree_appena_espanso then
-		post cliccato_tree()
-	end if	
+	event post u_cliccato_tree()
 	
-	this.enabled = true
+	this.enabled = false
 
 
 
@@ -2109,24 +2089,27 @@ end event
 type lv_1 from listview within w_g_tab_tv
 event u_dropfiles pbm_dropfiles
 event u_rbuttondown pbm_rbuttondown
+event u_clicked ( integer index )
+event u_cliccato_list ( integer index )
 boolean visible = false
-integer x = 946
+integer x = 919
 integer width = 1463
 integer height = 640
 integer taborder = 10
 boolean bringtotop = true
 integer textsize = -10
 integer weight = 400
-fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
-string facename = "MS Sans Serif"
+string facename = "Verdana"
+string pointer = "Arrow1!"
 long textcolor = 33554432
 long backcolor = 16777215
 boolean border = false
 boolean autoarrange = true
 boolean fixedlocations = true
 boolean hideselection = false
+boolean oneclickactivate = true
 boolean fullrowselect = true
 boolean underlinehot = true
 listviewview view = listviewreport!
@@ -2156,16 +2139,13 @@ int k_xpos, k_ypos
 
 kiuf_treeview.ki_fuoco_tree_list = kiuf_treeview.ki_fuoco_su_list
 
-//	kuf1_menu_popup = create kuf_menu_popup
 	k_xpos = xpos + this.x  
 	k_ypos = ypos + this.y 
 	kiuf_menu_popup.post u_popup(k_xpos, k_ypos)
 
-//	destroy kuf1_menu_popup
-
 end event
 
-event clicked;//
+event u_clicked(integer index);//
 	kiuf_treeview.ki_fuoco_tree_list = kiuf_treeview.ki_fuoco_su_list
 
 
@@ -2175,7 +2155,14 @@ event clicked;//
 		setpointer(kkg.pointer_default)
 	end if
 
+	this.enabled = true
 
+end event
+
+event u_cliccato_list(integer index);
+cliccato_list(index)
+
+//this.enabled = true
 end event
 
 event columnclick;//---
@@ -2188,7 +2175,7 @@ alignment k_align
 listviewitem klvi_copy
 
 
-	this.enabled = false
+//	this.enabled = false
 
 	SetPointer(kkg.pointer_attesa) 
 
@@ -2231,7 +2218,7 @@ end event
 event getfocus;//
 //--- imposta oggetto selezionato x fare il TROVA
 kigrf_x_trova = this
-
+ki_control_focus_x_print = this.classname( )
 post attiva_tasti()
 
 end event
@@ -2245,7 +2232,6 @@ if key = keyenter! then
 	kiuf_treeview.ki_fuoco_tree_list = kiuf_treeview.ki_fuoco_su_list
 	k_index = selectedindex( ) 
 	if k_index > 0 then
-//		event doubleclicked( k_index)
 		event clicked(k_index)
 	end if
 else
@@ -2257,70 +2243,90 @@ end if
 
 end event
 
-event sort;//
+event sort;
 //--- sort scatenato quando pigi su testa delle colonne (align=right)
 
-//ListViewItem lvi, lvi2
-//
-//if index1 = 1 then
-//	RETURN -1
-//else
-//
-//	if index2 = 1 then
-//		RETURN 1
-//	else
-//			
-//		This.GetItem(index1, lvi)
-//		
-//		This.GetItem(index2, lvi2)
-//		
-//		IF lvi.PictureIndex < lvi2.PictureIndex THEN
-//				RETURN 1
-//		ELSE
-//			IF lvi.PictureIndex > lvi2.PictureIndex THEN
-//				RETURN -1
-//				
-//			ELSE
-//				This.GetItem(index1, column, lvi)
-//		
-//				This.GetItem(index2, column, lvi2)
-//		
-//				if this.tag = string(column) + "D" then
-//					IF lvi.label > lvi2.label THEN
-//						RETURN 1
-//					ELSE
-//						IF lvi.label < lvi2.label THEN
-//							RETURN -1
-//						ELSE
-//							RETURN 0
-//						END IF
-//					END IF
-//				else
-//					IF lvi.label < lvi2.label THEN
-//						RETURN 1
-//					ELSE
-//						IF lvi.label > lvi2.label THEN
-//							RETURN -1
-//						ELSE
-//							RETURN 0
-//						END IF
-//					END IF
-//				end if
-//			end if
-//		
-//		END IF
-//	end if
-//end if
-//
-//
+ListViewItem lvi, lvi2
+
+if index1 = 1 then
+	RETURN -1
+else
+
+	if index2 = 1 then
+		RETURN 1
+	else
+			
+		This.GetItem(index1, lvi)
+		
+		This.GetItem(index2, lvi2)
+		
+		IF lvi.PictureIndex < lvi2.PictureIndex THEN
+				RETURN 1
+		ELSE
+			IF lvi.PictureIndex > lvi2.PictureIndex THEN
+				RETURN -1
+				
+			ELSE
+				This.GetItem(index1, column, lvi)
+		
+				This.GetItem(index2, column, lvi2)
+		
+				if this.tag = string(column) + "D" then
+					IF lvi.label > lvi2.label THEN
+						RETURN 1
+					ELSE
+						IF lvi.label < lvi2.label THEN
+							RETURN -1
+						ELSE
+							RETURN 0
+						END IF
+					END IF
+				else
+					IF lvi.label < lvi2.label THEN
+						RETURN 1
+					ELSE
+						IF lvi.label > lvi2.label THEN
+							RETURN -1
+						ELSE
+							RETURN 0
+						END IF
+					END IF
+				end if
+			end if
+		
+		END IF
+	end if
+end if
+
+
 end event
 
 event itemactivate;//
-	cliccato_list(index)
+//
+//	event u_cliccato_list(index)
+//
+//	this.post setfocus( )
+//	this.enabled = false
+	
+	event u_clicked(index)
+
+//	this.enabled = true
+	
+
+end event
+
+event doubleclicked;//
+
+	event u_cliccato_list(index)
+
+	this.post setfocus( )
+	//this.enabled = false
+	
 
 end event
 
 type dw_anteprima from uo_d_std_1 within w_g_tab_tv
+event u_get_focus pbm_dwnretrievestart
 integer x = 937
 integer y = 772
 integer width = 983
@@ -2337,8 +2343,22 @@ boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
 end type
 
+event u_get_focus;//
+
+if this.dataobject > " " and this.visible then
+	ki_control_focus_x_print = this.classname( )
+	this.Modify("DataWindow.Print.Preview=no")
+
+	this.event u_personalizza_dw_forza( )
+//	this.Object.DataWindow.Print.Preview.Zoom = ki_zoom
+end if
+end event
+
 event getfocus;call super::getfocus;//
 attiva_tasti()
+
+this.event u_get_focus()
+
 
 end event
 
@@ -2349,8 +2369,7 @@ event ue_dwnkey;call super::ue_dwnkey;//
 end event
 
 event retrievestart;call super::retrievestart;//
-	this.Modify("DataWindow.Print.Preview=no")
-//	this.Object.DataWindow.Print.Preview.Zoom = ki_zoom
+this.event u_get_focus()
 
 end event
 

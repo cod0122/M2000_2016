@@ -315,7 +315,7 @@ protected function string check_dati ();//
 //=== Controllo dati inseriti
 string k_return = " ", k_errore = "0"
 string k_trova=""
-int k_nr_errori, k_pos=1, k_start=1, k_nr_capitolato=0 
+long k_nr_errori, k_pos=1, k_start=1, k_nr_capitolato=0 
 st_tab_contratti_co kst_tab_contratti_co
 st_tab_contratti kst_tab_contratti
 st_tab_gru kst_tab_gru
@@ -644,7 +644,6 @@ st_tab_clie_settori kst_tab_clie_settori
 kuf_ausiliari kuf1_ausiliari
 //window kw_window
 kuf_base kuf1_base
-kuf_utility kuf1_utility
 datawindowchild Kdwc_clie_des, kdwc_clie_cod, Kdwc_clie_contatti, kdwc_oggetto, kdwc_settori, kdwc_gru
 
 
@@ -979,9 +978,7 @@ if LeftA(k_errore, 1) = "0" then
 
 
 //--- S-protezione campi per abilitare l'inserimento
-			kuf1_utility = create kuf_utility
-	     	kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
-			destroy kuf1_utility
+	     	tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 		
 //			tab_1.tabpage_1.dw_1.resetupdate( )
 			tab_1.tabpage_1.dw_1.SetItemStatus( 1, 0, Primary!, NotModified!)
@@ -1350,7 +1347,6 @@ end subroutine
 private subroutine proteggi_campi ();//
 //--- Protegge o meno a seconda dei casi
 //
-kuf_utility kuf1_utility
 
 
 //--- se NO inserimento leggo DW-CHILD
@@ -1359,40 +1355,37 @@ kuf_utility kuf1_utility
 		tab_1.tabpage_1.dw_1.setredraw(false)
 
 //--- Inabilita campi alla modifica se Visualizzazione
-		kuf1_utility = create kuf_utility 
 		if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento and trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.modifica then
 		
-			kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
 
-			kuf1_utility.u_proteggi_dw("1", "contratti_co_id_contratto_co", tab_1.tabpage_1.dw_1)
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "contratti_co_id_contratto_co")
 	
 		else		
 //--- se sono in MODIFICA e Contratto già stampa definitiva allora inabilito tutti i campi all'infuori che lo Stato			
 			if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
 			 			and (tab_1.tabpage_1.dw_1.getitemstring( 1, "stato") = kiuf_contratti_co.kki_STATO_stampato or tab_1.tabpage_1.dw_1.getitemstring( 1, "stato") = kiuf_contratti_co.kki_STATO_accettato) then
 //--- Protezione tutti i campi 
-				kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
 //--- Abilito solo campo STATO
-				kuf1_utility.u_proteggi_dw("0", "stato", tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "stato")
 			
 			else
 
 //--- S-protezione campi per riabilitare la modifica a parte la chiave
-				kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
 
 //--- Inabilita campo cliente per la modifica se Funzione MODIFICA
 				if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
 	
 //--- protegge i campi chiave
-					kuf1_utility.u_proteggi_dw("1", "contratti_co_id_contratto_co", tab_1.tabpage_1.dw_1)
+					tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "contratti_co_id_contratto_co")
 
 
 				end if
 			end if
 	
 		end if
-		destroy kuf1_utility
-		
 	
 		tab_1.tabpage_1.dw_1.setredraw(true)
 	

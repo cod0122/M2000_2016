@@ -226,7 +226,7 @@ public function boolean get_id_menu_window (ref st_tab_menu_window_oggetti kst_t
 //--- out: id_menu_window (che e' l'id del programma)
 //
 boolean k_return=false
-integer k_ctr=0, k_pos=0
+long k_ctr=0, k_pos=0
 string k_funzione
 
 

@@ -502,25 +502,33 @@ public function st_esito u_open ();//
 boolean  k_return = true
 st_tab_g_0 kst_tab_g_0[]
 st_open_w kst_open_w
-st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	kst_tab_g_0[1].id = 0
 	
 	k_return = this.u_open_applicazione(kst_tab_g_0[1], kkg_flag_modalita.visualizzazione)
  
  	if not k_return then
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kst_esito.SQLErrText = "Funzione richiesta non Eseguita: (id programma: " &
-			               + trim(lower(get_id_programma(kkg_flag_modalita.visualizzazione)))+ ", modalita: " + trim(kkg_flag_modalita.visualizzazione) + ")~n~r"
-	end if	
-		
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.SQLErrText = "Funzione richiesta non Eseguita: (id programma: " &
+			               + trim(lower(get_id_programma(kkg_flag_modalita.visualizzazione))) &
+								+ ", modalita: " + trim(kkg_flag_modalita.visualizzazione) + ")~n~r"
+	end if		
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	kguo_exception.set_esito(kuo_exception.kist_esito)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
-return kst_esito
+end try
+
+return kguo_exception.kist_esito
 
 end function
 
@@ -530,15 +538,12 @@ public function st_esito u_open (ref st_open_w ast_open_w);//---
 //--- Input: st_open_w
 //--- Out: TRUE = finestra aperta; FASE=operazione non eseguita
 //---
-//boolean k_return = false
 string k_rc = ""
-st_esito kst_esito 
-//kuf_menu_window kuf1_menu_window
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	if trim(ast_open_w.flag_modalita) > " " then
 	else
@@ -552,15 +557,19 @@ st_esito kst_esito
 	end if
 	if not isvalid(ast_open_w.key12_any) then ast_open_w.key12_any = this			// questo oggetto di gestione del trova
 
-	//kuf1_menu_window = create kuf_menu_window 
-	kGuf_menu_window.open_w_tabelle(ast_open_w)
-	//destroy kuf1_menu_window
-	//if k_rc = "1" then	
-	//	k_return = true
-	//end if
+	kGuf_menu_window.open_w_tabelle(ast_open_w)  
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	kguo_exception.set_esito(kuo_exception.kist_esito)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
+end try
 
-return kst_esito
+return kguo_exception.kist_esito
+
 
 
 end function
@@ -573,19 +582,27 @@ public function st_esito u_open (string a_modalita);//---
 //---
 boolean k_return = false
 st_open_w kst_open_w
-st_esito kst_esito
 
 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
 
 	kst_open_w.flag_modalita = a_modalita
 
-	kst_esito = u_open(kst_open_w)
+	kguo_exception.kist_esito = u_open(kst_open_w)
+	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	kguo_exception.set_esito(kuo_exception.kist_esito)
+	
+finally
+	SetPointer(kkg.pointer_default)
 
+end try
 
-return kst_esito
+return kguo_exception.kist_esito
 
 end function
 

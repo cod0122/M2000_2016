@@ -755,11 +755,11 @@ else
 			end if
 //--- Imposta  Risorse Grafiche
 			if len(trim(kGuo_path.get_risorse())) > 0 then
-				k_rcx=kds_print.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img.text"))+ "'") 
-				k_rcx=kds_print.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
-				k_rcx=kds_print.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
-				k_rcx=kds_print.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
-				k_rcx=kds_print.Modify("p_img_4.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img.Filename='" +  trim(kds_print.Describe("txt_p_img.text"))+ "'") 
+				k_rcx=kds_print.Modify("p_img_0.Filename='" +   trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
+				k_rcx=kds_print.Modify("p_img_1.Filename='" +   trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img_2.Filename='" +   trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
+				k_rcx=kds_print.Modify("p_img_4.Filename='" +   trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
 			end if
 //			ki_path_risorse = kGuo_path.get_risorse() + "\" + "logo_orig_bn.bmp"
 //			k_rcx=kds_print.Modify("p_img.Filename='" + ki_path_risorse + "'")
@@ -2637,11 +2637,11 @@ try
 				end if
 //--- Imposta  Risorse Grafiche
 				if len(trim(kGuo_path.get_risorse())) > 0 then
-					k_rcx=kds_print.Modify("p_img.Filename='" + kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img.text"))+ "'") 
-					k_rcx=kds_print.Modify("p_img_0.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
-					k_rcx=kds_print.Modify("p_img_1.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
-					k_rcx=kds_print.Modify("p_img_2.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
-					k_rcx=kds_print.Modify("p_img_4.Filename='" +  kGuo_path.get_risorse() + "\" + trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
+					k_rcx=kds_print.Modify("p_img.Filename='" +  trim(kds_print.Describe("txt_p_img.text"))+ "'") 
+					k_rcx=kds_print.Modify("p_img_0.Filename='" +   trim(kds_print.Describe("txt_p_img_0.text")) + "'")  
+					k_rcx=kds_print.Modify("p_img_1.Filename='" +   trim(kds_print.Describe("txt_p_img_1.text")) + "'") 
+					k_rcx=kds_print.Modify("p_img_2.Filename='" +   trim(kds_print.Describe("txt_p_img_2.text")) + "'") 
+					k_rcx=kds_print.Modify("p_img_4.Filename='" +   trim(kds_print.Describe("txt_p_img_4.text")) + "'") 
 				end if
 	
 				kds_print.settransobject(sqlca)

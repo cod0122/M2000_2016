@@ -198,7 +198,7 @@ public function integer u_check_placeholder (st_msg_replace_placeholder kst_msg_
 int k_return
 string k_err_placeholder
 string k_placeholder, k_placeholder_name
-int k_pos_start, k_pos_fin, k_placeholder_nrows, k_find_row
+long k_pos_start, k_pos_fin, k_placeholder_nrows, k_find_row
 st_esito kst_esito
 
 
