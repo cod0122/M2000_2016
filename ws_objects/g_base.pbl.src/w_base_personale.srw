@@ -124,6 +124,10 @@ type st_cb_placeholder_l from statictext within tabpage_9
 end type
 type tabpage_10 from userobject within tab_1
 end type
+type cb_e1_recover_t from statictext within tabpage_10
+end type
+type cb_e1_recover from commandbutton within tabpage_10
+end type
 type st_deposito from statictext within tabpage_10
 end type
 type cb_depositi from commandbutton within tabpage_10
@@ -145,6 +149,8 @@ end type
 type b_clienti_cntdep_l from commandbutton within tabpage_10
 end type
 type tabpage_10 from userobject within tab_1
+cb_e1_recover_t cb_e1_recover_t
+cb_e1_recover cb_e1_recover
 st_deposito st_deposito
 cb_depositi cb_depositi
 st_29 st_29
@@ -195,8 +201,8 @@ end type
 end forward
 
 global type w_base_personale from w_g_tab_3
-integer width = 55
-integer height = 196
+integer width = 5957
+integer height = 19196
 string title = "Proprietà"
 long backcolor = 67108864
 string icon = "Form!"
@@ -4948,6 +4954,8 @@ long tabtextcolor = 33554432
 string picturename = "Strikethrough!"
 long picturemaskcolor = 536870912
 string powertiptext = "Funzioni varie"
+cb_e1_recover_t cb_e1_recover_t
+cb_e1_recover cb_e1_recover
 st_deposito st_deposito
 cb_depositi cb_depositi
 st_29 st_29
@@ -4975,6 +4983,8 @@ event u_resize(long a_scost_width, long a_scost_height);/*
 end event
 
 on tabpage_10.create
+this.cb_e1_recover_t=create cb_e1_recover_t
+this.cb_e1_recover=create cb_e1_recover
 this.st_deposito=create st_deposito
 this.cb_depositi=create cb_depositi
 this.st_29=create st_29
@@ -4985,7 +4995,9 @@ this.cb_meca_chiude=create cb_meca_chiude
 this.st_meca_chiude=create st_meca_chiude
 this.dw_10=create dw_10
 this.b_clienti_cntdep_l=create b_clienti_cntdep_l
-this.Control[]={this.st_deposito,&
+this.Control[]={this.cb_e1_recover_t,&
+this.cb_e1_recover,&
+this.st_deposito,&
 this.cb_depositi,&
 this.st_29,&
 this.cb_aco,&
@@ -4998,6 +5010,8 @@ this.b_clienti_cntdep_l}
 end on
 
 on tabpage_10.destroy
+destroy(this.cb_e1_recover_t)
+destroy(this.cb_e1_recover)
 destroy(this.st_deposito)
 destroy(this.cb_depositi)
 destroy(this.st_29)
@@ -5010,9 +5024,61 @@ destroy(this.dw_10)
 destroy(this.b_clienti_cntdep_l)
 end on
 
+type cb_e1_recover_t from statictext within tabpage_10
+integer x = 1285
+integer y = 1124
+integer width = 1509
+integer height = 112
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 8388608
+long backcolor = 16777215
+string text = "Recupera i dati da inviare a E1 (es. CUBE)"
+boolean focusrectangle = false
+end type
+
+type cb_e1_recover from commandbutton within tabpage_10
+integer x = 357
+integer y = 1112
+integer width = 891
+integer height = 112
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string text = "Recupera Dati E1"
+boolean flatstyle = true
+end type
+
+event clicked;//--- 
+kuf_recover_e1_data kuf1_recover_e1_data
+
+
+try
+	
+	kuf1_recover_e1_data = create kuf_recover_e1_data
+	kuf1_recover_e1_data.u_open( )
+		
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_recover_e1_data) then destroy kuf1_recover_e1_data
+	
+end try
+
+end event
+
 type st_deposito from statictext within tabpage_10
 integer x = 1285
-integer y = 928
+integer y = 908
 integer width = 1271
 integer height = 112
 integer textsize = -10
@@ -5029,7 +5095,7 @@ end type
 
 type cb_depositi from commandbutton within tabpage_10
 integer x = 357
-integer y = 904
+integer y = 880
 integer width = 891
 integer height = 112
 integer taborder = 30

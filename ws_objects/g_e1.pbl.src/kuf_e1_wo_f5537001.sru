@@ -47,19 +47,24 @@ st_esito kst_esito
 st_tab_e1_wo_f5537001 kst_tab_e1_wo_f5537001
 st_tab_f5537001 kst_tab_f5537001, kst1_tab_f5537001
 kuf_e1_f5537001 kuf1_e1_f5537001
-datastore kds_e1_wo_f5537001_l_xe1
+uo_ds_std_1 kds_e1_wo_f5537001_l_xe1
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	kuf1_e1_f5537001 = create kuf_e1_f5537001
 	
-	kds_e1_wo_f5537001_l_xe1 = create datastore
+	kds_e1_wo_f5537001_l_xe1 = create uo_ds_std_1
 	kds_e1_wo_f5537001_l_xe1.dataobject = "ds_e1_wo_f5537001_l_xe1"
 	kds_e1_wo_f5537001_l_xe1.settransobject(kguo_sqlca_db_magazzino)
 	k_righe_tot = kds_e1_wo_f5537001_l_xe1.retrieve( )
-	
+	if k_righe_tot < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_e1_wo_f5537001_l_xe1, &
+									"Errore in lettura dati trattamento da passare a E1 (e1_wo_f5537001) per alimantare 'Cube Interface' (n.barcode, giri e padri). Operazione di invio dati a E1 non eseguita!")
+		throw kguo_exception
+	end if	
+
 	kst_tab_e1_wo_f5537001.e1updts = kGuf_data_base.prendi_dataora( )
 	
 	for k_riga = 1 to k_righe_tot
@@ -74,7 +79,8 @@ try
 
 //--- passo al processo di aggiornamento solo se sono su un record nuovo
 		if kst_tab_f5537001.MPDOCO = kst1_tab_f5537001.MPDOCO and kst_tab_f5537001.MPAURST1 = kst1_tab_f5537001.MPAURST1 then
-		else			
+		else		
+			
 			kst1_tab_f5537001 = kst_tab_f5537001  // salva i dati per il controllo di cui sopra
 				
 			if not kuf1_e1_f5537001.if_esiste(kst_tab_f5537001) then
@@ -87,17 +93,15 @@ try
 					kds_e1_wo_f5537001_l_xe1.setitem(k_riga, "e1updts", kst_tab_e1_wo_f5537001.e1updts)	//data di aggiornamento a E1
 			
 					k_rc = kds_e1_wo_f5537001_l_xe1.update()
-			
 					if k_rc < 0 then
-						kst_esito.esito = kkg_esito.db_ko
-						kst_esito.sqlcode = k_return
-						kst_esito.SQLErrText = "Aggiornamento data fallito in tabella appoggio dati trattamento 'Cube Interface' (n.barcode, giri e padri) per E1 'e1_wo_f5537001' ma dati E1 inviati correttamente. ~n~rWO (MPDOCO): "+string(kst_tab_e1_wo_f5537001.MPDOCO)
-						kguo_exception.inizializza()
-						kguo_exception.set_esito (kst_esito)
-						//throw kguo_exception
+						kguo_exception.set_st_esito_err_ds(kds_e1_wo_f5537001_l_xe1, &
+								"Aggiornamento data fallito in tabella appoggio dati trattamento 'Cube Interface' (n.barcode, giri e padri) per E1 'e1_wo_f5537001' ma dati E1 inviati correttamente. " &
+								+ kkg.acapo + "Work Order (MPDOCO): " + string(kst_tab_e1_wo_f5537001.MPDOCO))
+						throw kguo_exception
 					end if
 		
 				catch (uo_exception kuo1_exception)
+						kuo1_exception.scrivi_log( )
 					
 				
 				finally
@@ -292,11 +296,9 @@ public function boolean if_esiste (st_tab_e1_wo_f5537001 kst_tab_e1_wo_f5537001)
 //
 boolean k_return = false
 long k_trovato=0
-st_esito kst_esito
 
 
-
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	SELECT count(*)
 			into :k_trovato
@@ -305,20 +307,12 @@ st_esito kst_esito
 			 using kguo_sqlca_db_magazzino ;
 		
 	if sqlca.sqlcode < 0 then
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.SQLErrText = "Errore in verifica esistenza del record in tabella e1_wo_f5537001 (wo: '" + string(kst_tab_e1_wo_f5537001.MPDOCO) + "') " &
-						 + "~n~rErrore: " + trim(SQLCA.SQLErrText)
-									 
-		kst_esito.esito = kkg_esito.db_ko
-		
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in verifica esistenza Lotto in tabella e1_wo_f5537001, codice WO: '" + string(kst_tab_e1_wo_f5537001.MPDOCO) + "' ")		
 		throw kguo_exception
-		
-	else
-		if k_trovato > 0 then k_return = true
 	end if
-	
+
+	if k_trovato > 0 then k_return = true	
 
 return k_return
 

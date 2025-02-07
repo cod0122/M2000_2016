@@ -16,6 +16,7 @@ global type st_stampe from structure
 	string		stampante_predefinita
 	string		modificafont		descriptor "comment" = "x mantenere il font originali metti modficafont_no"
 	string		testata_xls		descriptor "comment" = "se fare o meno la testata xls (S/N)"
+	boolean		testata_no		descriptor "comment" = "true = NON fare la testata mai"
 	blob		blob_print		descriptor "comment" = "contiene il dw o ds da stampare"
 end type
 

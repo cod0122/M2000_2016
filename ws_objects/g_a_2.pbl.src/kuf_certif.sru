@@ -54,7 +54,6 @@ public function long get_id_da_id_meca (ref st_tab_certif kst_tab_certif) throws
 public function date get_data (ref st_tab_certif kst_tab_certif) throws uo_exception
 public function st_esito get_clie (ref st_tab_certif kst_tab_certif) throws uo_exception
 public subroutine u_db_crea_view_certif (string a_view_name, long a_id_meca) throws uo_exception
-private function st_esito set_e1_wo_f5548014 (st_tab_certif kst_tab_certif) throws uo_exception
 private function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception
 private subroutine crea_certif_set_note (ref st_tab_certif kst_tab_certif) throws uo_exception
 private subroutine crea_certif_update (ref st_tab_certif kst_tab_certif) throws uo_exception
@@ -65,6 +64,7 @@ public function boolean if_stampato (readonly st_tab_certif ast_tab_certif) thro
 public function date get_data_stampa (ref st_tab_certif ast_tab_certif) throws uo_exception
 private subroutine crea_certif_verifica_dosi (ref st_tab_certif ast_tab_certif, ref kuf_meca_dosim auf1_meca_dosim, readonly st_tab_armo ast_tab_armo) throws uo_exception
 private subroutine crea_certif_get_dati_x_st (ref st_tab_certif ast_tab_certif, ref st_tab_meca ast_tab_meca, ref st_tab_armo ast_tab_armo) throws uo_exception
+private function st_esito set_e1_wo_f5548014_old (st_tab_certif kst_tab_certif) throws uo_exception
 end prototypes
 
 public subroutine if_isnull (ref st_tab_certif kst_tab_certif);//---
@@ -3223,113 +3223,6 @@ st_esito kst_esito
 
 end subroutine
 
-private function st_esito set_e1_wo_f5548014 (st_tab_certif kst_tab_certif) throws uo_exception;//
-//---------------------------------------------------------------------------------
-//--- Popola dati tabella di appoggio e1_wo_f5548014 per E1
-//--- da lanciare dopo la "stampa_attestato"
-//---
-//--- Par. Input: st_tab_certif   
-//--- 
-//--- Ritorna tab. ST_ESITO, Esiti:    Vedi standard
-//--- 
-//---------------------------------------------------------------------------------
-//
-long k_ctr, k_ctr_max
-long k_durata_lav_secondi
-date k_datainizioanno
-int k_giorniafter, k_anno, k_anno_rid
-st_esito kst_esito
-st_tab_meca kst_tab_meca
-st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014
-st_tab_barcode kst_tab_barcode, kst_tab_barcode_1[]
-kuf_barcode kuf1_barcode
-kuf_armo kuf1_armo
-kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014
-kuf_e1 kuf1_e1
-
-
-try  
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//--- alimenta tabella dati trattamento da Inviare a E1
-	if kguo_g.if_e1_enabled( ) then
-		
-		kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
-		kuf1_barcode = create kuf_barcode
-		kuf1_armo = create kuf_armo
-		kuf1_e1 = create kuf_e1
-		
-		kst_tab_meca.id = kst_tab_certif.id_meca
-		kst_tab_e1_wo_f5548014.wo_osdoco = kuf1_armo.get_e1doco(kst_tab_meca)
-		if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
-			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_qtdata
-			kst_tab_e1_wo_f5548014.dosemin_os55gs25a = string(kst_tab_certif.dose_min, "#0.00")
-			kst_tab_e1_wo_f5548014.dosemax_os55gs25b = string(kst_tab_certif.dose_max, "#0.00")
-//--- set durata del trattamento							
-			kst_tab_barcode.id_meca = kst_tab_meca.id
-			k_durata_lav_secondi = kuf1_barcode.get_durata_lav(kst_tab_barcode) //25-10-2017 durata lavorazione solo di 1 barcode
-			kst_tab_e1_wo_f5548014.ciclo_os55gs25c = string(k_durata_lav_secondi) //kst_tab_certif[1].dose, "#0.00")
-
-//--- set num giri del trattamento							
-			kst_tab_barcode_1[1].id_meca = kst_tab_barcode.id_meca   				// 25-10-2017 get dei giri di un barcode del lotto
-			k_ctr_max = kuf1_barcode.get_barcode_da_id_meca(kst_tab_barcode_1[]) // 25-10-2017 get dei giri di un barcode del lotto
-			if k_ctr_max > 0 then 		// 25-10-2017 get dei giri di un barcode del lotto
-			
-				k_ctr = 1
-				do while k_ctr < k_ctr_max and kst_tab_barcode_1[k_ctr].lav_fila_1 = 0 and kst_tab_barcode_1[k_ctr].lav_fila_2 = 0
-					k_ctr++
-				loop	
-				
-				if kst_tab_barcode_1[k_ctr].lav_fila_1 > 0 or kst_tab_barcode_1[k_ctr].lav_fila_2 > 0 then // se ho trovato che è stato lavorato...
-					kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_barcode_1[k_ctr].lav_fila_1 + kst_tab_barcode_1[k_ctr].lav_fila_1p + kst_tab_barcode_1[k_ctr].lav_fila_2 + kst_tab_barcode_1[k_ctr].lav_fila_2p
-				end if
-			end if
-//--- set fila del trattamento							
-			kuf1_barcode.get_lav_fila_tot_x_id_meca(kst_tab_barcode)  // 25-10-2017 calcolo dei giri totali dei barcode per lotto
-			kst_tab_e1_wo_f5548014.tcicli_osmmcu = " " 
-			if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 and (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
-				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
-			else
-				if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 then
-					kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila1  // FILA 1
-				else
-					if (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
-						kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
-					end if
-				end if
-			end if
-						
-			kst_tab_e1_wo_f5548014.data_osa801 = string(kst_tab_certif.data, "dd/mm/yy")
-			k_anno = integer(string(kst_tab_certif.data, "yyyy"))
-			k_anno_rid = integer(string(kst_tab_certif.data, "yy"))
-			k_datainizioanno = date(k_anno,01,01)
-			k_giorniafter = DaysAfter(k_datainizioanno, date(kst_tab_certif.data)) + 1
-			kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
-			kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(time(kGuf_data_base.prendi_dataora( ))))
-			
-			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i dati su tb di scambio con E-ONE
-		end if
-	end if
-
-		
-catch (uo_exception kuo_exception1)
-	kst_esito = kuo_exception1.get_st_esito( )
-	kst_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5548014)~n~r" + trim(kst_esito.sqlerrtext)
-	
-finally
-	if isvalid(kuf1_e1_wo_f5548014) then destroy kuf1_e1_wo_f5548014
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-	if isvalid(kuf1_barcode) then destroy kuf1_barcode
-	if isvalid(kuf1_e1) then destroy kuf1_e1
-	
-end try
-			
-
-return kst_esito
-
-end function
-
 private function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception;//
 //---------------------------------------------------------------------------------
 //--- Popola dati tabella di appoggio e1_wo_f5537001 per E1
@@ -4336,6 +4229,113 @@ end try
 
 
 end subroutine
+
+private function st_esito set_e1_wo_f5548014_old (st_tab_certif kst_tab_certif) throws uo_exception;//
+//---------------------------------------------------------------------------------
+//--- Popola dati tabella di appoggio e1_wo_f5548014 per E1
+//--- da lanciare dopo la "stampa_attestato"
+//---
+//--- Par. Input: st_tab_certif   
+//--- 
+//--- Ritorna tab. ST_ESITO, Esiti:    Vedi standard
+//--- 
+//---------------------------------------------------------------------------------
+//
+long k_ctr, k_ctr_max
+long k_durata_lav_secondi
+date k_datainizioanno
+int k_giorniafter, k_anno, k_anno_rid
+st_esito kst_esito
+st_tab_meca kst_tab_meca
+st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014
+st_tab_barcode kst_tab_barcode, kst_tab_barcode_1[]
+kuf_barcode kuf1_barcode
+kuf_armo kuf1_armo
+kuf_e1_wo_f5548014 kuf1_e1_wo_f5548014
+kuf_e1 kuf1_e1
+
+
+try  
+
+	kst_esito = kguo_exception.inizializza(this.classname())
+
+//--- alimenta tabella dati trattamento da Inviare a E1
+	if kguo_g.if_e1_enabled( ) then
+		
+		kuf1_e1_wo_f5548014 = create kuf_e1_wo_f5548014
+		kuf1_barcode = create kuf_barcode
+		kuf1_armo = create kuf_armo
+		kuf1_e1 = create kuf_e1
+		
+		kst_tab_meca.id = kst_tab_certif.id_meca
+		kst_tab_e1_wo_f5548014.wo_osdoco = kuf1_armo.get_e1doco(kst_tab_meca)
+		if kst_tab_e1_wo_f5548014.wo_osdoco > 0 then
+			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_qtdata
+			kst_tab_e1_wo_f5548014.dosemin_os55gs25a = string(kst_tab_certif.dose_min, "#0.00")
+			kst_tab_e1_wo_f5548014.dosemax_os55gs25b = string(kst_tab_certif.dose_max, "#0.00")
+//--- set durata del trattamento							
+			kst_tab_barcode.id_meca = kst_tab_meca.id
+			k_durata_lav_secondi = kuf1_barcode.get_durata_lav(kst_tab_barcode) //25-10-2017 durata lavorazione solo di 1 barcode
+			kst_tab_e1_wo_f5548014.ciclo_os55gs25c = string(k_durata_lav_secondi) //kst_tab_certif[1].dose, "#0.00")
+
+//--- set num giri del trattamento							
+			kst_tab_barcode_1[1].id_meca = kst_tab_barcode.id_meca   				// 25-10-2017 get dei giri di un barcode del lotto
+			k_ctr_max = kuf1_barcode.get_barcode_da_id_meca(kst_tab_barcode_1[]) // 25-10-2017 get dei giri di un barcode del lotto
+			if k_ctr_max > 0 then 		// 25-10-2017 get dei giri di un barcode del lotto
+			
+				k_ctr = 1
+				do while k_ctr < k_ctr_max and kst_tab_barcode_1[k_ctr].lav_fila_1 = 0 and kst_tab_barcode_1[k_ctr].lav_fila_2 = 0
+					k_ctr++
+				loop	
+				
+				if kst_tab_barcode_1[k_ctr].lav_fila_1 > 0 or kst_tab_barcode_1[k_ctr].lav_fila_2 > 0 then // se ho trovato che è stato lavorato...
+					kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_barcode_1[k_ctr].lav_fila_1 + kst_tab_barcode_1[k_ctr].lav_fila_1p + kst_tab_barcode_1[k_ctr].lav_fila_2 + kst_tab_barcode_1[k_ctr].lav_fila_2p
+				end if
+			end if
+//--- set fila del trattamento							
+			kuf1_barcode.get_lav_fila_tot_x_id_meca(kst_tab_barcode)  // 25-10-2017 calcolo dei giri totali dei barcode per lotto
+			kst_tab_e1_wo_f5548014.tcicli_osmmcu = " " 
+			if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 and (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
+				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
+			else
+				if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 then
+					kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila1  // FILA 1
+				else
+					if (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
+						kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
+					end if
+				end if
+			end if
+						
+			kst_tab_e1_wo_f5548014.data_osa801 = string(kst_tab_certif.data, "dd/mm/yy")
+			k_anno = integer(string(kst_tab_certif.data, "yyyy"))
+			k_anno_rid = integer(string(kst_tab_certif.data, "yy"))
+			k_datainizioanno = date(k_anno,01,01)
+			k_giorniafter = DaysAfter(k_datainizioanno, date(kst_tab_certif.data)) + 1
+			kst_tab_e1_wo_f5548014.data_osdee = 100000 + k_anno_rid * 1000 + k_giorniafter
+			kst_tab_e1_wo_f5548014.ora_oswwaet = long(kGuf_data_base.get_e1_timeformat(time(kGuf_data_base.prendi_dataora( ))))
+			
+			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i dati su tb di scambio con E-ONE
+		end if
+	end if
+
+		
+catch (uo_exception kuo_exception1)
+	kst_esito = kuo_exception1.get_st_esito( )
+	kst_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5548014)~n~r" + trim(kst_esito.sqlerrtext)
+	
+finally
+	if isvalid(kuf1_e1_wo_f5548014) then destroy kuf1_e1_wo_f5548014
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	if isvalid(kuf1_e1) then destroy kuf1_e1
+	
+end try
+			
+
+return kst_esito
+
+end function
 
 on kuf_certif.create
 call super::create

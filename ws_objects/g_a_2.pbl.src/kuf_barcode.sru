@@ -3972,12 +3972,11 @@ public function long get_durata_lav (readonly st_tab_barcode kst_tab_barcode) th
 //
 long k_return = 0
 long k_secondi_durata
-st_esito kst_esito
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	k_secondi_durata = get_imptime_sec_x_id_meca(kst_tab_barcode)
 	
@@ -3988,10 +3987,8 @@ try
 	end if
 
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	kst_esito.SQLErrText = "Errore in calcolo durata lavorazione dell'intero Lotto.~n~r" + kst_esito.SQLErrText
-	kguo_exception.inizializza()
-	kguo_exception.set_esito (kst_esito)
+	kguo_exception.kist_esito = kuo_exception.get_st_esito()
+	kguo_exception.kist_esito.SQLErrText = "Errore in calcolo durata lavorazione dell'intero Lotto. " + kkg.acapo + kguo_exception.kist_esito.SQLErrText
 	throw kguo_exception
 
 end try
@@ -4231,7 +4228,7 @@ end function
 
 public subroutine get_lav_fila_tot_x_id_meca (ref st_tab_barcode kst_tab_barcode) throws uo_exception;//
 //====================================================================
-//=== Estrae totale giri lav di fila 1 e fila 2 x Lotto
+//=== Estrae totale giri lav di fila 1 e fila 2 e Giri in G3 x Lotto
 //=== 
 //=== Input: id_meca
 //=== Output: la struttura st_tab_barcode con lav_fila_* valorizzati
@@ -4240,48 +4237,41 @@ public subroutine get_lav_fila_tot_x_id_meca (ref st_tab_barcode kst_tab_barcode
 //=== Lancia un ECCEZIONE se Errore grave
 //====================================================================
 //
-kuf_base kuf1_base
-st_esito kst_esito
-
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 	kst_tab_barcode.lav_fila_1 = 0
 	kst_tab_barcode.lav_fila_2 = 0
 	kst_tab_barcode.lav_fila_1p = 0
 	kst_tab_barcode.lav_fila_2p = 0
+	kst_tab_barcode.g3lav_ngiri = 0
 
 	if kst_tab_barcode.id_meca > 0 then
-		select sum(lav_fila_1)
-		       ,sum(lav_fila_2)
-		       ,sum(lav_fila_1p)
-		       ,sum(lav_fila_2p)
-			into
-				 :kst_tab_barcode.lav_fila_1
-				 ,:kst_tab_barcode.lav_fila_2
-				 ,:kst_tab_barcode.lav_fila_1p
-				 ,:kst_tab_barcode.lav_fila_2p
-			from barcode
-			where barcode.id_meca = :kst_tab_barcode.id_meca
-			using kguo_sqlca_db_magazzino;
 	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Operazione di lettura totale Giri trattati per Lotto in tab. Barcode non eseguita, manca ID Lotto"
-		kst_esito.esito = kkg_esito.no_esecuzione
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.kist_esito.sqlcode = 0
+		kguo_exception.kist_esito.SQLErrText = "Operazione di lettura totale Giri trattati per Lotto in tab. Barcode non eseguita, manca ID Lotto"
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
 		throw kguo_exception
 	end if			
+		
+	select sum(lav_fila_1)
+			 ,sum(lav_fila_2)
+			 ,sum(lav_fila_1p)
+			 ,sum(lav_fila_2p)
+			 ,sum(g3lav_ngiri)
+		into
+			 :kst_tab_barcode.lav_fila_1
+			 ,:kst_tab_barcode.lav_fila_2
+			 ,:kst_tab_barcode.lav_fila_1p
+			 ,:kst_tab_barcode.lav_fila_2p
+			 ,:kst_tab_barcode.g3lav_ngiri
+		from barcode
+		where barcode.id_meca = :kst_tab_barcode.id_meca
+		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 	else
 		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura totale Giri trattati per Lotto in tab. Barcode (ID=" + string(kst_tab_barcode.id_meca)+ ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito (kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in lettura tab. Barcode del totale Giri trattati per Lotto id " + string(kst_tab_barcode.id_meca)+ " ")
 			throw kguo_exception
 		end if
 	end if
@@ -4290,6 +4280,7 @@ st_esito kst_esito
 	if isnull(kst_tab_barcode.lav_fila_2) then kst_tab_barcode.lav_fila_2 = 0
 	if isnull(kst_tab_barcode.lav_fila_1p) then kst_tab_barcode.lav_fila_1p = 0
 	if isnull(kst_tab_barcode.lav_fila_2p) then kst_tab_barcode.lav_fila_2p = 0
+	if isnull(kst_tab_barcode.g3lav_ngiri) then kst_tab_barcode.g3lav_ngiri = 0
 
 
 end subroutine
@@ -4355,37 +4346,36 @@ public function long get_barcode_da_id_meca (ref st_tab_barcode kst_tab_barcode[
 //------------------------------------------------------------------------------------------------------------------------------------
 //
 long k_return
-int k_rcn
+long k_rows
 long k_ind
 st_esito kst_esito
-datastore kds_barcode
+uo_ds_std_1 kds_barcode
+
 
 try
-	kds_barcode = create datastore
+	kds_barcode = create uo_ds_std_1
 
 	kds_barcode.dataobject = "d_barcode_l_barcode_x_id_meca"
-	k_rcn = kds_barcode.settransobject(sqlca)
-	if k_rcn >= 0 then
-		k_rcn = kds_barcode.retrieve(kst_tab_barcode[1].id_meca)
-	end if
-	if k_rcn < 0 then
-		kst_esito.esito = kkg_esito.bug
-		kst_esito.sqlcode = k_rcn
-		kst_esito.SQLErrText = "Estrazione 'Barcode' del 'Riferimento' id= " + string(kst_tab_barcode[1].id_meca) + " fallito!  ~n~r "  
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+	kds_barcode.settransobject(sqlca)
+	k_rows = kds_barcode.retrieve(kst_tab_barcode[1].id_meca)
+	if k_rows < 0 then
+		kguo_exception.inizializza(this.classname())
+		kguo_exception.set_st_esito_err_ds(kds_barcode, "Errore in lettura tab. barcode del numero giri lavorati del Lotto id " &
+																+ string(kst_tab_barcode[1].id_meca))
 		throw kguo_exception
 	end if
 			
-	if kds_barcode.rowcount( ) > 0 then
+	if k_rows > 0 then
 		
-		for k_ind = 1 to  kds_barcode.rowcount( )
+		for k_ind = 1 to k_rows
 			
 			kst_tab_barcode[k_ind].barcode = kds_barcode.getitemstring( k_ind, "barcode") 
 			kst_tab_barcode[k_ind].lav_fila_1 = kds_barcode.getitemnumber( k_ind, "lav_fila_1")
 			kst_tab_barcode[k_ind].lav_fila_1p = kds_barcode.getitemnumber( k_ind, "lav_fila_1p") 
 			kst_tab_barcode[k_ind].lav_fila_2 = kds_barcode.getitemnumber( k_ind, "lav_fila_2")  
 			kst_tab_barcode[k_ind].lav_fila_2p = kds_barcode.getitemnumber( k_ind, "lav_fila_2p")
+			kst_tab_barcode[k_ind].g3lav_ngiri = kds_barcode.getitemnumber( k_ind, "g3lav_ngiri")		
+			kst_tab_barcode[k_ind].g3lav_npass = kds_barcode.getitemnumber( k_ind, "g3lav_npass")		
 
 			k_return ++
 		end for

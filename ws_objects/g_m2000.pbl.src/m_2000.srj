@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.25.02.03
-PVN:13,25,2,3
-FVS:13.25.02.03
-FVN:13,25,2,3
+PVS:13.25.02.05
+PVN:13,25,2,5
+FVS:13.25.02.05
+FVN:13,25,2,5
 MAN:2,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1

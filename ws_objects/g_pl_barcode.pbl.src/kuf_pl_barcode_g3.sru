@@ -55,8 +55,8 @@ kuf_impianto kuf1_impianto
 		end if
 
 //--- set num giri del trattamento							
-		kuf1_barcode.get_fila_tot_x_id_meca(ast_tab_barcode)  // calcolo dei giri totali pianificati dei barcode per lotto
-		kst_tab_e1_wo_f5548014.ngiri_ossetl = ast_tab_barcode.g3ngiri
+		//kuf1_barcode.get_fila_tot_x_id_meca(ast_tab_barcode)  // calcolo dei giri totali pianificati dei barcode per lotto
+		kst_tab_e1_wo_f5548014.ngiri_ossetl = 0 // ast_tab_barcode.g3ngiri
 
 //--- set workcenters del trattamento						
 		kuf1_barcode.get_g3npass(kst_tab_barcode_padre)  // N.Pass pianificati presi dal barcode 
@@ -188,8 +188,11 @@ try
 							end if
 							if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
 								kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
+								
 								kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode)  // get del tipo ciclo pianificato
 								kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
+								kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_e1_wo_f5548014_appo.ngiri_ossetl
+								
 								kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 								kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 							end if
@@ -245,8 +248,11 @@ try
 								end if
 								if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode_figlio) = 1 then
 									kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
+									
 									kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode)  // get del tipo ciclo pianificato
 									kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
+									kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_e1_wo_f5548014_appo.ngiri_ossetl
+									
 									kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"    //"N" x temporaltable
 									kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 								end if
@@ -426,8 +432,6 @@ try
 				kst_tab_artr = kst_tab_artr_vuota
 				kst_tab_artr.id_armo = kst_tab_barcode.id_armo 
 				kst_tab_artr.pl_barcode = kst_tab_barcode.pl_barcode
-			
-		//--- se elaborazione NO di simulazione...
 				kst_tab_artr.st_tab_g_0.esegui_commit = "N" 
 				kuf1_artr.chiudi_lavorazione(kst_tab_artr)
 			
@@ -589,7 +593,6 @@ long k_rc
 st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
 
 
-
 	SetPointer(kkg.pointer_attesa)
 	kguo_exception.inizializza(this.classname())
 
@@ -612,8 +615,11 @@ st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014, kst_tab_e1_wo_f5548014_appo
 		end if
 		if kuf1_barcode.get_nr_barcode_no_lav_ini_x_id_meca(kst_tab_barcode) = 1 then
 			kst_tab_e1_wo_f5548014.flag_osev01 = kuf1_e1_wo_f5548014.kki_stato_ev01_lastload
+			
 			kst_tab_e1_wo_f5548014_appo = u_get_e1_ws_f5548014_pianif(kst_tab_barcode) //kst_tab_meca)  // get del tipo ciclo pianificato
 			kst_tab_e1_wo_f5548014.tcicli_osmmcu = kst_tab_e1_wo_f5548014_appo.tcicli_osmmcu
+			kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_e1_wo_f5548014_appo.ngiri_ossetl
+			
 			kst_tab_e1_wo_f5548014.st_tab_g_0.esegui_commit = "N"
 			kuf1_e1_wo_f5548014.set_datilav_f5548014(kst_tab_e1_wo_f5548014)  // registra i tempi come ultimo entrato x E1
 		end if
@@ -649,37 +655,36 @@ public function st_esito u_batch_run () throws uo_exception;//---
 //--- Lancio operazioni Batch
 //---
 int k_ctr, k_ctr1
-st_esito kst_esito
 
 
 try 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	k_ctr = this.importa_inizio_lav_pilota_g3() 
 	k_ctr1 = this.importa_trattati_pilota_g3() 
 
-	kst_esito.SQLErrText = "Impianto G3: "
+	kguo_exception.kist_esito.SQLErrText = "Impianto G3: "
 	
 	if k_ctr = 0 and k_ctr1 = 0 then
-		kst_esito.SQLErrText += "nessun barcode ha iniziato o terminato il trattamento."
-		return kst_esito
+		kguo_exception.kist_esito.SQLErrText += "nessun barcode ha iniziato o terminato il trattamento."
+		return kguo_exception.kist_esito
 	end if
 		
 	if k_ctr > 0 then
-		kst_esito.SQLErrText += string(k_ctr) + " barcode sono ancora in Trattamento" 
+		kguo_exception.kist_esito.SQLErrText += string(k_ctr) + " barcode sono ancora in Trattamento" 
 		if k_ctr1 > 0 then
-			kst_esito.SQLErrText +=  " e " 
+			kguo_exception.kist_esito.SQLErrText +=  " e " 
 		end if
 	end if
 
 	if k_ctr1 > 0 then
-		kst_esito.SQLErrText += string(k_ctr1) + " barcode hanno concluso il Trattamento."
+		kguo_exception.kist_esito.SQLErrText += string(k_ctr1) + " barcode hanno concluso il Trattamento."
 	else
-		kst_esito.SQLErrText +=  "."
+		kguo_exception.kist_esito.SQLErrText +=  "."
 	end if
 	
-	kst_esito.SQLErrText += " Operazione conclusa."
+	kguo_exception.kist_esito.SQLErrText += " Operazione conclusa."
 	
 	
 catch (uo_exception kuo_exception)
@@ -690,7 +695,7 @@ finally
 end try
 
 
-return kst_esito
+return kguo_exception.kist_esito
 end function
 
 private subroutine u_set_tab_barcode (long a_row, readonly uo_ds_std_1 ads_pilota_pallet_in_out_g3, ref st_tab_barcode ast_tab_barcode);//

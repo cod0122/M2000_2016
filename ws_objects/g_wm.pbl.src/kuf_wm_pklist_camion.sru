@@ -1038,16 +1038,16 @@ try
 	
 	if k_row < 0 then
 		kguo_exception.inizializza(this.classname())
-		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in lettura Paking-List Camion per la stampa Avvisi Camion in arrivo, data arrivo: " &
+		kguo_exception.set_st_esito_err_ds(kds_1, "Errore in lettura Paking-List Camion per la stampa Report Camion in arrivo, data arrivo: " &
 								+ string(a_dataarrivo) + ", codice cliente: " + string(a_id_cliente))
 		throw kguo_exception
 	end if
 	
 //--- STAMPA
-	kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore
+	kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore_diretta
 	kst_stampe.ds_print = kds_1
-	kst_stampe.titolo = "Stampa Avvisi Camion"
-
+	kst_stampe.titolo = "Stampa Report Camion"
+	kst_stampe.testata_no = true
 	k_errore = string(kGuf_data_base.stampa_dw(kst_stampe))
 		
 catch (uo_exception kuo_exception)

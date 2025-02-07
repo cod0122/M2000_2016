@@ -51,7 +51,6 @@ private function any stampa_attestato_get_nome_pdf (ref st_tab_certif ast_tab_ce
 public function boolean stampa_digitale_esporta_1 (string a_path_pdf) throws uo_exception
 public function any get_path_doc (ref st_tab_certif ast_tab_certif, boolean a_ristampa) throws uo_exception
 private function st_esito set_e1_wo_f5548014 (st_tab_certif kst_tab_certif) throws uo_exception
-private function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception
 private function boolean stampa_attestato_x_con_allegati () throws uo_exception
 private function boolean stampa_attestato_x_singolo () throws uo_exception
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
@@ -62,6 +61,7 @@ public function integer stampa_digitale_rimuove (string a_path_pdf) throws uo_ex
 public function integer stampa (ref st_tab_certif ast_tab_certif[]) throws uo_exception
 private function boolean stampa_update () throws uo_exception
 public function boolean u_get_flag_ristampa ()
+public function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception
 end prototypes
 
 public function st_esito leggi (integer k_tipo, ref st_tab_certif kst_tab_certif);//
@@ -1356,7 +1356,7 @@ long k_ctr, k_ctr_max
 long k_durata_lav_secondi
 date k_datainizioanno
 int k_giorniafter, k_anno, k_anno_rid
-st_esito kst_esito
+int k_npass
 st_tab_meca kst_tab_meca
 st_tab_e1_wo_f5548014 kst_tab_e1_wo_f5548014
 st_tab_barcode kst_tab_barcode, kst_tab_barcode_1[]
@@ -1368,7 +1368,7 @@ kuf_e1 kuf1_e1
 
 try  
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 //--- alimenta tabella dati trattamento da Inviare a E1
 	if kguo_g.if_e1_enabled( ) then
@@ -1394,29 +1394,52 @@ try
 			k_ctr_max = kuf1_barcode.get_barcode_da_id_meca(kst_tab_barcode_1[]) // 25-10-2017 get dei giri di un barcode del lotto
 			if k_ctr_max > 0 then 		// 25-10-2017 get dei giri di un barcode del lotto
 			
+				//--- recupera il primo barcode con giri Lavorati > 0
 				k_ctr = 1
-				do while k_ctr < k_ctr_max and kst_tab_barcode_1[k_ctr].lav_fila_1 = 0 and kst_tab_barcode_1[k_ctr].lav_fila_2 = 0
+				do while k_ctr < k_ctr_max and kst_tab_barcode_1[k_ctr].lav_fila_1 = 0 &
+													and kst_tab_barcode_1[k_ctr].lav_fila_2 = 0 &
+													and kst_tab_barcode_1[k_ctr].g3lav_ngiri = 0
 					k_ctr++
 				loop	
-				
-				if kst_tab_barcode_1[k_ctr].lav_fila_1 > 0 or kst_tab_barcode_1[k_ctr].lav_fila_2 > 0 then // se ho trovato che è stato lavorato...
+				// se ho trovato che è stato lavorato. Imposta il numero Giri del barcode
+				if kst_tab_barcode_1[k_ctr].lav_fila_1 > 0 &
+							or kst_tab_barcode_1[k_ctr].lav_fila_2 > 0 then 
 					kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_barcode_1[k_ctr].lav_fila_1 + kst_tab_barcode_1[k_ctr].lav_fila_1p + kst_tab_barcode_1[k_ctr].lav_fila_2 + kst_tab_barcode_1[k_ctr].lav_fila_2p
+				else
+					if kst_tab_barcode_1[k_ctr].g3lav_ngiri > 0 then
+						kst_tab_e1_wo_f5548014.ngiri_ossetl = kst_tab_barcode_1[k_ctr].g3lav_ngiri
+						k_npass = kst_tab_barcode_1[k_ctr].g3lav_npass
+					end if
 				end if
+				
 			end if
 //--- set fila del trattamento							
 			kuf1_barcode.get_lav_fila_tot_x_id_meca(kst_tab_barcode)  // 25-10-2017 calcolo dei giri totali dei barcode per lotto
 			kst_tab_e1_wo_f5548014.tcicli_osmmcu = " " 
-			if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 and (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
-				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
-			else
-				if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 then
+			
+			choose case true
+				case (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 and (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 
+					kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
+				case (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 
 					kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila1  // FILA 1
-				else
-					if (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
-						kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
+				case (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 
+					kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
+				case kst_tab_barcode.g3lav_ngiri > 0 
+					if k_npass = 4 then
+						kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_4pass  // 4Pass
+					elseif k_npass = 2 then
+						kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_2pass  // 2Pass
 					end if
-				end if
-			end if
+			end choose
+			
+//			if (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 and (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
+//				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
+//			elseif (kst_tab_barcode.lav_fila_1 + kst_tab_barcode.lav_fila_1p) > 0 then
+//				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila1  // FILA 1
+//			elseif (kst_tab_barcode.lav_fila_2 + kst_tab_barcode.lav_fila_2p) > 0 then
+//				kst_tab_e1_wo_f5548014.tcicli_osmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
+//			else
+//			end if
 						
 			kst_tab_e1_wo_f5548014.data_osa801 = string(kst_tab_certif.data, "dd/mm/yy")
 			k_anno = integer(string(kst_tab_certif.data, "yyyy"))
@@ -1432,8 +1455,9 @@ try
 
 		
 catch (uo_exception kuo_exception1)
-	kst_esito = kuo_exception1.get_st_esito( )
-	kst_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5548014)~n~r" + trim(kst_esito.sqlerrtext)
+	kguo_exception.kist_esito = kuo_exception1.get_st_esito( )
+	kguo_exception.kist_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5548014)~n~r" + trim(kguo_exception.kist_esito.sqlerrtext)
+	kguo_exception.scrivi_log( )
 	
 finally
 	if isvalid(kuf1_e1_wo_f5548014) then destroy kuf1_e1_wo_f5548014
@@ -1444,112 +1468,7 @@ finally
 end try
 			
 
-return kst_esito
-
-end function
-
-private function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception;//
-//---------------------------------------------------------------------------------
-//--- Popola dati tabella di appoggio e1_wo_f5537001 per E1
-//--- da lanciare dopo la "stampa_attestato"
-//---
-//--- Par. Input: st_tab_certif   
-//--- 
-//--- Ritorna tab. ST_ESITO, Esiti:    Vedi standard
-//--- 
-//---------------------------------------------------------------------------------
-//
-long k_ctr, k_ctr_max
-long k_durata_lav_secondi
-date k_datainizioanno
-int k_giorniafter, k_anno, k_anno_rid
-int k_rows, k_row, k_fila
-st_esito kst_esito
-st_tab_meca kst_tab_meca
-st_tab_e1_wo_f5537001 kst_tab_e1_wo_f5537001
-st_tab_barcode kst_tab_barcode, kst_tab_barcode_1[]
-kuf_barcode kuf1_barcode
-kuf_armo kuf1_armo
-kuf_e1_wo_f5537001 kuf1_e1_wo_f5537001
-kuf_e1 kuf1_e1
-datastore kds_barcode_lane_nparents
-
-
-try  
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//--- alimenta tabella dati trattamento da Inviare a E1
-	if kguo_g.if_e1_enabled( ) then
-		
-		kuf1_e1_wo_f5537001 = create kuf_e1_wo_f5537001
-		kuf1_barcode = create kuf_barcode
-		kuf1_armo = create kuf_armo
-		kuf1_e1 = create kuf_e1
-		
-		kds_barcode_lane_nparents = create datastore
-		kds_barcode_lane_nparents.dataobject = "ds_barcode_lane_nparents"
-		kds_barcode_lane_nparents.settransobject(kguo_sqlca_db_magazzino)
-		
-		kst_tab_meca.id = kst_tab_certif.id_meca
-		kst_tab_e1_wo_f5537001.MPDOCO = kuf1_armo.get_e1doco(kst_tab_meca)
-		if kst_tab_e1_wo_f5537001.MPDOCO > 0 then
-			
-			k_rows = kds_barcode_lane_nparents.retrieve(kst_tab_meca.id)
-			
-			for k_row = 1 to k_rows
-			
-				//work center
-				if k_rows > 1 then
-					kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI
-				else
-					if kds_barcode_lane_nparents.getitemstring(k_row, "lane") = "A" then
-						kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_fila1  // FILA 1
-					else
-						kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
-					end if
-				end if
-				//lane
-				if kds_barcode_lane_nparents.getitemstring(k_row, "lane") = "A" then
-					k_fila = 1
-					kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_fila1
-				else
-					k_fila = 2
-					kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_fila2
-				end if
-				//n pallets
-				kst_tab_e1_wo_f5537001.mpuorg = kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode")
-				//n passes (n.giri per pallet)
-				kst_tab_e1_wo_f5537001.mpmath06 = (kds_barcode_lane_nparents.getitemnumber(k_row, "fila_ncycle") / kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode"))
-				//n parents (totale n. pallet meno i figli)
-				kst_tab_e1_wo_f5537001.mpmath08 = (kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode") - kds_barcode_lane_nparents.getitemnumber(k_row, "n_barcode_lav"))
-//--- set durata del trattamento							
-				kst_tab_barcode.id_meca = kst_tab_meca.id
-				k_durata_lav_secondi = kuf1_barcode.get_durata_lav_xfila(kst_tab_barcode, k_fila) //durata lavorazione del singolo barcode x fila 1 o 2
-				kst_tab_e1_wo_f5537001.mpmath07 = k_durata_lav_secondi
-
-				kuf1_e1_wo_f5537001.set_datilav_f5537001(kst_tab_e1_wo_f5537001)  // registra i dati su tb di scambio con E-ONE
-			next			
-		end if
-	end if
-
-		
-catch (uo_exception kuo_exception1)
-	kst_esito = kuo_exception1.get_st_esito( )
-	kst_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5537001)~n~r" + trim(kst_esito.sqlerrtext)
-	
-finally
-	if isvalid(kuf1_e1_wo_f5537001) then destroy kuf1_e1_wo_f5537001
-	if isvalid(kuf1_armo) then destroy kuf1_armo
-	if isvalid(kuf1_barcode) then destroy kuf1_barcode
-	if isvalid(kuf1_e1) then destroy kuf1_e1
-	if isvalid(kds_barcode_lane_nparents) then destroy(kds_barcode_lane_nparents)
-	
-	
-end try
-			
-
-return kst_esito
+return kguo_exception.kist_esito
 
 end function
 
@@ -2166,6 +2085,121 @@ end function
 
 public function boolean u_get_flag_ristampa ();//
 return kids_certif_stampa.ki_flag_ristampa
+
+end function
+
+public function st_esito set_e1_wo_f5537001 (st_tab_certif kst_tab_certif) throws uo_exception;//
+//---------------------------------------------------------------------------------
+//--- Popola dati tabella di appoggio e1_wo_f5537001 per E1
+//--- da lanciare dopo la "stampa_attestato"
+//---
+//--- Par. Input: st_tab_certif   
+//--- 
+//--- Ritorna tab. ST_ESITO, Esiti:    Vedi standard
+//--- 
+//---------------------------------------------------------------------------------
+//
+long k_ctr, k_ctr_max
+long k_durata_lav_secondi
+date k_datainizioanno
+int k_giorniafter, k_anno, k_anno_rid
+int k_rows, k_row, k_fila
+st_tab_meca kst_tab_meca
+st_tab_e1_wo_f5537001 kst_tab_e1_wo_f5537001
+st_tab_barcode kst_tab_barcode, kst_tab_barcode_1[]
+kuf_barcode kuf1_barcode
+kuf_armo kuf1_armo
+kuf_e1_wo_f5537001 kuf1_e1_wo_f5537001
+kuf_e1 kuf1_e1
+datastore kds_barcode_lane_nparents
+
+
+try  
+
+	kguo_exception.inizializza(this.classname())
+
+//--- alimenta tabella dati trattamento da Inviare a E1
+	if kguo_g.if_e1_enabled( ) then
+		
+		kuf1_e1_wo_f5537001 = create kuf_e1_wo_f5537001
+		kuf1_barcode = create kuf_barcode
+		kuf1_armo = create kuf_armo
+		kuf1_e1 = create kuf_e1
+		
+		kds_barcode_lane_nparents = create datastore
+		kds_barcode_lane_nparents.dataobject = "ds_barcode_lane_nparents"
+		kds_barcode_lane_nparents.settransobject(kguo_sqlca_db_magazzino)
+		
+		kst_tab_meca.id = kst_tab_certif.id_meca
+		kst_tab_e1_wo_f5537001.MPDOCO = kuf1_armo.get_e1doco(kst_tab_meca)
+		if kst_tab_e1_wo_f5537001.MPDOCO > 0 then
+			
+			k_rows = kds_barcode_lane_nparents.retrieve(kst_tab_meca.id)
+			
+			for k_row = 1 to k_rows
+			
+				//work center + lane
+				choose case kds_barcode_lane_nparents.getitemstring(k_row, "lane")
+					case "A"
+						if k_rows > 1 then
+							kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI FILA 1 e 2
+						else
+							kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_fila1 // FILA 1
+						end if
+						k_fila = 1
+						kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_fila1
+					case "B"
+						if k_rows > 1 then
+							kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_MISTO  // CICLI MISTI FILA 1 e 2
+						else
+							kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_fila2  // FILA 2
+						end if
+						k_fila = 2
+						kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_fila2
+					case "D"
+						kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_4pass  // 4 PASS
+						kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_4pass
+						k_fila = 0
+					case "E"
+						kst_tab_e1_wo_f5537001.mpmmcu = kuf1_e1.kki_tcicli_mmcu_2pass  // 2 PASS
+						kst_tab_e1_wo_f5537001.mpaurst1 = kuf1_e1.kk1_lane_2pass
+						k_fila = 0
+				end choose
+
+				//n pallets
+				kst_tab_e1_wo_f5537001.mpuorg = kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode")
+				//n passes (n.giri per pallet)
+				kst_tab_e1_wo_f5537001.mpmath06 = (kds_barcode_lane_nparents.getitemnumber(k_row, "fila_ncycle") / kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode"))
+				//n parents (totale n. pallet meno i figli)
+				kst_tab_e1_wo_f5537001.mpmath08 = (kds_barcode_lane_nparents.getitemnumber(k_row, "nbarcode") - kds_barcode_lane_nparents.getitemnumber(k_row, "n_barcode_lav"))
+//--- set durata del trattamento							
+				kst_tab_barcode.id_meca = kst_tab_meca.id
+				k_durata_lav_secondi = kuf1_barcode.get_durata_lav_xfila(kst_tab_barcode, k_fila) //durata lavorazione del singolo barcode x fila 1 o 2 o 0=G3
+				kst_tab_e1_wo_f5537001.mpmath07 = k_durata_lav_secondi
+
+				kuf1_e1_wo_f5537001.set_datilav_f5537001(kst_tab_e1_wo_f5537001)  // registra i dati su tb di scambio con E-ONE
+			next			
+		end if
+	end if
+
+		
+catch (uo_exception kuo_exception1)
+	kguo_exception.kist_esito = kuo_exception1.get_st_esito( )
+	kguo_exception.kist_esito.sqlerrtext = "Problemi in aggiornamento dati Attestato per E1 (set_e1_wo_f5537001) " + kkg.acapo + trim(kguo_exception.kist_esito.sqlerrtext)
+	kguo_exception.scrivi_log( )
+	
+finally
+	if isvalid(kuf1_e1_wo_f5537001) then destroy kuf1_e1_wo_f5537001
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuf1_barcode) then destroy kuf1_barcode
+	if isvalid(kuf1_e1) then destroy kuf1_e1
+	if isvalid(kds_barcode_lane_nparents) then destroy(kds_barcode_lane_nparents)
+	
+	
+end try
+			
+
+return kguo_exception.kist_esito
 
 end function
 

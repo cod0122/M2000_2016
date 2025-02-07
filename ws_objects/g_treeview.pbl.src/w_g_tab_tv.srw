@@ -501,8 +501,6 @@ listviewitem klvi_listviewitem
 
 		ki_flag_list_appena_espanso = false
 
-		dw_anteprima.post event u_get_focus( )
-		
 		setpointer(kkg.pointer_default)
 	
 	end if
@@ -1137,8 +1135,10 @@ public subroutine u_anteprima ();//
 //					if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
 //					kiuf_file_dragdrop.u_attiva(handle(lv_1))
 
+					dw_anteprima.event u_get_focus( )
+
 				end if
-			end if
+			end if			
 		end if
 	end if
 

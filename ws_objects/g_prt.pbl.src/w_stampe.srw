@@ -510,18 +510,21 @@ private subroutine aggiungi_testata ();//
 pointer koldpointer
 
 
-//=== Puntatore Cursore da attesa.....
-	koldpointer = SetPointer(HourGlass!)
-		
+	if kist_stampe.testata_no then return    // se non voglio la testata fuggi!
+
 //--- aggiunge testata standard solo al tabulato di tipo GRID
 	if dw_print.Object.DataWindow.Processing = "1" or dw_print.Object.DataWindow.Processing = "8" or dw_print.Object.DataWindow.Processing = "9" then
-		kiuf_stampe.kist_stampe_add_testata = kist_stampe	
-		kiuf_stampe.kist_stampe_add_testata.dw_print = dw_print	
-		kiuf_stampe.dw_print_testata_add()
-		dw_print = kiuf_stampe.kist_stampe_add_testata.dw_print  	
+	else
+		return   // altrimenti NO TESTATA
 	end if
 
-//	destroy kuf1_stampe
+//=== Puntatore Cursore da attesa.....
+	koldpointer = SetPointer(HourGlass!)
+
+	kiuf_stampe.kist_stampe_add_testata = kist_stampe	
+	kiuf_stampe.kist_stampe_add_testata.dw_print = dw_print	
+	kiuf_stampe.dw_print_testata_add()
+	dw_print = kiuf_stampe.kist_stampe_add_testata.dw_print  	
 	
 	SetPointer(koldpointer)	
 
@@ -764,6 +767,7 @@ st_tab_base kst_tab_base
 	kist_stampe.stampante_predefinita = kst_stampe.stampante_predefinita
 	kist_stampe.modificafont = kst_stampe.modificafont
 	kist_stampe.testata_xls = kst_stampe.testata_xls
+	kist_stampe.testata_no = kst_stampe.testata_no
 	kist_stampe.blob_print = kst_stampe.blob_print
 //--- estrae un nome per il file
 	if kist_stampe.nome_file > " " then
