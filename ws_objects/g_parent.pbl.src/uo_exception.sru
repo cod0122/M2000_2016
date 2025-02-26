@@ -972,7 +972,7 @@ choose case kist_esito.esito
 	case kkg_esito.db_wrn	
 		k_titolo = "Warning: "
 	case else
-		k_titolo = "Error: "
+		//k_titolo = "Error: "
 end choose
 kist_esito.sqlerrtext = k_titolo + trim(kist_esito.sqlerrtext) 
 if trim(kist_esito.nome_oggetto) > " " or kist_esito.SQLdbcode <> 0 or kist_esito.sqlcode <> 0 or trim(kist_esito.SQLsyntax) > " " or trim(kGuo_utente.get_codice()) > " " then

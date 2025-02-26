@@ -2729,6 +2729,7 @@ string k_sql
 		+ " ,trim(JSON_VALUE(dati ,'$.vett_2'))            vett_2 " & 
 		+ " ,trim(JSON_VALUE(dati ,'$.resa'))          resa " & 
 		+ " ,trim(JSON_VALUE(dati ,'$.annotazioni'))   annotazioni " & 
+		+ " ,trim(JSON_VALUE(dati ,'$.conducente'))   conducente " & 
 		+ " , x_datins " &
 		+ " , coalesce(x_utente, '') x_utente" &
 		+ " FROM sped_free " 
@@ -6339,38 +6340,47 @@ string k_sql
 
 	k_sql = "create view v_memo  " &
 		+ " as SELECT " &
-      + " clienti_memo.id_cliente_memo " &
-      + " ,clienti_memo.id_memo " &
-      + " ,clienti_memo.id_cliente " &
-      + " ,0 id_meca " &
-      + " ,trim(coalesce(clienti_memo.tipo_sv, '')) tipo_sv " &
-      + " ,trim(coalesce(clienti_memo.allarme, '')) allarme " &
-      + " ,trim(coalesce(memo.titolo, '')) titolo " &
-      + " ,trim(coalesce(memo.note, '')) note " &
-		+ " from clienti_memo inner join memo on clienti_memo.id_memo = memo.id_memo " &
+			+ " clienti_memo.id_cliente_memo " &
+			+ " ,clienti_memo.id_memo " &
+			+ " ,clienti_memo.id_cliente " &
+			+ " ,0 id_meca " &
+			+ " ,trim(coalesce(clienti_memo.tipo_sv, '')) tipo_sv " &
+			+ " ,trim(coalesce(clienti_memo.allarme, '')) allarme " &
+			+ " ,coalesce(clienti_memo.xclie_1, 0) xclie_1 " &
+			+ " ,coalesce(clienti_memo.xclie_2, 0) xclie_2 " &
+			+ " ,coalesce(clienti_memo.xclie_3, 0) xclie_3 " &
+			+ " ,trim(coalesce(memo.titolo, '')) titolo " &
+			+ " ,trim(coalesce(memo.note, '')) note " &
+			+ " from clienti_memo inner join memo on clienti_memo.id_memo = memo.id_memo " &
 		+ " union all " &
-		+ " select " &
-      + " meca_memo.id_meca_memo " &
-      + " ,meca_memo.id_memo " &
-      + " ,coalesce(meca.clie_3,0) id_cliente " &
-      + " ,meca_memo.id_meca " &
-      + " ,trim(coalesce(meca_memo.tipo_sv, '')) tipo_sv " &
-      + " ,trim(coalesce(meca_memo.allarme, '')) allarme " &
-      + " ,trim(coalesce(memo.titolo, '')) titolo " &
-      + " ,trim(coalesce(memo.note, '')) note " &
-		+ " from meca_memo inner join memo on meca_memo.id_memo = memo.id_memo " &
-		+ " left outer join meca on meca_memo.id_meca = meca.id " &
+			+ " select " &
+			+ " meca_memo.id_meca_memo " &
+			+ " ,meca_memo.id_memo " &
+			+ " ,coalesce(meca.clie_3,0) id_cliente " &
+			+ " ,meca_memo.id_meca " &
+			+ " ,trim(coalesce(meca_memo.tipo_sv, '')) tipo_sv " &
+			+ " ,trim(coalesce(meca_memo.allarme, '')) allarme " &
+			+ " ,1 xclie_1 " &
+			+ " ,1 xclie_2 " &
+			+ " ,1 xclie_3 " &
+			+ " ,trim(coalesce(memo.titolo, '')) titolo " &
+			+ " ,trim(coalesce(memo.note, '')) note " &
+			+ " from meca_memo inner join memo on meca_memo.id_memo = memo.id_memo " &
+			+ " left outer join meca on meca_memo.id_meca = meca.id " &
 		+ " union all " &
-		+ "  select " &
-      + " id_sl_pt_memo " &
-		+ " ,sl_pt_memo.id_memo " &
-		+ " ,0 id_cliente " &
-		+ " ,cod_sl_pt  " &
-      + " ,trim(coalesce(sl_pt_memo.tipo_sv, '')) tipo_sv " &
-      + " ,'' allarme " &
-      + " ,trim(coalesce(memo.titolo, '')) titolo " &
-      + " ,trim(coalesce(memo.note, '')) note " &
-		+ " from sl_pt_memo inner join memo on sl_pt_memo.id_memo = memo.id_memo " 
+			+ "  select " &
+			+ " id_sl_pt_memo " &
+			+ " ,sl_pt_memo.id_memo " &
+			+ " ,0 id_cliente " &
+			+ " ,cod_sl_pt  " &
+			+ " ,trim(coalesce(sl_pt_memo.tipo_sv, '')) tipo_sv " &
+			+ " ,'' allarme " &
+			+ " ,0 xclie_1 " &
+			+ " ,0 xclie_2 " &
+			+ " ,0 xclie_3 " &
+			+ " ,trim(coalesce(memo.titolo, '')) titolo " &
+			+ " ,trim(coalesce(memo.note, '')) note " &
+			+ " from sl_pt_memo inner join memo on sl_pt_memo.id_memo = memo.id_memo " 
 		
 //		+ " , x_datins " &
 //		+ " , coalesce(x_utente, '') x_utente" &
@@ -6476,7 +6486,7 @@ string k_sql
       + " ,id_cliente " &
       + " ,x_datins x_datins " &
 		+ " ,'C' tipo " &
-      + " from v_rubrica_clienti and stato = 0" &
+      + " from v_rubrica_clienti " &
    + " union " &
 		+ "  select trim(sr_utenti.email) " &
 		+ " ,coalesce(trim(sr_utenti.nome),'') " &
@@ -6492,7 +6502,7 @@ string k_sql
 		+ " ,getdate() x_datins " &
 		+ " ,'A' tipo " &
 		+ " from base " 
-   // + " order by 2, 1 " 
+   // + " order by 2, 1 "    and stato = 0
 
 	k_return = u_tb_crea_view("v_rubrica_all", k_sql)
 

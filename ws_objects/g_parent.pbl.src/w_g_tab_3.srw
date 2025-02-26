@@ -1569,27 +1569,29 @@ long k_riga=1
 string k_lista="1"
 
 			
-super::attiva_tasti_0()		 
-
-//this.setredraw( false )
-if ki_attiva_tasti_vmi then
-	cb_inserisci.enabled = true
-	cb_aggiorna.enabled = true
-	cb_modifica.enabled = true
-	cb_cancella.enabled = true
-	cb_visualizza.enabled = true
-else	
-	cb_inserisci.enabled = false
-	cb_aggiorna.enabled = false
-	cb_modifica.enabled = false
-	cb_cancella.enabled = false
-	cb_visualizza.enabled = false
-end if
-st_duplica.enabled = false
-
-//cb_modifica.default = false
-
-if not ki_nessun_tasto_funzionale then
+	super::attiva_tasti_0()		 
+	
+	//this.setredraw( false )
+	if ki_attiva_tasti_vmi then
+		cb_inserisci.enabled = true
+		cb_aggiorna.enabled = true
+		cb_modifica.enabled = true
+		cb_cancella.enabled = true
+		cb_visualizza.enabled = true
+	else	
+		cb_inserisci.enabled = false
+		cb_aggiorna.enabled = false
+		cb_modifica.enabled = false
+		cb_cancella.enabled = false
+		cb_visualizza.enabled = false
+	end if
+	st_duplica.enabled = false
+	
+	//cb_modifica.default = false
+	
+	if ki_nessun_tasto_funzionale then
+		return
+	end if	
 
 	//=== Nr righe ne DW lista
 	choose case ki_tab_1_index_new    //tab_1.selectedtab
@@ -1639,9 +1641,26 @@ if not ki_nessun_tasto_funzionale then
 	      k_lista = tab_1.tabpage_9.dw_9.Object.DataWindow.Processing
 			tab_1.tabpage_9.dw_9.setredraw(true)
 	end choose
+	
+//--- tasto Ordina e Filtro da abilitare?	
+	if isvalid(kidw_selezionata) then
+		choose case kidw_selezionata.ki_flag_modalita 
+			case kkg_flag_modalita.modifica &
+					,kkg_flag_modalita.inserimento &
+					,kkg_flag_modalita.cancellazione
+				st_ordina_lista.enabled = false
+			case else
+	//--- queste dovrebbero essere di tipo GRID...
+				if k_lista = "1"  then
+					st_ordina_lista.enabled = true
+				else
+					st_ordina_lista.enabled = false
+				end if
+		end choose
+	else
+		st_ordina_lista.enabled = false
+	end if
 
-	
-	
 	choose case ki_st_open_w.flag_modalita 
 	
 		case kkg_flag_modalita.modifica 
@@ -1651,7 +1670,6 @@ if not ki_nessun_tasto_funzionale then
 				cb_inserisci.enabled = true
 			end if
 			st_aggiorna_lista.enabled = true
-			st_ordina_lista.enabled = false
 			if ki_consenti_duplica  then
 				st_duplica.enabled = true
 			end if
@@ -1660,7 +1678,7 @@ if not ki_nessun_tasto_funzionale then
 			cb_inserisci.enabled = true
 			cb_aggiorna.enabled = true
 			st_aggiorna_lista.enabled = false
-			st_ordina_lista.enabled = false
+			//st_ordina_lista.enabled = false
 			if k_riga > 0 then
 				cb_cancella.enabled = true
 				st_aggiorna_lista.enabled = true
@@ -1678,11 +1696,11 @@ if not ki_nessun_tasto_funzionale then
 			end if
 			cb_inserisci.enabled = true
 			st_aggiorna_lista.enabled = true
-			if k_lista = "1"  then
-				st_ordina_lista.enabled = true
-			else
-				st_ordina_lista.enabled = false
-			end if
+//			if k_lista = "1"  then
+//				st_ordina_lista.enabled = true
+//			else
+//				st_ordina_lista.enabled = false
+//			end if
 			
 				
 		case kkg_flag_modalita.visualizzazione &
@@ -1690,11 +1708,11 @@ if not ki_nessun_tasto_funzionale then
 			  ,kkg_flag_modalita.interrogazione 
 			st_aggiorna_lista.enabled = true
 //--- queste dovrebbero essere di tipo GRID...
-			if k_lista = "1"  then
-				st_ordina_lista.enabled = true
-			else
-				st_ordina_lista.enabled = false
-			end if
+//			if k_lista = "1"  then
+//				st_ordina_lista.enabled = true
+//			else
+//				st_ordina_lista.enabled = false
+//			end if
 			if ki_consenti_duplica  then
 				st_duplica.enabled = true
 			end if
@@ -1704,14 +1722,13 @@ if not ki_nessun_tasto_funzionale then
 			cb_inserisci.enabled = true
 			st_aggiorna_lista.enabled = true
 //--- queste dovrebbero essere di tipo GRID...
-			if k_lista = "1"  then
-				st_ordina_lista.enabled = true
-			else
-				st_ordina_lista.enabled = false
-			end if
+//			if k_lista = "1"  then
+//				st_ordina_lista.enabled = true
+//			else
+//				st_ordina_lista.enabled = false
+//			end if
 	
 	end choose
-end if	
        
 
 

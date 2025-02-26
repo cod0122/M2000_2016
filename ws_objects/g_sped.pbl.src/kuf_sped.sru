@@ -137,23 +137,24 @@ public subroutine if_isnull_testa (ref st_tab_sped kst_tab_sped);//---
 
 if isnull(kst_tab_sped.numpref_bolla_out) then kst_tab_sped.numpref_bolla_out = ""
 if isnull(kst_tab_sped.id_deposito) then kst_tab_sped.id_deposito = 0
-if isnull(kst_tab_sped.cura_trasp) then kst_tab_sped.cura_trasp = " "
-if isnull(kst_tab_sped.causale) then kst_tab_sped.causale = " "
-if isnull(kst_tab_sped.aspetto) then kst_tab_sped.aspetto = " "
-if isnull(kst_tab_sped.mezzo) then kst_tab_sped.mezzo = " "
-if isnull(kst_tab_sped.porto) then kst_tab_sped.porto = " "
-if isnull(kst_tab_sped.note_1) then	kst_tab_sped.note_1 = " "
-if isnull(kst_tab_sped.note_2) then	kst_tab_sped.note_2 = " "
-if isnull(kst_tab_sped.vett_1) then	kst_tab_sped.vett_1 = " "
-if isnull(kst_tab_sped.vett_2) then	kst_tab_sped.vett_2 = " "
+if isnull(kst_tab_sped.cura_trasp) then kst_tab_sped.cura_trasp = ""
+if isnull(kst_tab_sped.causale) then kst_tab_sped.causale = ""
+if isnull(kst_tab_sped.aspetto) then kst_tab_sped.aspetto = ""
+if isnull(kst_tab_sped.mezzo) then kst_tab_sped.mezzo = ""
+if isnull(kst_tab_sped.porto) then kst_tab_sped.porto = ""
+if isnull(kst_tab_sped.note_1) then	kst_tab_sped.note_1 = ""
+if isnull(kst_tab_sped.note_2) then	kst_tab_sped.note_2 = ""
+if isnull(kst_tab_sped.vett_1) then	kst_tab_sped.vett_1 = ""
+if isnull(kst_tab_sped.vett_2) then	kst_tab_sped.vett_2 = ""
 if isnull(kst_tab_sped.stampa) then kst_tab_sped.stampa = ""
 if isnull(kst_tab_sped.colli) then kst_tab_sped.colli = 0
 if isnull(kst_tab_sped.clie_2) then	kst_tab_sped.clie_2 = 0
 if isnull(kst_tab_sped.clie_3) then	kst_tab_sped.clie_3 = 0
 if isnull(kst_tab_sped.data_rit) then kst_tab_sped.data_rit = date(0)
-if isnull(kst_tab_sped.ora_rit) then kst_tab_sped.ora_rit = " "
+if isnull(kst_tab_sped.ora_rit) then kst_tab_sped.ora_rit = ""
 if isnull(kst_tab_sped.data_uscita) then kst_tab_sped.data_uscita = date(0)
 if isnull(kst_tab_sped.sv_call_vettore) then	kst_tab_sped.sv_call_vettore = 0
+if isnull(kst_tab_sped.conducente) then kst_tab_sped.conducente = ""
 
 
 if isnull(kst_tab_sped.rag_soc_1) then kst_tab_sped.rag_soc_1 = ""
@@ -4716,6 +4717,7 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
            ora_rit,   
            vett_1,   
            vett_2,   
+			  conducente,
            stampa,   
            colli,   
            data_uscita,   
@@ -4752,7 +4754,8 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
            :kst_tab_sped.ora_rit,   
            :kst_tab_sped.vett_1,   
            :kst_tab_sped.vett_2,   
-           :kst_tab_sped.stampa,   
+			  :kst_tab_sped.conducente,
+			  :kst_tab_sped.stampa,   
            :kst_tab_sped.colli,   
            :kst_tab_sped.data_uscita,   
            :kst_tab_sped.rag_soc_1,   
@@ -5355,17 +5358,26 @@ public subroutine tb_update_testa (ref st_tab_sped kst_tab_sped) throws uo_excep
 //
 long k_return = 0
 long k_codice
-st_esito kst_esito
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
-if if_sicurezza(kkg_flag_modalita.inserimento) then
+	if_sicurezza(kkg_flag_modalita.inserimento)
+
+	if_isnull_testa(kst_tab_sped)
+
+	if kst_tab_sped.id_sped > 0 then
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_non_eseguito
+		kguo_exception.kist_esito.sqlerrtext = "Errore in aggiornamento della testata del DDT n. " + string(kst_tab_sped.num_bolla_out) &
+		           + " del "  + string(kst_tab_sped.data_bolla_out) + ". Manca id, operazione interrotta. "
+		throw kguo_exception
+	end if
 
 //#--- 19.11.2012 --- legge dato da tab CAUS -----------------------------------
    kst_tab_sped.ddt_st_num_data_in = "S"
    if kst_tab_sped.caus_codice > " " then
-      select ddt_st_num_data_in
+      select isnull(ddt_st_num_data_in, '')
            into :kst_tab_sped.ddt_st_num_data_in
                from   CAUS
                where  CAUS.CODICE = :kst_tab_sped.caus_codice
@@ -5373,8 +5385,6 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
    end if
 //#----------------------------------------------------------------------------------------------------
  
-	if_isnull_testa(kst_tab_sped)
-
 	kst_tab_sped.x_datins = kGuf_data_base.prendi_x_datins()
 	kst_tab_sped.x_utente = kGuf_data_base.prendi_x_utente()
 	
@@ -5384,13 +5394,14 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
 	kst_tab_sped.rag_soc_2 = trim(kst_tab_sped.rag_soc_2)
 	kst_tab_sped.indi = trim(kst_tab_sped.indi)
 	kst_tab_sped.loc = trim(kst_tab_sped.loc)
+   kst_tab_sped.conducente = trim(kst_tab_sped.conducente)
 	
 	update sped  set
             clie_2    =   :kst_tab_sped.clie_2,   
             clie_3    =   :kst_tab_sped.clie_3,   
             cura_trasp =   :kst_tab_sped.cura_trasp,   
             causale   =   :kst_tab_sped.causale,   
- 	        caus_codice =   :kst_tab_sped.caus_codice,		
+ 	         caus_codice =   :kst_tab_sped.caus_codice,		
             ddt_st_num_data_in = :kst_tab_sped.ddt_st_num_data_in, 
             aspetto    =   :kst_tab_sped.aspetto,   
             porto    =   :kst_tab_sped.porto,   
@@ -5401,6 +5412,7 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
             ora_rit   =   :kst_tab_sped.ora_rit,   
             vett_1   =   :kst_tab_sped.vett_1,   
             vett_2   =   :kst_tab_sped.vett_2,   
+		   	conducente = :kst_tab_sped.conducente,
             stampa  =   :kst_tab_sped.stampa,   
             colli  =   :kst_tab_sped.colli,   
             data_uscita =   :kst_tab_sped.data_uscita,   
@@ -5412,30 +5424,27 @@ if if_sicurezza(kkg_flag_modalita.inserimento) then
             prov   =   :kst_tab_sped.prov,   
             id_nazione  =   :kst_tab_sped.id_nazione,   
             id_docprod =   :kst_tab_sped.id_docprod,   
-			sv_call_vettore = :kst_tab_sped.sv_call_vettore,
+				sv_call_vettore = :kst_tab_sped.sv_call_vettore,
             x_datins  =   :kst_tab_sped.x_datins,   
             x_utente  =   :kst_tab_sped.x_utente   
 		 where id_sped = :kst_tab_sped.id_sped
 			using kguo_sqlca_db_magazzino;
 
-//            form_di_stampa =   :kst_tab_sped.form_di_stampa,    
-//            num_bolla_out =   :kst_tab_sped.num_bolla_out,   
-//            data_bolla_out =   :kst_tab_sped.data_bolla_out,    
-
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in aggiornamento Tab. DDT. (nr.=" + string(kst_tab_sped.num_bolla_out) &
-		           + " del "  + string(kst_tab_sped.data_bolla_out) + " id "  + string(kst_tab_sped.id_sped) +") : " &
-									 + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-	else
-//---- COMMIT....	
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in aggiornamento della testata del DDT n. " + string(kst_tab_sped.num_bolla_out)&
+		           + " del "  + string(kst_tab_sped.data_bolla_out) + " id "  + string(kst_tab_sped.id_sped) +") ")
+					  
 		if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
-			kguo_sqlca_db_magazzino.db_commit( )
+			kguo_sqlca_db_magazzino.db_rollback( )
 		end if
+		
+		throw kguo_exception
 	end if
-
-end if
+		
+	if kst_tab_sped.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_sped.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
 
 
 
@@ -5565,12 +5574,16 @@ kst_esito.SQLErrText = ""
 if_sicurezza(kkg_flag_modalita.visualizzazione)
 
 kdsi_elenco_output = create uo_ds_std_1
-k_riga = ads_link.getrow()
+if ads_link.getrow() > 0 then
+	k_riga = ads_link.getrow()
+else
+	k_riga = 1
+end if
 
 choose case a_campo_link
 
 	case "arsp_lotto" 
-		kst_tab_armo.id_meca = ads_link.getitemnumber(ads_link.getrow(), "id_meca")
+		kst_tab_armo.id_meca = ads_link.getitemnumber(k_riga, "id_meca")
 		if kst_tab_armo.id_meca > 0 then
 			kst_open_w.key1 = "Elenco righe DDT di Spedizione  (id lotto=" + trim(string(kst_tab_armo.id_meca)) + ") " 
 			//k_id_programma = this.get_id_programma(kkg_flag_modalita.visualizzazione)
@@ -5581,17 +5594,17 @@ choose case a_campo_link
 
 	case "arsp_sped", "sped", "num_bolla_out", "num_bolla_out_1", "arsp_insped"
 		if a_campo_link = "num_bolla_out_1" then
-			kst_tab_sped.num_bolla_out = ads_link.getitemnumber(ads_link.getrow(), "num_bolla_out_1")
+			kst_tab_sped.num_bolla_out = ads_link.getitemnumber(k_riga, "num_bolla_out_1")
 		else
-			kst_tab_sped.num_bolla_out = ads_link.getitemnumber(ads_link.getrow(), "num_bolla_out")
+			kst_tab_sped.num_bolla_out = ads_link.getitemnumber(k_riga, "num_bolla_out")
 		end if
 		k_num_x = ads_link.describe("id_sped.x")
 		if isnumber(k_num_x) then
-			kst_tab_sped.id_sped = ads_link.getitemnumber(ads_link.getrow(), "id_sped")
+			kst_tab_sped.id_sped = ads_link.getitemnumber(k_riga, "id_sped")
 		end if
 			
 		if kst_tab_sped.id_sped > 0 then
-			kst_tab_sped.data_bolla_out = ads_link.getitemdate(ads_link.getrow(), "data_bolla_out")
+			kst_tab_sped.data_bolla_out = ads_link.getitemdate(k_riga, "data_bolla_out")
 			kst_open_w.key1 = "DDT di spedizione id " + string(kst_tab_sped.id_sped) + " n. " + trim(string(kst_tab_sped.num_bolla_out)) + " del " + trim(string(kst_tab_sped.data_bolla_out)) 
 			//k_id_programma = this.get_id_programma(kkg_flag_modalita.visualizzazione)
 		else
@@ -5599,10 +5612,10 @@ choose case a_campo_link
 		end if
 
 	case "id_sped"
-		kst_tab_sped.id_sped = ads_link.getitemnumber(ads_link.getrow(), a_campo_link)
+		kst_tab_sped.id_sped = ads_link.getitemnumber(k_riga, a_campo_link)
 		get_numero_da_id(kst_tab_sped)
 		if kst_tab_sped.num_bolla_out > 0 then
-//			kst_tab_sped.data_bolla_out = ads_link.getitemdate(ads_link.getrow(), "data_bolla_out")
+//			kst_tab_sped.data_bolla_out = ads_link.getitemdate(k_riga, "data_bolla_out")
 			kst_open_w.key1 = "DDT di spedizione n. " + trim(string(kst_tab_sped.num_bolla_out)) + " del " + trim(string(kst_tab_sped.data_bolla_out)) 
 			//k_id_programma = this.get_id_programma(kkg_flag_modalita.visualizzazione )
 		else
@@ -7294,7 +7307,8 @@ long k_codice
 				trim(sped.vett_2),   
 				sped.stampa,   
 				sped.colli,   
-				sped.data_uscita  
+				sped.data_uscita,  
+				sped.conducente  
 		 INTO :kst_tab_sped.num_bolla_out,
 		 		:kst_tab_sped.data_bolla_out,
 			   :kst_tab_sped.clie_2,   
@@ -7312,7 +7326,8 @@ long k_codice
 				:kst_tab_sped.vett_2,   
 				:kst_tab_sped.stampa,   
 				:kst_tab_sped.colli,   
-				:kst_tab_sped.data_uscita  
+				:kst_tab_sped.data_uscita,
+				:kst_tab_sped.conducente
 		 FROM sped  
 		WHERE id_sped = :kst_tab_sped.id_sped
 		using kguo_sqlca_db_magazzino;

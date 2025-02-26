@@ -9,6 +9,8 @@ end type
 end forward
 
 global type w_memo from w_g_tab_3
+integer width = 1152
+integer height = 320
 string title = "Piano di Trattamento SL-PT"
 boolean ki_sincronizza_window_ok = true
 boolean ki_fai_nuovo_dopo_update = false
@@ -141,6 +143,9 @@ try
 			tab_1.tabpage_2.dw_2.setitem(1, "note", kist_memo.st_tab_memo.note )
 			tab_1.tabpage_2.dw_2.setitem(1, "tipo_memo", kist_memo.st_tab_memo.tipo_memo )
 			tab_1.tabpage_2.dw_2.setitem(1, "tipo_sv", kist_memo.st_tab_memo.tipo_sv )
+			tab_1.tabpage_2.dw_2.setitem(1, "xclie_1", kist_memo.st_tab_clienti_memo.xclie_1 )
+			tab_1.tabpage_2.dw_2.setitem(1, "xclie_2", kist_memo.st_tab_clienti_memo.xclie_2 )
+			tab_1.tabpage_2.dw_2.setitem(1, "xclie_3", kist_memo.st_tab_clienti_memo.xclie_3 )
 			if not isvalid(kuf1_ausiliari) then kuf1_ausiliari = create kuf_ausiliari
 			kst_tab_sr_settori.sr_settore = kist_memo.st_tab_memo.tipo_sv
 			kst_tab_sr_settori.descr = kuf1_ausiliari.tb_get_descr(kst_tab_sr_settori)
@@ -285,6 +290,9 @@ if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.fl
 		kst_tab_clienti_memo.id_memo = tab_1.tabpage_2.dw_2.getitemnumber(1, "id_memo")
 		kst_tab_clienti_memo.allarme = tab_1.tabpage_2.dw_2.getitemstring(1, "clienti_memo_allarme")
 		kst_tab_clienti_memo.tipo_sv = tab_1.tabpage_2.dw_2.getitemstring(1, "tipo_sv")
+		kst_tab_clienti_memo.xclie_1 = tab_1.tabpage_2.dw_2.getitemnumber(1, "xclie_1")
+		kst_tab_clienti_memo.xclie_2 = tab_1.tabpage_2.dw_2.getitemnumber(1, "xclie_2")
+		kst_tab_clienti_memo.xclie_3 = tab_1.tabpage_2.dw_2.getitemnumber(1, "xclie_3")
 
 //---- dati memo fascicolo Lotto
 		kst_tab_meca_memo.id_meca = tab_1.tabpage_2.dw_2.getitemnumber(1, "id_meca")
@@ -1646,7 +1654,7 @@ super::event u_constructor( )
 end event
 
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
-string text = "Testo"
+string text = "Testo "
 long tabbackcolor = 32435950
 long picturemaskcolor = 32435950
 rte_1 rte_1

@@ -35,6 +35,7 @@ global type st_tab_sped_free from structure
 	string		vett_2
 	string		resa
 	string		annotazioni
+	string		conducente
 	datetime		x_datins
 	string		x_utente
 end type

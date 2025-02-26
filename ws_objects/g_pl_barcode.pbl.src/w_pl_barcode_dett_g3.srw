@@ -29,6 +29,7 @@ long backcolor = 16777215
 windowanimationstyle openanimation = rightroll!
 boolean ki_toolbar_window_presente = true
 boolean ki_reset_dopo_save_ok = false
+boolean ki_msg_dopo_save_ok = true
 dw_meca dw_meca
 dw_barcode dw_barcode
 dw_groupage dw_groupage
@@ -233,8 +234,6 @@ try
 
 	kuf1_base = create kuf_base
 	kuf1_impianto = create kuf_impianto
-
-	kids_storico_mastertimer_tempo_last = create ds_storico_mastertimer_tempo_last
 	
 	ki_toolbar_window_presente=true
 	
@@ -5782,7 +5781,7 @@ event dw_dett_0::losefocus;//
 
 end event
 
-event dw_dett_0::clicked;call super::clicked;//
+event dw_dett_0::clicked;//
 
 end event
 
@@ -5926,6 +5925,8 @@ type dw_guida from w_g_tab0`dw_guida within w_pl_barcode_dett_g3
 event u_enabled_if ( )
 event u_resize ( )
 event u_inizializza ( )
+event u_set_npass_ciclo_from_pilota ( )
+event u_set_storico_mastertimer_from_pilota ( )
 integer x = 0
 integer y = 0
 integer width = 3945
@@ -5994,31 +5995,23 @@ try
 		else
 			this.insertrow(0)
 		end if
+		this.setitem(1, "storico_mastertimer_tempo", 0)
 	
 		if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento or ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-			
-			if not isvalid(kids_pilota_queue_g3_last_in) then kids_pilota_queue_g3_last_in = create ds_pilota_queue_g3_last_in
-		
-//--- estrazione dal PILOTA ultimi dati inviate del N-PASS e CICLO per riproporli  
-			if kids_pilota_queue_g3_last_in.retrieve( ) > 0 then
-				
-				this.setitem(1, "g3npass", kids_pilota_queue_g3_last_in.u_get_npass(1))
-				this.setitem(1, "g3ciclo", kids_pilota_queue_g3_last_in.u_get_ciclo(1))
-				
-			end if
+
+	//--- estrazione dal PILOTA ultimi dati inviate del N-PASS e CICLO per riproporli  
+			this.event u_set_npass_ciclo_from_pilota()
+
 		end if		
 	end if
 
-		
-//--- estrazione dal PILOTA dei dati in tempo reale del CICLO
-	if kids_storico_mastertimer_tempo_last.retrieve( ) > 0 then
-		this.setitem(1, "storico_mastertimer_tempo", kids_storico_mastertimer_tempo_last.getitemnumber(1, "tempo"))	
-		this.setitem(1, "storico_mastertimer_data_evento", kids_storico_mastertimer_tempo_last.getitemdatetime(1, "data_evento"))	
+	if this.getitemnumber(1, "storico_mastertimer_tempo") > 0 then
 	else
-		this.setitem(1, "storico_mastertimer_tempo", 0)	
-		this.setitem(1, "storico_mastertimer_data_evento", kguo_g.get_datetime_zero( ) )	
-	end if
 
+//--- estrazione dal PILOTA dei dati in tempo reale del CICLO
+		this.event u_set_storico_mastertimer_from_pilota()
+		
+	end if
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente("Dati dal Pilota G3")
@@ -6029,6 +6022,61 @@ finally
 end try
 	
 
+end event
+
+event dw_guida::u_set_npass_ciclo_from_pilota();//--- estrazione dal PILOTA ultimi dati inviate del N-PASS e CICLO per riproporli  
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if not isvalid(kids_pilota_queue_g3_last_in) then kids_pilota_queue_g3_last_in = create ds_pilota_queue_g3_last_in
+
+	kids_pilota_queue_g3_last_in.u_settransobject( )
+	
+	if kids_pilota_queue_g3_last_in.retrieve( ) > 0 then
+		
+		this.setitem(1, "g3npass", kids_pilota_queue_g3_last_in.u_get_npass(1))
+		this.setitem(1, "g3ciclo", kids_pilota_queue_g3_last_in.u_get_ciclo(1))
+		
+	end if
+
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+	
+end event
+
+event dw_guida::u_set_storico_mastertimer_from_pilota();//--- estrazione dal PILOTA ultimi dati inviate del N-PASS e CICLO per riproporli  
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if not isvalid(kids_storico_mastertimer_tempo_last) then kids_storico_mastertimer_tempo_last = create ds_storico_mastertimer_tempo_last
+
+	kids_storico_mastertimer_tempo_last.u_settransobject( )
+	
+	if kids_storico_mastertimer_tempo_last.retrieve( ) > 0 then
+		this.setitem(1, "storico_mastertimer_tempo", kids_storico_mastertimer_tempo_last.getitemnumber(1, "tempo"))	
+		this.setitem(1, "storico_mastertimer_data_evento", kids_storico_mastertimer_tempo_last.getitemdatetime(1, "data_evento"))	
+	else
+		this.setitem(1, "storico_mastertimer_tempo", 0)	
+		this.setitem(1, "storico_mastertimer_data_evento", kguo_g.get_datetime_zero( ) )	
+	end if
+	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+	
 end event
 
 event dw_guida::getfocus;//
@@ -6062,11 +6110,13 @@ end event
 event dw_guida::buttonclicked;//
 this.accepttext( )
 
-if dwo.name = "b_view_default" then
-	smista_funz(KKG_FLAG_RICHIESTA.VISUALIZZ_PREDEFINITA)
-else
-	event ue_buttonclicked(dwo.name)	// ok!
-end if
+choose case dwo.name
+	case "b_view_default"
+		smista_funz(KKG_FLAG_RICHIESTA.VISUALIZZ_PREDEFINITA)
+	case else
+		event ue_buttonclicked(dwo.name)	// ok!
+end choose
+
 end event
 
 event dw_guida::resize;call super::resize;//
@@ -6103,6 +6153,11 @@ choose case k_name
 			case else
 				this.setitem(row, "filtrocicli", 0)
 		end choose
+	case "b_storico_mastertimer"
+		this.event u_set_storico_mastertimer_from_pilota()
+		if kguo_exception.kist_esito.esito = kkg_esito.ok then
+			kguo_exception.messaggio_utente("Dati Pilota", "Aggiornati dati dal Pilota del Tempo Ciclo")
+		end if
 end choose
 
 	
@@ -6836,6 +6891,7 @@ if dw_dett_0.rowcount( ) > 0 then
 	
 					kiuf1_sync_window.u_window_set_funzione_aggiornata(ki_st_open_w) // setta x sicronizzare il ritorno
 
+					ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione 
 					smista_funz( KKG_FLAG_RICHIESTA.esci )  // Esce!
 					
 //					if ki_PL_chiuso then 

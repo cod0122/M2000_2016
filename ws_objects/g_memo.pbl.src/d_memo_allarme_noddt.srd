@@ -5,8 +5,8 @@ header(height=264 color="536870912" transparency="0" gradient.color="8421504" gr
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=80 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=148 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=char(80) updatewhereclause=yes name=memo_titolo dbname="memo.titolo" dbalias=".titolo" )
- column=(type=char(240) updatewhereclause=yes name=memo_note dbname="memo.note" dbalias=".note" )
+table(column=(type=char(120) updatewhereclause=yes name=memo_titolo dbname="memo.titolo" dbalias=".titolo" )
+ column=(type=char(256) updatewhereclause=yes name=memo_note dbname="memo.note" dbalias=".note" )
  column=(type=long updatewhereclause=yes name=id_memo dbname="memo.id_memo" dbalias=".id_memo" )
  column=(type=char(5) updatewhereclause=yes name=memo_tipo_memo dbname="memo.tipo_memo" dbalias=".tipo_memo" )
  column=(type=datetime updatewhereclause=yes name=memo_dataora_ins dbname="memo.dataora_ins" dbalias=".dataora_ins" )
@@ -22,9 +22,10 @@ table(column=(type=char(80) updatewhereclause=yes name=memo_titolo dbname="memo.
          memo.utente_ins,
          memo.x_datins,
          memo.x_utente
-    FROM meca inner join clienti_memo on (meca.clie_1 = clienti_memo.id_cliente 
-                                               or meca.clie_2 = clienti_memo.id_cliente 
-                                               or meca.clie_3 = clienti_memo.id_cliente) and clienti_memo.allarme in ('S', 'T')  
+    FROM meca inner join clienti_memo on ((meca.clie_1 = clienti_memo.id_cliente and clienti_memo.xclie_1 = 1)
+                                               or (meca.clie_2 = clienti_memo.id_cliente and clienti_memo.xclie_2 = 1)
+                                               or (meca.clie_3 = clienti_memo.id_cliente and clienti_memo.xclie_3 = 1)) 
+                                          and clienti_memo.allarme in ('S', 'T')  
 		   left outer join meca_memo on meca.id = meca_memo.id_meca and meca_memo.allarme in ('S', 'T')  
          left outer join memo on (clienti_memo.id_memo = memo.id_memo or meca_memo.id_memo = memo.id_memo)
    WHERE (:k_clie_2 = 0 and :k_clie_3 = 0) and meca.id in (:k_id_meca1
@@ -47,9 +48,10 @@ union all
          memo.utente_ins,
          memo.x_datins,
          memo.x_utente
-    FROM clienti_memo 
-         left outer join memo on (clienti_memo.id_memo = memo.id_memo)
-   WHERE (:k_clie_2 > 0 or :k_clie_3 > 0) and clienti_memo.id_cliente in (:k_clie_2, :k_clie_3) and clienti_memo.allarme in ('S', 'T')  " arguments=(("k_clie_2", number),("k_clie_3", number),("k_id_meca1", number),("k_id_meca2", number),("k_id_meca3", number),("k_id_meca4", number),("k_id_meca5", number),("k_id_meca6", number),("k_id_meca7", number),("k_id_meca8", number),("k_id_meca9", number),("k_id_meca10", number))  sort="x_datins D " )
+    FROM clienti_memo inner join memo on clienti_memo.id_memo = memo.id_memo
+   WHERE (:k_clie_2 > 0 or :k_clie_3 > 0) and clienti_memo.id_cliente in (:k_clie_2, :k_clie_3) and clienti_memo.allarme in ('S', 'T') 
+															 and ((:k_clie_2 = clienti_memo.id_cliente and clienti_memo.xclie_2 = 1)
+                                               		or (:k_clie_2 = clienti_memo.id_cliente and clienti_memo.xclie_3 = 1))  " arguments=(("k_clie_2", number),("k_clie_3", number),("k_id_meca1", number),("k_id_meca2", number),("k_id_meca3", number),("k_id_meca4", number),("k_id_meca5", number),("k_id_meca6", number),("k_id_meca7", number),("k_id_meca8", number),("k_id_meca9", number),("k_id_meca10", number))  sort="x_datins D " )
 text(band=header alignment="2" text="
 titolo" border="0" color="8421504" x="192" y="148" height="112" width="1083" html.valueishtml="0"  name=memo_titolo_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="ID

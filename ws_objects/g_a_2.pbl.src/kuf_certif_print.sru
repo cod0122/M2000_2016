@@ -572,12 +572,11 @@ int k_errore
 string k_old_str, k_new_str
 int k_start_pos
 long k_rc
-st_esito kst_esito
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 		
 	if not isvalid(kids_certif_stampa_allegati) then kids_certif_stampa_allegati = create kds_certif_stampa_allegati
 	
@@ -591,25 +590,19 @@ try
 				SetPointer(kkg.pointer_attesa)
 	//--- stampa dw direttamente sulla stampante indicata				
 				if kids_certif_stampa_allegati.print() > 0 then
-					kst_esito.esito = kkg_esito.OK
+					kguo_exception.kist_esito.esito = kkg_esito.OK
 					k_return ++
 				else
-					kst_esito.sqlcode = 0
 //					kst_esito.SQLErrText = "Errore durante la stampa Allegati dell'Attestato: " + string(kist_tab_certif.num_certif) + "~n~r" 
-					kst_esito.SQLErrText = "Errore seconda STAMPANTE '" + kkg.acapo &
-												+ trim(ki_stampante[2]) + kkg.acapo &
-												+ "', in stampa Allegati dell'Attestato: " + string(kist_tab_certif.num_certif) 
-					kst_esito.esito = kkg_esito.bug
-					kguo_exception.inizializza( )
-					kguo_exception.set_esito(kst_esito)
+					kguo_exception.kist_esito.SQLErrText = "Errore in riconoscimento della seconda STAMPANTE '" + kkg.acapo &
+												+ trim(ki_stampante[2]) + " " + kkg.acapo &
+												+ "', in stampa allegati all'Attestato n. " + string(kist_tab_certif.num_certif) 
+					kguo_exception.kist_esito.esito = kkg_esito.bug
 					throw kguo_exception
 				end if
 			else	
-				kst_esito.sqlcode = 0
-				kst_esito.SQLErrText = "Allegati dell'Attestato n. " + string(kist_tab_certif.num_certif) + " non sono stati stampati~n~r" 
-				kst_esito.esito = kkg_esito.bug
-				kguo_exception.inizializza( )
-				kguo_exception.set_esito(kst_esito)
+				kguo_exception.kist_esito.SQLErrText = "Allegati non stampati per l'Attestato n. " + string(kist_tab_certif.num_certif) 
+				kguo_exception.kist_esito.esito = kkg_esito.bug
 				throw kguo_exception
 			end if
 		end if
@@ -1489,14 +1482,13 @@ long k_rc
 int k_nr_doc_printed, k_nr_doc_aggiunti
 string k_attestato_pdf, k_nome_report_pilota, k_path_appoggio
 st_tab_meca_reportpilota kst_tab_meca_reportpilota
-st_esito kst_esito
 
 
 try
 
 	SetPointer(kkg.pointer_attesa)
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	if not isvalid(kiuf_utility) then kiuf_utility = create kuf_utility
 
@@ -1506,27 +1498,21 @@ try
 	if isvalid(kids_certif_stampa_completa) then destroy kids_certif_stampa_completa
 	kids_certif_stampa_completa = create kds_certif_stampa_completa
 	if NOT kids_certif_stampa_completa.u_compone_attestato(kids_certif_stampa) then
-		kst_esito.SQLErrText = "Attestato n. " + string(kist_tab_certif.num_certif) + " non trovato durante l'operazione di stampa" //~n~r" 
-		kst_esito.esito = KKG_ESITO.no_esecuzione
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Attestato da stampare n. " + string(kist_tab_certif.num_certif) + " non trovato! " //~n~r" 
+		kguo_exception.kist_esito.esito = KKG_ESITO.ko
 		throw kguo_exception
 	end if	
 
 	if ki_stampante[1] <= " " then
-		kst_esito.SQLErrText = "Nessuna stampante indicata per la stampa Attestati (n. " + string(kist_tab_certif.num_certif) + "). Stampa interrotta" 
-		kst_esito.esito = KKG_ESITO.no_esecuzione
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Nessuna stampante indicata per la stampa Attestati (n. " + string(kist_tab_certif.num_certif) + "). Stampa interrotta! " 
+		kguo_exception.kist_esito.esito = KKG_ESITO.ko
 		throw kguo_exception
 	end if
 	
 	if PrintSetPrinter (ki_stampante[1]) < 1 then
 		k_str = kiuf_utility.u_stringa_pulisci_asc(ki_stampante[1])
-		kst_esito.SQLErrText = "Stampante '" + k_str + "' non trovata, Attestato n. " + string(kist_tab_certif.num_certif) + " non stampato" 
-		kst_esito.esito = KKG_ESITO.no_esecuzione
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Stampante '" + k_str + "' non trovata, Attestato n. " + string(kist_tab_certif.num_certif) + " non stampato! " 
+		kguo_exception.kist_esito.esito = KKG_ESITO.ko
 		throw kguo_exception
 	else
 		k_printer = PrintGetPrinter()
@@ -1545,10 +1531,8 @@ try
 	kids_certif_stampa_completa.object.DataWindow.Export.PDF.Method = NativePDF!
 	//kids_certif_stampa_completa.Object.DataWindow.Export.PDF.NativePDF.ImageFormat = "0"  //BMP
 	if kids_certif_stampa_completa.saveas(k_attestato_pdf, PDF!, false) < 0 then  // fa PDF per ATTESTATO+DATI LOTTO 
-		kst_esito.SQLErrText = "Errore in preparazione PDF dell'Attestato e Dati Lotto n. " + string(kist_tab_certif.num_certif) // ~n~r"   
-		kst_esito.esito = KKG_ESITO.ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Errore in preparazione PDF dell'Attestato n. " + string(kist_tab_certif.num_certif) + ", elaborazione interrotta! " // ~n~r"   
+		kguo_exception.kist_esito.esito = KKG_ESITO.ko
 		throw kguo_exception
 	end if
 	
@@ -1560,11 +1544,11 @@ try
 	k_nome_report_pilota = kiuf_meca_reportpilota.u_get_path_nomereport(kst_tab_meca_reportpilota) // get REPORT-PILOTA in PDF
 	if trim(k_nome_report_pilota) > " " then
 		if not FileExists(k_nome_report_pilota) then
-			kst_esito.esito = kkg_esito.ko
-			kst_esito.sqlerrtext = "Stampa Attestato n. " + string(kist_tab_certif.num_certif) &
-									+ ": Report Pilota non trovato nella cartella '" + k_nome_report_pilota &
-									+ "'. La stampa prosegue comunque senza questo report."
-			kguo_exception.set_esito(kst_esito)		
+			kguo_exception.kist_esito.esito = kkg_esito.ko
+			kguo_exception.kist_esito.sqlerrtext = "Stampa Attestato n. " + string(kist_tab_certif.num_certif) + " " &
+									+ kkg.acapo + "Report Pilota non trovato nella cartella " + kkg.acapo + "'" + k_nome_report_pilota &
+									+ "'. " + kkg.acapo + "La stampa prosegue comunque senza questo report."
+			kguo_exception.scrivi_log( )
 		else
 			if kiuf_pdf.u_add_file(k_nome_report_pilota) > 0 then // add REPORT-PILOTA in PDF
 				k_nr_doc_aggiunti ++
@@ -1588,16 +1572,13 @@ try
 	
 	k_nr_doc_printed = kiuf_pdf.u_print_pdf( )  // stampa i file PDF accantonati:  ATTESTATO + DATI LOTTO + REPORT PILOTA
 	if k_nr_doc_printed <> k_nr_doc_aggiunti then
-		kst_esito.SQLErrText = "Errore in stampa Attestato n. " + string(kist_tab_certif.num_certif) &
+		kguo_exception.kist_esito.SQLErrText = "Errore in stampa Attestato n. " + string(kist_tab_certif.num_certif) &
 		      + ". Sono stati stampati " + string(k_nr_doc_printed) &
 				+ " documenti invece di "  + string(k_nr_doc_aggiunti)  // ~n~r"   
-		kst_esito.esito = KKG_ESITO.ko
-		kguo_exception.inizializza( )
-		kguo_exception.set_esito(kst_esito)
+		kguo_exception.kist_esito.esito = KKG_ESITO.ko
 		throw kguo_exception
 	end if
 
-	kst_esito.esito = KKG_ESITO.OK
 	k_return = true
 
 catch (uo_exception kuo_exception)
@@ -1607,7 +1588,6 @@ finally
 	SetPointer(kkg.pointer_default)
 	
 end try
-
 
 return k_return 
 

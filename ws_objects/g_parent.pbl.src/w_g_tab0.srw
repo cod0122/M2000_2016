@@ -600,10 +600,12 @@ try
 		
 					if ki_msg_dopo_save_ok then
 						if k_msg > " " then
-							messagebox("Operazione eseguita", k_msg)
 						else
-							messagebox("Operazione eseguita", ki_msg_updated_ok)
+							k_msg = ki_msg_updated_ok
 						end if
+						//messagebox("Operazione eseguita", k_msg)
+						kguo_exception.inizializza( )
+						kguo_exception.messaggio_utente("Operazione eseguita", k_msg)
 					end if
 		
 					if ki_reset_dopo_save_ok then

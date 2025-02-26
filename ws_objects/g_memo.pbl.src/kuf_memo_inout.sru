@@ -129,57 +129,60 @@ st_memo kst_memo
 
 try   
 
-	if ast_tab_clienti_memo.id_cliente  > 0 then
+	if ast_tab_clienti_memo.id_cliente > 0 then
+	else
+		return
+	end if
 
 //--- imposta i dati di default del memo
-		kst_memo.st_tab_clienti_memo = ast_tab_clienti_memo
+	kst_memo.st_tab_clienti_memo = ast_tab_clienti_memo
 
-		kuf1_clienti = create kuf_clienti
+	kuf1_clienti = create kuf_clienti
+
+	kst_tab_clienti_memo = kst_memo.st_tab_clienti_memo
+
+	kds_sr_settori = create datastore
+	kds_sr_settori.dataobject = "ds_sr_settori"
+	kds_sr_settori.settransobject(kguo_sqlca_db_magazzino)
 	
-		kst_tab_clienti_memo = kst_memo.st_tab_clienti_memo
+	if kst_tab_clienti_memo.id_cliente_memo > 0 then
+		kuf1_clienti.get_id_memo(kst_tab_clienti_memo)
+	else
+		kst_tab_clienti_memo.id_memo = 0
+	end if
+		
+	kst_tab_clienti.codice = kst_tab_clienti_memo.id_cliente
+	kuf1_clienti.get_nome(kst_tab_clienti)
 	
-		kds_sr_settori = create datastore
-		kds_sr_settori.dataobject = "ds_sr_settori"
-		kds_sr_settori.settransobject(kguo_sqlca_db_magazzino)
-		
-		if kst_tab_clienti_memo.id_cliente_memo > 0 then
-			kuf1_clienti.get_id_memo(kst_tab_clienti_memo)
-		else
-			kst_tab_clienti_memo.id_memo = 0
+	k_settore = ""
+	ast_tab_memo.tipo_sv = kst_tab_clienti_memo.tipo_sv
+	if trim(kst_tab_clienti_memo.tipo_sv) > " " then
+		if kds_sr_settori.retrieve(kst_tab_clienti_memo.tipo_sv) > 0 then
+			k_settore = kds_sr_settori.getitemstring(1, "descr")
 		end if
-			
-		kst_tab_clienti.codice = kst_tab_clienti_memo.id_cliente
-		kuf1_clienti.get_nome(kst_tab_clienti)
-		
-		k_settore = ""
-		ast_tab_memo.tipo_sv = kst_tab_clienti_memo.tipo_sv
-		if trim(kst_tab_clienti_memo.tipo_sv) > " " then
-			if kds_sr_settori.retrieve(kst_tab_clienti_memo.tipo_sv) > 0 then
-				k_settore = kds_sr_settori.getitemstring(1, "descr")
-			end if
-		end if
-		
+	end if
+	
 //		if kst_tab_clienti_memo.tipo_sv > " " then
 //			ast_tab_memo.titolo = "Informazioni da '" + kst_tab_clienti_memo.tipo_sv + "' per " + trim(kst_tab_clienti.rag_soc_10 )
 //		else
-			ast_tab_memo.titolo = "Da " + trim(kguo_utente.get_nome( )) + " per " + trim(kst_tab_clienti.rag_soc_10) + " " + trim(kst_tab_clienti.rag_soc_11) + " (" + string(kst_tab_clienti.codice) + ")" 
+		ast_tab_memo.titolo = "Da " + trim(kguo_utente.get_nome( )) + " per " + trim(kst_tab_clienti.rag_soc_10) + " " + trim(kst_tab_clienti.rag_soc_11) + " (" + string(kst_tab_clienti.codice) + ")" 
 //			ast_tab_memo.titolo = "Informazioni per " + trim(kst_tab_clienti.rag_soc_10 )
 //		end if
-		ast_tab_memo.titolo = trim(left(ast_tab_memo.titolo, kguo_sqlca_db_magazzino.u_get_col_len("memo", "titolo")))
+	ast_tab_memo.titolo = trim(left(ast_tab_memo.titolo, kguo_sqlca_db_magazzino.u_get_col_len("memo", "titolo")))
 
-		if k_settore > " " then
-			ast_tab_memo.note = "Note dal dip. '" + k_settore + "' per " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
-		else
-			ast_tab_memo.note = "Note per il " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
-		end if
-		ast_tab_memo.note = trim(left(ast_tab_memo.note, kguo_sqlca_db_magazzino.u_get_col_len("memo", "note")))
-		
-		ast_tab_memo.id_memo = kst_tab_clienti_memo.id_memo
-		
-//		kst_memo.st_tab_memo = ast_tab_memo
-//		kst_memo.st_tab_clienti_memo = kst_tab_clienti_memo
-		
+	if k_settore > " " then
+		ast_tab_memo.note = "Note dal dip. '" + k_settore + "' per " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
+	else
+		ast_tab_memo.note = "Note per il " + string(kst_tab_clienti_memo.id_cliente) + " " + trim(kst_tab_clienti.rag_soc_10 ) 
 	end if
+	ast_tab_memo.note = trim(left(ast_tab_memo.note, kguo_sqlca_db_magazzino.u_get_col_len("memo", "note")))
+	
+	ast_tab_memo.id_memo = kst_tab_clienti_memo.id_memo
+	
+	//--- Applica valori di default per Mandante+Ricevente+Ciente
+	ast_tab_clienti_memo.xclie_1 = 0
+	ast_tab_clienti_memo.xclie_2 = 0
+	ast_tab_clienti_memo.xclie_3 = 1
 		
 catch (uo_exception	kuo_exception)
 	throw kuo_exception
@@ -521,7 +524,7 @@ on kuf_memo_inout.destroy
 call super::destroy
 end on
 
-event destructor;call super::destructor;//
+event destructor;call super::destructor;// 
 	if isvalid(kiuf_sr_sicurezza) then destroy kiuf_sr_sicurezza
 	if isvalid(kiuf_armo) then destroy kiuf_armo
 	if isvalid(kiuf_clienti) then destroy kiuf_clienti

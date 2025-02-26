@@ -5014,7 +5014,8 @@ end type
 on m_ddt.create
 call super::create
 this.tag = "sped"
-this.text = "DDT"
+this.text = "DDT~tCtrl+T"
+this.shortcut = 340
 this.microhelp = "Gestione ddt"
 this.menuimage = "Deploy!"
 this.menustyle = contemporarymenu!

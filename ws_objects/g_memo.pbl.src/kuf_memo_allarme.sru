@@ -25,9 +25,9 @@ private boolean ki_chiudi_w_memo_allarme = false
 //--- MEMO: tipi di allarme per Cliente, Lotto, ....
 public constant string kki_MEMO_allarme_no = "N" // nessuno
 public constant string kki_MEMO_allarme_meca = "I" // nel carico Lotto
-public constant string kki_MEMO_allarme_ddt = "S" // nel carico DDT
-public constant string kki_MEMO_allarme_fattura = "F" // nel carico Fattura
-public constant string kki_MEMO_allarme_ddtfatt = "T" // segnala nel ddt e in fattura
+public constant string kki_MEMO_allarme_ddt = "S" // nel carico DDT di spedizione
+//public constant string kki_MEMO_allarme_fattura = "F" // nel carico Fattura
+//DEPRECATO public constant string kki_MEMO_allarme_ddtfatt = "T" // segnala nel ddt e in fattura 
 public constant string kki_MEMO_allarme_utente = "U" // segnalazione su utente
 public constant string kki_MEMO_allarme_certif = "A" // segnala su Attestato
 
@@ -213,12 +213,12 @@ if ast_memo_allarme.st_memo.st_tab_clienti_memo.id_cliente > 0 then
 	kds_memo_if_allarme_cliente.dataobject = "ds_memo_if_allarme_cliente"
 	kds_memo_if_allarme_cliente.settransobject(kguo_sqlca_db_magazzino)
 	choose case ast_memo_allarme.allarme
-		case kki_MEMO_allarme_fattura
-			k_allarme_1 = kki_MEMO_allarme_fattura
-			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
+//		case kki_MEMO_allarme_fattura
+//			k_allarme_1 = kki_MEMO_allarme_fattura
+//			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
 		case kki_MEMO_allarme_ddt
 			k_allarme_1 = kki_MEMO_allarme_ddt
-			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
+//			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
 		case else // altrimenti cerca solo puntualmente quello passato
 			k_allarme_1 = ast_memo_allarme.allarme
 			k_allarme_2 = ast_memo_allarme.allarme
@@ -255,12 +255,12 @@ if ast_memo_allarme.st_memo.st_tab_meca_memo.id_meca > 0 then
 	kds_memo_if_allarme_meca.dataobject = "ds_memo_if_allarme_lotto"
 	kds_memo_if_allarme_meca.settransobject(kguo_sqlca_db_magazzino)
 	choose case ast_memo_allarme.allarme
-		case kki_MEMO_allarme_fattura
-			k_allarme_1 = kki_MEMO_allarme_fattura
-			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
+//		case kki_MEMO_allarme_fattura
+//			k_allarme_1 = kki_MEMO_allarme_fattura
+//			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
 		case kki_MEMO_allarme_ddt
 			k_allarme_1 = kki_MEMO_allarme_ddt
-			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
+//			k_allarme_2 = kki_MEMO_allarme_ddtfatt // se allarme di tipo DDT + FATTTURA
 		case else // altrimenti cerca solo puntualmente quello passato
 			k_allarme_1 = ast_memo_allarme.allarme
 			k_allarme_2 = ast_memo_allarme.allarme

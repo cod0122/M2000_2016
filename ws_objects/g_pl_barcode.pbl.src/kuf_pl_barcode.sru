@@ -4599,13 +4599,17 @@ public function boolean if_pl_barcode_aperto (ref st_tab_pl_barcode kst_tab_pl_b
     Out: st_tab_pl_barcode.stato e data_chiuso
 */
 boolean k_return
+string k_stato_aperto_if_null
 
 	
 	kguo_exception.inizializza(this.classname())
 
 	if kst_tab_pl_barcode.codice > 0 then
 
-		select stato, data_chiuso
+		k_stato_aperto_if_null = ki_stato_pl_aperto //-- aperto quando è null
+
+		select trim(isnull(stato, :k_stato_aperto_if_null))
+				, data_chiuso
 				into :kst_tab_pl_barcode.stato
 				    ,:kst_tab_pl_barcode.data_chiuso
 				from pl_barcode 
@@ -4620,7 +4624,7 @@ boolean k_return
 		if kguo_sqlca_db_magazzino.sqlcode = 100 then //--- se non trovato lo considero cmq chiuso!
 		else
 
-			if kst_tab_pl_barcode.stato = ki_stato_pl_aperto or isnull(kst_tab_pl_barcode.stato) then
+			if kst_tab_pl_barcode.stato = ki_stato_pl_aperto or kst_tab_pl_barcode.stato = ''  then
 				k_return = true
 			end if
 			

@@ -5,10 +5,10 @@ COM:Sterigenics Italy
 DES:Magazzino Sterigenics Italy
 CPY:GNU GPL v.3
 PRD:M2000
-PVS:13.25.02.05
-PVN:13,25,2,5
-FVS:13.25.02.05
-FVN:13,25,2,5
+PVS:13.25.02.25
+PVN:13,25,2,26
+FVS:13.25.02.25
+FVN:13,25,2,26
 MAN:2,asInvoker,0
 PBD:g_m2000.pbl,,1
 PBD:g_parent.pbl,,1
@@ -635,7 +635,6 @@ OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_lettore_grp,u
 OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,st_plav_programmi,s
 OBJ:C:\Sterigenics\app32\g_pilota_out.pbl,ds_programmi_groupage_update,d
 OBJ:C:\Sterigenics\app32\g_a_2.pbl,kuf_barcode_stampa,u
-OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca_dosimbozza,s
 OBJ:C:\Sterigenics\app32\g_pl_barcode.pbl,st_tab_pl_barcode,s
 OBJ:C:\Sterigenics\app32\g_generic.pbl,kuf_menu_window,u
 OBJ:C:\Sterigenics\app32\g_a_1.pbl,kuf_meca_qtna,u
@@ -643,6 +642,7 @@ OBJ:C:\Sterigenics\app32\powerfilter.pbl,u_powerfilter_dropdown,u
 OBJ:C:\Sterigenics\app32\g_mkt.pbl,kuf_contatti_change_stato,u
 OBJ:C:\Sterigenics\app32\g_pl_barcode.pbl,ds_pl_barcode_dett,u
 OBJ:C:\Sterigenics\app32\g_pilota.pbl,ds_pilota_g2_parent,u
+OBJ:C:\Sterigenics\app32\g_a_1.pbl,st_tab_meca_dosimbozza,s
 OBJ:C:\Sterigenics\app32\g_op_2.pbl,kuf_stat_invent,u
 OBJ:C:\Sterigenics\app32\g_base.pbl,kuo_sqlca_db_xweb,u
 OBJ:C:\Sterigenics\app32\g_wm.pbl,st_wm_pkl_file,s

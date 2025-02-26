@@ -4453,11 +4453,9 @@ datetime k_data_ent_da, k_data_ent_a
 kuf_utility kuf1_utility
 
 
-	try
-			
+	try			
 	
 		k_scelta = trim(ki_st_open_w.flag_modalita)
-
 	
 	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
 		if not isnull(kdw_1.tag) then
@@ -4486,9 +4484,13 @@ kuf_utility kuf1_utility
 	//--- piglia i parametri per l'estrazione 
 			get_parametri_21()
 	
-			k_data_ent_da = datetime(ki_st_int_artr.data_da, time(00,00,01))
-			k_data_ent_a = datetime(ki_st_int_artr.data_a, time(23,59,59))
-			k_righe = kdw_1.retrieve(k_data_ent_da, k_data_ent_a, ki_st_int_artr.clie_3, ki_st_int_artr.id_meca, ki_st_int_artr.contratto )
+			//k_data_ent_da = datetime(ki_st_int_artr.data_da, time(00,00,01))
+			//k_data_ent_a = datetime(ki_st_int_artr.data_a, time(23,59,59))
+			k_righe = kdw_1.retrieve(ki_st_int_artr.data_da &
+											,ki_st_int_artr.data_a &
+											,ki_st_int_artr.clie_3 &
+											,ki_st_int_artr.id_meca &
+											,ki_st_int_artr.contratto )
 
 		end if
 

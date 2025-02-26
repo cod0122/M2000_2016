@@ -123,7 +123,6 @@ private subroutine put_video_data_rit (st_tab_sped ast_tab_sped)
 protected function string aggiorna_dati ()
 protected subroutine attiva_tasti_0 ()
 public subroutine u_num_bolla_inp_changed ()
-public subroutine u_if_allarme_memo ()
 protected subroutine inizializza_4 () throws uo_exception
 public function integer u_ddt_rows_retrieve ()
 public function integer u_allarme_lotto () throws uo_exception
@@ -135,6 +134,7 @@ protected subroutine u_popola_dwc ()
 protected subroutine u_modifica_visualizza ()
 private subroutine u_alarm_msg ()
 private subroutine u_set_note_2 ()
+private subroutine u_set_conducente ()
 end prototypes
 
 protected function string aggiorna ();//
@@ -232,6 +232,7 @@ k_riga = 1 //tab_1.tabpage_1.dw_1.getrow()
 		kst_tab_sped.note_2 =  tab_1.tabpage_1.dw_1.getitemstring(k_riga, "note_2")
 		kst_tab_sped.vett_1 =  tab_1.tabpage_1.dw_1.getitemstring(k_riga, "vett_1")
 		kst_tab_sped.vett_2 =  tab_1.tabpage_1.dw_1.getitemstring(k_riga, "vett_2")
+		kst_tab_sped.conducente =  tab_1.tabpage_1.dw_1.getitemstring(k_riga, "conducente")
 		kst_tab_sped.sv_call_vettore = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "sv_call_vettore")
 		
 //--- valorizzo il cliente dalla prima riga lotto valida
@@ -2891,13 +2892,11 @@ if tab_1.tabpage_4.dw_riga_0.visible then
 end if
 
 if ki_alarm_todo_msg then
-	k_msg_dopo_update = ki_msg_dopo_update  
+//	k_msg_dopo_update = ki_msg_dopo_update  
 	ki_msg_dopo_update = false  // evita il msg di ok
 end if
 
 k_return = super::aggiorna_dati( )
-
-ki_msg_dopo_update = k_msg_dopo_update  // ripristino del flag
 
 if left(k_return, 1) = "0" then
 
@@ -2908,6 +2907,8 @@ if left(k_return, 1) = "0" then
 
 		k_return = "1"
 	end if
+
+	//ki_msg_dopo_update = k_msg_dopo_update  // ripristino del flag
 
 end if
 
@@ -3006,31 +3007,6 @@ public subroutine u_num_bolla_inp_changed ();//
 
 end subroutine
 
-public subroutine u_if_allarme_memo ();////
-//st_tab_sped kst_tab_sped
-//kuf_link_zoom kuf1_link_zoom
-//
-//try
-//	kst_tab_sped.id_sped = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_sped")
-//	if kst_tab_sped.id_sped > 0 then
-//		if kiuf_sped.if_ddt_allarme_memo(kst_tab_sped) then
-//			if messagebox("Allarme MEMO", "C'è un Avviso di Allarme MEMO, vuoi aprirlo subito?", question!, yesno!, 1) = 1 then
-//	//--- lancia visualizzazione dell'allarme memo
-//				kuf1_link_zoom = create kuf_link_zoom
-//				kuf1_link_zoom.link_standard_call_p (tab_1.tabpage_1.dw_1, "p_memo_alarm_ddt") 
-//			end if 
-//		end if
-//	end if
-//
-//catch (uo_exception kuo_exception)
-//	kuo_exception.messaggio_utente()
-//	
-//finally
-//	if isvalid(kuf1_link_zoom) then destroy kuf1_link_zoom
-//	
-//end try
-end subroutine
-
 protected subroutine inizializza_4 () throws uo_exception;//======================================================================
 //=== Inizializzazione del TAB 5 controllandone i valori se gia' presenti
 //======================================================================
@@ -3080,8 +3056,6 @@ end function
 
 public function integer u_allarme_lotto () throws uo_exception;//
 int k_return 
-//st_memo_allarme kst_memo_allarme
-//kuf_armo_inout kuf1_armo_inout
 kuf_memo_allarme kuf1_memo_allarme
 int k_riga, k_righe
 long k_id_meca[10]
@@ -3089,20 +3063,21 @@ long k_clie_2, k_clie_3
 
 
 try
-	
+	 
 	k_righe = tab_1.tabpage_4.dw_4.rowcount( )
 	if k_righe > 10 then k_righe = 10
 	for k_riga = 1 to k_righe
 		k_id_meca[k_riga] = tab_1.tabpage_4.dw_4.getitemnumber( k_riga, "id_meca")
 	next
 	if k_id_meca[1] > 0 then
-		// verifica Allarmi per cliente con i Lotti associati
+	// verifica Allarmi per cliente con i Lotti associati
 		k_return = tab_1.tabpage_5.dw_5.retrieve(0, 0, k_id_meca[1], k_id_meca[2], k_id_meca[3] &
 														,k_id_meca[4], k_id_meca[5], k_id_meca[6] &
 														,k_id_meca[7], k_id_meca[8], k_id_meca[9] &
 														,k_id_meca[10])
-	else
-		// verifica Allarmi per cliente quando manca l'aggancio al Lotto
+	end if
+	if k_return = 0 then
+	// verifica Allarmi per cliente quando manca l'aggancio al Lotto
 		k_clie_2 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_2")
 		k_clie_3 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_3")
 		k_return = tab_1.tabpage_5.dw_5.retrieve(k_clie_2, k_clie_3, 0,0,0,0,0,0,0,0,0,0)
@@ -3349,7 +3324,7 @@ protected subroutine u_popola_dwc ();//
 //======================================================================
 //
 string k_rcx
-datawindowchild kdwc_1, kdwc_2, kdwc_3
+datawindowchild kdwc_1
 
 
 SetPointer(kkg.pointer_attesa)
@@ -3379,7 +3354,6 @@ SetPointer(kkg.pointer_attesa)
 		kdwc_1.sort()
 		kdwc_1.insertrow(1)
 	end if
-
 
 SetPointer(kkg.pointer_default)
 
@@ -3491,6 +3465,38 @@ datawindowchild kdwc_1
 			if kst_tab_sped.clie_2 <> kst_tab_sped_ddwc.clie_2 then
 				k_rc = kdwc_1.retrieve(kst_tab_sped.clie_2)
 				kdwc_1.insertrow(1)
+			end if
+		else
+			kdwc_1.reset( )
+		end if
+	else
+		kdwc_1.reset( )
+	end if
+	SetPointer(kkg.pointer_default)
+
+end subroutine
+
+private subroutine u_set_conducente ();//
+int k_rc
+st_tab_sped kst_tab_sped, kst_tab_sped_ddwc
+datawindowchild kdwc_1
+
+
+	SetPointer(kkg.pointer_attesa)
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica &
+			 or ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+			 
+		kst_tab_sped.clie_2 = tab_1.tabpage_1.dw_1.getitemnumber( 1, "clie_2")
+		if kst_tab_sped.clie_2 > 0 then
+
+			tab_1.tabpage_1.dw_1.getchild("conducente", kdwc_1)
+			kdwc_1.settransobject( kguo_sqlca_db_magazzino )
+			if kdwc_1.rowcount() > 1 then
+				kst_tab_sped_ddwc.clie_2 = kdwc_1.getitemnumber(2, "clie_2")
+			end if
+			
+			if kst_tab_sped.clie_2 <> kst_tab_sped_ddwc.clie_2 then
+				k_rc = kdwc_1.retrieve(kst_tab_sped.clie_2)
 			end if
 		else
 			kdwc_1.reset( )
@@ -3811,6 +3817,7 @@ try
 				post event u_setcolumn(dwo.name)
 			end if
 			post u_set_note_2( )
+			post u_set_conducente()
 	
 		case "clie_2" 
 			this.post modify( dwo.name + ".Background.Color = '" + string(KKG_COLORE.BIANCO) + "' ") 
@@ -3837,6 +3844,7 @@ try
 				post event u_setcolumn("rag_soc_10")
 			end if
 			post u_set_note_2( )
+			post u_set_conducente()
 	
 		case "p_iva", "cf" 
 			this.modify( dwo.name + ".Background.Color = '" + string(KKG_COLORE.BIANCO) + "' ") 

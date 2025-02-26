@@ -3357,7 +3357,7 @@ try
 	
 //--- Gestione di Allert per il cliente 	
 	if ast_tab_clienti.codice > 0 then
-		kst_memo_allarme.allarme = kguf_memo_allarme.kki_memo_allarme_fattura
+		kst_memo_allarme.allarme = "?" //DEPRECATO kguf_memo_allarme.kki_memo_allarme_fattura
 		kst_memo_allarme.st_memo.st_tab_clienti_memo.id_cliente = ast_tab_clienti.codice
 		kst_memo_allarme.descr = "Avviso rilevato sul Cliente " + string(ast_tab_clienti.codice) + ", fattura: " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "num_fatt"))
 		if kguf_memo_allarme.set_allarme_cliente(kst_memo_allarme) then
@@ -3398,7 +3398,7 @@ try
 //--- Gestione di Allert per Lotto (id) 	
 	if ast_tab_meca.id > 0 then
 		kiuf_armo.get_num_int(ast_tab_meca)
-		kst_memo_allarme.allarme = kguf_memo_allarme.kki_memo_allarme_fattura
+		kst_memo_allarme.allarme = "?" //DEPRECATO kguf_memo_allarme.kki_memo_allarme_fattura
 		kst_memo_allarme.st_memo.st_tab_meca_memo.id_meca = ast_tab_meca.id
 		kst_memo_allarme.descr = "Avviso rilevato sul Lotto " + string(ast_tab_meca.num_int) + " " + string(ast_tab_meca.data_int, "dd/mm/yy") + " id "+ string(ast_tab_meca.id) + ", fattura: " + string(tab_1.tabpage_1.dw_1.getitemnumber(1, "num_fatt"))
 		if kguf_memo_allarme.set_allarme_lotto(kst_memo_allarme) then

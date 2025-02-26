@@ -48,8 +48,11 @@ table(column=(type=long updatewhereclause=yes name=num_bolla_out dbname="sped.nu
     COALESCE(sped.ora_rit, '') AS k_ritiro_ora,
     (SELECT MAX(vm2.id_memo)
             FROM v_memo vm2
-            WHERE (vm2.id_meca = armo.id_meca or           
-							sped.clie_2 = vm2.id_cliente OR sped.clie_3 = vm2.id_cliente) AND vm2.allarme IN ('A', 'T')) AS id_memo,
+            WHERE (vm2.id_meca = meca.id 
+							OR (sped.clie_2 = vm2.id_cliente and vm2.xclie_2 = 1)
+                     OR (sped.clie_3 = vm2.id_cliente and vm2.xclie_3 = 1)
+                     OR (meca.clie_1 = vm2.id_cliente and vm2.xclie_1 = 1)
+                    )  AND vm2.allarme IN ('S', 'A', 'T')) AS id_memo,
     ISNULL(c3.e1ancodrs, '') AS c3_e1ancodrs,
     'alert24.png' AS p_memo_alarm_ddt,
     (
@@ -66,8 +69,11 @@ table(column=(type=long updatewhereclause=yes name=num_bolla_out dbname="sped.nu
                     ELSE '' + case WHEN TRIM(vm1.note) > ' ' THEN TRIM(vm1.note) + ';' + CHAR(13) + CHAR(10) else '' end 
                 END AS titolo
             FROM v_memo vm1
-            WHERE (vm1.id_meca = armo.id_meca or           
-							sped.clie_2 = vm1.id_cliente OR sped.clie_3 = vm1.id_cliente) AND vm1.allarme IN ('A', 'T')
+            WHERE (vm1.id_meca = meca.id 
+							OR (sped.clie_2 = vm1.id_cliente and vm1.xclie_2 = 1)
+                     OR (sped.clie_3 = vm1.id_cliente and vm1.xclie_3 = 1)
+                     OR (meca.clie_1 = vm1.id_cliente and vm1.xclie_1 = 1)
+                  ) AND vm1.allarme IN ('S', 'A', 'T')
         ) AS titoli
     ) AS v_memo_titolo
 FROM 
@@ -76,6 +82,7 @@ FROM
     LEFT OUTER JOIN clienti c3 ON sped.clie_3 = c3.codice
     INNER JOIN arsp ON arsp.id_sped = sped.id_sped
     INNER JOIN armo ON armo.id_armo = arsp.id_armo
+    INNER JOIN meca ON meca.id = armo.id_meca 
   where sped.data_bolla_out between :k_data_ini and :k_data_fin
         and (:k_cliente = 0 or sped.clie_2 = :k_cliente)
 GROUP BY
@@ -85,7 +92,8 @@ GROUP BY
     sped.id_docprod,   
     sped.mezzo,   
     sped.clie_3,   
-    sped.clie_2,   
+    sped.clie_2,  
+    meca.clie_1,
     clienti.rag_soc_10,   
     clienti.loc_1,   
     clienti.prov_1,   
@@ -98,7 +106,7 @@ GROUP BY
     sped.data_rit,
     sped.ora_rit,
     c3.e1ancodrs
-	,armo.id_meca
+	,meca.id
 order by
     sped.data_bolla_out desc,   
     sped.num_bolla_out desc

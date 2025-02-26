@@ -4327,7 +4327,7 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_2.triggerevent(clicked!)
+cb_ausiliari_3.triggerevent(clicked!)
 end event
 
 type st_3_1 from statictext within tabpage_8
@@ -4349,7 +4349,7 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_2.triggerevent(clicked!)
+cb_ausiliari_3.triggerevent(clicked!)
 end event
 
 type st_3_2 from statictext within tabpage_8
@@ -4371,7 +4371,7 @@ boolean focusrectangle = false
 end type
 
 event clicked;//
-cb_ausiliari_2.triggerevent(clicked!)
+cb_ausiliari_3.triggerevent(clicked!)
 end event
 
 type st_1_6 from statictext within tabpage_8

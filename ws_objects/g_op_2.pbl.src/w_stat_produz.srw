@@ -500,23 +500,23 @@ try
 					 + ", colli_trattati integer " &
 					 + ", n_dosimetri integer " &
 					 + ", colli_entrati integer " &
-					 + ", colli_fatturati integer " &
-					 + ", colli_armo_fatt integer " &
-					 + ", imp_x_collo decimal(12,4)"
+					 + ", imp_x_collo decimal(12,4) " &
+					 + ", imp_x_collo_g3 decimal(12,4) " &
+					 + ", impianto tinyint " 
 		k_sql = &
 				 " SELECT distinct " &
-				 + " statp_meca.gruppo " &
-				 + " ,statp_meca.id_armo  " &
-				 + " ,(coalesce(cotr.colli_trattati,0)) as colli_trattati " & 
-				 + " ,(coalesce(cotr.n_dosimetri,0)) as n_dosimetri " & 
-				 + " ,(coalesce(s_artr.colli_entrati,0)) as colli_entrati" & 
-				 + " ,(coalesce(s_artr.colli_fatturati,0)) as colli_fatturati " & 
-				 + " ,(coalesce(s_artr.colli_armo_fatt,0)) as colli_armo_fatt " & 
-				 + " ,(coalesce(s_artr.imp_x_collo,0)) as imp_x_collo " & 
+					 + " statp_meca.gruppo " &
+					 + " ,statp_meca.id_armo  " &
+					 + " ,(coalesce(cotr.colli_trattati,0)) as colli_trattati " & 
+					 + " ,(coalesce(cotr.n_dosimetri,0)) as n_dosimetri " & 
+					 + " ,(coalesce(s_artr.colli_entrati,0)) as colli_entrati" & 
+					 + " ,CASE WHEN s_artr.impianto <> 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo " & 
+					 + " ,CASE WHEN s_artr.impianto = 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo_g3 " & 
+					 + " ,(coalesce(s_artr.impianto,0)) as impianto " & 
 				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
 				 + "  s_artr.id_armo = statp_meca.id_armo " &
-			 + " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_gru as cotr on " &
-				 + "  statp_meca.id_armo = cotr.id_armo " 
+					 + " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_gru as cotr on " &
+					 + "  statp_meca.id_armo = cotr.id_armo " 
 	//18.05.2015
 		choose case kist_stat_produz.tipo_data
 			case '1' // x data fine lavorazione
@@ -541,33 +541,27 @@ try
 		k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp1_gruppo "
 		k_sql_w = " "
 		k_campi = "gruppo integer " &
+ 			   + ", impianto tinyint " &
 				+ ", colli_trattati integer " &
 			   + ", n_dosimetri integer " &
 				+ ", colli_entrati integer " &
-				+ ", colli_fatturati integer " &
-				+ ", colli_armo_fatt integer " & 
 				+ ", imp_trattati decimal(12,4) " &
-				+ ", imp_fatturati decimal(12,4) " & 
-				+ ", imp_armo_fatt decimal(12,4) " &
+				+ ", imp_trattati_g3 decimal(12,4) " & 
 				+ ", imp_fatt_dosimetri decimal(12,2) " 
 		k_sql = &
 				 " SELECT  " &
-				 + " gruppo  " &
-				 + " ,sum(colli_trattati) " & 
-				 + " ,sum(n_dosimetri) " & 
-				 + " ,sum(colli_entrati)" & 
-				 + " ,sum(colli_fatturati) " & 
-				 + " ,sum(colli_armo_fatt) " & 
-				 + " ,sum(imp_x_collo * colli_trattati) " & 
-				 + " ,sum(imp_x_collo * colli_fatturati) " & 
-				 + " ,sum(imp_x_collo * colli_armo_fatt) " & 
-				 + " ,sum(n_dosimetri) * " + k_prezzo_dosim_x & 
-				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_imp1  " 
-		k_sql += " " + trim(k_sql_w) + " group by gruppo "
+					 + " gruppo  " &
+					 + " ,impianto " & 
+					 + " ,sum(colli_trattati) " & 
+					 + " ,sum(n_dosimetri) " & 
+					 + " ,sum(colli_entrati)" & 
+					 + " ,CASE WHEN impianto <> 3 then sum(imp_x_collo * colli_trattati) else 0.00 end " & 
+					 + " ,CASE WHEN impianto = 3  then sum(imp_x_collo_g3 * colli_trattati) else 0.00 end " & 
+					 + " ,sum(n_dosimetri) * " + k_prezzo_dosim_x & 
+				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_imp1 " &
+					 + " group by gruppo,impianto "
 		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-	
-	
-	
+		
 	//--- popola datastore per fare lo ZOOM dal Report
 		popola_zoom_gruppi( )			
 	
@@ -2009,28 +2003,39 @@ try
 	kpointer = SetPointer(HourGlass!)
  
 //--- costruisco la view con GRUPPO +  GIRI IMPIANTO
-   k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_artr_x_gru "
+   k_view = "vx_" + trim(kist_stat_produz.utente) + "_statp_artr_x_gru "
 // k_sql = + &
 // "CREATE VIEW " + trim(k_view) &
 //  + " ( gruppo, colli_trattati, m_cubi, giri_f1_pl, giri_f1_lav, giri_f2_pl, giri_f2_lav, pedane, somma_giri) AS   " 
    k_campi = "gruppo integer " &
+             + ", impianto tinyint " &
              + ", m_cubi decimal(12,4) " &
              + ", giri_f1_pl decimal(12,2) " & 
              + ", giri_f1_lav decimal(12,2) " & 
              + ", giri_f2_pl decimal(12,2) " & 
              + ", giri_f2_lav decimal(12,2) " & 
+             + ", giri_g3p2_pl decimal(12,2) " & 
+             + ", giri_g3p2_lav decimal(12,2) " & 
+             + ", giri_g3p4_pl decimal(12,2) " & 
+             + ", giri_g3p4_lav decimal(12,2) " & 
              + ", pedane decimal(12,2) " &
              + ", somma_giri decimal(12,2) "
    k_sql = &
           + " SELECT " &
           + " statp_meca.gruppo  " &
-          + "  ,sum(coalesce(s_artr.m_cubi,0)) as m_cubi   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_pl,0)) / 2 as giri_f1_pl   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_lav,0)) / 2 as giri_f1_lav   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_pl,0)) / 2 as giri_f2_pl   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_lav,0)) / 2 as giri_f2_lav   " &
-          + "  ,sum(coalesce(s_artr.pedane,0)) as pedane " &
-          + "  ,sum( coalesce(s_artr.giri_f1_lav,0) + coalesce(s_artr.giri_f2_lav,0) ) as somma_giri " &
+          + " ,s_artr.impianto  " &
+          + " ,sum(coalesce(s_artr.m_cubi,0)) as m_cubi   " &
+          + " ,sum(coalesce(s_artr.giri_f1_pl,0)) / 2 as giri_f1_pl   " &
+          + " ,sum(coalesce(s_artr.giri_f1_lav,0)) / 2 as giri_f1_lav   " &
+          + " ,sum(coalesce(s_artr.giri_f2_pl,0)) / 2 as giri_f2_pl   " &
+          + " ,sum(coalesce(s_artr.giri_f2_lav,0)) / 2 as giri_f2_lav   " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_pl,0)) as giri_g3p2_pl  " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_lav,0)) as giri_g3p2_lav   " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_pl,0))  as giri_g3p4_pl  " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_lav,0)) as giri_g3p4_lav  " &
+          + " ,sum(coalesce(s_artr.pedane,0)) as pedane " &
+          + " ,sum(coalesce(s_artr.giri_f1_lav,0) + coalesce(s_artr.giri_f2_lav,0) " &
+							 + " + coalesce(s_artr.giri_g3p2_lav,0) + coalesce(s_artr.giri_g3p4_lav,0)) as somma_giri " &
           + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
           + "    s_artr.id_armo = statp_meca.id_armo " 
 //		 + " inner join vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_gru as cotr on " &
@@ -2055,7 +2060,7 @@ try
 	 
    end choose
    
-   k_sql += " group by statp_meca.gruppo  "
+   k_sql += " group by statp_meca.gruppo, s_artr.impianto  "
    kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 // kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
 
@@ -2724,8 +2729,6 @@ boolean enabled = false
 end type
 
 type tab_1 from w_g_tab_3`tab_1 within w_stat_produz
-integer x = 0
-integer y = 0
 end type
 
 on tab_1.create
@@ -2957,6 +2960,8 @@ integer width = 3104
 integer height = 1200
 boolean enabled = true
 string dataobject = "d_stat_produz_x_gruppo"
+boolean minbox = true
+boolean hscrollbar = false
 boolean ki_colora_riga_aggiornata = false
 end type
 

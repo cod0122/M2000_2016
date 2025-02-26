@@ -7614,6 +7614,7 @@ if dw_dett_0.rowcount( ) > 0 then
 					if ki_PL_chiuso then 
 						messagebox("Operazione Conclusa", "Il Piano di Lavorazione è stato Riaperto correttamente. Esco dalla funzione.")
 						
+						ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione 
 						smista_funz( KKG_FLAG_RICHIESTA.esci )  // Esce!
 					else
 						ki_chiudi_PL_enabled = false

@@ -768,15 +768,16 @@ k_idx_max = upperbound(kst_tab_sped_free.intestazione_ind[])
 for k_idx = 1 to k_idx_max
 	kst_tab_sped_free.intestazione_ind[k_idx] = tab_1.tabpage_2.dw_2.getitemstring( 1, "intestazione_ind" + string(k_idx, "#")) 
 next
-kst_tab_sped_free.peso_kg          = tab_1.tabpage_2.dw_2.getitemstring( 1, "peso_kg") 
-kst_tab_sped_free.porto            = tab_1.tabpage_2.dw_2.getitemstring( 1, "porto") 
-kst_tab_sped_free.sped_note        = tab_1.tabpage_2.dw_2.getitemstring( 1, "sped_note") 
-kst_tab_sped_free.tipo_copia       = tab_1.tabpage_2.dw_2.getitemstring( 1, "tipo_copia") 
-kst_tab_sped_free.trasporto        = tab_1.tabpage_2.dw_2.getitemstring( 1, "trasporto") 
-kst_tab_sped_free.vett_1           = tab_1.tabpage_2.dw_2.getitemstring( 1, "vett_1")  
-//kst_tab_sped_free.vett_2           = tab_1.tabpage_2.dw_2.getitemstring( 1, "vett_2") 
-kst_tab_sped_free.resa             = tab_1.tabpage_2.dw_2.getitemstring( 1, "resa") 
-kst_tab_sped_free.annotazioni      = tab_1.tabpage_2.dw_2.getitemstring( 1, "annotazioni") 
+kst_tab_sped_free.peso_kg         = tab_1.tabpage_2.dw_2.getitemstring( 1, "peso_kg") 
+kst_tab_sped_free.porto           = tab_1.tabpage_2.dw_2.getitemstring( 1, "porto") 
+kst_tab_sped_free.sped_note       = tab_1.tabpage_2.dw_2.getitemstring( 1, "sped_note") 
+kst_tab_sped_free.tipo_copia      = tab_1.tabpage_2.dw_2.getitemstring( 1, "tipo_copia") 
+kst_tab_sped_free.trasporto       = tab_1.tabpage_2.dw_2.getitemstring( 1, "trasporto") 
+kst_tab_sped_free.vett_1          = tab_1.tabpage_2.dw_2.getitemstring( 1, "vett_1")  
+//kst_tab_sped_free.vett_2          = tab_1.tabpage_2.dw_2.getitemstring( 1, "vett_2") 
+kst_tab_sped_free.resa            = tab_1.tabpage_2.dw_2.getitemstring( 1, "resa") 
+kst_tab_sped_free.annotazioni     = tab_1.tabpage_2.dw_2.getitemstring( 1, "annotazioni") 
+kst_tab_sped_free.conducente      = tab_1.tabpage_2.dw_2.getitemstring( 1, "conducente") 
 
 return kst_tab_sped_free
 end function
@@ -1455,7 +1456,7 @@ integer x = 5
 integer y = 20
 integer width = 2981
 integer height = 1228
-string dataobject = "d_ddt_st_ed7_10_2019f"
+string dataobject = "d_ddt_st_ed9_02_2025f"
 string ki_flag_modalita = "vi"
 boolean ki_colora_riga_aggiornata = false
 boolean ki_attiva_standard_select_row = false
@@ -1583,6 +1584,7 @@ k_rc = tab_1.tabpage_2.dw_2.modify( "causale.Background.Color='" + k_color &
 									+ "' data_ora_rit.Background.Color='" + k_color &
 									+ "' vett_1.Background.Color='" + k_color &
 									+ "' annotazioni.Background.Color='" + k_color &
+									+ "' conducente.Background.Color='" + k_color &
 									+ "' ")
 
 for k_idx = 1 to 19

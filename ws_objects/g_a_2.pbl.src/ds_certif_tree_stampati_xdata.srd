@@ -71,18 +71,22 @@ table(column=(type=long updatewhereclause=yes identity=yes name=id dbname="contr
 		  (select  c2.rag_soc_10 from  clienti c2 where certif.clie_2 = c2.codice) as c2_rag_soc_10, 
 		  (select  c3.rag_soc_10 from  clienti c3 where meca.clie_3 = c3.codice) as c3_rag_soc_10,
 			coalesce(certif.flg_ristampa_xddt, 0) flg_ristampa_xddt,
-		  (select  top 1 id_memo from  meca_memo mm where meca.id = mm.id_meca and mm.allarme = 'A'  
-		        union all 
-		     select  top 1 id_memo  from  clienti_memo cm  
-                        where (meca.clie_1 = cm.id_cliente or meca.clie_2 = cm.id_cliente or meca.clie_3 = cm.id_cliente) 
-    	                                                                        and cm.allarme = 'A') as id_memo
+	    (SELECT MAX(vm2.id_memo)
+            FROM v_memo vm2
+            WHERE (vm2.id_meca = meca.id 
+							OR (certif.clie_2 = vm2.id_cliente and vm2.xclie_2 = 1)
+                     OR (meca.clie_3 = vm2.id_cliente and vm2.xclie_3 = 1)
+                     OR (meca.clie_1 = vm2.id_cliente and vm2.xclie_1 = 1)
+                    )  AND vm2.allarme = 'A') AS id_memo
+--		  (select  top 1 id_memo from  meca_memo mm where meca.id = mm.id_meca and mm.allarme = 'A'  
+--		        union all 
+--		     select  top 1 id_memo  from  clienti_memo cm  
+--                       where (meca.clie_1 = cm.id_cliente or meca.clie_2 = cm.id_cliente or meca.clie_3 = cm.id_cliente) 
+--   	                                                                        and cm.allarme = 'A') as id_memo
 			,meca.e1srst 
-		    FROM  (certif 
-			        INNER JOIN meca ON  
-			     certif.id_meca = meca.id) 
-			        left outer JOIN contratti ON  
-			     meca.contratto = contratti.codice 
-       where
+    FROM  (certif  INNER JOIN meca ON certif.id_meca = meca.id) 
+			        left outer JOIN contratti ON meca.contratto = contratti.codice 
+     where
   	      (:k_num_certif > 0 and :k_num_certif = certif.num_certif)
           or (:k_num_certif = 0 and  certif.data between :k_data_da and :k_data_a)
 

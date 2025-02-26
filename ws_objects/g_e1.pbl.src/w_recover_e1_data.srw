@@ -43,9 +43,7 @@ forward prototypes
 protected function string inizializza ()
 protected subroutine open_start_window ()
 public subroutine u_esporta ()
-public subroutine smista_funz (string k_par_in)
 protected subroutine inizializza_1 () throws uo_exception
-protected subroutine inizializza_2 () throws uo_exception
 public subroutine u_recover_cube ()
 end prototypes
 
@@ -187,13 +185,6 @@ end try
 
 end subroutine
 
-public subroutine smista_funz (string k_par_in);
-
-
-
-
-end subroutine
-
 protected subroutine inizializza_1 () throws uo_exception;//======================================================================
 //=== Inizializzazione della Windows
 //=== Ripristino DW; tasti; e retrieve liste
@@ -202,70 +193,25 @@ protected subroutine inizializza_1 () throws uo_exception;//====================
 int k_rc
 
 
+	tab_1.tabpage_2.dw_2.ki_flag_modalita = kkg_flag_modalita.elenco 
 
 	if tab_1.tabpage_2.dw_2.rowcount() = 0 then
 	
-		tab_1.tabpage_2.text = " Elenco Legami Mandanti-Riceventi-Clienti attivi"
 		k_rc = tab_1.tabpage_2.dw_2.retrieve() 
 		
 		choose case k_rc
 
-			case is < 0				
-				messagebox("Operazione fallita", &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"~n~r" )
-				cb_ritorna.postevent(clicked!)
+			case is < 0		
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_2.dw_2, "Errore in lettura Dati 'Cube Interface' per E1. ")
+				throw kguo_exception
 
 			case 0
-	
 				tab_1.tabpage_2.dw_2.reset()
-				attiva_tasti()
 
 		end choose
-
-		tab_1.tabpage_2.dw_2.ShareData(tab_1.tabpage_2.dw_2_shared)
-		
 		tab_1.tabpage_2.dw_2.event getfocus( )
 		
-	end if
-
-
-
-
-end subroutine
-
-protected subroutine inizializza_2 () throws uo_exception;//======================================================================
-//=== Inizializzazione della Windows
-//=== Ripristino DW; tasti; e retrieve liste
-//======================================================================
-//
-int k_rc
-
-
-
-	if tab_1.tabpage_3.dw_3.rowcount() = 0 then
-	
-		tab_1.tabpage_3.text = " Elenco dati per Ritiro Lotti"
-		k_rc = tab_1.tabpage_3.dw_3.retrieve() 
-		
-		choose case k_rc
-
-			case is < 0				
-				messagebox("Operazione fallita", &
-					"Mi spiace ma si e' verificato un errore interno al programma~n~r" + &
-					"~n~r" )
-				cb_ritorna.postevent(clicked!)
-
-			case 0
-	
-				tab_1.tabpage_3.dw_3.reset()
-				attiva_tasti()
-
-		end choose
-
-		tab_1.tabpage_3.dw_3.ShareData(tab_1.tabpage_3.dw_3_shared)
-		tab_1.tabpage_3.dw_3.event getfocus( )
-		
+		attiva_tasti()
 	end if
 
 
@@ -553,10 +499,10 @@ end event
 type tabpage_1 from w_g_tab_3`tabpage_1 within tab_1
 integer width = 3003
 integer height = 1268
-string text = " Elenco Contratti"
+string text = "Recupera dati E1"
 long tabtextcolor = 0
 long tabbackcolor = 33554431
-string picturename = "Export5!"
+string picturename = "DataPipeline!"
 long picturemaskcolor = 553648127
 dw_1_shared dw_1_shared
 end type
@@ -586,7 +532,7 @@ boolean hsplitscroll = false
 string ki_icona_normale = ""
 string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
-boolean ki_link_standard_sempre_possibile = true
+boolean ki_link_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_primo_giro = true
 end type
@@ -614,15 +560,13 @@ string text = ""
 end type
 
 type tabpage_2 from w_g_tab_3`tabpage_2 within tab_1
-boolean visible = false
 integer width = 3003
 integer height = 1268
-boolean enabled = false
 long backcolor = 31909606
-string text = " Elenco Legami"
+string text = "Dati tab. e1_wo_f5537001"
 long tabtextcolor = 0
 long tabbackcolor = 32501743
-string picturename = "Export5!"
+string picturename = "DataPipeline!"
 long picturemaskcolor = 553648127
 dw_2_shared dw_2_shared
 end type
@@ -648,13 +592,12 @@ integer height = 1180
 integer taborder = 0
 boolean enabled = true
 string title = ""
-string dataobject = "ds_mrf_x_smart"
+string dataobject = "d_e1_wo_f5537001_l"
 boolean hsplitscroll = false
 string ki_icona_normale = ""
 string ki_icona_selezionata = ""
 boolean ki_disattiva_moment_cb_aggiorna = false
 boolean ki_link_standard_sempre_possibile = true
-boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_primo_giro = true
 end type
 
@@ -677,10 +620,8 @@ type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 integer width = 3003
 integer height = 1268
 long backcolor = 31909606
-string text = " Ritiro Lotti"
 long tabtextcolor = 0
 long tabbackcolor = 33544171
-string picturename = "Export5!"
 long picturemaskcolor = 553648127
 dw_3_shared dw_3_shared
 end type
@@ -706,7 +647,6 @@ integer height = 1156
 integer taborder = 0
 boolean enabled = true
 string title = ""
-string dataobject = "d_xsmart_instock"
 boolean hsplitscroll = false
 boolean livescroll = false
 string ki_icona_normale = ""

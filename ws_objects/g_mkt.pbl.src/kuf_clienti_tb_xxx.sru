@@ -1383,6 +1383,9 @@ try
 					SET id_cliente = :ast_tab_clienti_memo.id_cliente
 						 ,tipo_sv =  :ast_tab_clienti_memo.tipo_sv
 						 ,allarme = :ast_tab_clienti_memo.allarme
+						 ,xclie_1 = :ast_tab_clienti_memo.xclie_1
+						 ,xclie_2 = :ast_tab_clienti_memo.xclie_2
+						 ,xclie_3 = :ast_tab_clienti_memo.xclie_3
 						,x_datins = :ast_tab_clienti_memo.x_datins
 						,x_utente = :ast_tab_clienti_memo.x_utente  
 						WHERE id_memo = :ast_tab_clienti_memo.id_memo 
@@ -1397,6 +1400,9 @@ try
 							,id_memo
 							,id_cliente
 							 ,allarme
+							 ,xclie_1
+							 ,xclie_2
+							 ,xclie_3
 							,x_datins 
 							,x_utente 
 							 )  
@@ -1405,6 +1411,9 @@ try
 						,:ast_tab_clienti_memo.id_memo 
 						,:ast_tab_clienti_memo.id_cliente 
 						,:ast_tab_clienti_memo.allarme 
+						,:ast_tab_clienti_memo.xclie_1
+						,:ast_tab_clienti_memo.xclie_2
+						,:ast_tab_clienti_memo.xclie_3
 						,:ast_tab_clienti_memo.x_datins
 						,:ast_tab_clienti_memo.x_utente  
 						)  

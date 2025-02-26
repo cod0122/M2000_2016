@@ -44,6 +44,7 @@ public function integer u_open_riferimenti_autorizza ()
 private subroutine call_memo ()
 protected subroutine stampa ()
 private subroutine stampa_choose_run ()
+private subroutine stampa_choose_run_1 (kuf_meca_stampa auf_meca_stampa, string a_tipo_stampa, st_tab_meca ast_tab_meca)
 end prototypes
 
 protected function integer visualizza ();//
@@ -442,95 +443,129 @@ end try
 end subroutine
 
 protected subroutine stampa ();//
-	dw_stampa.move((this.width - dw_stampa.width) / 3, (this.height - dw_stampa.height) / 3)
-	dw_stampa.visible = true
+	dw_stampa.event ue_visibile(true)
 
 end subroutine
 
 private subroutine stampa_choose_run ();//
 string k_tipo_stampa
-int k_rc=0
-long k_riga
+int k_rc
+long k_row
+boolean k_row_only_one
 st_tab_meca kst_tab_meca
 st_stampe kst_stampe
 kuf_meca_stampa kuf1_meca_stampa
 
 
 try
-	//=== Puntatore Cursore da attesa.....
+
 	SetPointer(kkg.pointer_attesa)
 	
-	dw_stampa.visible = false
-	k_tipo_stampa = trim(dw_stampa.getitemstring(1, "tipo_stampa"))
+	kguo_exception.inizializza( )
 	
-	choose case k_tipo_stampa
-			
-		case "C"  // stampa dati lotto + report pilota (pdf)  selezionati
-			kuf1_meca_stampa = create kuf_meca_stampa
-//--- conta se ho selezionato più di un documento
-			k_riga = dw_lista_0.getselectedrow(0)
-			if k_riga > 0 then
-				k_riga = dw_lista_0.getselectedrow(k_riga)
-				if k_riga > 0 then
-					k_riga = dw_lista_0.getselectedrow(0)
-//--- con più documenti fa tutto in PDF poi unisce il tutto e finalmente stampa
-					do while k_riga > 0
-						kuf1_meca_stampa.u_inizializza_stampa_pdf()  // inizializza l'array che conterrà i pdf da stampare
-						kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
-						if kst_tab_meca.id > 0 then
-							//--- Genera la stampa Report Lotto + Report Pilota e aggiunge i riferimenti ai PDF nell'array
-							kuf1_meca_stampa.u_genera_pdf_completa(kst_tab_meca) //u_stampa_completa(kst_tab_meca)
-						end if
-						k_riga = dw_lista_0.getselectedrow(k_riga)
-						//sleep (1) // ritardo per lasciare il tempo di fare il pdf
-						kuf1_meca_stampa.u_stampa_all_pdf( )  // stampa file PDF aggiunti nell'array 
-					loop
-				else
-//--- un solo documento quindi esegue solo la stampa del DW + PDF
-					kst_tab_meca.id = dw_lista_0.getitemnumber(dw_lista_0.getselectedrow(0), "id_meca")
-					kuf1_meca_stampa.u_stampa_completa( kst_tab_meca )
-				end if
-			end if
+	dw_stampa.event ue_visibile(false)
 
-		case "X"   // stampa dati lotto selezionati
-			k_riga = dw_lista_0.getselectedrow(0)
-			if k_riga = 0 and dw_lista_0.rowcount( ) > 0 then
-				k_riga = dw_lista_0.getrow( )
-				if k_riga = 0 then
-					k_riga = 1
-				end if
-				dw_lista_0.selectrow(k_riga, true)
-			end if
-					
-			do while k_riga > 0
-				kst_tab_meca.id = dw_lista_0.getitemnumber(k_riga, "id_meca")
-				if kst_tab_meca.id > 0 then
-					kuf1_meca_stampa = create kuf_meca_stampa
-					kuf1_meca_stampa.u_stampa(kst_tab_meca)
-				end if
-				k_riga = dw_lista_0.getselectedrow(k_riga)
-			loop
-				
-		case else  //scelta E 
+	
+	if dw_lista_0.rowcount( ) <= 0 then return // nulla da stampare, ESCE!
+	
+	k_tipo_stampa = trim(dw_stampa.getitemstring(1, "tipo_stampa"))
+
+	if k_tipo_stampa = "E" then
 	//--- stampa tutti i dati in elenco
-			if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
-			kst_stampe.ds_print.reset( )
-			kst_stampe.ds_print.dataobject = dw_lista_0.dataobject
-			//kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
-	//--- Aggiorna SQL della dw	
-			k_rc = dw_lista_0.rowscopy(1, dw_lista_0.rowcount() , primary!, kst_stampe.ds_print, 1, primary!)
-			if k_rc > 0 then
-				kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore //ki_stampa_tipo_datastore_diretta
-				kst_stampe.titolo = trim("Elenco Lotti")
-				kGuf_data_base.stampa_dw(kst_stampe)
+		if not isvalid(kst_stampe.ds_print) then kst_stampe.ds_print = create datastore
+		kst_stampe.ds_print.reset( )
+		kst_stampe.ds_print.dataobject = dw_lista_0.dataobject
+		//kst_stampe.ds_print.settransobject(kguo_sqlca_db_magazzino)
+//--- Aggiorna SQL della dw	
+		k_rc = dw_lista_0.rowscopy(1, dw_lista_0.rowcount() , primary!, kst_stampe.ds_print, 1, primary!)
+		if k_rc > 0 then
+			kst_stampe.tipo = kuf_stampe.ki_stampa_tipo_datastore //ki_stampa_tipo_datastore_diretta
+			kst_stampe.titolo = trim("Elenco Lotti")
+			kGuf_data_base.stampa_dw(kst_stampe)
+		end if
+		
+		return  // elenco in stampa, ESCE!
+		
+	end if
+	
+	k_row = dw_lista_0.getselectedrow(0)
+	if k_row = 0 and dw_lista_0.rowcount( ) > 0 then
+		k_row = dw_lista_0.getrow( )
+		if k_row = 0 then
+			k_row = 1
+			dw_lista_0.selectrow(1, true)
+		else
+			if dw_lista_0.getselectedrow(k_row) = 0 then
+				k_row_only_one = true
 			end if
+		end if
+	end if
+
+	kuf1_meca_stampa = create kuf_meca_stampa
+		
+	do while k_row > 0
+		kst_tab_meca.id = dw_lista_0.getitemnumber(k_row, "id_meca")
+		if kst_tab_meca.id > 0 then
+
+			if k_tipo_stampa = "C" and k_row_only_one then k_tipo_stampa = "C1"
+			
+			stampa_choose_run_1(kuf1_meca_stampa, k_tipo_stampa, kst_tab_meca)
+			
+		end if
+		k_row = dw_lista_0.getselectedrow(k_row)
+	loop
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+finally
+	if isvalid(kuf1_meca_stampa) then destroy kuf1_meca_stampa
+	
+	kguo_exception.messaggio_utente( "Stampa Lotti", "Elaborazione terminata.")
+	attiva_tasti( )
+	SetPointer(kkg.pointer_default)
+	
+end try
+
+
+
+end subroutine
+
+private subroutine stampa_choose_run_1 (kuf_meca_stampa auf_meca_stampa, string a_tipo_stampa, st_tab_meca ast_tab_meca);//
+
+
+try
+
+	SetPointer(kkg.pointer_attesa)
+	
+	choose case a_tipo_stampa
+			
+// stampa dati lotto + report pilota (pdf)  selezionati			
+		case "C"  
+			auf_meca_stampa.u_inizializza_stampa_pdf()  // inizializza l'array che conterrà i pdf da stampare
+//--- Genera la stampa Report Lotto + Report Pilota e aggiunge i riferimenti ai PDF nell'array
+			auf_meca_stampa.u_genera_pdf_completa(ast_tab_meca) //u_stampa_completa(ast_tab_meca)
+			auf_meca_stampa.u_stampa_all_pdf( )  // stampa file PDF aggiunti nell'array 
+
+//--- un solo documento quindi esegue solo la stampa del DW + PDF
+		case "C1"
+			ast_tab_meca.id = dw_lista_0.getitemnumber(dw_lista_0.getselectedrow(0), "id_meca")
+			auf_meca_stampa.u_stampa_completa( ast_tab_meca )
+
+// stampa solo dati lotto 
+		case "X"   
+			auf_meca_stampa.u_stampa(ast_tab_meca)
+
+// stampa report pilota (pdf)  selezionati
+		case "P"  
+			auf_meca_stampa.u_stampa_reportpilota(ast_tab_meca) //u_stampa_completa(ast_tab_meca)
+				
 	end choose
 	
 catch (uo_exception kuo_exception)
 	kuo_exception.messaggio_utente()
 	
 finally
-	attiva_tasti( )
 	
 end try
 
@@ -892,7 +927,7 @@ type dw_stampa from uo_d_std_1 within w_meca_l
 integer x = 20000
 integer y = 20000
 integer width = 1522
-integer height = 824
+integer height = 980
 integer taborder = 60
 boolean enabled = true
 boolean titlebar = true
@@ -920,9 +955,19 @@ if dwo.name = "b_ok" then
 	stampa_choose_run()
 else
 	if dwo.name = "b_annulla" then
-		this.visible = false
+		this.event ue_visibile(false)
 	end if
 end if
+end event
+
+event ue_visibile;call super::ue_visibile;//
+if k_visibile then
+	this.width = 1522
+	this.height = 980
+	this.move((parent.width - this.width) / 3, (parent.height - this.height) / 3)
+end if
+dw_stampa.visible = k_visibile
+
 end event
 
 type dw_data from uo_d_std_1 within w_meca_l

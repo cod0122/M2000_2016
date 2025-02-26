@@ -4864,33 +4864,18 @@ public function st_esito anteprima (ref datastore kdw_anteprima, st_tab_clienti 
 //=== 
 //====================================================================
 //
-//=== 
+string k_rcx
 long k_rc
-boolean k_return
-st_open_w kst_open_w
-st_esito kst_esito
-kuf_sicurezza kuf1_sicurezza
 kuf_utility kuf1_utility
 
 
-kst_esito = kguo_exception.inizializza(this.classname())
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	kguo_exception.inizializza(this.classname())
 
-kst_open_w = kst_open_w
-kst_open_w.flag_modalita = kkg_flag_modalita.anteprima
-kst_open_w.id_programma = kkg_id_programma_anag
-
-//--- controlla se utente autorizzato alla funzione in atto
-kuf1_sicurezza = create kuf_sicurezza
-k_return = kuf1_sicurezza.autorizza_funzione(kst_open_w)
-destroy kuf1_sicurezza
-
-if not k_return then
-
-	kst_esito.sqlcode = sqlca.sqlcode
-	kst_esito.SQLErrText = "Anteprima non Autorizzata: ~n~r" + "La funzione richiesta non e' stata abilitata"
-	kst_esito.esito = kkg_esito.no_aut
-
-else
+	this.if_sicurezza(kkg_flag_modalita.anteprima)
 
 	if isvalid(kdw_anteprima)  then
 		if kdw_anteprima.dataobject = ""  then
@@ -4905,23 +4890,35 @@ else
 //--- retrive 
 		k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
 		if k_rc > 0 then
-			if kdw_anteprima.getitemstring(1, "clienti_tipo") = kki_tipo_contatto then
-				kdw_anteprima.dataobject = "d_contatto"		
-				kdw_anteprima.settransobject(sqlca)
-				k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+			k_rcx = kdw_anteprima.describe("clienti_tipo.x") 
+			if k_rcx <> "?" and k_rcx <> "!" then
+				if kdw_anteprima.getitemstring(1, "clienti_tipo") = kki_tipo_contatto then
+					kdw_anteprima.dataobject = "d_contatto"		
+					kdw_anteprima.settransobject(sqlca)
+					k_rc=kdw_anteprima.retrieve(kst_tab_clienti.codice)
+				end if
 			end if
 		end if
 
 	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Nessuna Anagrafica da visualizzare: ~n~r" + "nessun codice indicato"
-		kst_esito.esito = "1"
+		kguo_exception.kist_esito.sqlcode = 0
+		kguo_exception.kist_esito.SQLErrText = "Nessuna Anagrafica da visualizzare: ~n~r" + "nessun codice indicato"
+		kguo_exception.kist_esito.esito = "1"
 		
 	end if
-end if
+
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	kguo_exception.set_esito(kuo_exception.get_st_esito())
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
 
 
-return kst_esito
+return kguo_exception.kist_esito
 
 end function
 

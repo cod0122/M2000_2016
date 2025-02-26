@@ -274,7 +274,7 @@ try
 	if trim(kst_tab_sped.causale) > " " then
 	else
 		kst_esito.esito = kkg_esito.DATI_INSUFF
-		kst_esito.sqlerrtext += "Manca '" + trim(ads_inp_testa.describe("caus_codice_t.text")) + "' ~n~r" 
+		kst_esito.sqlerrtext += "Manca il dato nel campo '" + trim(ads_inp_testa.describe("caus_codice_t.text")) + "' ~n~r" 
 		k_nr_errori++
 	end if
 	
@@ -282,7 +282,7 @@ try
 	if trim(kst_tab_sped.aspetto) > " " then
 	else
 		kst_esito.esito = kkg_esito.DATI_INSUFF
-		kst_esito.sqlerrtext += "Manca '" + trim(ads_inp_testa.describe("aspetto_t.text")) + "' ~n~r" 
+		kst_esito.sqlerrtext += "Manca il dato nel campo '" + trim(ads_inp_testa.describe("aspetto_t.text")) + "' ~n~r" 
 		k_nr_errori++
 	end if
 	
@@ -291,9 +291,17 @@ try
 		if trim(ads_inp_testa.getitemstring( k_riga_testa, "vett_1")) > " " then
 		else
 			kst_esito.esito = kkg_esito.DATI_INSUFF
-			kst_esito.sqlerrtext += "Manca '" + trim(ads_inp_testa.describe("vett_1_t.text")) + "' ~n~r" 
+			kst_esito.sqlerrtext += "Manca il dato nel campo '" + trim(ads_inp_testa.describe("vett_1_t.text")) + "' ~n~r" 
 			k_nr_errori++
 		end if
+	end if
+	
+	kst_tab_sped.cura_trasp = ads_inp_testa.getitemstring( k_riga_testa, "conducente")
+	if trim(ads_inp_testa.getitemstring( k_riga_testa, "conducente")) > " " then
+	else
+		kst_esito.esito = kkg_esito.DATI_INSUFF
+		kst_esito.sqlerrtext += "Indicare il nome e cognome nel campo '" + trim(ads_inp_testa.describe("conducente_t.text")) + "' ~n~r" 
+		k_nr_errori++
 	end if
 	
 //	kst_tab_sped.porto = ads_inp_testa.getitemstring( k_riga_testa, "porto")

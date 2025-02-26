@@ -11,7 +11,7 @@ global kuf_sped_ddt kuf_sped_ddt
 type variables
 //
 //OLD public string ki_dw_stampa_ddt = "d_ddt_st_ed1_08_2009"  
-public string ki_dw_stampa_ddt = "d_ddt_st_ed8_04_2024" //"d_ddt_st_ed7_10_2019" //"d_ddt_st_ed5_05_2016" //"d_ddt_st_ed4_09_2015" //"d_ddt_st_ed3_05_2011" //"d_ddt_st_ed2_08_2010"
+public string ki_dw_stampa_ddt = "d_ddt_st_ed9_02_2025" //"d_ddt_st_ed8_04_2024" //"d_ddt_st_ed7_10_2019" //"d_ddt_st_ed5_05_2016" //"d_ddt_st_ed4_09_2015" //"d_ddt_st_ed3_05_2011" //"d_ddt_st_ed2_08_2010"
 public string ki_dw_stampa_ddt_libero = "d_ddt_st_ed8_04_2024f" //"d_ddt_st_ed7_10_2019f"
 private st_ddt_stampa kist_ddt_stampa[]
 public uo_ds_std_1 kids_stampa_ddt
@@ -1714,14 +1714,7 @@ boolean k_stampato=false
 int k_num_copie_max
 int k_riga_stampa_ddt
 int k_num_copie
-//st_esito kst_esito
 
-
-//	kst_esito.esito = kkg_esito.ok
-//	kst_esito.sqlcode = 0
-//	kst_esito.SQLErrText = ""
-
-//	kst_tab_sped.id_sped = ast_ddt_stampa.id_sped
 
 //--- Valuta numero copie da fare x il DDT 
 	k_num_copie_max = 3  
@@ -1886,6 +1879,10 @@ long k_riga
 		kids_stampa_ddt.setitem(k_riga, "sped_note_2", trim(ads_ddt_stampa.object.sped_note_2[a_riga_dw])  )
 	end if
 
+//--- Nome del Conducente
+	if kids_stampa_ddt.describe("sped_conducente.x") <> "!" then
+		kids_stampa_ddt.setitem(k_riga, "sped_conducente", trim(ads_ddt_stampa.object.sped_conducente[a_riga_dw])  )
+	end if
 	
 	if isnull(ads_ddt_stampa.object.sped_cura_trasp[a_riga_dw]) then 
 		ads_ddt_stampa.object.sped_cura_trasp[a_riga_dw] = " "

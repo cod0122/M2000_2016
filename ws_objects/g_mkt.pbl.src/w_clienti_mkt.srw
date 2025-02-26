@@ -15,8 +15,8 @@ end type
 end forward
 
 global type w_clienti_mkt from w_g_tab0
-integer width = 3035
-integer height = 2180
+integer width = 805
+integer height = 268
 string title = "Marketing"
 string icon = "mkt_icona.ico"
 boolean ki_toolbar_window_presente = true
@@ -1734,8 +1734,6 @@ end type
 
 type dw_xplistbar from u_dw_xplistbar within w_clienti_mkt
 boolean visible = false
-integer x = 32
-integer y = 20
 integer width = 891
 integer height = 964
 integer taborder = 30
@@ -1750,7 +1748,7 @@ Long ll_parent
 //Add new item
 ll_parent = THIS.of_AddItem('header','Anagrafe  ',0, '')
  
-ki_xpl_Contatti = THIS.of_AddItem('child','Contatti ',ll_parent, 'contatti_rubrica.gif')
+ki_xpl_Contatti = THIS.of_AddItem('child','Contatti ',ll_parent, 'contatti_rubrica_nuovo.gif')
 ki_xpl_Potenziali = THIS.of_AddItem('child','Potenziali da contattare ',ll_parent, 'cliente_potenziale.gif')  //~r
 ki_xpl_Potenziali_contattatto = THIS.of_AddItem('child','Potenziali in contatto ',ll_parent, 'cliente_contattato.gif')
 ki_xpl_Attivi_parziali = THIS.of_AddItem('child','Attivi parziali ',ll_parent, 'cliente_parziale.gif')

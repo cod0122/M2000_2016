@@ -58,8 +58,8 @@ global type w_stampe from w_g_tab
 boolean visible = true
 integer x = 101
 integer y = 100
-integer width = 1376
-integer height = 2112
+integer width = 1243
+integer height = 912
 string title = "Stampa"
 string menuname = ""
 boolean controlmenu = false
@@ -302,6 +302,7 @@ event u_set_enabled(boolean a_enabled);//
 	cb_pdf.enabled = a_enabled
 	ddplb_stampanti.enabled = a_enabled	
 	cb_printlist.enabled = a_enabled
+	//cb_docx.enabled = 
 
 end event
 
@@ -639,13 +640,7 @@ kuf_base kuf1_base
 		if kst_profilestring_ini.esito <> "0" then
 			kst_profilestring_ini.valore = "N"
 		end if
-		if kst_profilestring_ini.valore = "S" then
-			dw_setup.object.cbx_personalizzazioni[1] = "S"
-//--- lancia l'evento per applicare le personalizzazioni 
-//			cbx_personalizzazioni.triggerevent (clicked!)
-		else
-			dw_setup.object.cbx_personalizzazioni[1] = "N"
-		end if
+		dw_setup.object.cbx_personalizzazioni[1] = kst_profilestring_ini.valore
 
 //--- recupero i valori se personalizzati della window
 		kst_profilestring_ini.operazione = "1"
@@ -657,11 +652,7 @@ kuf_base kuf1_base
 		if kst_profilestring_ini.esito <> "0" then
 			kst_profilestring_ini.valore = "N"
 		end if
-		if kst_profilestring_ini.valore = "S" then
-			dw_setup.object.cbx_personalizzazioni_salva[1] = "S"
-		else
-			dw_setup.object.cbx_personalizzazioni_salva[1] = "N"
-		end if
+		dw_setup.object.cbx_personalizzazioni_salva[1] = kst_profilestring_ini.valore
 		
 //--- recupero i valori se personalizzati della window
 		kst_profilestring_ini.operazione = "1"
@@ -673,11 +664,7 @@ kuf_base kuf1_base
 		if kst_profilestring_ini.esito <> "0" then
 			kst_profilestring_ini.valore = "S"
 		end if
-		if kst_profilestring_ini.valore = "S" then
-			dw_setup.object.cbx_chiude[1] = "S"
-		else
-			dw_setup.object.cbx_chiude[1] = "N"
-		end if
+		dw_setup.object.cbx_chiude[1] = kst_profilestring_ini.valore 
 
 //--- recupero valore "Griglia" tra linee e colonne
 		kst_profilestring_ini.operazione = "1"
@@ -687,13 +674,9 @@ kuf_base kuf1_base
 		kst_profilestring_ini.nome = trim(k_nome_stampa) 
 		k_rcx = trim(kGuf_data_base.profilestring_ini(kst_profilestring_ini))
 		if kst_profilestring_ini.esito <> "0" then
-			kst_profilestring_ini.valore = "S"
+			kst_profilestring_ini.valore = ""
 		end if
-		if kst_profilestring_ini.valore = "N" then
-			ki_setup_grid_lines = "N"
-		else
-			ki_setup_grid_lines = "S"
-		end if
+		ki_setup_grid_lines = kst_profilestring_ini.valore 
 
 //--- recupero valore "stampa dati di Testata"
 		kst_profilestring_ini.operazione = "1"
@@ -705,11 +688,7 @@ kuf_base kuf1_base
 		if kst_profilestring_ini.esito <> "0" then
 			kst_profilestring_ini.valore = "S"
 		end if
-		if kst_profilestring_ini.valore = "N" then
-			ki_setup_stampa_testata = "N"
-		else
-			ki_setup_stampa_testata = "S"
-		end if
+		ki_setup_stampa_testata = kst_profilestring_ini.valore
 		
 //		attiva_tasti()
 
@@ -1012,7 +991,7 @@ string k_rcx
 //--- Griglia: 1=assente, 0=visibile	
 	if ki_setup_grid_lines = "S" then
 		dw_print.Object.DataWindow.Grid.Lines = '0'
-	else
+	elseif ki_setup_grid_lines = "N" then
 		dw_print.Object.DataWindow.Grid.Lines = '1'
 	end if
 
@@ -2137,8 +2116,8 @@ end event
 type cb_printlist from picturebutton within w_stampe
 integer x = 37
 integer y = 856
-integer width = 119
-integer height = 100
+integer width = 110
+integer height = 96
 integer taborder = 100
 boolean bringtotop = true
 integer textsize = -8
@@ -2148,11 +2127,11 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
 boolean flatstyle = true
-string picturename = "Print!"
+boolean originalsize = true
+string picturename = "Print1!"
 alignment htextalign = left!
-boolean map3dcolors = true
 string powertiptext = "Trova le stampanti disponibili"
-long backcolor = 16711935
+long backcolor = 553648127
 end type
 
 event clicked;//
@@ -2543,6 +2522,7 @@ event u_set_default_value ( string a_nome_stampa )
 event u_close ( )
 event u_premuto_enter pbm_dwnprocessenter
 event ue_b_esporta ( )
+event u_if_close ( )
 boolean visible = false
 integer x = 901
 integer y = 452
@@ -2586,6 +2566,7 @@ else
 	end if
 end if
 
+// posiziona
 if not this.visible then
 	this.x = (parent.width - this.width) / 3
 	this.y = (parent.height - this.height ) / 2.5
@@ -2656,7 +2637,7 @@ event u_close();//
 
 	this.visible = false // Nasconde la finestra
 	this.bringtotop = false
-	parent.event u_set_enabled(false)
+	parent.event u_set_enabled(true) // riattiva i tasti
 	//set_default_button (true)
 
 	kGuf_data_base.setta_path_default() //--- Ripristina path di lavoro
@@ -2746,12 +2727,24 @@ kuf_file_explorer kuf1_file_explorer
 
 end event
 
+event u_if_close();//
+if not this.visible then this.event u_close( )
+
+end event
+
 event buttonclicked;//
 
 if dwo.name = "b_esporta" then
 	
 	event ue_b_esporta()
 
+end if
+
+end event
+
+event losefocus;//
+if this.visible then
+	this.post event u_if_close( )
 end if
 
 end event

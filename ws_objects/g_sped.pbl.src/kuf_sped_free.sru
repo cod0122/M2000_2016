@@ -14,7 +14,7 @@ private kuf_sped kiuf_sped
 public constant string kki_sped_flg_stampa_bolla_da_stamp="N"
 public constant string kki_sped_flg_stampa_bolla_stampata="S"
 public constant string kki_sped_flg_stampa_fatturato="F"
-private string ki_dw_stampa_ddt = "d_ddt_st_ed7_10_2019f"
+private string ki_dw_stampa_ddt = "d_ddt_st_ed9_02_2025f" //"d_ddt_st_ed7_10_2019f"
 
 end variables
 
@@ -288,6 +288,7 @@ st_esito kst_esito
 			k_idx_max ++; k_json_key[k_idx_max] = "$." + "vett_2"; k_json_val[k_idx_max] = trim(string(kst_tab_sped_free.vett_2))		
 			k_idx_max ++; k_json_key[k_idx_max] = "$." + "resa"; k_json_val[k_idx_max] = trim(string(kst_tab_sped_free.resa))		
 			k_idx_max ++; k_json_key[k_idx_max] = "$." + "annotazioni"; k_json_val[k_idx_max] = trim(string(kst_tab_sped_free.annotazioni))		
+			k_idx_max ++; k_json_key[k_idx_max] = "$." + "conducente"; k_json_val[k_idx_max] = trim(string(kst_tab_sped_free.conducente))		
 
 			kguo_sqlca_db_magazzino.sqlcode = 0
 			k_idx = 0

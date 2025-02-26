@@ -6,6 +6,9 @@ global type st_tab_clienti_memo from structure
 	long		id_memo
 	long		id_cliente
 	string		allarme		descriptor "comment" = "avvisa durante operazione ad es di DDT la presenza del "
+	int		xclie_1		descriptor "comment" = "vale sui Mandanti"
+	int		xclie_2		descriptor "comment" = "vale sui Riceventi"
+	int		xclie_3		descriptor "comment" = "vale sui Clienti"
 	datetime		x_datins
 	string		x_utente
 end type
