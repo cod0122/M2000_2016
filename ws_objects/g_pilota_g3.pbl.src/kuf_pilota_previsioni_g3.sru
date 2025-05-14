@@ -209,6 +209,7 @@ ds_pilota_pallet_workqueue_g3	kds_pilota_pallet_workqueue_g3
 					 	 + ", dataora_lav_fin_max_prev datetime " &
 					 	 + ", dataora_lav_fin_prev_dtpl datetime " &
 						 + ", avg_time_io_minute integer "  &
+						 + ", ciclo_entrata integer "  &
 						 + ", statuscode integer "  &
 					 	 + ", update_last datetime "
 						 

@@ -7,14 +7,14 @@ footer(height=0 color="536870912" transparency="0" gradient.color="8421504" grad
 detail(height=88 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 table(column=(type=datetime update=yes updatewhereclause=yes name=data_carico dbname="Data_Carico" )
  column=(type=datetime update=yes updatewhereclause=yes name=data_scarico dbname="Data_Scarico" )
- column=(type=char(12) update=yes updatewhereclause=yes key=yes name=barcode dbname="pallet.barcode" )
- column=(type=char(2) update=yes updatewhereclause=yes name=id_modo dbname="pallet.id_modo" )
+ column=(type=char(12) update=yes updatewhereclause=yes key=yes name=barcode dbname="pallet.barcode" dbalias=".barcode" )
+ column=(type=char(2) update=yes updatewhereclause=yes name=id_modo dbname="pallet.id_modo" dbalias=".id_modo" )
  column=(type=decimal(0) updatewhereclause=yes name=ciclo_entrata dbname="ciclo_entrata" )
  column=(type=decimal(0) updatewhereclause=yes name=ciclo_uscita dbname="ciclo_uscita" )
- column=(type=long update=yes updatewhereclause=yes name=giri dbname="pallet.giri" )
- column=(type=long update=yes updatewhereclause=yes name=carrier dbname="pallet.carrier" )
- column=(type=long updatewhereclause=yes name=mastertimer_entrata dbname="pallet.MasterTimer_Entrata" )
- column=(type=long updatewhereclause=yes name=mastertimer_uscita dbname="pallet.MasterTimer_Uscita" )
+ column=(type=long update=yes updatewhereclause=yes name=giri dbname="pallet.giri" dbalias=".giri" )
+ column=(type=long update=yes updatewhereclause=yes name=carrier dbname="pallet.carrier" dbalias=".carrier" )
+ column=(type=long updatewhereclause=yes name=mastertimer_entrata dbname="pallet.MasterTimer_Entrata" dbalias=".MasterTimer_Entrata" )
+ column=(type=long updatewhereclause=yes name=mastertimer_uscita dbname="pallet.MasterTimer_Uscita" dbalias=".MasterTimer_Uscita" )
  retrieve="SELECT CONVERT_TZ(pallet.Data_Carico,@@global.time_zone,'+00:00') as Data_Carico,   
          CONVERT_TZ(pallet.Data_Scarico,@@global.time_zone,'+00:00') as Data_Scarico,    
          pallet.barcode as barcode,   
@@ -36,16 +36,17 @@ table(column=(type=datetime update=yes updatewhereclause=yes name=data_carico db
            			  where 
                          t.giro in
                              (select min(t1.giro) from esposizioni t1 inner join pallet on pallet.barcode = t1.barcode 
-                              where  pallet.Data_Carico > :k_data_da 
+                              where pallet.Data_Carico > :k_data_da 
+-- ko (:k_work_order = 0 and pallet.Data_Carico > :k_data_da) or (:k_work_order > 0 and pallet.work_order = :k_work_order)
                                     and t1.barcode = t.barcode 
                                     and t1.MasterTimer_Entrata > 0) 
              ) t_esposizioni  on t_esposizioni.barcode = pallet.barcode
-   WHERE pallet.Data_Carico > :k_data_da 
+   WHERE (:k_work_order = 0 and pallet.Data_Carico > :k_data_da) or (:k_work_order > 0 and pallet.work_order = :k_work_order)
 -- and (pallet.Data_Scarico < '01.01.2000 00:00:00' or pallet.Data_Scarico is null)   
 --        and esposizioni.giro in 
 	order by pallet.Data_Carico asc
 	       , pallet.barcode 
- " update="pallet" updatewhere=0 updatekeyinplace=no arguments=(("k_data_da", date)) )
+ " update="pallet" updatewhere=0 updatekeyinplace=no arguments=(("k_data_da", date),("k_work_order", number)) )
 text(band=header alignment="2" text="Data Entrata" border="0" color="33554432" x="9" y="8" height="56" width="603" html.valueishtml="0"  name=data_carico_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Data Uscita" border="0" color="33554432" x="622" y="8" height="56" width="603" html.valueishtml="0"  name=data_scarico_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Barcode" border="0" color="33554432" x="1234" y="8" height="56" width="416" html.valueishtml="0"  name=barcode_t visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )

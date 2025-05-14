@@ -234,7 +234,7 @@ try
 
 	end if
 
-	kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(k_riga, "codice")
+	kst_tab_clienti_altro.id_cliente = tab_1.tabpage_1.dw_1.getitemnumber(1, "codice")
 	kiuf_clienti_tb_xxx.tb_update(kst_tab_clienti_altro)   // aggiorno campi altro
 	
 	//=== Aggiorna, se modificato, la TAB_4 CONTATTI
@@ -1202,7 +1202,7 @@ else
 	if tab_1.tabpage_6.st_6_retrieve.text <> k_codice_prec then
 
 //=== Parametri : cliente, articolo, sl-pt
-		tab_1.tabpage_6.dw_6.retrieve(k_codice, date(0), 0, '')
+		tab_1.tabpage_6.dw_6.retrieve(k_codice, date(0), 0, '', '')
 
 	end if
 	

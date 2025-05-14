@@ -156,7 +156,6 @@ public function long get_mrf_e1an (st_tab_m_r_f kst_tab_m_r_f) throws uo_excepti
 public function string get_codice_ipa (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function boolean if_cliente_pa (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function string get_tipo (st_tab_clienti kst_tab_clienti) throws uo_exception
-public function long get_codice_da_e1an (st_tab_clienti kst_tab_clienti) throws uo_exception
 public function long get_id_cliente_memo_max () throws uo_exception
 public function long get_codice_max () throws uo_exception
 public subroutine get_delivery (ref st_tab_clienti kst_tab_clienti) throws uo_exception
@@ -172,6 +171,8 @@ public function long get_clie_3_da_rag_soc (ref string a_rag_soc_10) throws uo_e
 public function string get_nome (ref st_tab_clienti ast_tab_clienti) throws uo_exception
 public function string get_nome_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception
 public function long get_codice_da_xyz (string k_codice, ref st_tab_clienti kst_tab_clienti) throws uo_exception
+public function long get_codice_da_e1an (ref st_tab_clienti kst_tab_clienti) throws uo_exception
+public function long get_codice_da_e1ancodrs (ref st_tab_clienti ast_tab_clienti) throws uo_exception
 end prototypes
 
 public function st_esito conta_p_iva (ref st_tab_clienti kst_tab_clienti);//====================================================================
@@ -5954,57 +5955,6 @@ return k_return
 
 end function
 
-public function long get_codice_da_e1an (st_tab_clienti kst_tab_clienti) throws uo_exception;//
-//--------------------------------------------------------------------
-//--- Torna CODICE da codice id E1 se ce n'è più di uno torna l'ultimo
-//--- 
-//--- Input: st_tab_clienti.e1an     
-//--- Output: 
-//--- rit: e1an
-//--- Ritorna ST_ESITO
-//--- 
-//--------------------------------------------------------------------
-long k_return
-string k_codice = ""
-st_esito kst_esito
-
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	kst_tab_clienti.codice = 0
-
-	if kst_tab_clienti.e1an > 0 then
-	
-	 	SELECT max(codice)
-       into :kst_tab_clienti.codice
-		 FROM clienti
-		 where clienti.e1an = :kst_tab_clienti.e1an
-			using sqlca;
-
-		
-		if sqlca.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in Lettura Clienti (da id E1: " + string(kst_tab_clienti.e1an) + ")  ~n~r:" + trim(sqlca.SQLErrText)
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
-			throw kguo_exception
-		else
-			if kst_tab_clienti.codice > 0 then
-				k_return = kst_tab_clienti.codice 
-			end if
-		end if
-	
-	end if
-
-return k_return 
-
-
-
-
-end function
-
 public function long get_id_cliente_memo_max () throws uo_exception;//
 //------------------------------------------------------------------
 //--- Torna l'ultimo ID  inserito 
@@ -6087,40 +6037,32 @@ return k_return
 
 end function
 
-public subroutine get_delivery (ref st_tab_clienti kst_tab_clienti) throws uo_exception;//
-//---------------------------------------------------------------------------------------------
-//--- Torna campi delivey (n. giorni e ora)
-//--- 
-//--- Inp: st_tab_clienti.codice
-//--- Out: st_tab_clienti delivery_dd_after, delivery_hour                  
-//--- Lancia errore UO_EXCEPTION
-//--- 
-//---------------------------------------------------------------------------------------------
-//
-st_esito kst_esito
-
+public subroutine get_delivery (ref st_tab_clienti kst_tab_clienti) throws uo_exception;/*
+	Torna campi delivey (n. giorni e ora)
+		Inp: st_tab_clienti.codice
+		Out: st_tab_clienti delivery_dd_after, delivery_hour                  
+*/
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-	SELECT coalesce(delivery_dd_after, 0)
-	           , coalesce(delivery_hour, convert(time, '00:00'))
-       into :kst_tab_clienti.delivery_dd_after
-		    ,:kst_tab_clienti.delivery_hour
-		 FROM clienti
-		 where codice = :kst_tab_clienti.codice
-			using kguo_sqlca_db_magazzino;
+	kguo_exception.inizializza(this.classname())
 	
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in ricerca dati Consegna in Anagrafica (codice " &
-					+ string(kst_tab_clienti.codice) + ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kguo_exception.inizializza()
-		kguo_exception.set_esito( kst_esito )
-		throw kguo_exception
+	if kst_tab_clienti.codice > 0 then
+	
+		SELECT coalesce(delivery_dd_after, 0)
+					  , coalesce(delivery_hour, convert(time, '00:00'))
+			 into :kst_tab_clienti.delivery_dd_after
+				  ,:kst_tab_clienti.delivery_hour
+			 FROM clienti
+			 where codice = :kst_tab_clienti.codice
+				using kguo_sqlca_db_magazzino;
+		
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+						"Errore in ricerca dati Consegna in Anagrafica (codice " + string(kst_tab_clienti.codice) + ") ")			
+			throw kguo_exception
+		end if
+		
 	end if
-
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -6702,6 +6644,87 @@ end if
 if isnull(kst_tab_clienti.codice) then kst_tab_clienti.codice = 0
 
 return kst_tab_clienti.codice
+
+
+end function
+
+public function long get_codice_da_e1an (ref st_tab_clienti kst_tab_clienti) throws uo_exception;/*
+Torna CODICE da codice id E1 se ce n'è più di uno torna l'ultimo
+	Inp: st_tab_clienti.e1an     
+	Out: 
+	rit: codice
+*/
+long k_return
+string k_codice = ""
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kst_tab_clienti.codice = 0
+
+	if kst_tab_clienti.e1an > 0 then
+	
+	 	SELECT max(codice)
+       into :kst_tab_clienti.codice
+		 FROM clienti
+		 where clienti.e1an = :kst_tab_clienti.e1an
+		using kguo_sqlca_db_magazzino;
+		
+		if sqlca.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore lettura del codice dal Cliente da Id di E1: " + string(kst_tab_clienti.e1an))			
+			throw kguo_exception
+		end if
+
+		if kst_tab_clienti.codice > 0 then
+			k_return = kst_tab_clienti.codice 
+		end if
+	
+	end if
+
+return k_return 
+
+
+
+
+end function
+
+public function long get_codice_da_e1ancodrs (ref st_tab_clienti ast_tab_clienti) throws uo_exception;/*
+Torna CODICE da codice anagrafico di E1 se ce n'è più di uno torna l'ultimo
+	Inp: st_tab_clienti.e1ancodrs     
+	Out: 
+	rit: codice
+*/
+long k_return
+string k_codice = ""
+
+
+	kguo_exception.inizializza(this.classname())
+
+	ast_tab_clienti.codice = 0
+	ast_tab_clienti.e1ancodrs = trim(ast_tab_clienti.e1ancodrs)
+
+	if ast_tab_clienti.e1ancodrs > " " then
+	
+	 	SELECT max(codice)
+       into :ast_tab_clienti.codice
+		 FROM clienti
+		 where clienti.e1ancodrs = :ast_tab_clienti.e1ancodrs
+		using kguo_sqlca_db_magazzino;
+		
+		if sqlca.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore lettura del codice applicativo dal Cliente dal codice di E1: " + ast_tab_clienti.e1ancodrs)			
+			throw kguo_exception
+		end if
+
+		if ast_tab_clienti.codice > 0 then
+			k_return = ast_tab_clienti.codice 
+		end if
+	
+	end if
+
+return k_return 
+
+
 
 
 end function

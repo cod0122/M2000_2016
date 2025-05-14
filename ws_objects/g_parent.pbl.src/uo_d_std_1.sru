@@ -66,8 +66,8 @@ private kuf_link_zoom kiuf_link_zoom
 public boolean ki_link_standard_sempre_possibile = false
 public boolean ki_link_standard_attivi = true
 public boolean ki_button_standard_attivi = true
-private string ki_last_dataobject
-private string ki_last_modalita
+public string ki_last_dataobject_x_zoom
+private string ki_last_modalita_x_zoom
 protected int ki_transparency
 protected boolean ki_border
 //private any ki_borderstyle //'any' non va bene
@@ -417,10 +417,11 @@ event u_personalizza_dw();//
 		try
 			u_set_riga_new()  // colora la riga se x_datins = dataoggi
 			
-			if ki_last_dataobject <> this.dataobject or ki_last_modalita <> ki_flag_modalita then //kkg_flag_modalita.modifica then
+			if ki_last_dataobject_x_zoom <> this.dataobject or ki_last_modalita_x_zoom <> ki_flag_modalita then //kkg_flag_modalita.modifica then
 				link_standard_imposta() // imposta i link graficamente
 	
-				ki_last_modalita = ki_flag_modalita
+				ki_last_dataobject_x_zoom = this.dataobject 
+				ki_last_modalita_x_zoom = ki_flag_modalita
 				
 			end if
 
@@ -2844,7 +2845,7 @@ this.transparency = 50
 
 event u_personalizza_dw()
 
-ki_last_dataobject = this.dataobject 
+//ki_last_dataobject_x_zoom = this.dataobject 
 
 kipointer_orig = setpointer(HourGlass!)
 
@@ -2938,9 +2939,9 @@ else
 	kist_esito.nome_oggetto = classname()
 end if
 if errorobject > " " then 
-	kist_esito.nome_oggetto += " Errorobject: " + trim(errorobject)
+	kist_esito.nome_oggetto += " ErrorObject: " + trim(errorobject)
 end if
-kist_esito.nome_oggetto += " (dataobject: " + this.dataobject + ")"
+kist_esito.nome_oggetto += " (dataObject: " + this.dataobject + ")"
 kist_esito.sqlsyntax = trim(errortext)
 kist_esito.sqlerrtext = trim(errortext) + " " + errorscript + " Line " + string(errorline)
 kist_esito.sqldbcode = errornumber

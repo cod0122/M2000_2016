@@ -3800,6 +3800,13 @@ kuf_stampe kuf1_stampe
 				 from base_vari;
 			k_pos_ini = 1
 			k_lungo = len(k_record)
+//--- ACO: note da aggiungere alle note da importare in ACO
+		case "aco_note_fisse"
+			select trim(coalesce(aco_note_fisse, ''))
+				 into :k_record
+				 from base_vari;
+			k_pos_ini = 1
+			k_lungo = len(k_record)
 			
 		case else
 			k_stato = "9"   // k_key valore non trovato
@@ -4034,6 +4041,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 	if isnull(kst_tab_base.smart_pickup_lots_sha_key) then kst_tab_base.smart_pickup_lots_sha_key = ""
 	if isnull(kst_tab_base.adobe_clientid) then kst_tab_base.adobe_clientid = ""
 	if isnull(kst_tab_base.adobe_secret) then kst_tab_base.adobe_secret = ""
+	if isnull(kst_tab_base.aco_note_fisse) then kst_tab_base.aco_note_fisse = ""
 	
 	k_rcn = 0
 	select count(*)
@@ -4051,6 +4059,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 					,smart_pickup_lots_sha_key = trim(:kst_tab_base.smart_pickup_lots_sha_key)
 					,adobe_clientid = trim(:kst_tab_base.adobe_clientid)
 					,adobe_secret = trim(:kst_tab_base.adobe_secret)
+					,aco_note_fisse = trim(:kst_tab_base.aco_note_fisse)
 					,x_datins = :kst_tab_base.x_datins
 					,x_utente = :kst_tab_base.x_utente  
 				WHERE id_base = :kst_tab_base.id_base 
@@ -4064,6 +4073,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  smart_pickup_lots_sha_key,   
 						  adobe_clientid,   
 						  adobe_secret,   
+						  aco_note_fisse,   
 						  x_datins,   
 						  x_utente )  
 				  VALUES ( :kst_tab_base.id_base,   
@@ -4071,6 +4081,7 @@ if len(trim(kst_tab_base.id_base)) > 0 then
 						  trim(:kst_tab_base.smart_pickup_lots_sha_key),   
 						  trim(:kst_tab_base.adobe_clientid),   
 						  trim(:kst_tab_base.adobe_secret),   
+						  trim(:kst_tab_base.aco_note_fisse),   
 						  :kst_tab_base.x_datins,   
 						  :kst_tab_base.x_utente )  
 				using kguo_sqlca_db_magazzino;

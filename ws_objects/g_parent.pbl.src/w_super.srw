@@ -20,6 +20,7 @@ integer toolbary = 1
 event type integer ue_menu ( string k_flag_richiesta )
 event u_open_preliminari ( )
 event u_open ( )
+event type string u_GetFocus ( )
 end type
 global w_super w_super
 
@@ -91,6 +92,19 @@ end event
 
 event u_open();//
 
+end event
+
+event type string u_GetFocus();//
+String ls_classname
+GraphicObject lgo_test
+
+lgo_test = GetFocus()
+
+If IsValid(lgo_test) Then
+   ls_classname = lgo_test.ClassName()
+end if
+
+return ls_classname
 end event
 
 public function boolean u_riopen (st_open_w kst_open_w) throws uo_exception;//---

@@ -334,7 +334,7 @@ end subroutine
 
 public function integer set_datilav_f5537001 (st_tab_e1_wo_f5537001 kst_tab_e1_wo_f5537001) throws uo_exception;//
 //------------------------------------------------------------------------------------
-//--- Registra i dati per E1 circa il n. barcode + giri +  padre (1=si, 0= no)
+//--- Registra i dati per E1 circa il n. barcode + giri + padre (1=si, 0= no)
 //--- 
 //--- inp: st_tab_e1_wo_f5537001 
 //--- out:
@@ -372,7 +372,7 @@ try
 		kds1_e1_wo_f5537001.setitem(1, "MPMMCU", kst_tab_e1_wo_f5537001.MPMMCU)		
 		kds1_e1_wo_f5537001.setitem(1, "MPAURST1", kst_tab_e1_wo_f5537001.MPAURST1) 	//Tipo CILCI (27002=fila 1 (A)/27005=fila 2 (B)/27006=misti (C))
 		kds1_e1_wo_f5537001.setitem(1, "MPMATH06", kst_tab_e1_wo_f5537001.MPMATH06)	//numero di giri
-		kds1_e1_wo_f5537001.setitem(1, "MPMATH07", kst_tab_e1_wo_f5537001.MPMATH07)	//tempi ciclo
+		kds1_e1_wo_f5537001.setitem(1, "MPMATH07", kst_tab_e1_wo_f5537001.MPMATH07)	//tempi ciclo in secondi di permanenza su una stazione
 		kds1_e1_wo_f5537001.setitem(1, "MPMATH08", kst_tab_e1_wo_f5537001.MPMATH08)	//numero padri (tutti, compreso quelli senza figli)
 		
 		k_righe = kds1_e1_wo_f5537001.u_update()

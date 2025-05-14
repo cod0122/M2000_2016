@@ -93,8 +93,11 @@ table(column=(type=long updatewhereclause=yes identity=yes name=id_cliente dbnam
 		               inner join clienti on meca.clie_3 = clienti.codice
          				inner join s_armo_n on meca.id = s_armo_n.id_meca
          				inner join clienti_fatt on meca.clie_3 = clienti_fatt.id_cliente
+         				inner join certif on meca.id = certif.id_meca
    WHERE (:k_id_cliente = 0 OR  meca.clie_3 = :k_id_cliente) 
-         and meca.data_ent between CAST(CONCAT(:k_data_ent_ini, ' 00:00:01') AS DATETIME) and CAST(CONCAT(:k_data_ent_fin, ' 23:59:59') AS DATETIME)
+         and (:k_tipodata = 'I' and meca.data_ent between CAST(CONCAT(:k_data_ent_ini, ' 00:00:01') AS DATETIME) and CAST(CONCAT(:k_data_ent_fin, ' 23:59:59') AS DATETIME)
+         		or (:k_tipodata = 'R' and certif.data  between :k_data_ent_ini and :k_data_ent_fin)
+             )
 group by
        clienti.codice
        ,clienti.e1ancodrs
@@ -102,7 +105,7 @@ group by
 	   ,clienti_fatt.impon_minimo
 	   ,wm_pklist_camion.dataarrivo
 	   ,wm_pklist_camion.seqcamion
-	   ,wm_pklist_camion.id_cliente" arguments=(("k_id_cliente", number),("k_data_ent_ini", date),("k_data_ent_fin", date))  sort="meca_data_ent D rag_soc_10 A " )
+	   ,wm_pklist_camion.id_cliente" arguments=(("k_id_cliente", number),("k_tipodata", string),("k_data_ent_ini", date),("k_data_ent_fin", date))  sort="meca_data_ent D rag_soc_10 A " )
 text(band=header alignment="2" text="Delta da
 fatt. €" border="0" color="32896" x="6203" y="8" height="112" width="315" html.valueishtml="0"  name=t_1 visible="1"  font.face="Verdana" font.height="-9" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Minimo di

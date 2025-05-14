@@ -73,7 +73,6 @@ public subroutine get_id_contratto (ref st_tab_contratti ast_tab_contratti) thro
 public function long if_esiste_co_x_mc_co (readonly st_tab_contratti kst_tab_contratti) throws uo_exception
 public function date get_data_scad (ref st_tab_contratti ast_tab_contratti) throws uo_exception
 public function date get_sc_cf_data_scad (ref st_tab_contratti ast_tab_contratti) throws uo_exception
-public function long get_contratto_da_cf_co (ref st_tab_contratti ast_tab_contratti) throws uo_exception
 public function st_esito select_riga (ref st_tab_contratti kst_tab_contratti)
 public function string get_flg_fatt_dopo_valid (readonly st_tab_contratti ast_tab_contratti) throws uo_exception
 public function string get_flg_acconto (readonly st_tab_contratti ast_tab_contratti) throws uo_exception
@@ -87,6 +86,7 @@ public subroutine set_data_scad (st_tab_contratti ast_tab_contratti) throws uo_e
 public function boolean if_esiste (st_tab_contratti kst_tab_contratti) throws uo_exception
 public function st_esito anteprima_l (ref datastore kdw_anteprima, st_tab_contratti kst_tab_contratti) throws uo_exception
 public function string get_sl_pt (ref st_tab_contratti ast_tab_contratti) throws uo_exception
+public function long get_contratto_da_cf_co_cli (ref st_tab_contratti ast_tab_contratti) throws uo_exception
 end prototypes
 
 public function string tb_delete (long k_codice);//
@@ -2018,85 +2018,6 @@ return k_return
 
 end function
 
-public function long get_contratto_da_cf_co (ref st_tab_contratti ast_tab_contratti) throws uo_exception;//
-//--- Leggo codice CONTRATTO da SC_CF e MC_CO e DATA_SCAD = data in cui in contratto non deve essere scaduto (se non c'e' nulla mette data-oggi)
-//---
-//--- st_tab_contratti.sc_cf  e  mc_co oppure uno dei due
-//--- out:
-//--- rit: codice contratto
-//
-long k_return=0, k_righe=0, k_rowfind
-st_esito kst_esito
-datastore kds_ds_contratti_x_cf_co_scad
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
-	kguo_exception.inizializza()
-
-	if isnull(ast_tab_contratti.sc_cf) then ast_tab_contratti.sc_cf = ""
-	if isnull(ast_tab_contratti.mc_co) then ast_tab_contratti.mc_co = ""
-	if ast_tab_contratti.data_scad > kkg.data_zero then
-	else
-		ast_tab_contratti.data_scad = kguo_g.get_dataoggi( )
-	end if
-	
-	kds_ds_contratti_x_cf_co_scad = create datastore  
-	kds_ds_contratti_x_cf_co_scad.dataobject = "ds_contratti_x_cf_co_scad"
-	kds_ds_contratti_x_cf_co_scad.settransobject(kguo_sqlca_db_magazzino)
-	//informix k_righe = kds_ds_contratti_x_cf_co_scad.retrieve(ast_tab_contratti.SC_CF, ast_tab_contratti.MC_CO, ast_tab_contratti.data_scad)
-	k_righe = kds_ds_contratti_x_cf_co_scad.retrieve(ast_tab_contratti.data_scad, ast_tab_contratti.MC_CO)
-//--- piglia la riga Contratto come richiesto se indicato anche il SC_CF
-	if k_righe > 0 then
-		if trim(ast_tab_contratti.SC_CF) > " " then
-		else
-			ast_tab_contratti.SC_CF = " "
-		end if
-		k_righe = kds_ds_contratti_x_cf_co_scad.find( "sc_cf = '" + trim(ast_tab_contratti.SC_CF) + "' ", 1, k_righe)
-	end if
-
-//    select distinct contratti.CODICE
-//	      into :ast_tab_contratti.codice
-//         from contratti inner join listino on CONTRATTI.CODICE = LISTINO.CONTRATTO and LISTINO.ATTIVO = "S"    
-//         where 
-//            (
-//             (contratti.SC_CF = :ast_tab_contratti.SC_CF and :ast_tab_contratti.SC_CF > " " and :ast_tab_contratti.MC_CO = " ")
-//             or
-//             (contratti.SC_CF = :ast_tab_contratti.SC_CF and contratti.MC_CO = :ast_tab_contratti.MC_CO)
-//             or (:ast_tab_contratti.SC_CF = " " 
-//                 and (contratti.SC_CF is null or contratti.SC_CF = "")
-//                 and contratti.MC_CO = :ast_tab_contratti.MC_CO
-//                )
-//            ) 
-//            and contratti.data_scad >= :ast_tab_contratti.data_scad 
-//            and contratti.data <= :ast_tab_contratti.data_scad  
-//		using kguo_sqlca_db_magazzino;
-	
-//	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-	if k_righe < 0 then 
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Lettura in lettura Contratto, cercato Capitolato " + string(ast_tab_contratti.SC_CF) + " e Commerciale " + string(ast_tab_contratti.MC_CO) &
-	//						+ "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
-		
-	end if
-	
-//--- piglia la riga trovata con o senza CF
-	if k_righe > 0 then
-		ast_tab_contratti.codice = kds_ds_contratti_x_cf_co_scad.getitemnumber( k_righe, "codice")
-		if ast_tab_contratti.codice > 0 then
-			k_return = ast_tab_contratti.codice
-		end if
-	end if
-	
-return k_return
-
-
-end function
-
 public function st_esito select_riga (ref st_tab_contratti kst_tab_contratti);//
 //--- Leggo Contratto specifico
 //
@@ -2807,6 +2728,73 @@ if ast_tab_contratti.codice > 0 then
 	
 end if
 
+return k_return
+
+
+end function
+
+public function long get_contratto_da_cf_co_cli (ref st_tab_contratti ast_tab_contratti) throws uo_exception;/*
+Leggo codice CONTRATTO da CF e CO e/o CLIENTE e/o DATA_SCAD 
+	inp: st_tab_contratti.sc_cf  
+	     mc_co oppure uno dei due
+		  cod_cli (che può essere a zero x qualunque, oppure il cliente del Listino o quello del Contratto)
+		  e/o data_scad (= data in cui il contratto non deve essere scaduto se non c'e' nulla mette data-oggi)
+	rit: codice contratto
+*/
+long k_return=0, k_righe=0, k_rowfind
+uo_ds_std_1 kds_ds_contratti_x_cf_co_scad
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if isnull(ast_tab_contratti.sc_cf) then ast_tab_contratti.sc_cf = ""
+	if isnull(ast_tab_contratti.mc_co) then ast_tab_contratti.mc_co = ""
+	if isnull(ast_tab_contratti.cod_cli) then ast_tab_contratti.cod_cli = 0
+	if ast_tab_contratti.data_scad > kkg.data_zero then
+	else
+		ast_tab_contratti.data_scad = kguo_g.get_dataoggi( )
+	end if
+	
+	kds_ds_contratti_x_cf_co_scad = create uo_ds_std_1  
+	kds_ds_contratti_x_cf_co_scad.dataobject = "ds_contratti_x_cf_co_scad"
+	kds_ds_contratti_x_cf_co_scad.settransobject(kguo_sqlca_db_magazzino)
+
+	k_righe = kds_ds_contratti_x_cf_co_scad.retrieve(ast_tab_contratti.data_scad, ast_tab_contratti.MC_CO, ast_tab_contratti.cod_cli)
+	if k_righe < 0 then
+		kguo_exception.set_st_esito_err_ds(kds_ds_contratti_x_cf_co_scad, &
+					"Errore in lettura Contratto, dati cercati Capitolato = '" + trim(ast_tab_contratti.SC_CF) + "' " &
+					+ "e Conferma Ordine = '" + ast_tab_contratti.mc_co + "' ")
+		throw kguo_exception
+	end if
+	
+//--- piglia la riga Contratto come richiesto se indicato anche il SC_CF
+	if k_righe > 0 then
+		if trim(ast_tab_contratti.SC_CF) > " " then
+		else
+			ast_tab_contratti.SC_CF = " "
+		end if
+		k_righe = kds_ds_contratti_x_cf_co_scad.find( "sc_cf = '" + trim(ast_tab_contratti.SC_CF) + "' ", 1, k_righe)
+	end if
+		
+//--- piglia la riga trovata con o senza CF
+	if k_righe > 0 then
+		ast_tab_contratti.codice = kds_ds_contratti_x_cf_co_scad.getitemnumber( k_righe, "codice")
+		if ast_tab_contratti.codice > 0 then
+			k_return = ast_tab_contratti.codice
+		end if
+	end if
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kds_ds_contratti_x_cf_co_scad) then destroy kds_ds_contratti_x_cf_co_scad
+
+end try
+	
 return k_return
 
 

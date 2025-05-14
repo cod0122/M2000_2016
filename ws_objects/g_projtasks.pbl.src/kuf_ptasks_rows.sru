@@ -20,7 +20,6 @@ public subroutine if_isnull (ref st_tab_ptasks_rows ast_tab_ptasks_rows)
 private function st_esito tb_update_json (ref st_tab_ptasks_rows kst_tab_ptasks_rows) throws uo_exception
 public function st_esito tb_insert (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 public function long get_id_ptasks_row_max (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
-public function st_esito tb_update (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 public function long get_id_ptasks_row (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 private subroutine tb_update_json_field (st_tab_ptasks_rows ast_tab_ptasks_rows, ref string a_json_key, string a_json_val) throws uo_exception
 public subroutine set_valid_modaccompdata (ref st_tab_ptasks_rows kst_tab_ptasks_rows) throws uo_exception
@@ -30,6 +29,8 @@ public function long get_cs_invoicen_last_by_base () throws uo_exception
 public subroutine set_cs_invoicen_last_in_base (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 public subroutine set_valid_modaccompn_last_in_base (ref st_tab_ptasks_rows ast_tab_ptasks_rows, integer a_anno_modulo) throws uo_exception
 public function integer get_n_task_dsv (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
+public function st_esito tb_update (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
+public function boolean tb_delete_x_id_ptasks_type (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception
 end prototypes
 
 public subroutine _readme ();//
@@ -37,34 +38,25 @@ public subroutine _readme ();//
 //
 end subroutine
 
-public function boolean tb_delete_x_id_ptask (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;//
-//------------------------------------------------------------------
-//--- Cancella le Righe Attività del Progetto (ptasks_rows)
-//--- 
-//--- inp: st_tab_ptasks_rows.id_ptask
-//--- rit: true = rimosso
-//--- 
-//--- 
-//------------------------------------------------------------------
+public function boolean tb_delete_x_id_ptask (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
+Cancella le Righe Attività del Progetto (ptasks_rows)
+	inp: st_tab_ptasks_rows.id_ptask
+	rit: true = rimosso
+*/
 boolean k_return
-st_esito kst_esito
-
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	delete from ptasks_rows
 		where id_ptask = :ast_tab_ptasks_rows.id_ptask
 		using kguo_sqlca_db_magazzino;
 
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Errore in Cancellazione di tutte le Attività del Progetto n. " &
-						+ string(ast_tab_ptasks_rows.id_ptask) + ": " &
-						+ trim(kguo_sqlca_db_magazzino.SQLErrText)
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito(kst_esito)							
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+								 "Errore in Cancellazione di tutte le Attività del Progetto n. " &
+								+ string(ast_tab_ptasks_rows.id_ptask))
 		throw kguo_exception
 	end if
 
@@ -468,82 +460,6 @@ return k_return
 
 end function
 
-public function st_esito tb_update (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;//
-//====================================================================
-//=== Update the row in  ptasks_rows 
-//=== 
-//=== Ritorna ST_ESITO
-//===           	
-//====================================================================
-//
-st_esito kst_esito
-st_tab_ptasks_rows kst_tab_ptasks_rows
-
-
-	try
-		kst_esito = kguo_exception.inizializza(this.classname())
-	
-//--- controlla se utente autorizzato alla funzione in atto
-	//	if_sicurezza(kkg_flag_modalita.modifica )
-	
-		if ast_tab_ptasks_rows.id_ptasks_row > 0 then
-	
-			if_isnull(ast_tab_ptasks_rows)
-
-			ast_tab_ptasks_rows.x_datins = kGuf_data_base.prendi_x_datins()
-			ast_tab_ptasks_rows.x_utente = kGuf_data_base.prendi_x_utente()
-
-//--- aggiorna i dati del Contratto (JSON)
-			kst_tab_ptasks_rows = ast_tab_ptasks_rows
-			kst_tab_ptasks_rows.st_tab_g_0.esegui_commit = "N"
-			tb_update_json(kst_tab_ptasks_rows)
-			
-			kst_tab_ptasks_rows.st_tab_g_0.esegui_commit = ast_tab_ptasks_rows.st_tab_g_0.esegui_commit
-			ast_tab_ptasks_rows = kst_tab_ptasks_rows
-
-//--- aggiorna altri dati non JSON 
-			update ptasks_rows
-					 set 
-					  	id_ptask = :ast_tab_ptasks_rows.id_ptask
-					   , id_ptasks_type = :ast_tab_ptasks_rows.id_ptasks_type
-					 	, x_datins = :ast_tab_ptasks_rows.x_datins
-						, x_utente = :ast_tab_ptasks_rows.x_utente
-					where id_ptasks_row = :ast_tab_ptasks_rows.id_ptasks_row
-					using kguo_sqlca_db_magazzino ;
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Fallito Aggiornamento 'Dati Attività di dettaglio Progetto'. Id riga: " + string(ast_tab_ptasks_rows.id_ptasks_row) &
-								+ ", dati vari e di ultimo aggiornamento (ptasks_rows): " + trim(kguo_sqlca_db_magazzino.SQLErrText)
-				kst_esito.esito = kkg_esito.db_ko
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
-
-			if ast_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_commit( )
-			end if
-			
-		end if
-		
-	catch	(uo_exception kuo_exception)
-		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
-			if ast_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
-				kguo_sqlca_db_magazzino.db_rollback( )
-			end if
-			kguo_exception.scrivi_log( )
-		end if
-		throw kuo_exception
-	
-	finally
-	
-	end try
-		
-
-
-return kst_esito
-
-end function
-
 public function long get_id_ptasks_row (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
 Torna id_ptasks_row per il Progetto id_ptasks inserito 
 	inp: ID_PTASK + ID_PTASKS_TYPE
@@ -928,6 +844,115 @@ kuf_ptasks kuf1_ptasks
 
 	if isnull(k_return) then k_return = 0
 
+
+return k_return
+
+end function
+
+public function st_esito tb_update (ref st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
+ Update the row in  ptasks_rows 
+    inp: st_tab_ptasks_rows.id_ptasks_row, *
+	 rit: ST_ESITO
+*/           	
+st_tab_ptasks_rows kst_tab_ptasks_rows
+
+
+	try
+		kguo_exception.inizializza(this.classname())
+	
+//--- controlla se utente autorizzato alla funzione in atto
+	//	if_sicurezza(kkg_flag_modalita.modifica )
+	
+		if ast_tab_ptasks_rows.id_ptasks_row > 0 then
+	
+			if_isnull(ast_tab_ptasks_rows)
+
+			ast_tab_ptasks_rows.x_datins = kGuf_data_base.prendi_x_datins()
+			ast_tab_ptasks_rows.x_utente = kGuf_data_base.prendi_x_utente()
+
+//--- aggiorna i dati JSON
+			kst_tab_ptasks_rows = ast_tab_ptasks_rows
+			kst_tab_ptasks_rows.st_tab_g_0.esegui_commit = "N"
+			tb_update_json(kst_tab_ptasks_rows)
+			
+			kst_tab_ptasks_rows.st_tab_g_0.esegui_commit = ast_tab_ptasks_rows.st_tab_g_0.esegui_commit
+			ast_tab_ptasks_rows = kst_tab_ptasks_rows
+
+//--- aggiorna dati chiave dell tabella 
+			update ptasks_rows
+					 set 
+					  	id_ptask = :ast_tab_ptasks_rows.id_ptask
+					   , id_ptasks_type = :ast_tab_ptasks_rows.id_ptasks_type
+					 	, x_datins = :ast_tab_ptasks_rows.x_datins
+						, x_utente = :ast_tab_ptasks_rows.x_utente
+					where id_ptasks_row = :ast_tab_ptasks_rows.id_ptasks_row
+					using kguo_sqlca_db_magazzino ;
+			if kguo_sqlca_db_magazzino.sqlcode < 0 then
+				kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+								"Fallito Aggiornamento 'Dati Attività di dettaglio Progetto'. Id riga: " + string(ast_tab_ptasks_rows.id_ptasks_row) &
+								+ ", dati vari e di ultimo aggiornamento (ptasks_rows). ")
+				throw kguo_exception
+			end if
+
+			if ast_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_commit( )
+			end if
+			
+		end if
+		
+	catch	(uo_exception kuo_exception)
+		if kuo_exception.kist_esito.esito = kkg_esito.db_ko then
+			if ast_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
+				kguo_sqlca_db_magazzino.db_rollback( )
+			end if
+			kguo_exception.scrivi_log( )
+		end if
+		throw kuo_exception
+	
+	finally
+	
+	end try
+	
+
+return kguo_exception.kist_esito
+
+end function
+
+public function boolean tb_delete_x_id_ptasks_type (st_tab_ptasks_rows ast_tab_ptasks_rows) throws uo_exception;/*
+Cancella le Righe Attività del Progettox il tipo Attività indicato (ptasks_rows)
+	inp: st_tab_ptasks_rows.id_ptask, id_ptasks_type
+	rit: true = rimosso
+*/
+boolean k_return
+
+
+try
+	kguo_exception.inizializza(this.classname())
+
+	delete from ptasks_rows
+		where id_ptask = :ast_tab_ptasks_rows.id_ptask
+		        and id_ptasks_type = :ast_tab_ptasks_rows.id_ptasks_type
+		using kguo_sqlca_db_magazzino;
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+								 "Errore in Cancellazione dei Tipi Attività '" + string(ast_tab_ptasks_rows.id_ptasks_type) + "' dal Progetto n. " &
+								+ string(ast_tab_ptasks_rows.id_ptask))
+		throw kguo_exception
+	end if
+
+	if ast_tab_ptasks_rows.st_tab_g_0.esegui_commit <> "N" or isnull(ast_tab_ptasks_rows.st_tab_g_0.esegui_commit) then
+		kguo_sqlca_db_magazzino.db_commit( )
+	end if
+
+	k_return = true
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	
+end try
 
 return k_return
 

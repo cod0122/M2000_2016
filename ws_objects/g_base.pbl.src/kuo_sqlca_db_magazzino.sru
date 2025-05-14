@@ -38,16 +38,12 @@ protected subroutine x_db_profilo () throws uo_exception;//
 //
 string k_file_ini 
 boolean k_fileExist 
-st_esito kst_esito 
 pointer oldpointer  // Declares a pointer variable
 uo_exception kuo_exception
 
 
-
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kuo_exception = create uo_exception
+	kuo_exception.inizializza(this.classname())
 
 //=== Puntatore Cursore da attesa.....
 	oldpointer = SetPointer(HourGlass!)
@@ -62,13 +58,9 @@ uo_exception kuo_exception
 		k_file_ini = kGuf_data_base.get_nome_profile_base()  //trim(KG_PATH_PROCEDURA + KKg_NOME_PROFILE.BASE)
 		if k_file_ini > " " then
 		else 
-			kst_esito.esito = kkg_esito.not_fnd
-			kst_esito.sqlcode = 0
-			kst_esito.SQLErrText = "Attenzione, manca il nome del file dati di accesso al DB. Operazione interrotta "&
+			kuo_exception.kist_esito.esito = kkg_esito.not_fnd
+			kuo_exception.kist_esito.SQLErrText = "Attenzione, manca il nome del file dati di accesso al DB. Operazione interrotta "&
 							+ kkg.acapo +"Il problema dovrebbe risolversi riavviando il programma altrimenti avvertire il tecnico." 
-			kuo_exception = create uo_exception
-			kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_dati_insufficienti )
-			kuo_exception.set_esito( kst_esito )
 			destroy kuo_exception			
 		end if
 	
@@ -77,67 +69,40 @@ uo_exception kuo_exception
 		
 	end try
 	
-//	u_if_profile_base_exists()
-//	k_fileExist = fileexists(k_file_ini)
-//	if not k_fileExist then
-//		kst_esito.esito = kkg_esito.not_fnd
-//		kst_esito.sqlcode = 0
-//		kst_esito.SQLErrText = "Attenzione, non trovo il file dati di accesso al DB '" + trim(KG_PATH_PROCEDURA + KKg_NOME_PROFILE.BASE) + "'.~n~r "&
-//				+ "Operazione interrotta. Riprovare a riavviare il programma o avvertire il tecnico." 
-//		kuo_exception = create uo_exception
-//		kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_dati_anomali )
-//		kuo_exception.set_esito( kst_esito )
-//		destroy kuo_exception			
-//	end if
-
-
 //--- Recupera le info dal CONFDB.INI
-	this.DBMS = profilestring (k_file_ini, "Database", "DBMS", "MSOLEDBSQL SQL Server")  //"SNC SQL Native Client(OLE DB)")
-	this.DBParm = kiuf_conf_access.kist_conf_access.dbparm
-	this.LogId = profilestring (k_file_ini, "Database", "LogId", "M2000")
-	this.LogPass = profilestring (k_file_ini, "Database", "LogPass", "") //"start") 
-	this.lock = profilestring (k_file_ini, "Database", "Lock", "RU")  // lock il default Read Uncommited
-	if this.LogPass > " " then
-	else
-		this.LogPass = kiuf_conf_access.kist_conf_access.pwd
-	end if
-	this.ServerName = kguo_path.get_server_name( ) //profilestring (k_file_ini, "Database", "ServerName", "")
+	this.DBMS = profilestring (k_file_ini, "Database", "DBMS", "")
+	if this.DBMS > " " then
+		this.DBParm = kiuf_conf_access.kist_conf_access.dbparm
+		this.LogId = profilestring (k_file_ini, "Database", "LogId", "") 		//"M2000")
+		if this.LogId > " " then
+		else
+			this.LogId = trim(kiuf_conf_access.kist_conf_access.uid)
+		end if
+		this.LogPass = profilestring (k_file_ini, "Database", "LogPass", "") //"start") 
+		if this.LogPass > " " then
+		else
+			this.LogPass = kiuf_conf_access.kist_conf_access.pwd
+		end if
+		this.lock = profilestring (k_file_ini, "Database", "Lock", "RU")  // lock il default Read Uncommited
+		this.ServerName = kguo_path.get_server_name( ) //profilestring (k_file_ini, "Database", "ServerName", "")
 	
-//	if (profilestring (k_file_ini, "Database", "AutoCommit", "false")) = "true" then
-	if kiuf_conf_access.kist_conf_access.AutoCommit = "true" then
-		this.AutoCommit = true
-	else
-		this.AutoCommit = false
+		if kiuf_conf_access.kist_conf_access.AutoCommit = "true" then
+			this.AutoCommit = true
+		else
+			this.AutoCommit = false
+		end if
 	end if
-
-// Profile db_STERIGENICS270_TEST
-//this.DBMS = "SNC SQL Native Client(OLE DB)"
-//this.LogPass = ""
-//this.ServerName = "ALBERTOT"
-//this.LogId = "alberto"
-//this.Lock = "SS"
-//this.AutoCommit = False
-//this.DBParm = "Provider='SQLNCLI11',Database='sterigenics270',TrustedConnection=1"
 	
-
-	if trim(this.dbms) = "nessuno" or trim(this.dbparm) = "" then
-
-		kst_esito.esito = kkg_esito.not_fnd
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Errore. "&
+	if this.DBMS > " " then
+	else
+		kuo_exception.kist_esito.esito = kkg_esito.not_fnd
+		kuo_exception.kist_esito.sqlcode = 0
+		kuo_exception.kist_esito.SQLErrText = "Errore. "&
 				+ "Impossibile stabilire la connessione con il DB." + kkg.acapo + "(DbParm: '" &
 				+ trim(this.dbparm) + "')" + kkg.acapo + "Configurazione cercata nel file:" + kkg.acapo &
 				+ kiuf_conf_access.kist_conf_access.file_name_configuration + " "
-
-		kuo_exception = create uo_exception
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_db_ko)
-		kuo_exception.set_esito( kst_esito )
 		throw kuo_exception			
-
 	end if
-
-
-
 
 
 	
@@ -280,8 +245,8 @@ st_esito kst_esito
 //		k_sql_d = "truncate table " + trim(k_table) + "  " 
 //		k_sqlcode = db_sql_execute(k_sql_d, true, false)
 //		if k_sqlcode <> 0 then
-//			k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
-//			k_sqlcode = db_sql_execute(k_sql, true, false) 
+//			k_sql_d = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
+//			k_sqlcode = db_sql_execute(k_sql_d, true, false) 
 //		end if
 //	end if
 
@@ -290,8 +255,8 @@ st_esito kst_esito
 		k_sql_d = "drop table if exists " + trim(k_table) + "  " 
 		k_sqlcode = db_sql_execute(k_sql_d, true, false)
 
-		k_sql = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
-		db_sql_execute(k_sql, true, true)
+		k_sql_d = " CREATE TABLE  " + trim(k_table) + "  (	" + k_sql + " ) "
+		db_sql_execute(k_sql_d, true, true)
 		
 //	end if
 	

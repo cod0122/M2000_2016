@@ -11,6 +11,7 @@ global kds_current_datetime kds_current_datetime
 
 forward prototypes
 public function datetime u_get_current ()
+public function datetime u_get_current_italy ()
 end prototypes
 
 public function datetime u_get_current ();//
@@ -20,6 +21,20 @@ datetime k_return
 	if this.settrans(kguo_sqlca_db_magazzino) > 0 then
 		if this.retrieve() > 0 then
 			k_return = this.getitemdatetime(1, "k_current")	
+		end if
+	end if	
+
+return k_return 
+
+end function
+
+public function datetime u_get_current_italy ();//
+datetime k_return
+
+
+	if this.settrans(kguo_sqlca_db_magazzino) > 0 then
+		if this.retrieve() > 0 then
+			k_return = this.getitemdatetime(1, "k_current_italy")	
 		end if
 	end if	
 

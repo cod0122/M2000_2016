@@ -4793,7 +4793,7 @@ st_esito kst_esito
 	 + "	and  barcode.causale =  '" + trim(ki_causale_non_trattare ) + "' " &
 	 + "	   group by barcode.id_meca, barcode.id_armo  " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
 		kguo_exception.inizializza(this.classname())
@@ -4855,65 +4855,66 @@ return k_return
 
 end function
 
-private function long get_imptime_sec_x_id_meca_fila (st_tab_barcode kst_tab_barcode, integer k_nfila) throws uo_exception;//
-//====================================================================
-//=== Estrae il totale Lotto dei tempi impiegati in lav dei barcode
-//=== 
-//=== Input: id_meca + fila (1 o 2)
-//=== Rit: imptime_second di un singolo barcode (modifica del 25-10-2017 MALAGUTI)
-//===             
-//===             
-//=== Lancia un ECCEZIONE se Errore grave
-//====================================================================
-//
+private function long get_imptime_sec_x_id_meca_fila (st_tab_barcode kst_tab_barcode, integer k_nfila) throws uo_exception;/*
+	Estrae il totale Lotto dei tempi impiegati in lav dei barcode
+		Inp: id_meca + fila (1 o 2) or 0 per G3
+		Rit: imptime_second di un singolo barcode (modifica del 25-10-2017 MALAGUTI)
+*/
 long k_return
 kuf_base kuf1_base
-st_esito kst_esito
 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	if kst_tab_barcode.id_meca > 0 then
-		if k_nfila = 1 then
-			// calcola tempi solo per fila 1
-			select sum(imptime_second) / count(id_meca)
-				into
-					 :kst_tab_barcode.imptime_second
-				from barcode
-				where id_meca = :kst_tab_barcode.id_meca 
-					 and imptime_second > 0
-					 and (barcode.lav_fila_1 + barcode.lav_fila_1p) > 0
-				using kguo_sqlca_db_magazzino;
-		else
-			// calcola tempi solo per fila 2
-			select sum(imptime_second) / count(id_meca)
-				into
-					 :kst_tab_barcode.imptime_second
-				from barcode
-				where id_meca = :kst_tab_barcode.id_meca 
-					 and imptime_second > 0
-					 and (barcode.lav_fila_2 + barcode.lav_fila_2p) > 0
-				using kguo_sqlca_db_magazzino;
-		end if
 	else
-		kst_esito.sqlcode = 0
-		kst_esito.SQLErrText = "Non effettuato il calcolo totale Tempo Impiegato per il trattamento del Lotto su Barcode, manca ID Lotto"
-		kst_esito.esito = kkg_esito.db_ko
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.kist_esito.SQLErrText = "Non effettuato il calcolo del Tempo Impiegato per il trattamento per Barcode manca id del Lotto. "
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.set_esito (kguo_exception.kist_esito)
 		throw kguo_exception
 	end if			
+			
+	if k_nfila = 1 then
+		// calcola tempi solo per fila 1
+		select sum(imptime_second) / count(id_meca)
+			into
+				 :kst_tab_barcode.imptime_second
+			from barcode
+			where id_meca = :kst_tab_barcode.id_meca 
+				 and imptime_second > 0
+				 and (barcode.lav_fila_1 + barcode.lav_fila_1p) > 0
+			using kguo_sqlca_db_magazzino;
+	elseif k_nfila = 2 then
+		// calcola tempi solo per fila 2
+		select sum(imptime_second) / count(id_meca)
+			into
+				 :kst_tab_barcode.imptime_second
+			from barcode
+			where id_meca = :kst_tab_barcode.id_meca 
+				 and imptime_second > 0
+				 and (barcode.lav_fila_2 + barcode.lav_fila_2p) > 0
+			using kguo_sqlca_db_magazzino;
+	elseif k_nfila = 0 then
+		// calcola tempi NGIRI G3 
+		select sum(imptime_second) / count(id_meca) 
+			into
+				 :kst_tab_barcode.imptime_second
+			from barcode
+			where id_meca = :kst_tab_barcode.id_meca 
+				 and imptime_second > 0
+				 and (barcode.g3lav_ngiri) > 0
+			using kguo_sqlca_db_magazzino;
+	end if
+
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+					"Errore in lettura del Tempo di Lavorazione per Barcode del Lotto Id  " + string(kst_tab_barcode.id_meca))
+		throw kguo_exception
+	end if
 
 	if kguo_sqlca_db_magazzino.sqlcode = 0 then
 		if isnull(kst_tab_barcode.imptime_second) then kst_tab_barcode.imptime_second = 0
 		k_return = kst_tab_barcode.imptime_second 
-	else
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in lettura Tempo totale Impiegato per il trattamento del Lotto su Barcode (Id Lotto=" + string(kst_tab_barcode.id_meca)+ ")~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito (kst_esito)
-			throw kguo_exception
-		end if
 	end if
 
 return k_return
@@ -4921,25 +4922,19 @@ return k_return
 
 end function
 
-public function long get_durata_lav_xfila (readonly st_tab_barcode kst_tab_barcode, integer k_nfila) throws uo_exception;//
-//---------------------------------------------------------------------------------------------
-//--- Calcola in secondi la durata di Trattamento del Lotto di un singolo barcode x fila 1 o 2
-//--- 
-//--- Inp: st_tab_barcode con id_meca + n. fila (1 o 2)
-//--- Out: durata in secondi 
-//---             
-//---             
-//--- Lancia un ECCEZIONE se Errore grave
-//---------------------------------------------------------------------------------------------
-//
+public function long get_durata_lav_xfila (readonly st_tab_barcode kst_tab_barcode, integer k_nfila) throws uo_exception;/*
+	Calcola in secondi la durata di Trattamento del Lotto di un singolo barcode
+		x G2 (fila 1 o 2) x G3 
+		Inp: st_tab_barcode con id_meca + fila 1 o 2 = G2  se  0 = G3
+		Out: durata in secondi del trattamento x un barcode
+*/
 long k_return = 0
 long k_secondi_durata
-st_esito kst_esito
 
 
 try
 	
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	k_secondi_durata = get_imptime_sec_x_id_meca_fila(kst_tab_barcode, k_nfila)
 	
@@ -4950,10 +4945,9 @@ try
 	end if
 
 catch (uo_exception kuo_exception)
-	kst_esito = kuo_exception.get_st_esito()
-	kst_esito.SQLErrText = "Errore in calcolo durata lavorazione dell'intero Lotto.~n~r" + kst_esito.SQLErrText
-	kguo_exception.inizializza()
-	kguo_exception.set_esito (kst_esito)
+	kguo_exception.kist_esito = kuo_exception.get_st_esito()
+	kguo_exception.kist_esito.SQLErrText = "Errore nel calcolo durata lavorazione Lotto per singolo pallet. " &
+						+ kkg.acapo + kguo_exception.kist_esito.esito
 	throw kguo_exception
 
 end try
@@ -6954,8 +6948,10 @@ try
 //--- get del CICLO (tempo in sec) del primo barcode entrato 
 			get_g3lav_ciclo_firstbarcode(ast_tab_barcode)
 
-//--- calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto (Tempo CICLO * GIRI * 36 stazioni)
-			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo * ast_tab_barcode.g3lav_ngiri * 36  
+			/* calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto 
+						(Tempo CICLO * GIRI * 36 stazioni se 4Pass e 18 per 2Pass)
+				  dal 22-04-2025 tolgo la moltiplicazione per le stazioni e lascio solo il singolo tempo a stazione */
+			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo * ast_tab_barcode.g3lav_ngiri   
 
 			//set_imptime_second(ast_tab_barcode)  // UPDATE!
 				

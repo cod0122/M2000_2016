@@ -115,7 +115,7 @@ kpointer = SetPointer(HourGlass!)
 	end if
 		k_sql  += "    group by " &
 		 + "  arsp.id_armo, arsp.id_sped, arsp.id_arsp   " 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -167,7 +167,7 @@ kpointer = SetPointer(HourGlass!)
 	 + "          arsp.id_arsp  in   (" +  " select distinct id_arsp from  " + kguf_data_base.u_get_nometab_xutente("merce_sped_id_armo") + ") "  &
 	 + " 	    group by  armo.id_meca, armo.id_armo, num_bolla_out, data_bolla_out, id_sped   " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -231,7 +231,7 @@ kpointer = SetPointer(HourGlass!)
 		 + " ,arsp.id_sped " &
 	 	+ " ,certif.data_stampa    " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -290,7 +290,7 @@ kpointer = SetPointer(HourGlass!)
 	 		+ " ,barcode.id_armo  " &
 	 		+ " ,arsp.id_sped " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -400,7 +400,7 @@ kuf1_utility = create kuf_utility
 	                             + " INNER JOIN  clienti AS  clienti_1 ON  meca.clie_1 =  clienti_1.codice)  " &
 	                             + " INNER JOIN  clienti AS  clienti_2 ON  sped.clie_2 =  clienti_2.codice) " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -450,7 +450,7 @@ kpointer = SetPointer(HourGlass!)
 	     + "          armo.id_armo  in   (" +  " select distinct id_armo from  " + kguf_data_base.u_get_nometab_xutente("merce_sped_id_armo") + ") "  
 	k_sql  += "  group by " &
 		 + "  armo.id_meca, armo.id_armo, armo.alt_1, armo.art " 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	

@@ -35,25 +35,18 @@ public function boolean if_importa_in_esecuzione () throws uo_exception
 private function boolean set_importazione_ts_ini (st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg) throws uo_exception
 public function boolean set_importazione_ts_ini_off () throws uo_exception
 public function boolean set_importazione_ts_ini_on () throws uo_exception
+public function string get_cartella_pkl (ref st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg) throws uo_exception
 end prototypes
 
-public function boolean get_wm_pklist_cfg (ref st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg) throws uo_exception;//--
-//---  Legge la tabella di configurazione del Packing List 
-//---
-//---  input: kst_tab_wm_pklist_cfg.codice  (il default è 1)
-//---  otput: kst_tab_wm_pklist_cfg 
-//---  se ERRORE lancia un Exception
-//---
+public function boolean get_wm_pklist_cfg (ref st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg) throws uo_exception;/*
+Legge la tabella di configurazione del Packing List 
+	inp: kst_tab_wm_pklist_cfg.codice  (il default è 1)
+	out: kst_tab_wm_pklist_cfg 
+*/
 boolean k_return=false
-st_esito kst_esito 
 
 
-
-kst_esito.esito = kkg_esito.ok 
-kst_esito.sqlcode = 0
-kst_esito.SQLErrText = ""
-kst_esito.nome_oggetto = this.classname()
-
+kguo_exception.inizializza(this.classname())
 
 if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then kst_tab_wm_pklist_cfg.codice = 1
  
@@ -104,8 +97,14 @@ if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then
 		using kguo_sqlca_db_magazzino ;
 
 	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in lettura tabella di configurazione dei Packing List clienti, codice=" + string(kst_tab_wm_pklist_cfg.codice))		
+		throw kguo_exception
+
+	end if	
+	
 	if kguo_sqlca_db_magazzino.sqlcode = 0 then
-		
 		k_return=true
 		
 		kst_tab_wm_pklist_cfg.file_esiti = trim(kst_tab_wm_pklist_cfg.file_esiti)
@@ -122,26 +121,7 @@ if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then
 		else
 			kst_tab_wm_pklist_cfg.cartella_pkl_camion = "."
 		end if
-
-	else
-		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-		kst_esito.SQLErrText = "Lettura Proprieta' Packing List (wm_pklist) " + string(kst_tab_wm_pklist_cfg.codice) + "~n~r  " &
-									 + trim(kguo_sqlca_db_magazzino.SQLErrText)
-		if kguo_sqlca_db_magazzino.sqlcode = 100 then
-			kst_esito.esito = kkg_esito.not_fnd
-		else
-			if kguo_sqlca_db_magazzino.sqlcode > 0 then
-				kst_esito.esito = kkg_esito.db_wrn
-			else
-				kst_esito.esito = kkg_esito.db_ko
-			end if
-		end if
-		kguo_exception.set_esito(kst_esito)
-		throw kguo_exception
 	end if
-
-
-
 
 return k_return
 
@@ -668,6 +648,59 @@ st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
 	
 return k_return
 	
+end function
+
+public function string get_cartella_pkl (ref st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg) throws uo_exception;/*
+Legge Cartelle dei repository dei Packing List 
+	inp: kst_tab_wm_pklist_cfg.codice  (il default è 1)
+	out: kst_tab_wm_pklist_cfg.cartella_pkl_da_web/cartella_pkl_da_txt/cartella_pkl_camion
+	rit: cartella_pkl_da_web (che è quella più usata) 
+*/
+string k_return
+
+
+kguo_exception.inizializza(this.classname())
+
+if kst_tab_wm_pklist_cfg.codice = 0 or isnull(kst_tab_wm_pklist_cfg.codice) then kst_tab_wm_pklist_cfg.codice = 1
+ 
+  SELECT wm_pklist_cfg.codice,   
+         trim(isnull(wm_pklist_cfg.cartella_pkl_da_web,'')),   
+         trim(isnull(wm_pklist_cfg.cartella_pkl_da_txt,'')),   
+         trim(isnull(wm_pklist_cfg.cartella_pkl_camion,''))  
+    INTO :kst_tab_wm_pklist_cfg.codice,   
+         :kst_tab_wm_pklist_cfg.cartella_pkl_da_web,   
+         :kst_tab_wm_pklist_cfg.cartella_pkl_da_txt,   
+         :kst_tab_wm_pklist_cfg.cartella_pkl_camion   
+    FROM wm_pklist_cfg  
+   WHERE wm_pklist_cfg.codice = :kst_tab_wm_pklist_cfg.codice   
+		using kguo_sqlca_db_magazzino ;
+	
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in lettura nomi Cartelle dalla tabella di configurazione dei Packing List clienti, codice=" + string(kst_tab_wm_pklist_cfg.codice))		
+		throw kguo_exception
+
+	end if	
+	
+	if kguo_sqlca_db_magazzino.sqlcode = 0 then
+		
+		if kst_tab_wm_pklist_cfg.cartella_pkl_da_web > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_da_web = "."
+			k_return = kst_tab_wm_pklist_cfg.cartella_pkl_da_web
+		end if
+		if kst_tab_wm_pklist_cfg.cartella_pkl_da_txt > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_da_txt = "."
+		end if
+		if kst_tab_wm_pklist_cfg.cartella_pkl_camion > " " then 
+		else
+			kst_tab_wm_pklist_cfg.cartella_pkl_camion = "."
+		end if
+	end if
+
+return k_return
+
 end function
 
 event constructor;call super::constructor;//

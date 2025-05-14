@@ -76,7 +76,7 @@ string k_style, k_modify
 //--- Riristino del colore di sfondo originale della colonna precedente
 	if ki_column_background_before_active[1] > " " and ki_column_background_before_active[1] <> a_col_name then 
 		if this.Describe("DataWindow.ReadOnly") = "yes" then
-			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + kkg_colore.campo_disattivo + " "
+			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + string(fx_get_color_background("DISABLED")) // kkg_colore.campo_disattivo + " "
 		else
 			k_modify = ki_column_background_before_active[1] + ".Background.Color=" + ki_column_background_before_active[2] + " "
 		end if
@@ -87,16 +87,17 @@ string k_style, k_modify
 	
 		if a_col_name > " " then
 //			if this.Describe(a_col_name + ".TabSequence") > "0" and this.Describe("Evaluate("+a_col_name + ".Protect"+")") <> "1" then
-			if this.Describe(a_col_name + ".TabSequence") > "0" and NOT this.u_get_protect(a_col_name) then
+			if this.Describe(a_col_name + ".TabSequence") > "0" and not this.u_get_protect(a_col_name) then
 					
 	//--- Salva colore di sfondo originale
 				if ki_column_background_before_active[1] <> a_col_name then
 					ki_column_background_before_active[1] = a_col_name
-					ki_column_background_before_active[2] = u_get_Background_Color(a_col_name)
+					ki_column_background_before_active[2] = u_get_Background_Color( a_col_name)
 				end if
 			
 				k_modify += a_col_name + ".Background.Mode='0' " + a_col_name + ".Background.Color='" + ki_column_background_before_active[2] &
-								+ "~t IF ( getrow() = currentRow()," + kkg_colore.INPUT_FIELD + "," + ki_column_background_before_active[2] + ")'"   
+								+ "~t IF ( getrow() = currentRow()," + string(fx_get_color_background("ONCURSOR")) + "," + ki_column_background_before_active[2] + ")'"
+								//kkg_colore.INPUT_FIELD + "," + ki_column_background_before_active[2] + ")'"   
 				
 				if k_modify > " " then
 					k_rc = this.modify(k_modify)

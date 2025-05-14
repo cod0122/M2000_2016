@@ -46,7 +46,6 @@ public function boolean if_connesso () throws uo_exception
 public function boolean if_connesso_x () throws uo_exception
 public function boolean db_set_isolation_level () throws uo_exception
 public function st_esito db_crea_table (string k_table, string k_sql) throws uo_exception
-public function st_esito db_crea_temp_table (string k_table, string k_campi, string k_select) throws uo_exception
 public function boolean test_connessione () throws uo_exception
 public subroutine u_crea_schema () throws uo_exception
 public function boolean if_connessione_bloccata () throws uo_exception
@@ -66,9 +65,13 @@ protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
 private subroutine u_error_common (ref st_esito ast_esito)
 protected function boolean u_error_others (ref st_esito ast_esito)
 public function boolean db_disconnetti ()
-public function st_esito db_crea_view (integer k_id, string k_view, string k_sql) throws uo_exception
 protected function integer db_sql_execute (string a_sql, boolean a_commit, boolean a_throw_when_error) throws uo_exception
 public function integer db_insert_select (string k_table, string k_campi, string k_select) throws uo_exception
+public function st_esito db_crea_view (string k_view, string k_sql) throws uo_exception
+public function st_esito db_crea_temp_table (string a_table, string a_campi, string a_select) throws uo_exception
+public function st_esito db_crea_temp_table (string a_table, string a_campi) throws uo_exception
+private function st_esito db_crea_temp_table_1 (string a_table, string a_campi) throws uo_exception
+public subroutine u_if_col_len_ok (string a_table, string a_col, string a_value) throws uo_exception
 end prototypes
 
 event type integer u_dberror(long a_code, string a_sqlsyntax, string a_sqlerrtext);//
@@ -310,47 +313,6 @@ finally
 
 end try
 
-return kst_esito
-end function
-
-public function st_esito db_crea_temp_table (string k_table, string k_campi, string k_select) throws uo_exception;//---------------------------------------------------------------------------------------------------------
-//--- 
-//--- CREA TEMP TABLE 
-//---
-//--- Par. input	: k_table = nome della tabella (in SQL SERVER deve iniziare per '#')
-//---           		: k_campi = i campi della tabella
-//---           		: k_select = la query di carico della tabella
-//---
-//--- Ritorna st_esito : Vedi Standard
-//---   
-//---------------------------------------------------------------------------------------------------------
-string k_sql_d
-st_esito kst_esito
-
-
-	kst_esito = kguo_exception.inizializza(this.classname())
-
-//--- Cancello e ricreo la view
-	k_sql_d = "drop view " + trim(k_table) + "  " 
-	db_sql_execute(k_sql_d, true, false)
-	
-	k_sql_d = "drop table " + trim(k_table) + "  " 
-	db_sql_execute(k_sql_d, true, false)
-	
-	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") "
-//	k_sql_d = " CREATE TEMP  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") with no log "
-//	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") " // DEBUG
-	db_sql_execute( k_sql_d, true, true)
-	
-	if trim(k_select) = "" then
-		kst_esito.esito = kkg_esito.db_wrn
-		kst_esito.sqlcode = 0
-		kst_esito.sqlerrtext = "Manca la query da cui prendere i dati - tabella temporanea '" + trim(k_table) + "' non popolata! "
-	else
-		k_sql_d = " insert into "  + trim(k_table) + "  " + trim(k_select) 
-		db_sql_execute( k_sql_d, true, true)
-	end if
-	
 return kst_esito
 end function
 
@@ -853,43 +815,6 @@ return k_return
 
 end function
 
-public function st_esito db_crea_view (integer k_id, string k_view, string k_sql) throws uo_exception;//---------------------------------------------------------------------------------------------------------
-//--- 
-//--- CREA VIEW 
-//---
-//--- Par. input	: k_id = tipo operazione
-//---				: k_view = nome della view
-//---    	       	: k_sql = query della view
-//---
-//--- Ritorna st_esito : Vedi Standard
-//---   
-//---------------------------------------------------------------------------------------------------------
-string k_sql_d
-st_esito kst_esito
-
-
-try
-	
-	kst_esito = kguo_exception.inizializza(this.classname())
-	
-//--- Cancello e ricreo la view
-	k_sql_d = "drop table " + trim(k_view) + "  " 
-	db_sql_execute(k_sql_d, true, false)
-
-	k_sql_d = "drop view " + trim(k_view) + "  " 
-	db_sql_execute(k_sql_d, true, false)
-	
-	db_sql_execute(k_sql, true, true)  // esegue la CREATE VIEW
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-//	kst_esito = kuo_exception.get_st_esito()
-	
-end try
-
-return kst_esito
-end function
-
 protected function integer db_sql_execute (string a_sql, boolean a_commit, boolean a_throw_when_error) throws uo_exception;/*
 	Esegue istruzione SQL 
 		inp: sql
@@ -946,6 +871,135 @@ int k_sqlcode
 	
 return k_sqlcode
 end function
+
+public function st_esito db_crea_view (string k_view, string k_sql) throws uo_exception;/*
+ CREA VIEW 
+	inp: k_view = nome della view
+     	: k_sql = query della view
+*/
+string k_sql_d
+
+
+try
+	
+	kguo_exception.inizializza(this.classname())
+	
+//--- Cancello e ricreo la view
+	k_sql_d = "drop table " + trim(k_view) + " " 
+	db_sql_execute(k_sql_d, true, false)
+
+	k_sql_d = "drop view " + trim(k_view) + " " 
+	db_sql_execute(k_sql_d, true, false)
+	
+// nelle vecchie chiamate veniva aggiunta la 'CREATE VIEW xxxxx'	
+	if pos(upper(k_sql) + " ", " VIEW ") > 0 then  
+		k_sql_d = k_sql
+	else
+		k_sql_d = "create view " + trim(k_view) + " " + k_sql
+	end if
+	db_sql_execute(k_sql_d, true, true)  // esegue la CREATE VIEW
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+//	kst_esito = kuo_exception.get_st_esito()
+	
+end try
+
+return kguo_exception.kist_esito
+end function
+
+public function st_esito db_crea_temp_table (string a_table, string a_campi, string a_select) throws uo_exception;/*
+CREA TEMP TABLE 
+	inp: a_table = nome della tabella (in SQL SERVER deve iniziare per '#')
+	          		: a_campi = i campi della tabella
+            		: k_select = la query di carico della tabella
+*/
+string k_sql_d
+
+
+	kguo_exception.inizializza(this.classname())
+
+	kguo_exception.kist_esito = db_crea_temp_table(a_table, a_campi)  // crea la tabella
+
+	if trim(a_select) = "" then
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlcode = 0
+		kguo_exception.kist_esito.sqlerrtext = "Manca la query da cui prendere i dati - tabella temporanea '" + trim(a_table) + "' non popolata! "
+		return kguo_exception.kist_esito
+	end if
+
+	k_sql_d = " insert into "  + trim(a_table) + "  " + trim(a_select) 
+	db_sql_execute( k_sql_d, true, true)
+	
+return kguo_exception.kist_esito
+end function
+
+public function st_esito db_crea_temp_table (string a_table, string a_campi) throws uo_exception;/*
+CREA TEMP TABLE 
+	inp: a_table = nome della tabella (in SQL SERVER deve iniziare per '#')
+	          		: a_campi = i campi della tabella
+*/
+
+	kguo_exception.inizializza(this.classname())
+
+	if trim(a_table) > " " and a_campi > " " then
+	else
+		kguo_exception.kist_esito.esito = kkg_esito.no_esecuzione
+		kguo_exception.kist_esito.sqlcode = 0
+		if a_table > " " then
+			kguo_exception.kist_esito.sqlerrtext = "Mancano i nomi delle colonne per la tabella temporanea '" + a_table + "', generazione tabella interrotta! "
+		else
+			kguo_exception.kist_esito.sqlerrtext = "Manca il nome della tabella temporanea, generazione tabella interrotta! "
+		end if			
+		return kguo_exception.kist_esito
+	end if
+
+	return db_crea_temp_table_1(a_table, a_campi)
+
+end function
+
+private function st_esito db_crea_temp_table_1 (string a_table, string a_campi) throws uo_exception;/*
+CREA TEMP TABLE 
+	inp: a_table = nome della tabella (in SQL SERVER deve iniziare per '#')
+	          		: a_campi = i campi della tabella
+*/
+string k_sql_d
+
+
+	kguo_exception.inizializza(this.classname())
+
+//--- Cancello e ricreo la view
+	k_sql_d = "drop view " + trim(a_table) + "  " 
+	db_sql_execute(k_sql_d, true, false)
+	
+	k_sql_d = "drop table " + trim(a_table) + "  " 
+	db_sql_execute(k_sql_d, true, false)
+	
+	k_sql_d = " CREATE  TABLE "  + trim(a_table) + "  (" + trim(a_campi) + ") "
+//	k_sql_d = " CREATE TEMP  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") with no log "
+//	k_sql_d = " CREATE  TABLE "  + trim(k_table) + "  (" + trim(k_campi) + ") " // DEBUG
+	db_sql_execute( k_sql_d, true, true)   // crea la tabella
+		
+return kguo_exception.kist_esito
+end function
+
+public subroutine u_if_col_len_ok (string a_table, string a_col, string a_value) throws uo_exception;//
+//--- Verifica lunghezza del valore nel campo se supera la dim max della colonna in tabella
+//
+int k_len_db
+
+k_len_db = u_get_col_len(a_table, a_col)
+
+IF k_len_db > 0 and len(trim(a_value)) > k_len_db THEN
+	  kguo_exception.kist_esito.esito = kkg_esito.db_ko
+	  kguo_exception.kist_esito.sqlerrtext = "Attenzione il campo '" + a_col + "' valore: '" + trim(a_value) + "' " &
+								 + kkg.acapo + " lungo " + string(len(trim(a_value))) + ", supera la lunghezza massima di " &
+								 + string(k_len_db) &
+								 + " definita sul DB!. " + kkg.acapo + " Operazione Interrotta! "
+   THROW kguo_exception
+END IF
+	 
+end subroutine
 
 on kuo_sqlca_db_0.create
 call super::create

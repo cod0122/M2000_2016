@@ -1,0 +1,49 @@
+﻿$PBExportHeader$fx_get_num_anno_int_by_id.srf
+global type fx_get_num_anno_int_by_id from function_object
+end type
+
+forward prototypes
+global function string fx_get_num_anno_int_by_id (long a_id_meca)
+end prototypes
+
+global function string fx_get_num_anno_int_by_id (long a_id_meca);/*
+Torna numero + anno del Lotto 
+	inp: id_meca
+	out: string num_int + '/' + year(data_int) 
+*/
+string k_return
+st_tab_meca kst_tab_meca
+kuf_armo kuf1_armo
+uo_exception kuo_exception
+
+try
+	SetPointer(kkg.pointer_attesa)
+//	kuo_exception = create uo_exception
+//	kuo_exception.inizializza()
+	
+	if a_id_meca > 0 then
+		kuf1_armo = create kuf_armo
+	
+		kst_tab_meca.id = a_id_meca
+		kuf1_armo.get_dati_rid(kst_tab_meca)
+		
+		if kst_tab_meca.num_int > 0 then 
+			k_return = string(kst_tab_meca.num_int, '#') + '/' + string(kst_tab_meca.data_ent,'yyyy')
+		end if
+		
+	end if
+	
+catch (uo_exception kuo1_exception)
+	kuo1_exception.scrivi_log( )
+	//throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+	if isvalid(kuo_exception) then destroy kuo_exception
+
+end try
+
+return k_return 
+end function
+

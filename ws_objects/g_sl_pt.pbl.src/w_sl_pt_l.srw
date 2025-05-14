@@ -32,7 +32,7 @@ private subroutine mostra_nascondi_in_lista ()
 protected subroutine smista_funz (string k_par_in)
 protected subroutine open_start_window ()
 protected subroutine set_titolo_window_personalizza ()
-public function integer u_retrieve_dw_lista ()
+public function long u_retrieve_dw_lista ()
 end prototypes
 
 private function string cancella ();//
@@ -289,7 +289,7 @@ end choose
 
 end subroutine
 
-public function integer u_retrieve_dw_lista ();//---
+public function long u_retrieve_dw_lista ();//---
 //---  Fa la Retrieve
 //---
 long k_return=0	

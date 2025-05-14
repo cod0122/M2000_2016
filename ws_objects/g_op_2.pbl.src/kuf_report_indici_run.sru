@@ -63,7 +63,7 @@ SetPointer(kkg.pointer_attesa)
 	 		 " armo.id_meca in (select id_meca from " &
 			  + kguf_data_base.u_get_nometab_xutente("report_23_xdtcertif") + ")" 
 	k_sql += " group by  month(certif.data), year(certif.data) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_etr_1") 		//End TO Release  (grezzo)
 	k_sql = " "                                   
@@ -76,7 +76,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " FROM certif " &
 			+ " WHERE " & 
 			+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")"
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_etr")  		//End TO Release  (media gg)
 	k_sql = " "                                   
@@ -88,7 +88,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_etr_1") &
 			+ " group by mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_rtr") 		//Receive TO Release
@@ -105,7 +105,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " WHERE " &
 	 		+ " meca.id in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+ " group by month(certif.data), year(certif.data) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_rts_1")    //Receive TO Send (grezzo)
@@ -130,7 +130,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " WHERE " &
 			+ " meca.id in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 		 	+ " group by month(certif.data), year(certif.data),  meca.data_ent  " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 			//coalesce(max(sped.data_rit), max(sped.data_bolla_out))
 
@@ -143,7 +143,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT mese, anno, avg(convert(decimal(6,2),rts_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_rts_1") &
 	 		+ " group by mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_rte_1") 		//Receive TO End (grezzo)
@@ -161,7 +161,7 @@ SetPointer(kkg.pointer_attesa)
 	 		+ " WHERE  " & 
 	 		+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+ " group by month(certif.data), year(certif.data), certif.num_certif, meca.data_ent " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_rte") 		//Receive TO End (media)
 	k_sql = " "                                   
@@ -172,7 +172,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT mese, anno, avg(convert(decimal(6,2),rte_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_rte_1") &
 	 		+ " group by mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_relts_1") 	//Release TO Send (grezzo) 
@@ -193,7 +193,7 @@ SetPointer(kkg.pointer_attesa)
 	 		+ " WHERE  " & 
 	 		+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+ " group by month(certif.data), year(certif.data), certif.num_certif, certif.id_meca, certif.data " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //						coalesce(max(sped.data_rit), max(sped.data_bolla_out)) " &
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_relts") 		//Release TO Send (media)
@@ -205,7 +205,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT mese, anno, avg(convert(decimal(6,2),relts_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_relts_1") &
 	 		+ " group by mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 
@@ -234,7 +234,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_relts") + " as relts"  &
 			+ " ON runs.mese = relts.mese and runs.anno = relts.anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //	kguo_sqlca_db_magazzino.db_crea_table(k_view, k_sql)
 
 
@@ -277,7 +277,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN sped " &
 			+ " ON arsp.id_sped = sped.id_sped "  
 	k_sql += " group by meca.id, meca.num_int, meca.data_ent, certif.data, prodotti.gruppo " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		+ ", coalesce(max(sped.data_rit), max(sped.data_bolla_out)) " &
 //			+ ", datediff(day, certif.data, coalesce(max(sped.data_rit), max(sped.data_bolla_out)) )" & 
 //			+ ", datediff(day, convert(date, meca.data_ent), coalesce(max(sped.data_rit), max(sped.data_bolla_out))) " & 
@@ -335,7 +335,7 @@ string k_view, k_sql, k_campi
 	end if	
 	k_sql += &
 			" group by report_23.id_armo, report_23.id_meca "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 
 end subroutine
@@ -380,7 +380,7 @@ string k_view, k_sql, k_campi
 		end if
 	end if	
 	k_sql += " group by report_23.id_armo, report_23.id_meca "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 
 end subroutine
@@ -449,7 +449,7 @@ string k_view, k_sql, k_campi
 			+ " , certif.ora_stampa " &
 		  	+ " , meca.consegna_data  " &
 			+ " , meca.consegna_ora  " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 			
 end subroutine
@@ -494,7 +494,7 @@ string k_view, k_sql, k_campi
 		end if
 	end if
 	k_sql += " group by  armo.id_armo, armo.id_meca "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 
@@ -534,7 +534,7 @@ SetPointer(kkg.pointer_attesa)
 	k_sql += " armo.id_meca in (select id_meca from " &
 			  + kguf_data_base.u_get_nometab_xutente("report_23_xdtcertif") + ")" 
 	k_sql += " group by meca.clie_3, month(certif.data), year(certif.data) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_etr_1") //End TO Release  (grezzo)
 	k_sql = " "                                   
@@ -551,7 +551,7 @@ SetPointer(kkg.pointer_attesa)
 	k_sql += &
 	 		 " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" 
 			  
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_etr")  		//End TO Release  (media gg)
 	k_sql = " "                                   
@@ -563,7 +563,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_etr_1") 
 	k_sql += " group by clie_3, mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_rtr") 		//Receive TO Release
 	k_sql = " "                                   
@@ -578,7 +578,7 @@ SetPointer(kkg.pointer_attesa)
 	k_sql += " WHERE  " 
 	k_sql += " meca.id in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")"
 	k_sql += " group by meca.clie_3, month(certif.data), year(certif.data) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_rts_1")    //Receive TO Send (grezzo)
 	k_sql = " "                                   
@@ -600,7 +600,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " WHERE  " &
 			+ " meca.id in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+ " group by meca.clie_3, month(certif.data), year(certif.data),  meca.data_ent " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
    //kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_rts") 	//Receive TO Send (media)
@@ -612,7 +612,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT clie_3, mese, anno, avg(convert(decimal(6,2),rts_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_rts_1")
 	k_sql += " group by clie_3, mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_rte_1") 		//Receive TO End  (grezzo)
@@ -629,7 +629,7 @@ SetPointer(kkg.pointer_attesa)
 	 		+ " WHERE  " & 
 	 		+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+  " group by meca.clie_3, month(certif.data), year(certif.data), meca.data_ent, certif.num_certif " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_rte") 		//Receive TO End  (media)
 	k_sql = " "                                   
@@ -640,7 +640,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT clie_3, mese, anno, avg(convert(decimal(6,2),rte_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_rte_1")
 	k_sql += " group by clie_3, mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_relts_1") 		//Release TO Send  (grezzo)
@@ -661,7 +661,7 @@ SetPointer(kkg.pointer_attesa)
 	 		+ " WHERE  " & 
 	 		+ " certif.id_meca in (select id_meca from " + kguf_data_base.u_get_nometab_xutente("report_23_xgru") + ")" &
 			+  " group by meca.clie_3, month(certif.data), year(certif.data), certif.data, certif.id_meca " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_relts") 			//Release TO Send  (media)
 	k_sql = " "                                   
@@ -672,7 +672,7 @@ SetPointer(kkg.pointer_attesa)
 			" SELECT clie_3, mese, anno, avg(convert(decimal(6,2),relts_1))  FROM " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_relts_1")
 	k_sql += " group by clie_3, mese, anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- View Finale riepilogativa 
@@ -707,7 +707,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_relts") + " as relts"  &
 			+ " ON runs.mese = relts.mese and runs.anno = relts.anno and runs.clie_3 = relts.clie_3 " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //  	kguo_sqlca_db_magazzino.db_crea_temp_table_global(k_view, k_campi, k_sql)      
 
 
@@ -749,7 +749,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN sped " &
 			+ " ON arsp.id_sped = sped.id_sped " &
 			+ " GROUP BY meca.clie_3, meca.id, meca.num_int, meca.data_int, meca.data_ent, certif.data, prodotti.gruppo " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 //			+ ", (select sum(artr.colli_trattati) from artr where runs.id_armo = artr.id_armo) " &
 
@@ -792,7 +792,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " inner JOIN artr " &
 			+ " ON xdent.id_armo = artr.id_armo " 
 	k_sql += " group by xdent.clie_3, month(xdent.data_ent), year(xdent.data_ent) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23CLI_idx_meca_ko") 
 	k_sql = " "                                   
@@ -807,7 +807,7 @@ SetPointer(kkg.pointer_attesa)
 	          + "  (t_xdtent.consegna_data < t_xdtent.data_stampa " &
 	          +        " or (t_xdtent.consegna_data = t_xdtent.data_stampa and t_xdtent.consegna_ora < t_xdtent.ora_stampa) ) " 
 	k_sql += " group by t_xdtent.clie_3, month(t_xdtent.data_ent), year(t_xdtent.data_ent) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- View Finale riepilogativa 
@@ -824,7 +824,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23CLI_idx_meca_ko") + " as idxko"  &
 			+ " ON idxtot.clie_3 = idxko.clie_3 and idxtot.mese = idxko.mese and idxtot.anno = idxko.anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- View Finale x il '?'
@@ -876,7 +876,7 @@ SetPointer(kkg.pointer_attesa)
 			+ ", idx.consegna_ora " &
 			+ ", idx.data_stampa " &
 			+ ", idx.ora_stampa " 			
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 //			+ " left outer JOIN arsp " &
 //			+ " ON idx_xgru.id_armo = arsp.id_armo "  
@@ -918,7 +918,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " inner JOIN artr " &
 			+ " ON xdent.id_armo = artr.id_armo " 
 	k_sql += " group by  month(xdent.data_ent), year(xdent.data_ent) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	k_view = kguf_data_base.u_get_nometab_xutente("report_23_idx_meca_ko") 
 	k_sql = " "                                   
@@ -933,7 +933,7 @@ SetPointer(kkg.pointer_attesa)
 	          + "  (t_xdtent.consegna_data < t_xdtent.data_stampa " &
 	          +        " or (t_xdtent.consegna_data = t_xdtent.data_stampa and t_xdtent.consegna_ora < t_xdtent.ora_stampa) ) " 
 	k_sql += " group by month(t_xdtent.data_ent), year(t_xdtent.data_ent) " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- View Finale riepilogativa 
@@ -950,7 +950,7 @@ SetPointer(kkg.pointer_attesa)
 			+ " left outer JOIN " &
 			+ kguf_data_base.u_get_nometab_xutente("report_23_idx_meca_ko") + " as idxko"  &
 			+ " ON idxtot.mese = idxko.mese and idxtot.anno = idxko.anno " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- View Finale x il '?'
@@ -1002,7 +1002,7 @@ SetPointer(kkg.pointer_attesa)
 			+ ", idx.consegna_ora " &
 			+ ", idx.data_stampa " &
 			+ ", idx.ora_stampa " 			
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 //			+ " left outer JOIN arsp " &
 //			+ " ON idx_xgru.id_armo = arsp.id_armo "  

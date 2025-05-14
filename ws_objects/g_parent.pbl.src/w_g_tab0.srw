@@ -2561,6 +2561,7 @@ integer y = 1152
 integer width = 2770
 integer height = 720
 integer taborder = 40
+borderstyle borderstyle = StyleBox!
 boolean ki_attiva_standard_select_row = false
 boolean ki_d_std_1_attiva_cerca = false
 boolean ki_dw_visibile_in_open_window = false
@@ -2647,6 +2648,7 @@ integer width = 2784
 integer height = 816
 integer taborder = 110
 boolean enabled = true
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_reselect_row_on_focus();//

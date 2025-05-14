@@ -287,7 +287,6 @@ int k_return
 string k_attach_file, k_attached_full_name
 int k_rows, k_row, k_row_id_meca
 datetime k_today
-st_esito kst_esito
 st_tab_alarm_instock kst_tab_alarm_instock
 st_tab_email_invio kst_tab_email_invio
 st_tab_email_funzioni kst_tab_email_funzioni
@@ -305,7 +304,7 @@ uo_ds_std_1 kds_pilota_avvisi, kds_d_alarm_instocktosend_meca_l, kds_d_alarm_ins
 
 try 
 
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 
 	kuf1_utility = create kuf_utility
 	kuf1_email_funzioni = create kuf_email_funzioni

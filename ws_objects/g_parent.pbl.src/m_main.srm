@@ -6848,7 +6848,7 @@ end type
 
 event clicked;//
 int k_importati_ini=0, k_importati_fin=0, k_rack_nr
-string k_Text
+//string k_Text
 st_esito kst_esito
 kuf_pl_barcode_g3 kuf1_pl_barcode_g3
 
@@ -6864,10 +6864,10 @@ try
 						 ,question!, YesNo!, 2) = 1 then
 
 		SetPointer(kkg.pointer_attesa)
-		k_importati_ini = kuf1_pl_barcode_g3.importa_inizio_lav_pilota_g3()
+		k_importati_ini = kuf1_pl_barcode_g3.import_start_work_pilota_g3(0, 0)  // importa G3 ultimi tot giorni
 
 		SetPointer(kkg.pointer_attesa)
-		k_importati_fin = kuf1_pl_barcode_g3.importa_trattati_pilota_g3() 
+		k_importati_fin = kuf1_pl_barcode_g3.import_end_work_pilota_g3(0, 0)  // importa G3 come di default
 
 		SetPointer(kkg.pointer_default)
 
@@ -6878,13 +6878,11 @@ try
 					+ " barcode per inizio lavorazione e " + string(k_importati_fin) &
 					+ " per fine lavorazione," &
 					+ " dal 'Pilota'. " &
-					+ k_Text &
 					 ,Information!) 
 		else
 			messagebox ("Importa dati di trattamento dal GAMMA3 dei Pallet", &
-					"Operazione conclusa.~n~rNessun dato importato dal Pilota.~n~r" &
-						+ "Nessun Barcode ha iniziato o concluso il Trattamento. " &
-						+ k_Text &
+					"Operazione conclusa. Nessun dato importato dal Pilota. " &
+						+ kkg.acapo + "Nessun Barcode ha iniziato o concluso il Trattamento. " &
 					 ,Information!) 
 		end if
 	

@@ -12,6 +12,7 @@ global kkg_colore kkg_colore
 type variables
 //--- in numero:  calcolo colore (blue),(green),(red)
 constant long NERO=1
+constant long AZZURRO=rgb(203, 248, 253)
 constant long BIANCO=65536 * (255) + 256 * (255) + (255) - 1 
 constant long GRIGIO=65536 * (210) + 256 * (210) + 210
 constant long GRIGIO_CHIARO=65536 * (240) + 256 * (240) + (240) 
@@ -29,11 +30,13 @@ constant long GIALLOSCURO=(rgb(55,55,0))
 constant long OLIVE=65536 * 128 + 256 * (128) + (64) 
 constant long VIOLAXDARK=rgb(182, 148, 246) 
 constant long VIOLAXSTD=rgb(58, 12, 144)
+constant long VERDELIGHT=rgb(124,252,0)
 constant long VERDEXDARK=rgb(176, 239, 59)
 constant long VERDEXSTD=rgb(39, 58, 4)
 constant long VERDE=65536 * 64 + 256 * (128) + (0) 
 
 constant string NEROX="1"
+constant string AZZURROX = string(AZZURRO)
 constant string BIANCOX = string(BIANCO)
 constant string GRIGIOX = string(GRIGIO)
 constant string GRIGIO_CHIAROX = string(GRIGIO_CHIARO)
@@ -50,6 +53,7 @@ constant string GIALLOSCUROX = string(GIALLOSCURO)
 constant string OLIVEX = string(OLIVE)
 constant string VIOLAXDARKX = string(VIOLAXDARK)
 constant string VIOLAXSTDX = string(VIOLAXSTD)
+constant string VERDELIGHTX = string(VERDELIGHT)
 constant string VERDEXDARKX = string(VERDEXDARK)
 constant string VERDEXSTDX = string(VERDEXSTD)
 constant string VERDEXa=string(VERDEXSTD)
@@ -74,6 +78,8 @@ constant string CAMPO_ATTIVO=string(CAMPO_ATTIVON) //(65536 * (255) + 256 * (255
 constant string CAMPO_ATTIVO_TEXT=string(CAMPO_ATTIVO_TEXTN) 
 constant string CAMPO_DISATTIVO=string(CAMPO_DISATTIVON) 
 constant string CAMPO_DISATTIVO_TEXT=string(CAMPO_ATTIVO_TEXTN) 
+
+constant long TRASPARENTE = -1
 
 end variables
 

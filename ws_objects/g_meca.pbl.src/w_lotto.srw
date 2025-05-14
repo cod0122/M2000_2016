@@ -1513,6 +1513,7 @@ try
 						kst_tab_contratti.codice = kdw_source.getitemnumber(long(k_riga), "contratti_codice")
 						kst_tab_contratti.sc_cf = kdw_source.getitemstring(long(k_riga), "contratti_cf")
 						kst_tab_contratti.mc_co = kdw_source.getitemstring(long(k_riga), "contratti_co")
+						kst_tab_contratti.cod_cli = kdw_source.getitemnumber(long(k_riga), "clie_3")
 
 						ki_zoom_ricevente_fatturato = set_contratto(kst_tab_contratti)
 
@@ -3891,7 +3892,7 @@ st_esito kst_esito
 			if isnull(ast_tab_contratti.sc_cf) then ast_tab_contratti.sc_cf = ""
 			if trim(ast_tab_contratti.mc_co) > " " or trim(ast_tab_contratti.sc_cf) > " " then
 				ast_tab_contratti.data_scad = tab_1.tabpage_1.dw_1.getitemdate(1, "data_int")
-				ast_tab_contratti.codice = kiuf_contratti.get_contratto_da_cf_co(ast_tab_contratti)
+				ast_tab_contratti.codice = kiuf_contratti.get_contratto_da_cf_co_cli(ast_tab_contratti)
 			else
 				ast_tab_contratti.codice = 0
 			end if
@@ -5832,6 +5833,7 @@ try
 //--- se ho cambiato la data controlla se contratto attivo					
 					kst_tab_contratti.sc_cf = this.getitemstring(row, "contratti_sc_cf")
 					kst_tab_contratti.mc_co = this.getitemstring(row, "contratti_mc_co")
+					kst_tab_contratti.cod_cli = this.getitemnumber(row, "clie_3")
 					if trim(kst_tab_contratti.mc_co) > " " then
 						post set_contratto(kst_tab_contratti)
 					end if
@@ -5918,6 +5920,7 @@ try
 		case "contratti_sc_cf"
 			kst_tab_contratti.sc_cf = trim(data)
 			kst_tab_contratti.mc_co = this.getitemstring(row, "contratti_mc_co")
+			kst_tab_contratti.cod_cli = this.getitemnumber(row, "clie_3")
 			kst_tab_contratti.codice = 0
 //			if trim(kst_tab_contratti.mc_co) > " " then
 				post set_contratto(kst_tab_contratti)
@@ -5926,6 +5929,7 @@ try
 			kst_tab_contratti.sc_cf = this.getitemstring(row, "contratti_sc_cf")
 			if isnull(kst_tab_contratti.sc_cf) then kst_tab_contratti.sc_cf = ""
 			kst_tab_contratti.mc_co = trim(data)
+			kst_tab_contratti.cod_cli = this.getitemnumber(row, "clie_3")
 			kst_tab_contratti.codice = 0
 			post set_contratto(kst_tab_contratti)
 			

@@ -103,6 +103,7 @@ public subroutine u_autorizza_lotto ()
 private subroutine call_logtrace ()
 private subroutine u_aggiorna_data_lav_fine ()
 private function boolean u_stampa_certif ()
+private subroutine u_aggiorna_dati_dal_pilota ()
 end prototypes
 
 protected subroutine inizializza_1 ();//
@@ -659,7 +660,7 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero4.toolbaritemname = "Regenerate5!"
 	end if
 
-//--- Rigenera Dosimetri
+//--- Autorizzazioni speciali Lotto
 	if not m_main.m_strumenti.m_fin_gest_libero5.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
 		m_main.m_strumenti.m_fin_gest_libero5.text = "Autorizza Lotto"
 		m_main.m_strumenti.m_fin_gest_libero5.microhelp = "Autorizzazioni Lotto "
@@ -702,26 +703,37 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero7.libero2.toolbaritemname = "EditObject!"
 	end if
 
-//--- Genera PKLIST fittizia
+//--- Importa dati trattamento dal PILOTA 		
 	if not m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.text = "Genera Packing-List fittizio "
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.microhelp = "Genera Packing-List fittizio "
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.enabled = ki_consenti_crea_packing_list
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemtext =  "Pck-List,"+ m_main.m_strumenti.m_fin_gest_libero7.libero3.text
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.text = "Importa dati Trattamento dal PILOTA (solo G3)"
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.microhelp = "Importa dati Trattamento dal PILOTA "
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.enabled =  ki_consenti_modifica or ki_consenti_modalita_inserimento
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemtext =  "Pilota,"+ m_main.m_strumenti.m_fin_gest_libero7.libero3.text
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemvisible = false
 		m_main.m_strumenti.m_fin_gest_libero7.libero3.visible = true
-		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemname = "Compile!"
+		m_main.m_strumenti.m_fin_gest_libero7.libero3.toolbaritemname = "pianifp16.png"
+	end if
+
+//--- Genera PKLIST fittizia
+	if not m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.text = "Genera Packing-List fittizio "
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.microhelp = "Genera Packing-List fittizio "
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.enabled = ki_consenti_crea_packing_list
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemtext =  "Pck-List,"+ m_main.m_strumenti.m_fin_gest_libero7.libero4.text
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.visible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemname = "Compile!"
 	end if
 
 //--- Carica/Modifica Riga "NO-DOSE"
-	if not m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.text = "Aggiungi riga da non Trattare"
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.microhelp = "Aggiungi riga Articolo da non Sterilizzare"
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.enabled = ki_consenti_modalita_inserimento
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemtext =  "Aggiungi,"+ m_main.m_strumenti.m_fin_gest_libero7.libero4.text
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemvisible = true
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.visible = true
-		m_main.m_strumenti.m_fin_gest_libero7.libero4.toolbaritemname = "Insert!"
+	if not m_main.m_strumenti.m_fin_gest_libero7.libero5.toolbaritemvisible or  ki_st_open_w.flag_primo_giro = 'S' then
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.text = "Aggiungi riga da non Trattare"
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.microhelp = "Aggiungi riga Articolo da non Sterilizzare"
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.enabled = ki_consenti_modalita_inserimento
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.toolbaritemtext =  "Aggiungi,"+ m_main.m_strumenti.m_fin_gest_libero7.libero5.text
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.toolbaritemvisible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.visible = true
+		m_main.m_strumenti.m_fin_gest_libero7.libero5.toolbaritemname = "Insert!"
 	end if
 
 //--- Ristampa ATTESTATO
@@ -732,7 +744,7 @@ st_tab_meca kst_tab_meca
 		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemtext =  "Att.,"+ m_main.m_strumenti.m_fin_gest_libero8.text
 		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemvisible = true
 		m_main.m_strumenti.m_fin_gest_libero8.visible = true
-		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "certificato16.gif"
+		m_main.m_strumenti.m_fin_gest_libero8.toolbaritemname = "certificate16.png"
 	end if
 
 //--- Vedi LOG da TemporalTableLOTTO
@@ -856,11 +868,14 @@ choose case trim(left(k_par_in, 3))
 //--- Rigenera alcuni dati del Riferimento
 	case kkg_flag_richiesta.libero72
 		u_aggiorna_data_lav_fine()		
-//--- Genera packing-list fittizia
+//--- Importa dati trattamento dal PILOTA
 	case kkg_flag_richiesta.libero73
+		u_aggiorna_dati_dal_pilota()	
+//--- Genera packing-list fittizia
+	case kkg_flag_richiesta.libero74
 		u_genera_packing_list( )
 //--- Nuova riga Lotto
-	case kkg_flag_richiesta.libero74
+	case kkg_flag_richiesta.libero75
 		inserisci_riga()
 		
 //--- Ristampa Attestato
@@ -2561,6 +2576,66 @@ finally
 
 end try
 end function
+
+private subroutine u_aggiorna_dati_dal_pilota ();//
+int k_ok
+int k_importati_ini, k_importati_fin
+st_tab_meca kst_tab_meca
+kuf_pl_barcode_g3 kuf1_pl_barcode_g3
+
+	
+try
+	kst_tab_meca.e1doco = tab_1.tabpage_1.dw_1.object.e1doco[1]
+
+	if kst_tab_meca.e1doco > 0 then
+
+//--- Modifica 
+		k_ok = messagebox("Importa Dati Trattamento", "Rilegge e carica i dati di Trattamento, se mancanti, sui Barcode e sul Riferimento, ma solo da Impianto G3, proseguire?", &
+							question!, yesno!, 2) 
+		if k_ok = 1 then
+
+			kuf1_pl_barcode_g3 = create kuf_pl_barcode_g3
+			
+//--- importa dati PILOTA G3 del Lotto
+			k_importati_ini = kuf1_pl_barcode_g3.import_start_work_pilota_g3(0, kst_tab_meca.e1doco)   
+			k_importati_fin = kuf1_pl_barcode_g3.import_end_work_pilota_g3(0, kst_tab_meca.e1doco)  
+
+			SetPointer(kkg.pointer_default)
+
+			if (k_importati_ini + k_importati_fin) > 0 then
+				messagebox ("Importa dati di trattamento", &
+						"Operazione conclusa correttamente.~n~r" &
+						+ "Sono stati importati i dati per " + string(k_importati_ini)  &
+						+ " barcode per inizio lavorazione e " + string(k_importati_fin) &
+						+ " per fine lavorazione," &
+						+ " dal 'Pilota G3'. " &
+						 ,Information!) 
+			else
+				messagebox ("Importa dati di trattamento", &
+						"Operazione conclusa. Nessun dato importato dal Pilota G3. " &
+							+ kkg.acapo + "Nessun Barcode ha iniziato o concluso il Trattamento. " &
+						 ,Information!) 
+			end if
+			inizializza_lista()
+		end if
+	else
+		
+		messagebox("Aggiorna dati di Trattamento", "Numero Work Order non presente, operazione interrotta.", stopsign!)
+		
+	end if
+			
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+		
+finally
+
+		
+end try
+
+
+
+
+end subroutine
 
 on w_meca_1.destroy
 call super::destroy

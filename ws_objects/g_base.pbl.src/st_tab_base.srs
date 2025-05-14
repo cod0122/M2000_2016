@@ -120,6 +120,7 @@ global type st_tab_base from structure
 	string		update_last_vers
 	string		adobe_clientid		descriptor "comment" = "codice API key di ADOBE per conv. pdf in docx"
 	string		adobe_secret		descriptor "comment" = "codice Secret di ADOBE per conv. pdf in docx"
+	string		aco_note_fisse		descriptor "comment" = "note aggiunte alle NOTE da importare in ACO"
 	datetime		x_datins
 	string		x_utente
 end type

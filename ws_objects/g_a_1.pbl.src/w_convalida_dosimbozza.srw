@@ -189,7 +189,7 @@ kuf_meca_dosim kuf1_meca_dosim
 
 
 //=== Controllo se sul dettaglio c'e' qualche cosa
-k_riga = dw_dett_0.getselectedrow(0)	
+k_riga = dw_dett_0.getselectedrow(0) //getrow()	
 if k_riga > 0 then
 	kst_tab_meca_dosimbozza.id_meca = dw_dett_0.getitemnumber(k_riga, "id_meca")
 	kst_tab_meca_dosimbozza.id_meca_dosimbozza = dw_dett_0.getitemnumber(k_riga, "id_meca_dosimbozza")
@@ -203,11 +203,21 @@ if k_riga > 0 then
 	k_appo = kst_tab_meca_dosimbozza.barcode
 	k_descr = kst_tab_meca_dosimbozza.barcode_lav
 	if trim(k_appo) > " " then 
-		k_msg = "Rimuovere Dosimetro " + trim(kst_tab_meca_dosimbozza.barcode_dosimetro) + " barcode " + trim(k_appo) &
-				 + "~n~rlavorato con " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		if trim(kst_tab_meca_dosimbozza.barcode_dosimetro) > " " then
+			k_msg = "Rimuovere lettura senza Dosimetro del barcode " + trim(k_appo) &
+				 + " " + kkg.acapo + "lavorato con " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		else
+			k_msg = "Rimuovere lettura Dosimetro " + trim(kst_tab_meca_dosimbozza.barcode_dosimetro) + " barcode " + trim(k_appo) &
+				 + " " + kkg.acapo + "lavorato con " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		end if
 	else
-		k_msg = "Rimuovere Dosimetro " + trim(kst_tab_meca_dosimbozza.barcode_dosimetro)  &
-				 + "~n~rbarcode lavorato: " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		if trim(kst_tab_meca_dosimbozza.barcode_dosimetro) > " " then
+			k_msg = "Rimuovere lettura senza Dosimetro del "  &
+				 + " " + kkg.acapo + "barcode lavorato: " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		else
+			k_msg = "Rimuovere lettura Dosimetro " + trim(kst_tab_meca_dosimbozza.barcode_dosimetro)  &
+				 + " " + kkg.acapo + "barcode lavorato: " + trim(k_descr) + " (id lettura: " + string(k_codice, "####0") + ")"
+		end if
 	end if
 end if
 ////=== Se sul dw non c'e' nessuna riga o nessun codice allora pesco dalla lista
@@ -1333,6 +1343,7 @@ boolean enabled = true
 string dataobject = "d_convalida_dosimbozza_l"
 boolean ki_link_standard_attivi = false
 boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = true
 boolean ki_d_std_1_attiva_cerca = true
 end type
 
@@ -1565,7 +1576,7 @@ integer y = 744
 end type
 
 type dw_lista_0 from w_g_tab0`dw_lista_0 within w_convalida_dosimbozza
-integer x = 23
+integer y = 96
 integer width = 3291
 integer height = 732
 string dataobject = "d_mecadosim_l_da_leggere"
@@ -1592,7 +1603,8 @@ end event
 
 type dw_guida from w_g_tab0`dw_guida within w_convalida_dosimbozza
 boolean visible = true
-integer y = 8
+integer x = 0
+integer y = 0
 integer width = 3433
 integer height = 84
 boolean enabled = true

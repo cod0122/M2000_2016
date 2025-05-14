@@ -876,12 +876,27 @@ end if
 end subroutine
 
 public function datetime get_datetime_current_local ();/*
-   Torna data ora LOCALE
+   Torna data ora LOCALE (ITALIANA)
 */
-datetime k_return
+datetime k_return, k_datetime_0
+uo_exception kuo_exception
 
 		
-	k_return = datetime(today(), now())		
+	k_datetime_0 = datetime(date(0), time(0))
+		
+	//--- get dal DB server data ora UTC
+	k_return = kids_current_datetime.u_get_current_italy()
+
+	if k_return > k_datetime_0 then
+	else
+		kuo_exception = create uo_exception
+		kuo_exception.kist_esito.esito = kkg_esito.ko
+		kuo_exception.kist_esito.sqlerrtext = "ERRORE IN LETTURA DATA-ORA UTC DAL DB !!! PREGO VERIFICARE LA CONNESSIONE"
+		kuo_exception.scrivi_log( )
+		k_return = datetime(Today(), now())  // ULTIMA SPIAGGIA PIGLIO LA DATA LOCALE
+	end if
+			
+//	k_return = datetime(today(), now())		
 
 return k_return
 

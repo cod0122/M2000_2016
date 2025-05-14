@@ -1845,7 +1845,7 @@ k_query_select_con_bolla = &
 			 + "       where ARFA_V.NUM_FATT   = " + string(kst_tab_arfa.NUM_FATT )  &
 			 + "          And ARFA_V.DATA_FATT = '" + string(kst_tab_arfa.DATA_FATT) + "' " 
 			k_sql = k_sql + " " + trim(k_sql_w) 
-			kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+			kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //			 + "        left outer join CONTRATTI on MECA.CONTRATTO = CONTRATTI.CODICE  and (CONTRATTI.ID_CONTRATTO_DP > 0 or CONTRATTI.ID_CONTRATTO_RD > 0) " &
 
 			if kst_tab_clienti.kst_tab_clienti_fatt.fattura_da = kuf1_clienti.kki_fattura_da_certif then 

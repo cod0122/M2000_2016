@@ -93,30 +93,14 @@ string k_key
 long k_codice
 string k_attiva
 int k_importa = 0
-pointer oldpointer  // Declares a pointer variable
-
-
 
 
 //--- nessun tasto funzionale e' necessario
 	ki_nessun_tasto_funzionale=true
 
-
 	if not cb_schedula.visible then
 
-//=== Puntatore Cursore da attesa.....
-		oldpointer = SetPointer(HourGlass!)
-
-//=== Legge le righe del dw salvate l'ultima volta (importfile)
-//		if cb_ritorna.enabled = false then  //solo la prima volta il tasto e' false 
-//	
-//			k_key = trim(ki_st_open_w.key1)+trim(ki_st_open_w.key2)+trim(ki_st_open_w.key3)&
-//					  +trim(ki_st_open_w.key4)+trim(ki_st_open_w.key5)+trim(ki_st_open_w.key6)&
-//					  +trim(ki_st_open_w.key7)+trim(ki_st_open_w.key8)+trim(ki_st_open_w.key9)
-//			
-//			k_importa = kGuf_data_base.dw_importfile(trim(k_key), dw_lista_0)
-//	
-//		end if
+		SetPointer(kkg.pointer_attesa)
 		
 	//--- azzero contatore delle volte di trigger del timer	
 		ki_conta_timer=0
@@ -130,6 +114,7 @@ pointer oldpointer  // Declares a pointer variable
 	//--- setto a null data e ora cosi' li riempie inserisci()		
 		setnull(kist_sv_eventi_sked_log.log_data)
 		setnull(kist_sv_eventi_sked_log.log_ora)
+		
 	//--- lancio il timer	
 		if timer_start() then
 	//--- setto a null il testo cosi' li riempie inserisci()		
@@ -149,7 +134,7 @@ pointer oldpointer  // Declares a pointer variable
 			inserisci()
 		end if
 
-		SetPointer(oldpointer)
+		SetPointer(kkg.pointer_default)
 
 	else
 		cb_schedula.bringtotop = true
@@ -216,7 +201,9 @@ datetime k_now
 	
 	dw_lista_0.setcolumn(1)
 
-	k_now = kGuf_data_base.prendi_dataora( )
+	//k_now = kGuf_data_base.prendi_dataora( )
+	
+	k_now = kguo_g.get_datetime_current_local( )
 	
 	if isnull(kist_sv_eventi_sked_log.log_data) then
 		kist_sv_eventi_sked_log.log_data = date(k_now)

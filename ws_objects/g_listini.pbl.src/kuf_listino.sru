@@ -3286,49 +3286,33 @@ return k_return
 
 end function
 
-public function integer if_e1litm_x_contratto (st_tab_listino ast_tab_listino) throws uo_exception;//
-//------------------------------------------------------------------------
-//--- Verifica presenza di almeno un Codice Contratto E1 (e1litm) attivo  
-//--- x codice Contratto CO
-//--- 
-//--- Input: st_tab_listino contratto     
-//--- Output:            
-//--- Ritorna: numero contratti E1 attivi
-//---           		  
-//------------------------------------------------------------------------
+public function integer if_e1litm_x_contratto (st_tab_listino ast_tab_listino) throws uo_exception;/*
+Verifica presenza di almeno un Codice Contratto E1 (e1litm) attivo x codice Contratto CO 
+	Inp: st_tab_listino contratto     
+	Rit: numero contratti E1 attivi
+*/
 int k_return
 int k_ctr
-st_esito kst_esito
 date k_dataoggi, k_datazero
 
 
- 
-	kst_esito.esito = kkg_esito.ok
-	kst_esito.sqlcode = 0
-	kst_esito.SQLErrText = ""
-	kst_esito.nome_oggetto = this.classname()
+	kguo_exception.inizializza(this.classname())
 
 	k_dataoggi = kguo_g.get_dataoggi( )
 	k_datazero = date(0)
 
 	SELECT count(listino.e1litm)
-		 	 into
-	  			:k_ctr
-      	 FROM listino
-		 where contratto = :ast_tab_listino.contratto
+	 	into	:k_ctr
+      FROM listino
+		where contratto = :ast_tab_listino.contratto
 		      and attivo = 'S'
 				and (dt_end is null or (dt_end > :k_datazero and dt_end >= :k_dataoggi))
-			  using kguo_sqlca_db_magazzino;		
+		using kguo_sqlca_db_magazzino;		
 
-	if kguo_sqlca_db_magazzino.sqlcode <> 0 then
-		if kguo_sqlca_db_magazzino.sqlcode < 0 then
-			kst_esito.esito = kkg_esito.db_ko
-			kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-			kst_esito.SQLErrText = "Errore in verifica presenza Contratti-E1 (e1litm) attivi su Listino, id Contratto= " + string(ast_tab_listino.contratto) +  "~n~r" + trim(kguo_sqlca_db_magazzino.SQLErrText) + " - " + trim(kst_esito.nome_oggetto)
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)		
-			throw kguo_exception
-		end if
+	if kguo_sqlca_db_magazzino.sqlcode < 0 then
+		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+				"Errore in verifica presenza Contratti-E1 (e1litm) attivi su Listino, id Contratto= " + string(ast_tab_listino.contratto))		
+		throw kguo_exception
 	end if
 
 	if k_ctr > 0 then

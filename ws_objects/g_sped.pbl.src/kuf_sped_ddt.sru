@@ -12,7 +12,7 @@ type variables
 //
 //OLD public string ki_dw_stampa_ddt = "d_ddt_st_ed1_08_2009"  
 public string ki_dw_stampa_ddt = "d_ddt_st_ed9_02_2025" //"d_ddt_st_ed8_04_2024" //"d_ddt_st_ed7_10_2019" //"d_ddt_st_ed5_05_2016" //"d_ddt_st_ed4_09_2015" //"d_ddt_st_ed3_05_2011" //"d_ddt_st_ed2_08_2010"
-public string ki_dw_stampa_ddt_libero = "d_ddt_st_ed8_04_2024f" //"d_ddt_st_ed7_10_2019f"
+public string ki_dw_stampa_ddt_libero = "d_ddt_st_ed9_02_2025f" //"d_ddt_st_ed8_04_2024f" //"d_ddt_st_ed7_10_2019f"
 private st_ddt_stampa kist_ddt_stampa[]
 public uo_ds_std_1 kids_stampa_ddt
 //private kuf_sped kiuf_sped
@@ -77,6 +77,7 @@ private function boolean produci_ddt_riga (ref uo_ds_std_1 ads_ddt_stampa, long 
 private function boolean produci_ddt_riga_note_qtna (ref uo_ds_std_1 ads_ddt_stampa, long a_riga_ds) throws uo_exception
 public function st_esito produci_ddt_set_dw_loghi (ref uo_ds_std_1 ads_ok, ref datawindow adw_ok)
 private function boolean produci_ddt_testa (ref uo_ds_std_1 ads_ddt_stampa, integer a_riga_dati_ddt) throws uo_exception
+private subroutine produci_ddt_set_pagina ()
 end prototypes
 
 public function st_esito set_ddt_stampato_su_base ();//
@@ -1039,7 +1040,7 @@ if k_pagina > 1 then
 	ki_pag_ddt++
 
 //--- Numero di Pagina	
-	kids_stampa_ddt.setitem(k_pagina, "pagina",  "Pagina: " + string(ki_pag_ddt))  
+//	kids_stampa_ddt.setitem(k_pagina, "pagina",  "Pagina: " + string(ki_pag_ddt))  
 
 //--- Tipo Copia
 	kids_stampa_ddt.setitem(k_pagina, "tipo_copia",  kids_stampa_ddt.object.tipo_copia[k_pagina_prec])  
@@ -1109,7 +1110,7 @@ try
 
 		if kst_ddt_stampa[k_riga_ddt].id_sped > 0 then
 
-//--- legge UNA bolla intera
+//--- legge UN DDT intero
 			k_row = kds_ddt_stampa.retrieve(kst_ddt_stampa[k_riga_ddt].id_sped)
 			if k_row < 0 then
 				kguo_exception.inizializza(this.classname())
@@ -1586,8 +1587,8 @@ if kst_tab_sped.id_sped > 0 then
 	if kguo_sqlca_db_magazzino.sqlcode < 0 then
 		kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
 		kst_esito.SQLErrText = "Errore durante selezione del nome 'form del stampa' del ddt id " &
-					+ string(kst_tab_sped.id_sped, "####0") &
-					+ " ~n~rErrore-tab.SPED:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
+					+ string(kst_tab_sped.id_sped, "####0") + " " &
+					+ kkg.acapo + "Errore-tab.SPED:"	+ trim(kguo_sqlca_db_magazzino.SQLErrText)
 		kst_esito.esito = kkg_esito.db_ko
 	end if
 	
@@ -1866,22 +1867,29 @@ private function boolean produci_ddt_piede (ref uo_ds_std_1 ads_ddt_stampa, long
 //--- Stampa coda del documento
 //---
 boolean k_return=true
-long k_riga
+long k_row
+long k_pagina, k_pagine
+int k_rc
 
 
-	k_riga = produci_ddt_get_pagina()
+k_pagine = ki_pag_ddt
+if k_pagine < 1 then k_pagine = 1
 
+k_row = produci_ddt_get_pagina() - k_pagine + 1
+
+for k_pagina = 1 to k_pagine
+		
 //--- stampo Note 1 e 2 da SPED
  	if isnull(ads_ddt_stampa.object.sped_note_1[a_riga_dw]) then ads_ddt_stampa.object.sped_note_1[a_riga_dw] = ""
  	if isnull(ads_ddt_stampa.object.sped_note_2[a_riga_dw]) then ads_ddt_stampa.object.sped_note_2[a_riga_dw] = ""
-	kids_stampa_ddt.setitem(k_riga, "sped_note", trim(ads_ddt_stampa.object.sped_note_1[a_riga_dw]) )
+	kids_stampa_ddt.setitem(k_row, "sped_note", trim(ads_ddt_stampa.object.sped_note_1[a_riga_dw]) )
 	if kids_stampa_ddt.describe("sped_note_2.x") <> "!" then
-		kids_stampa_ddt.setitem(k_riga, "sped_note_2", trim(ads_ddt_stampa.object.sped_note_2[a_riga_dw])  )
+		kids_stampa_ddt.setitem(k_row, "sped_note_2", trim(ads_ddt_stampa.object.sped_note_2[a_riga_dw])  )
 	end if
 
 //--- Nome del Conducente
 	if kids_stampa_ddt.describe("sped_conducente.x") <> "!" then
-		kids_stampa_ddt.setitem(k_riga, "sped_conducente", trim(ads_ddt_stampa.object.sped_conducente[a_riga_dw])  )
+		kids_stampa_ddt.setitem(k_row, "sped_conducente", trim(ads_ddt_stampa.object.sped_conducente[a_riga_dw])  )
 	end if
 	
 	if isnull(ads_ddt_stampa.object.sped_cura_trasp[a_riga_dw]) then 
@@ -1889,62 +1897,65 @@ long k_riga
 	end if
 	choose case ads_ddt_stampa.object.sped_cura_trasp[a_riga_dw]
 		case "M"
-			kids_stampa_ddt.setitem(k_riga, "trasporto",  "Mittente")  
+			kids_stampa_ddt.setitem(k_row, "trasporto",  "Mittente")  
 		case "D"
-			kids_stampa_ddt.setitem(k_riga, "trasporto",  "Destinatario")  
-			kids_stampa_ddt.setitem(k_riga, "vett_1",  "Destinatario")  
+			kids_stampa_ddt.setitem(k_row, "trasporto",  "Destinatario")  
+			kids_stampa_ddt.setitem(k_row, "vett_1",  "Destinatario")  
 		case "V"
-			kids_stampa_ddt.setitem(k_riga, "trasporto",  "Vettore")  
+			kids_stampa_ddt.setitem(k_row, "trasporto",  "Vettore")  
 		case else
-			kids_stampa_ddt.setitem(k_riga, "trasporto",  " ")  
+			kids_stampa_ddt.setitem(k_row, "trasporto",  " ")  
 	end choose
 
 	if trim(ads_ddt_stampa.object.sped_cura_trasp[a_riga_dw]) <> "V" then
 		
 		if isnull(ads_ddt_stampa.object.sped_MEZZO[a_riga_dw]) then ads_ddt_stampa.object.sped_MEZZO[a_riga_dw] = " "
 		if trim(ads_ddt_stampa.object.sped_MEZZO[a_riga_dw]) = "D" then
-//			kids_stampa_ddt.setitem(k_riga, "consegna",  "Destinatario")  
+//			kids_stampa_ddt.setitem(k_row, "consegna",  "Destinatario")  
 		else
-//			kids_stampa_ddt.setitem(k_riga, "consegna",  "Mittente")  
+//			kids_stampa_ddt.setitem(k_row, "consegna",  "Mittente")  
 		end if
 
 		if ads_ddt_stampa.object.sped_data_rit[a_riga_dw] > kkg.DATA_NO then 
-			kids_stampa_ddt.setitem(k_riga, "data_ora_rit", string(ads_ddt_stampa.object.sped_data_rit[a_riga_dw]) + "  " + trim(ads_ddt_stampa.object.sped_ora_rit[a_riga_dw]))
+			kids_stampa_ddt.setitem(k_row, "data_ora_rit", string(ads_ddt_stampa.object.sped_data_rit[a_riga_dw]) + "  " + trim(ads_ddt_stampa.object.sped_ora_rit[a_riga_dw]))
 		else
-			kids_stampa_ddt.setitem(k_riga, "data_ora_rit",  " ")
+			kids_stampa_ddt.setitem(k_row, "data_ora_rit",  " ")
 		end if
 
 	else
 		
 		if isnull(ads_ddt_stampa.object.sped_VETT_1[a_riga_dw]) then ads_ddt_stampa.object.sped_VETT_1[a_riga_dw] = " "
 		if isnull(ads_ddt_stampa.object.sped_VETT_2[a_riga_dw]) then ads_ddt_stampa.object.sped_VETT_2[a_riga_dw] = " "
-		kids_stampa_ddt.setitem(k_riga, "vett_1", trim(ads_ddt_stampa.object.sped_VETT_1[a_riga_dw]))
-		kids_stampa_ddt.setitem(k_riga, "vett_2", trim(ads_ddt_stampa.object.sped_VETT_2[a_riga_dw]))
+		kids_stampa_ddt.setitem(k_row, "vett_1", trim(ads_ddt_stampa.object.sped_VETT_1[a_riga_dw]))
+		kids_stampa_ddt.setitem(k_row, "vett_2", trim(ads_ddt_stampa.object.sped_VETT_2[a_riga_dw]))
 		
 		if ads_ddt_stampa.object.sped_data_rit[a_riga_dw] > kkg.DATA_NO then 
-			kids_stampa_ddt.setitem(k_riga, "data_ora_rit", string(ads_ddt_stampa.object.sped_data_rit[a_riga_dw]) + "  " + trim(ads_ddt_stampa.object.sped_ora_rit[a_riga_dw]))
+			kids_stampa_ddt.setitem(k_row, "data_ora_rit", string(ads_ddt_stampa.object.sped_data_rit[a_riga_dw]) + "  " + trim(ads_ddt_stampa.object.sped_ora_rit[a_riga_dw]))
 		else
-			kids_stampa_ddt.setitem(k_riga, "data_ora_rit",  " ")
+			kids_stampa_ddt.setitem(k_row, "data_ora_rit",  " ")
 		end if
 
 	end if
 
 	if isnull(ads_ddt_stampa.object.sped_aspetto[a_riga_dw]) then ads_ddt_stampa.object.sped_aspetto[a_riga_dw] = " " 
-	kids_stampa_ddt.setitem(k_riga, "aspetto",  trim(ads_ddt_stampa.object.sped_aspetto[a_riga_dw]))  
+	kids_stampa_ddt.setitem(k_row, "aspetto",  trim(ads_ddt_stampa.object.sped_aspetto[a_riga_dw]))  
 
 	if isnull(ads_ddt_stampa.object.sped_colli[a_riga_dw]) then ads_ddt_stampa.object.sped_colli[a_riga_dw] = 0 
-	kids_stampa_ddt.setitem(k_riga, "colli",  (ads_ddt_stampa.object.sped_colli[a_riga_dw]))  
+	kids_stampa_ddt.setitem(k_row, "colli",  (ads_ddt_stampa.object.sped_colli[a_riga_dw]))  
 	
 //	if isnull(ads_ddt_stampa.object.peso_kg) then ads_ddt_stampa.object.peso_kg = 0 
-//	kids_stampa_ddt.setitem(k_riga, "peso_kg",  string(ads_ddt_stampa.object.peso_kg))  
+//	kids_stampa_ddt.setitem(k_row, "peso_kg",  string(ads_ddt_stampa.object.peso_kg))  
 	
 	
 	if isnull(ads_ddt_stampa.object.sped_porto[a_riga_dw]) then ads_ddt_stampa.object.sped_porto[a_riga_dw] = " " 
-	kids_stampa_ddt.setitem(k_riga, "porto",  trim(ads_ddt_stampa.object.sped_porto[a_riga_dw]))  
+	kids_stampa_ddt.setitem(k_row, "porto",  trim(ads_ddt_stampa.object.sped_porto[a_riga_dw]))  
 	
 //	if isnull(ads_ddt_stampa.object.sped_note_qtna[a_riga_dw]) then ads_ddt_stampa.object.sped_note_qtna[a_riga_dw] = " "
-//	kids_stampa_ddt.setitem(k_riga, "sped_note_qtna",  trim(ads_ddt_stampa.object.sped_note_qtna[a_riga_dw]))  
+//	kids_stampa_ddt.setitem(k_row, "sped_note_qtna",  trim(ads_ddt_stampa.object.sped_note_qtna[a_riga_dw]))  
 	
+	k_row ++
+
+next
 
 
 return k_return
@@ -1965,8 +1976,8 @@ st_esito kst_esito
 	kst_esito = kguo_exception.inizializza(this.classname())
 
 //--- Righe DDT		
-	ki_ddt_riga_corpo=0             //--- resetta il numero di riga di dettaglio
-	ki_pag_DDT=1   //--- pagine doc
+	ki_ddt_riga_corpo=0     //--- resetta il numero di riga di dettaglio
+	ki_pag_DDT=1   			//--- pagine doc
 
 	k_boolean = produci_ddt_testa(ads_ddt_stampa, 1)
 	if not k_boolean then
@@ -1997,6 +2008,7 @@ st_esito kst_esito
 //	produci_ddt_riga_pagamento(ads_ddt_stampa, 1)  	// stampa descrizione codice Pagamento 
 	k_boolean = produci_ddt_piede(ads_ddt_stampa, 1) 	// stampa i dati finali del ddt
 	
+	produci_ddt_set_pagina() // stampa i n.pagina sul ddt 
 
 return k_boolean
 
@@ -2487,6 +2499,33 @@ st_esito kst_esito
 return k_return
 
 end function
+
+private subroutine produci_ddt_set_pagina ();/*
+ Imposta il num. pagina
+*/
+long k_pagina, k_pagine, k_row
+int k_rc
+
+
+k_pagine = ki_pag_ddt
+   
+if k_pagine > 1 then
+
+	k_row = produci_ddt_get_pagina() - k_pagine + 1
+
+	for k_pagina = 1 to k_pagine
+	
+		kids_stampa_ddt.setitem(k_row, "pagina",  "Pagina: " + string(k_pagina,"#") + "." + string(k_pagine,"#"))
+		k_row ++
+
+	next
+	
+else
+	kids_stampa_ddt.setitem(produci_ddt_get_pagina(), "pagina",  "Pagina: " + string(k_pagine,"#"))
+
+end if
+
+end subroutine
 
 on kuf_sped_ddt.create
 call super::create

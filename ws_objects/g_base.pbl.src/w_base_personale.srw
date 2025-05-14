@@ -124,6 +124,10 @@ type st_cb_placeholder_l from statictext within tabpage_9
 end type
 type tabpage_10 from userobject within tab_1
 end type
+type cb_importa_pklist_aptar_t from statictext within tabpage_10
+end type
+type cb_importa_pklist_aptar from commandbutton within tabpage_10
+end type
 type cb_e1_recover_t from statictext within tabpage_10
 end type
 type cb_e1_recover from commandbutton within tabpage_10
@@ -149,6 +153,8 @@ end type
 type b_clienti_cntdep_l from commandbutton within tabpage_10
 end type
 type tabpage_10 from userobject within tab_1
+cb_importa_pklist_aptar_t cb_importa_pklist_aptar_t
+cb_importa_pklist_aptar cb_importa_pklist_aptar
 cb_e1_recover_t cb_e1_recover_t
 cb_e1_recover cb_e1_recover
 st_deposito st_deposito
@@ -2378,6 +2384,7 @@ try
 	kst_tab_base.smart_pickup_lots_sha_key = tab_1.tabpage_4.dw_4.getitemstring(1, "smart_pickup_lots_sha_key")
 	kst_tab_base.adobe_clientid = tab_1.tabpage_4.dw_4.getitemstring(1, "adobe_clientid")
 	kst_tab_base.adobe_secret = tab_1.tabpage_4.dw_4.getitemstring(1, "adobe_secret")
+	kst_tab_base.aco_note_fisse = tab_1.tabpage_4.dw_4.getitemstring(1, "aco_note_fisse")
 	kst_tab_base.st_tab_g_0.esegui_commit = "N" 
 	
 //--- dati GMT			
@@ -2524,7 +2531,7 @@ string k_scheda = ""
 		tab_1.tabpage_4.visible = true
 		tab_1.tabpage_5.visible = true
 		tab_1.tabpage_6.visible = true
-		tab_1.tabpage_7.visible = false
+	//	tab_1.tabpage_7.visible = false
 		tab_1.tabpage_8.visible = true
 		tab_1.tabpage_9.visible = true
 		tab_1.tabpage_10.visible = true
@@ -3177,6 +3184,7 @@ integer y = 16
 integer width = 3570
 integer height = 1592
 long backcolor = 67108864
+string text = "TEST"
 long tabbackcolor = 67108864
 end type
 
@@ -3186,10 +3194,10 @@ integer y = 28
 end type
 
 type dw_7 from w_g_tab_3`dw_7 within tabpage_7
-integer x = 343
-integer y = 8
-integer width = 494
-integer height = 152
+integer x = 18
+integer y = 4
+integer width = 1673
+integer height = 1124
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
@@ -4954,6 +4962,8 @@ long tabtextcolor = 33554432
 string picturename = "Strikethrough!"
 long picturemaskcolor = 536870912
 string powertiptext = "Funzioni varie"
+cb_importa_pklist_aptar_t cb_importa_pklist_aptar_t
+cb_importa_pklist_aptar cb_importa_pklist_aptar
 cb_e1_recover_t cb_e1_recover_t
 cb_e1_recover cb_e1_recover
 st_deposito st_deposito
@@ -4983,6 +4993,8 @@ event u_resize(long a_scost_width, long a_scost_height);/*
 end event
 
 on tabpage_10.create
+this.cb_importa_pklist_aptar_t=create cb_importa_pklist_aptar_t
+this.cb_importa_pklist_aptar=create cb_importa_pklist_aptar
 this.cb_e1_recover_t=create cb_e1_recover_t
 this.cb_e1_recover=create cb_e1_recover
 this.st_deposito=create st_deposito
@@ -4995,7 +5007,9 @@ this.cb_meca_chiude=create cb_meca_chiude
 this.st_meca_chiude=create st_meca_chiude
 this.dw_10=create dw_10
 this.b_clienti_cntdep_l=create b_clienti_cntdep_l
-this.Control[]={this.cb_e1_recover_t,&
+this.Control[]={this.cb_importa_pklist_aptar_t,&
+this.cb_importa_pklist_aptar,&
+this.cb_e1_recover_t,&
 this.cb_e1_recover,&
 this.st_deposito,&
 this.cb_depositi,&
@@ -5010,6 +5024,8 @@ this.b_clienti_cntdep_l}
 end on
 
 on tabpage_10.destroy
+destroy(this.cb_importa_pklist_aptar_t)
+destroy(this.cb_importa_pklist_aptar)
 destroy(this.cb_e1_recover_t)
 destroy(this.cb_e1_recover)
 destroy(this.st_deposito)
@@ -5024,6 +5040,56 @@ destroy(this.dw_10)
 destroy(this.b_clienti_cntdep_l)
 end on
 
+type cb_importa_pklist_aptar_t from statictext within tabpage_10
+integer x = 1285
+integer y = 1372
+integer width = 1170
+integer height = 64
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+long textcolor = 16806257
+long backcolor = 16777215
+string text = "Importa file csv con i dati di paking-list"
+boolean focusrectangle = false
+end type
+
+type cb_importa_pklist_aptar from commandbutton within tabpage_10
+integer x = 357
+integer y = 1348
+integer width = 891
+integer height = 112
+integer taborder = 92
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Arial"
+string text = "Importa Paking-List APTAR"
+boolean flatstyle = true
+end type
+
+event clicked;//--- 
+st_open_w kst_open_w 
+kuf_pklist_aptar kuf1_pklist_aptar
+
+
+kuf1_pklist_aptar = create kuf_pklist_aptar
+kst_open_w.flag_modalita = kkg_flag_modalita.elenco
+kuf1_pklist_aptar.u_open(kst_open_w)
+
+destroy kuf1_pklist_aptar
+
+
+
+
+
+end event
+
 type cb_e1_recover_t from statictext within tabpage_10
 integer x = 1285
 integer y = 1124
@@ -5035,7 +5101,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-long textcolor = 8388608
+long textcolor = 16806257
 long backcolor = 16777215
 string text = "Recupera i dati da inviare a E1 (es. CUBE)"
 boolean focusrectangle = false
@@ -5087,7 +5153,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-long textcolor = 8388608
+long textcolor = 16806257
 long backcolor = 16777215
 string text = "Gestioni Depositi e Anagrafiche"
 boolean focusrectangle = false
@@ -5140,7 +5206,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-long textcolor = 8388608
+long textcolor = 16806257
 long backcolor = 16777215
 string text = "Esporta dati Registro Conto Deposito (ACO)"
 boolean focusrectangle = false
@@ -5209,7 +5275,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-long textcolor = 8388608
+long textcolor = 16806257
 long backcolor = 16777215
 string text = "Esporta dati Contratti/Legami per i Packing List Web e di Ritiro Lotti (SMART)"
 boolean focusrectangle = false
@@ -5288,7 +5354,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Arial"
-long textcolor = 8388608
+long textcolor = 16806257
 long backcolor = 16777215
 string text = "Gestione chiusura Lotti massiva"
 boolean focusrectangle = false

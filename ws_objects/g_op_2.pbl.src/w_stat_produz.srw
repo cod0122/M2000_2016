@@ -19,8 +19,10 @@ global w_stat_produz w_stat_produz
 
 type variables
 //
+kuf_utility kiuf_utility
+
 //datastore kdsi_elenco_output
-st_stampe kist_stampa_dw_2, kist_stampa_dw_3, kist_stampa_dw_4, kist_stampa_dw_5 //, kist_stampa_dw_7
+st_stampe kist_stampa_dw_2, kist_stampa_dw_3, kist_stampa_dw_4, kist_stampa_dw_8 //, kist_stampa_dw_7
 
 //struttura dei parametri di estrazione
 st_stat_produz  kist_stat_produz
@@ -31,6 +33,7 @@ private string ki_codice_prec_x_crea_view=" "
 //--- Nomi dw da usare 
 private string ki_stat_x_gruppi = ""
 private string ki_stat_x_clienti = ""
+private string ki_stat_x_clienti_g3 = ""
 private string ki_stat_x_listino = ""
 private string ki_stat_riepilogo = ""
 
@@ -47,20 +50,31 @@ private subroutine get_parametri () throws uo_exception
 private subroutine set_nome_utente_tab () throws uo_exception
 protected subroutine open_start_window ()
 protected function integer inserisci ()
-private subroutine crea_view_x_statp_meca () throws uo_exception
-private subroutine crea_view_x_statp_dfatt ()
-private subroutine crea_view_x_statp_mfat () throws uo_exception
 private subroutine crea_view_x_statp_mfat_id_meca ()
 private subroutine crea_view_x_statp_colli_trattati_x_gru () throws uo_exception
-private subroutine crea_view_x_statp_colli_trattati_x_clie () throws uo_exception
 public subroutine popola_zoom_gruppi ()
-public subroutine popola_zoom_clie_3 ()
-private subroutine crea_view_x_statp_artr_x_cli () throws uo_exception
 private subroutine crea_view_x_statp_artr_x_gru () throws uo_exception
 private subroutine crea_view_x_statp_colli_trattati_x_list () throws uo_exception
 private subroutine crea_view_x_statp_artr_x_list () throws uo_exception
 protected subroutine inizializza_4 () throws uo_exception
 public subroutine popola_zoom_x_list ()
+private subroutine old_crea_view_x_statp_dfatt ()
+private subroutine old_crea_view_x_statp_mfat () throws uo_exception
+protected subroutine inizializza_7 () throws uo_exception
+private subroutine crea_temp_statp_imp2 () throws uo_exception
+public subroutine u_zoom_clienti (long a_id_cliente, integer a_impianto)
+private subroutine crea_temp_statp_colli2 () throws uo_exception
+private subroutine crea_temp_x_statp_colli2_x_id_armo () throws uo_exception
+private subroutine crea_temp_x_statp_meca () throws uo_exception
+private subroutine crea_temp_x_statp_colli () throws uo_exception
+private subroutine crea_temp_x_statp_colli_x_fila () throws uo_exception
+private subroutine crea_temp_x_statp_colli_clie_3 () throws uo_exception
+private subroutine crea_temp_x_statp_colli_clie_3_x_fila () throws uo_exception
+private subroutine crea_temp_x_statp_artr_x_cli () throws uo_exception
+public subroutine popola_zoom_clie_3 ()
+private subroutine _crea_temp_x_statp_colli_trattati_x_clie () throws uo_exception
+private subroutine crea_temp_x_statp_colli_ent_clie_3 () throws uo_exception
+private subroutine crea_temp_x_statp_artr3 () throws uo_exception
 end prototypes
 
 protected function string inizializza () throws uo_exception;//======================================================================
@@ -265,181 +279,362 @@ return k_return
 
 end function
 
-protected subroutine inizializza_3 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
-//---  TAB 4
-//--------------------------------------------------------------------------------------------------------------------
+protected subroutine inizializza_3 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 3 controllandone i valori se gia' presenti
+//======================================================================
 //
 string k_codice_prec
 int k_rc
 int k_ctr
-string k_view, k_sql
-string k_sql_orig, k_stringn, k_string, k_campi
+string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string, k_campi
 boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
 
 
-//--- Puntatore Cursore da attesa.....
-//--- Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-kuf1_utility = create kuf_utility
-
-//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
-get_parametri()
-
-
-//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_4.st_4_retrieve.text)) > 0 then
-	k_codice_prec = tab_1.tabpage_4.st_4_retrieve.text
-else
-	k_codice_prec = " "
-end if
-
-//--- salvo i parametri cosi come sono stati immessi
-tab_1.tabpage_4.st_4_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
-
-if tab_1.tabpage_4.st_4_retrieve.text <> k_codice_prec then
-
-// if ki_codice_prec_x_crea_view <> tab_1.tabpage_2.st_2_retrieve.text then !!!PECCATO XCHE' LA TEMP TABLE VIENE CANCELLATA ALLA FINE DI QUESTA ROUTINE!!!
-//--- Salvo i parametri per evitare di rifare le Tabelle se non sono cambiati
-//      ki_codice_prec_x_crea_view = tab_1.tabpage_2.st_2_retrieve.text
-	crea_view_x_statp_dfatt()
-	crea_view_x_statp_mfat()
-	crea_view_x_statp_meca()
-		
-
-		
-//--- costruisco la view Valore Giri 
-	k_view = "#vx_" + trim(kist_stat_produz.utente)  + "_statp_artr3 "
-	k_sql = " "
-	k_campi = " " &
-	          + " valore_x_giri_f1_lav decimal(12,4) " & 
-			 + ", nr_giri_f1_lav integer" & 
-	 		 + ", nr_giri_f1_grp_lav integer" & 
-	          + ", valore_x_giri_f2_lav decimal(12,4) " & 
-			 + ", nr_giri_f2_lav integer" & 
-	 		 + ", nr_giri_f2_grp_lav integer" & 
-			 + ", somma_giri integer" &
-	          + ", valore_totale decimal(12,4) " 
-			 
-//	          + ", valore_x_giri_f1_pl decimal(12,4) " & 
-//			 + ", nr_giri_f1_pl integer" & 
-//	          + ", valore_x_giri_f2_pl decimal(12,4) " & 
-//			 + ", nr_giri_f2_pl integer" & 
-
-//--- Per calcolare l'esatto importo per FILA devo frazionare le eventuali lav (vedi COPAN) che hanno colli che sono sia in FILA 1 che 2 
- k_sql = &
-		 + " SELECT " &
-          + " s_artr.importo_giriF1 " &
-	       + " , coalesce(s_artr.giri_f1_lav,0.00)  as nr_giri_f1_lav " &
-	       + " , coalesce(s_artr.giri_f1_lav_gp,0.00) as nr_giri_f1_grp_lav " &
-           + " , s_artr.importo_giriF2 " &
-		    + " , coalesce(s_artr.giri_f2_lav,0.00) as nr_giri_f2_lav " &
-		    + " , coalesce(s_artr.giri_f2_lav_gp,0.00) as nr_giri_f2_grp_lav " &
-           + " , ( coalesce(s_artr.giri_f1_lav,0.00) + coalesce(s_artr.giri_f2_lav,0.00) )  as somma_giri      " &
-           + "  ,(s_artr.colli_trattati * imp_x_collo ) as valore_totale" & 
-		 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
-		 + "  s_artr.id_armo = statp_meca.id_armo " 
-//           + "  (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00) ) * imp_x_collo * (100 / (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00) + coalesce(s_artr.colli_f2_lav,0.00) + coalesce(s_artr.colli_f2_lav_gp,0.00)) * (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00)) / 100 ) as valore_x_giri_f1_lav " & 
-//		  + " colli_trattati / (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00) + coalesce(s_artr.colli_f2_lav,0.00) + coalesce(s_artr.colli_f2_lav_gp,0.00) )    " &
-//                    + " * (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00)) * imp_x_collo  as valore_x_giri_f1_lav " &
-//		  + " ,  colli_trattati  / (coalesce(s_artr.colli_f1_lav,0.00) + coalesce(s_artr.colli_f1_lav_gp,0.00) + coalesce(s_artr.colli_f2_lav,0.00) + coalesce(s_artr.colli_f2_lav_gp,0.00) )    " &
-//                    + " * (coalesce(s_artr.colli_f2_lav,0.00) + coalesce(s_artr.colli_f2_lav_gp,0.00)) * imp_x_collo  as valore_x_giri_f2_lav " &
-		 
-	choose case kist_stat_produz.tipo_data
-			
-		case '1' // x data fine lavorazione
-			k_sql +=  &
-			 + "	where " &  
-			 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+try
+	SetPointer(kkg.pointer_attesa)
+	
 	 
-//		case '2' // x data fatturazione
-//			k_sql += &
-//			 + "	where " &  
-//			 + "  s_artr.id_armo in " &  
-//			 + "  (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_stat_dfat )"  
-//			 
-//		case '3' // x data di riferimento
-//			k_sql += &
-//			 + "	where " &  
-//			 + "	  s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-//			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
-			 
-	end choose
+	get_parametri() // get parametri x l'estrazione
 	
-	k_sql += " "  //+ 	" group by 1  "
-	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
-
-
-
-//--- valorizza titolo
-	kist_stampa_dw_3.titolo = 'Valore Trattato Clienti '
-	kist_stampa_dw_3.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a ) + '  '
-	if kist_stat_produz.magazzino <> 9 then
-		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
-	else 
-		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Magazzino: Tutti   ' 
-	end if
-	if kist_stat_produz.no_dose = 'S' then
-		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: No   '
+	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+	if Len(trim(tab_1.tabpage_4.st_4_retrieve.text)) > 0 then
+		k_codice_prec = tab_1.tabpage_4.st_4_retrieve.text
 	else
-		if kist_stat_produz.dose = 0 then 
-			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: Tutte   '
-		else
-			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
-		end if
+		k_codice_prec = " "
 	end if
-	if kist_stat_produz.id_gruppo > 0 then
-		if kist_stat_produz.gruppo_flag = 1 then
-			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Gruppo: ' + string( kist_stat_produz.id_gruppo )  
-		else
-			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
-		end if
-	else
-		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Gruppi: Tutti   ' 
-	end if	
-
-	if k_esegui_query then
-
-		tab_1.tabpage_4.dw_4.dataobject = ki_stat_riepilogo
-
-//--- Aggiorna SQL della dw	
-		k_sql_orig = tab_1.tabpage_4.dw_4.Object.DataWindow.Table.Select 
-		k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_artr3"
-		k_string = "vx_MAST1_stat_artr3"
-		k_ctr = PosA(k_sql_orig, k_string, 1)
-		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-		LOOP
-		tab_1.tabpage_4.dw_4.Object.DataWindow.Table.Select = k_sql_orig 
+	
+	//--- salvo i parametri cosi come sono stati immessi
+	tab_1.tabpage_4.st_4_retrieve.Text = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	
+	if tab_1.tabpage_4.st_4_retrieve.text <> k_codice_prec then
+	
+	// if ki_codice_prec_x_crea_view <> tab_1.tabpage_2.st_2_retrieve.text then !!!PECCATO XCHE' LA TEMP TABLE VIENE CANCELLATA ALLA FINE DI QUESTA ROUTINE!!!
+	//--- Salvo i parametri per evitare di rifare le Tabelle se non sono cambiati
+	//      ki_codice_prec_x_crea_view = tab_1.tabpage_2.st_2_retrieve.text
+		//crea_view_x_statp_dfatt()
+		//crea_view_x_statp_mfat()
+		crea_temp_x_statp_meca()
+		//_crea_temp_x_statp_colli_trattati_x_clie( )
+		crea_temp_x_statp_artr_x_cli()	
 		
-		k_rc = tab_1.tabpage_4.dw_4.settransobject ( sqlca )
-
-		k_rc = tab_1.tabpage_4.dw_4.retrieve( )
+		crea_temp_x_statp_colli_ent_clie_3()
+		crea_temp_x_statp_colli()	
+		crea_temp_x_statp_colli_x_fila()	
+		crea_temp_x_statp_colli_clie_3()	
+		crea_temp_x_statp_colli_clie_3_x_fila()
+		crea_temp_x_statp_colli2_x_id_armo()	
+		
+		crea_temp_statp_colli2()
+	
+		crea_temp_statp_imp2()
+	
+//	
+//	//--- costruisco la view con COLLI FATT X ID_ARMO
+//		k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli "
+//			k_sql = " "
+//			k_campi = "clie_3 integer " &
+//					 + ", id_armo integer " &
+//					 + ", id_meca integer " &
+//					 + ", colli_trattati integer " &
+//					 + ", n_dosimetri integer " &
+//					 + ", colli_entrati integer " &
+//					 + ", imp_x_collo  decimal(12,4) " &
+//					 + ", imp_x_collo_g3 decimal(12,4) " &
+//					 + ", impianto tinyint " 
+//			k_sql = &
+//					 + " SELECT  distinct " &
+//					 + " statp_meca.clie_3  " &
+//					 + " ,statp_meca.id_armo  " &
+//					 + " ,statp_meca.id_meca  " &
+//					 + " ,(coalesce(cotr.colli_trattati,0)) as colli_trattati " & 
+//					 + " ,(coalesce(cotr.n_dosimetri,0)) as n_dosimetri " & 
+//					 + " ,(coalesce(s_artr.colli_entrati,0)) as colli_entrati" & 
+//					 + " ,CASE WHEN s_artr.impianto <> 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo " & 
+//					 + " ,CASE WHEN s_artr.impianto = 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo_g3 " & 
+//					 + " ,coalesce(s_artr.impianto,0) as impianto " & 
+//					 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+//					 + "  s_artr.id_armo = statp_meca.id_armo " &
+//					 + " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
+//					 + "  statp_meca.id_armo = cotr.id_armo " 
+//		choose case kist_stat_produz.tipo_data
+//			case '1' // x data fine lavorazione
+//				k_sql +=  &
+//				 + "	where " &  
+//				 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+//				 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+//	//		case '2' // x data fatturazione
+//	//			k_sql += &
+//	//			 + "	where " &  
+//	//			 + "  s_artr.id_armo in " &  
+//	//			 + "  (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_stat_dfat )"  
+//	//		case '3' // x data di riferimento
+//	//			k_sql += &
+//	//			 + "	where " &  
+//	//			 + "	  s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+//	//			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
+//		end choose
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//		
+//	//--- costruisco la view con X ID_ARMO X FILA 1 e FILA 2
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila "
+//			k_sql = " "
+//			k_campi = "clie_3 integer, id_armo integer " &
+//					  + " , importo_fila1 decimal(12,4) " & 
+//					  + " , importo_fila2 decimal(12,4) " &
+//					  + " , importo_girig3p2 decimal(12,4) " & 
+//					  + " , importo_girig3p4 decimal(12,4) " 
+//			k_sql = &
+//					 + " SELECT   " &
+//					 + " statp_meca.clie_3 " &
+//					 + " ,statp_meca.id_armo  " &
+//					 + " ,s_artr.importo_giriF1 " &
+//					 + " ,s_artr.importo_giriF2 " &
+//					 + " ,s_artr.importo_girig3p2 " &
+//					 + " ,s_artr.importo_girig3p4 " &
+//				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+//				 + "  s_artr.id_armo = statp_meca.id_armo " 
+//	//          + " inner join vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
+//	//          + "  statp_meca.id_armo = cotr.id_armo " 
+//	
+//		choose case kist_stat_produz.tipo_data
+//			case '1' // x data fine lavorazione
+//				k_sql +=  &
+//				 + "	where " &  
+//				 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+//				 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+//		end choose
+//		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//	
+//		
+//	//--- costruisco la view con X CLIE_3
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 "
+//			k_sql = " "
+//			k_campi = "clie_3 integer " &
+//				 + ", colli_trattati integer " &
+//				 + ", colli_entrati integer " & 
+//				 + ", imp_trattati decimal(12,4) " &
+// 				 + ", imp_trattati_g3 decimal(12,4) " & 
+//				 + ", n_dosimetri integer " &
+//				 + ", imp_fatt_dosimetri decimal(12,2) " 
+//		 k_sql = &
+//				 + " SELECT   " &
+//				 + " clie_3  " &
+//				 + " ,sum(colli_trattati) " & 
+//				 + " ,sum(colli_entrati)" & 
+//				 + " ,CASE WHEN impianto <> 3 then sum(imp_x_collo * colli_trattati) else 0.00 end " & 
+//				 + " ,CASE WHEN impianto = 3  then sum(imp_x_collo_g3 * colli_trattati) else 0.00 end " & 
+//				 + " ,sum(n_dosimetri) " & 
+//				 + " ,sum(n_dosimetri) * " + k_prezzo_dosim_x & 
+//				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli " 
+//			k_sql +=  " group by clie_3, impianto  "
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//		
+//	//--- costruisco la view con COLLI IMPORTI X CLIE_3 X LAV "
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila "
+//			k_sql = " "
+//			k_campi = "clie_3 integer " &
+//						+ " , importo_fila1 decimal(12,4) " & 
+//						+ " , importo_fila2 decimal(12,4) " &
+//					   + " , importo_girig3p2 decimal(12,4) " & 
+//					   + " , importo_girig3p4 decimal(12,4) " 
+//			k_sql = &
+//				 + " SELECT  " &
+//				 + " clie_3  " &
+//				 + " ,sum(coalesce(importo_fila1,0.00)) " & 
+//				 + " ,sum(coalesce(importo_fila2,0.00)) " &  
+//				 + " ,sum(coalesce(importo_girig3p2,0.00)) " & 
+//				 + " ,sum(coalesce(importo_girig3p4,0.00)) " &  
+//				  + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila " 
+//		k_sql +=  " group by clie_3  "
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//	
+//	//--- costruisco la view con X ID_ARMO
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo "
+//			k_sql = " "
+//			k_campi = "clie_3 integer, id_armo integer " &
+//					 + ", imp_x_pedana decimal(12,4)" &
+//					 + ", pedane decimal(12,2) " &
+//				  + ", colli_f1_lav integer " & 
+//				  + ", colli_f2_lav integer " &
+//				  + ", colli_g3p2_LAV integer " &
+//				  + ", colli_g3p4_LAV integer " &
+//				  + ", colli_trattati integer "
+//			k_sql = &
+//				 + " SELECT  distinct " &
+//				 + " statp_meca.clie_3  " &
+//				 + " ,s_artr.id_armo  " &
+//				+ " ,CASE WHEN s_artr.nr_pedane > 0 and s_artr.imp_x_collo > 0 then (s_artr.importo_giri / s_artr.nr_pedane) " &
+//				 + " ELSE 0 END as imp_x_pedana " & 
+//				 + " ,coalesce(s_artr.nr_pedane,0.00) as pedane " &
+//				 + " ,coalesce(s_artr.colli_f1_lav,0) " & 
+//				 + " ,coalesce(s_artr.colli_f2_lav,0) " & 
+//				 + " ,coalesce(s_artr.colli_g3p2_LAV,0) " & 
+//				 + " ,coalesce(s_artr.colli_g3p4_LAV,0) " & 
+//				+ " ,s_artr.colli_trattati integer " &
+//				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+//				 + "  s_artr.id_armo = statp_meca.id_armo " 
+//	// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//	
+//	//	      + " ,count(s_artr.id_armo) as id_armo_contati " &
+//	
+//	//--- costruisco la view della somma COLLI x CLIE_3
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 "
+//			k_sql = " "
+//			k_campi = "clie_3 integer " &
+//					 + ", imp_x_pedana decimal(12,4)" &
+//					 + ", pedane decimal(12,2) " &
+//				  + ", colli_f1_lav integer " & 
+//				  + ", colli_f2_lav integer " &
+//				  + ", colli_g3p2_lav integer " &
+//				  + ", colli_g3p4_lav integer " 
+//			k_sql = &
+//				 + " SELECT  " &
+//				 + " clie_3  " &
+//				 + " ,sum(imp_x_pedana)  as imp_x_pedana " & 
+//				 + " ,sum(coalesce(pedane,0.00)) as pedane " &
+//				 + " ,sum(colli_f1_lav) " & 
+//				 + " ,sum(colli_f2_lav) " & 
+//				 + " ,sum(colli_g3p2_LAV) " & 
+//				 + " ,sum(colli_g3p4_LAV) " & 
+//				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo  " 
+//			k_sql +=  " group by clie_3 "
+//	// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+//	
+//	
+//	//--- costruisco la view con Importi a Cliente
+//			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp2 "
+//			k_sql = " "
+//			k_campi = "clie_3 integer, colli_trattati integer,  colli_da_fatt integer " &
+//				 + " , colli_entrati integer, colli_fatt integer, imp_trattati decimal(12,4) " &
+//				 + " , imp_fatturati decimal(12,4) " & 
+//				 + " , imp_armo_fatt decimal(12,4) " &
+//				 + " , imp_x_pedana decimal(12,4) " & 	 
+//				 + " , importo_fila1 decimal(12,4) " & 
+//				 + " , importo_fila2 decimal(12,4) " &
+//				 + " , importo_girig3p2 decimal(12,4) " & 
+//				 + " , importo_girig3p4 decimal(12,4) " &
+//				 + " , pedane decimal(12,2) "  &
+//				 + " , colli_f1_lav integer " & 
+//				 + " , colli_f2_lav integer " & 
+//				  + ", colli_g3p2_LAV integer " &
+//				  + ", colli_g3p4_LAV integer " &
+//				 + " , id_meca_contati integer " & 
+//				 + " , n_dosimetri integer " &
+//				 + " , imp_fatt_dosimetri decimal(12,2) " 
+//			k_sql = &
+//				 + " SELECT  " &
+//				 + " statp_colli2.clie_3  " &
+//				 + " ,(coalesce(B.colli_trattati,0.00)) as colli_trattati " & 
+//				 + " ,0.0 as colli_da_fatt " & 
+//				 + " ,(coalesce(B.colli_entrati,0.00)) as colli_entrati" & 
+//				 + " ,0 as colli_fatt " & 
+//				 + " ,(coalesce(B.imp_trattati,0.00) ) as imp_trattati " & 
+//				 + " ,0.0 as imp_fatturati " & 
+//				 + " ,0.0 as imp_armo_fatt " & 
+//				 + " ,statp_colli2.imp_x_pedana " & 
+//				 + " ,(coalesce(BF.importo_fila1,0.00) ) as importo_fila1 " & 
+//				 + " ,(coalesce(BF.importo_fila2,0.00) ) as importo_fila2 " & 
+//				 + " ,(coalesce(BF.importo_girig3p2,0.00) ) as importo_girig3p2 " & 
+//				 + " ,(coalesce(BF.importo_girig3p4,0.00) ) as importo_girig3p4 " & 
+//				 + " ,(coalesce(statp_colli2.pedane,0.00)) as pedane " &
+//				 + " ,statp_colli2.colli_f1_lav " & 
+//				 + " ,statp_colli2.colli_f2_lav " & 
+//				  + ",statp_colli2.colli_g3p2_LAV integer " &
+//				  + ",statp_colli2.colli_g3p4_LAV integer " &
+//				 + " ,(select count(distinct id_meca) from #vx_" + trim(kist_stat_produz.utente) + "_statp_colli where clie_3 = statp_colli2.clie_3)  " & 
+//				 + " ,(coalesce(B.n_dosimetri,0)) as n_dosimetri " & 
+//				 + " ,(coalesce(B.imp_fatt_dosimetri,0.00)) as imp_fatt_dosimetri " & 
+//				+ " FROM  "  + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 as  statp_colli2 " &
+//			 + "       LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 as B ON " &
+//			 + " statp_colli2.clie_3 = B.clie_3 " &
+//			 + "       LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila as BF ON " &
+//			 + " statp_colli2.clie_3 = BF.clie_3 "
+//			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	
+	//--- popola datastore per fare lo ZOOM dal Report
+		popola_zoom_clie_3()			
+	
+	//--- valorizza titolo
+		kist_stampa_dw_4.titolo = 'Valore Trattato Clienti '
+		kist_stampa_dw_4.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a ) + '  '
+		if kist_stat_produz.magazzino <> 9 then
+			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
+		else 
+			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Magazzino: Tutti   ' 
+		end if
+		if kist_stat_produz.no_dose = 'S' then
+			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: No   '
+		else
+			if kist_stat_produz.dose = 0 then 
+				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: Tutte   '
+			else
+				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
+			end if
+		end if
+		if kist_stat_produz.id_gruppo > 0 then
+			if kist_stat_produz.gruppo_flag = 1 then
+				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+			else
+				kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+			end if
+		else
+			kist_stampa_dw_4.titolo_2 = kist_stampa_dw_4.titolo_2 + ' Gruppi: Tutti   ' 
+		end if   
+	
+		if k_esegui_query then
+	
+			tab_1.tabpage_4.dw_4.dataobject = ki_stat_x_clienti_g3 
+			kguf_data_base.u_set_ds_change_name_tab(tab_1.tabpage_4.dw_4, "vx_MAST3_statp_imp2", trim(kist_stat_produz.utente)) // Aggiorna SQL della dw	
+			kguf_data_base.u_set_ds_change_name_tab(tab_1.tabpage_4.dw_4, "vx_MAST3_statp_artr_x_cli", trim(kist_stat_produz.utente)) // Aggiorna SQL della dw	
+	
+	////--- Aggiorna SQL della dw   
+	//      k_sql_orig = tab_1.tabpage_3.dw_3.Object.DataWindow.Table.Select 
+	//      k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp2"
+	//      k_string = "vx_MAST3_stat_imp2"
+	//      k_ctr = PosA(k_sql_orig, k_string, 1)
+	//      DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+	//         k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+	//         k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+	//      LOOP
+	//      k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_artr_x_cli"
+	//      k_string = "vx_MAST3_stat_artr"
+	//      k_ctr = PosA(k_sql_orig, k_string, 1)
+	//      DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+	//         k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+	//         k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+	//      LOOP
+	//      tab_1.tabpage_3.dw_3.Object.DataWindow.Table.Select = k_sql_orig 
+			
+			k_rc = tab_1.tabpage_4.dw_4.settransobject ( sqlca )
+	
+				k_rc = tab_1.tabpage_4.dw_4.retrieve( )
+		end if
+	
 	end if
+		
 
-end if
+catch (uo_exception kuo_exception)
+	throw kguo_exception
 
-destroy kuf1_utility 
+finally
+	
+	attiva_tasti()
+	
+	if tab_1.tabpage_4.dw_4.rowcount() = 0 then
+		tab_1.tabpage_4.dw_4.insertrow(0) 
+	end if
+	
+	tab_1.tabpage_4.dw_4.setfocus()
+		
+	SetPointer(kkg.pointer_default)
+	
+	
+end try
 
-
-attiva_tasti()
-
-if tab_1.tabpage_4.dw_4.rowcount() = 0 then
-	tab_1.tabpage_4.dw_4.insertrow(0) 
-end if
-
-tab_1.tabpage_4.dw_4.setfocus()
 	
 
-//--- Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
-
-//
 end subroutine
 
 protected subroutine inizializza_1 () throws uo_exception;//
@@ -485,7 +680,7 @@ try
 	
 		//crea_view_x_statp_dfatt()
 		//crea_view_x_statp_mfat()
-		crea_view_x_statp_meca()
+		crea_temp_x_statp_meca()
 		crea_view_x_statp_colli_trattati_x_gru()
 		crea_view_x_statp_artr_x_gru()
 			
@@ -666,252 +861,48 @@ int k_rc
 int k_ctr
 string k_view, k_sql, k_sql_w, k_sql_orig, k_stringn, k_string, k_campi
 boolean k_esegui_query=true
-string k_prezzo_dosim_x
-kuf_utility kuf1_utility
-kuf_listino kuf1_listino
 pointer kpointer  // Declares a pointer variable
 
 
 try
-	//=== Puntatore Cursore da attesa.....
-	//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
 	kpointer = SetPointer(HourGlass!)
 	
-	kuf1_utility = create kuf_utility
-	kuf1_listino = create kuf_listino
-	
-	 
 	get_parametri() // get parametri x l'estrazione
-	k_prezzo_dosim_x = string(kuf1_listino.get_prezzo_dosimetro()) // get del prezzo a listino dei dosimetri
-	k_prezzo_dosim_x = kuf1_utility.u_num_itatousa(k_prezzo_dosim_x)
 	
 	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-	if LenA(trim(tab_1.tabpage_3.st_3_retrieve.text)) > 0 then
+	if Len(trim(tab_1.tabpage_3.st_3_retrieve.text)) > 0 then
 		k_codice_prec = tab_1.tabpage_3.st_3_retrieve.text
 	else
 		k_codice_prec = " "
 	end if
 	
 	//--- salvo i parametri cosi come sono stati immessi
-	tab_1.tabpage_3.st_3_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+	tab_1.tabpage_3.st_3_retrieve.Text = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 	
 	if tab_1.tabpage_3.st_3_retrieve.text <> k_codice_prec then
 	
-	// if ki_codice_prec_x_crea_view <> tab_1.tabpage_2.st_2_retrieve.text then !!!PECCATO XCHE' LA TEMP TABLE VIENE CANCELLATA ALLA FINE DI QUESTA ROUTINE!!!
+	// if ki_codice_prec_x_crea_temp <> tab_1.tabpage_2.st_2_retrieve.text then !!!PECCATO XCHE' LA TEMP TABLE VIENE CANCELLATA ALLA FINE DI QUESTA ROUTINE!!!
 	//--- Salvo i parametri per evitare di rifare le Tabelle se non sono cambiati
 	//      ki_codice_prec_x_crea_view = tab_1.tabpage_2.st_2_retrieve.text
-		crea_view_x_statp_dfatt()
-		crea_view_x_statp_mfat()
-		crea_view_x_statp_meca()
-		crea_view_x_statp_colli_trattati_x_clie( )
-		crea_view_x_statp_artr_x_cli()
-	
-	//--- costruisco la view con COLLI FATT X ID_ARMO
-		k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli "
-			k_sql = " "
-			k_campi = "clie_3 integer " &
-				+ ", id_armo integer " &
-					+ ", id_meca integer " &
-					 + ", colli_trattati integer " &
-					 + ", n_dosimetri integer " &
-					 + ", colli_entrati integer " &
-					 + ", colli_fatturati integer " &
-					 + ", colli_armo_fatt integer " &
-					 + ", imp_x_collo  decimal(12,4)"  
-			k_sql = &
-				 + " SELECT  distinct " &
-				 + " statp_meca.clie_3  " &
-				 + " ,statp_meca.id_armo  " &
-				 + " ,statp_meca.id_meca  " &
-				 + " ,(coalesce(cotr.colli_trattati,0)) as colli_trattati " & 
-				 + " ,(coalesce(cotr.n_dosimetri,0)) as n_dosimetri " & 
-				 + " ,(coalesce(s_artr.colli_entrati,0)) as colli_entrati" & 
-				 + " ,(coalesce(s_artr.colli_fatturati,0)) as colli_fatturati " & 
-				 + " ,(coalesce(s_artr.colli_armo_fatt,0)) as colli_armo_fatt " & 
-				 + " ,(coalesce(s_artr.imp_x_collo,0.00) )   as imp_x_collo " & 
-				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
-				 + "  s_artr.id_armo = statp_meca.id_armo " &
-				 + " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
-				 + "  statp_meca.id_armo = cotr.id_armo " 
-		choose case kist_stat_produz.tipo_data
-			case '1' // x data fine lavorazione
-				k_sql +=  &
-				 + "	where " &  
-				 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-				 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
-	//		case '2' // x data fatturazione
-	//			k_sql += &
-	//			 + "	where " &  
-	//			 + "  s_artr.id_armo in " &  
-	//			 + "  (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_stat_dfat )"  
-	//		case '3' // x data di riferimento
-	//			k_sql += &
-	//			 + "	where " &  
-	//			 + "	  s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-	//			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
-		end choose
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+		//crea_view_x_statp_dfatt()
+		//crea_view_x_statp_mfat()
+		crea_temp_x_statp_meca()
+		//_crea_temp_x_statp_colli_trattati_x_clie( )
+		crea_temp_x_statp_artr_x_cli()	
 		
-	//--- costruisco la view con COLLI FATT X ID_ARMO X FILA 1 e FILA 2
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila "
-			k_sql = " "
-			k_campi = "clie_3 integer, id_armo integer " &
-				  + " , imp_fatturati_fila1 decimal(12,4) " & 
-					  + " , imp_fatturati_fila2 decimal(12,4) " 
-			k_sql = &
-				 + " SELECT   " &
-				 + " statp_meca.clie_3 " &
-				 + " ,statp_meca.id_armo  " &
-				 + " ,s_artr.importo_giriF1 " &
-				 + " ,s_artr.importo_giriF2 " &
-				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
-				 + "  s_artr.id_armo = statp_meca.id_armo " 
-	//          + " inner join vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
-	//          + "  statp_meca.id_armo = cotr.id_armo " 
-	
-		choose case kist_stat_produz.tipo_data
-			case '1' // x data fine lavorazione
-				k_sql +=  &
-				 + "	where " &  
-				 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-				 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
-		end choose
-		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-	
+		crea_temp_x_statp_colli_ent_clie_3()
+		crea_temp_x_statp_colli()	
+		crea_temp_x_statp_colli_x_fila()	
+		crea_temp_x_statp_colli_clie_3()	
+		crea_temp_x_statp_colli_clie_3_x_fila()
+		crea_temp_x_statp_colli2_x_id_armo()	
 		
-	//--- costruisco la view con COLLI FATT X CLIE_3
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 "
-			k_sql = " "
-			k_campi = "clie_3 integer " &
-				 + ", colli_trattati integer " &
-				 + ", colli_entrati integer, colli_fatturati integer, colli_armo_fatt integer " & 
-				 + " , imp_trattati decimal(12,4) " &
-				 + " , imp_fatturati decimal(12,4) " & 
-				 + " , imp_armo_fatt decimal(12,4) " &
-				 + " , n_dosimetri integer " &
-				 + " , imp_fatt_dosimetri decimal(12,2) " 
-		 k_sql = &
-				 + " SELECT   " &
-				 + " clie_3  " &
-				 + " ,sum(colli_trattati) " & 
-				 + " ,sum(colli_entrati)" & 
-				 + " ,sum(colli_fatturati) " & 
-				 + " ,sum(colli_armo_fatt) " & 
-				 + " ,sum(imp_x_collo * colli_trattati) " & 
-				 + " ,sum(imp_x_collo * colli_fatturati) " & 
-				 + " ,sum(imp_x_collo * colli_armo_fatt) " & 
-				 + " ,sum(n_dosimetri) " & 
-				 + " ,sum(n_dosimetri) * " + k_prezzo_dosim_x & 
-				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli " 
-			k_sql +=  " group by clie_3  "
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-		
-	//--- costruisco la view con COLLI FATT X CLIE_3 X FILA 1 e "
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila "
-			k_sql = " "
-			k_campi = "clie_3 integer " &
-				+ " , imp_fatturati_fila1 decimal(12,4) " & 
-				+ " , imp_fatturati_fila2 decimal(12,4) " 
-			k_sql = &
-				 + " SELECT  " &
-				 + " clie_3  " &
-				 + " ,sum(coalesce(imp_fatturati_fila1,0.00)) " & 
-				 + " ,sum(coalesce(imp_fatturati_fila2,0.00)) " &  
-				  + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila " 
-		k_sql +=  " group by clie_3  "
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+		crea_temp_statp_colli2()
 	
-	//--- costruisco la view con X ID_ARMO
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo "
-			k_sql = " "
-			k_campi = "clie_3 integer, id_armo integer " &
-					 + ", imp_x_pedana decimal(12,4)" &
-					 + ", pedane decimal(12,2) " &
-				  + ", colli_f1_lav integer " & 
-				  + ", colli_f2_lav integer " &
-				  + ", colli_trattati integer "
-			k_sql = &
-				 + " SELECT  distinct " &
-				 + " statp_meca.clie_3  " &
-				 + " ,s_artr.id_armo  " &
-				+ " ,CASE WHEN s_artr.nr_pedane > 0 and s_artr.imp_x_collo > 0 then (s_artr.importo_giri / s_artr.nr_pedane) " &
-				 + " ELSE 0 END as imp_x_pedana " & 
-				 + " ,(coalesce(s_artr.nr_pedane,0.00)) as pedane " &
-				 + " ,coalesce(s_artr.colli_f1_lav,0) " & 
-				 + " ,coalesce(s_artr.colli_f2_lav,0) " & 
-				+ " ,s_artr.colli_trattati integer " &
-				 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
-				 + "  s_artr.id_armo = statp_meca.id_armo " 
-	// kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-	
-	//	      + " ,count(s_artr.id_armo) as id_armo_contati " &
-	
-	//--- costruisco la view della somma COLLI x CLIE_3
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 "
-			k_sql = " "
-			k_campi = "clie_3 integer " &
-					 + ", imp_x_pedana decimal(12,4)" &
-					 + ", pedane decimal(12,2) " &
-				  + ", colli_f1_lav integer " & 
-				  + ", colli_f2_lav integer " 
-			k_sql = &
-				 + " SELECT  " &
-				 + " clie_3  " &
-				 + " ,sum(imp_x_pedana)  as imp_x_pedana " & 
-				 + " ,sum(coalesce(pedane,0.00)) as pedane " &
-				 + " ,sum(colli_f1_lav) " & 
-				 + " ,sum(colli_f2_lav) " & 
-				 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo  " 
-			k_sql +=  " group by clie_3 "
-	// kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-	
-	
-	//--- costruisco la view con Importi a Cliente
-			k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp2 "
-			k_sql = " "
-			k_campi = "clie_3 integer, colli_trattati integer,  colli_da_fatt integer " &
-				 + " , colli_entrati integer, colli_fatt integer, imp_trattati decimal(12,4) " &
-				 + " , imp_fatturati decimal(12,4) " & 
-				 + " , imp_armo_fatt decimal(12,4) " &
-				 + " , imp_x_pedana decimal(12,4) " & 	 
-				 + " , imp_fatturati_fila1 decimal(12,4) " & 
-				 + " , imp_fatturati_fila2 decimal(12,4) " &
-				 + " , pedane decimal(12,2) "  &
-				 + " , colli_f1_lav integer " & 
-				 + " , colli_f2_lav integer " & 
-				 + " , id_meca_contati integer " & 
-				 + " , n_dosimetri integer " &
-				 + " , imp_fatt_dosimetri decimal(12,2) " 
-			k_sql = &
-				 + " SELECT  " &
-				 + " statp_colli2.clie_3  " &
-				 + " ,(coalesce(B.colli_trattati,0.00)) as colli_trattati " & 
-				 + " ,(coalesce(B.colli_trattati,0.00) - coalesce(B.colli_armo_fatt,0)) as colli_da_fatt " & 
-				 + " ,(coalesce(B.colli_entrati,0.00)) as colli_entrati" & 
-				 + " ,(coalesce(B.colli_fatturati,0.00)) as colli_fatt " & 
-				 + " ,(coalesce(B.imp_trattati,0.00) ) as imp_trattati " & 
-				 + " ,(coalesce(B.imp_fatturati,0.00) ) as imp_fatturati " & 
-				 + " ,(coalesce(B.imp_armo_fatt,0.00) ) as imp_armo_fatt " & 
-				 + " ,statp_colli2.imp_x_pedana " & 
-				 + " ,(coalesce(BF.imp_fatturati_fila1,0.00) ) as imp_fatturati_fila1 " & 
-				 + " ,(coalesce(BF.imp_fatturati_fila2,0.00) ) as imp_fatturati_fila2 " & 
-				 + " ,(coalesce(statp_colli2.pedane,0.00)) as pedane " &
-				 + " ,statp_colli2.colli_f1_lav " & 
-				 + " ,statp_colli2.colli_f2_lav " & 
-				 + " ,(select count(distinct id_meca) from #vx_" + trim(kist_stat_produz.utente) + "_statp_colli where clie_3 = statp_colli2.clie_3)  " & 
-				 + " ,(coalesce(B.n_dosimetri,0)) as n_dosimetri " & 
-				 + " ,(coalesce(B.imp_fatt_dosimetri,0.00)) as imp_fatt_dosimetri " & 
-				+ " FROM  "  + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 as  statp_colli2 " &
-			 + "       LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 as B ON " &
-			 + " statp_colli2.clie_3 = B.clie_3 " &
-			 + "       LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila as BF ON " &
-			 + " statp_colli2.clie_3 = BF.clie_3 "
-			kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+		crea_temp_statp_imp2()
 	
 	//--- popola datastore per fare lo ZOOM dal Report
-		popola_zoom_clie_3( )			
+		popola_zoom_clie_3()			
 	
 	//--- valorizza titolo
 		kist_stampa_dw_3.titolo = 'Valore Trattato Clienti '
@@ -976,8 +967,6 @@ catch (uo_exception kuo_exception)
 	throw kguo_exception
 
 finally
-	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuf1_listino) then destroy kuf1_listino
 	
 	attiva_tasti()
 	
@@ -1242,15 +1231,19 @@ end subroutine
 protected subroutine open_start_window ();//
 //tab_1.tabpage_1.picturename = kGuo_path.get_risorse() + "\edit16.png" 
 
+	kiuf_utility = create kuf_utility
+
 //---- imposta i nomi dei DW da utilizzare
 if ki_st_open_w.id_programma = kkg_id_programma_stat_produz then
 	ki_stat_x_gruppi = "d_stat_produz_x_gruppo" 
 	ki_stat_x_clienti = "d_stat_produz_x_cliente"
+	ki_stat_x_clienti_g3 = "d_stat_produz_x_cliente_g3"
 	ki_stat_riepilogo = "d_stat_produz_val_giri" 
 	ki_stat_x_listino = "d_stat_produz_x_list" 
 else
 	ki_stat_x_gruppi = "d_stat_produz_x_gruppo_no_importi" 
 	ki_stat_x_clienti = "d_stat_produz_x_cliente_no_importi"
+	ki_stat_x_clienti_g3 = "d_stat_produz_x_cliente_no_importi"
 	ki_stat_riepilogo = "d_stat_produz_val_giri_no_importo"
 	ki_stat_x_listino = "d_stat_produz_x_list" 
 end if
@@ -1269,275 +1262,6 @@ return k_return
 
 
 end function
-
-private subroutine crea_view_x_statp_meca () throws uo_exception;//======================================================================
-//=== Crea le View per le query
-//======================================================================
-//
-int k_ctr
-string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_tabella, k_campi, k_datetime_ini, k_datetime_fin 
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-try
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-	kpointer = SetPointer(HourGlass!)
-
-
-//--- costruisco la view con ID_MECA delle fatture emesse da data a data
-//	k_view = "vx_" + trim(kist_stat_produz.utente) + "_stat_meca "
-	k_tabella = "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca "
-	k_sql = " "                                   
-//	k_sql = + &
-//	"CREATE table  " + trim(k_view) &
-	k_campi = " id_armo integer, id_listino integer, id_meca integer, clie_3 integer, gruppo integer, data_int date  " 
-
-	k_sql +=  &
-			  " SELECT distinct " &
-			 + " s_armo.id_armo  " &
-			 + " ,s_armo.id_listino  " &
-			 + " ,s_armo.id_meca  " &
-			 + " ,s_armo.clie_3  " &
-			 + " ,s_armo.gruppo  " &
-			 + " ,s_armo.data_int  " &
-			 + " FROM s_armo  " &
-			
-   choose case kist_stat_produz.tipo_data
-         
-      case '1' // x data fine lavorazione
-         k_sql += " inner join s_artr on  s_armo.id_armo = s_artr.id_armo " 
-		 	if kist_stat_produz.gruppo_flag <> 5 then
-		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
-			end if
-			k_sql += &
-		    " where " &  
-		    + " s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "   
-    
-//      case '2' // x data fine fatturazione
-//         k_sql += " inner join s_artr on  s_armo.id_armo = s_artr.id_armo " 
-//		 	if kist_stat_produz.gruppo_flag <> 5 then
-//		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
-//			end if
-//			k_sql += &
-//		    " where " &  
-//          + " s_artr.id_armo in " &  
-//          + " (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_statp_dfat )"  
-          
-      case '3' // x data di riferimento
-		 	if kist_stat_produz.gruppo_flag <> 5 then
-		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
-			end if
-			k_sql += &
-		    " where " &  
-          + " s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
-	 
-      case '4' // x data di entrata riferimento
-		 	if kist_stat_produz.gruppo_flag <> 5 then
-		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
-			end if
-			k_sql += &
-		    " where " &  
-          + " s_armo.data_ent between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
-	 
-   end choose
-   
-	if kist_stat_produz.id_cliente > 0 then
-		k_sql +=  " and s_armo.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
-	end if
-	
-	if kist_stat_produz.gruppo_flag <> 5 then
-		if kist_stat_produz.id_gruppo > 0 then
-			// solo un gruppo puntuale
-			if kist_stat_produz.gruppo_flag = 1 then
-				k_sql += " and s_armo.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
-			else
-			// escludi solo un gruppo (+tutti quelli da Escludere x stat)
-				if kist_stat_produz.gruppo_flag = 0 then
-					k_sql += " and (s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " or s_armo.gruppo is null)  "
-					k_sql += " and gru.escludi_da_stat_glob = 'N'  "
-				else
-			// tutti i gruppi (meno quelli da Escludere x stat)
-					k_sql += " and gru.escludi_da_stat_glob = 'N' "
-				end if
-			end if
-		else
-			k_sql += " and gru.escludi_da_stat_glob = 'N'  "
-		end if
-	end if
-	
-	if kist_stat_produz.impianto > 0 then
-		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
-	end if
-	if kist_stat_produz.magazzino <> 9 then
-		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
-	end if
-	if kist_stat_produz.no_dose = 'S' then
-		k_sql += " and s_armo.dose = 0 " + " "
-	else
-		if kist_stat_produz.dose > 0 then
-			k_sql += " and s_armo.dose = " + kist_stat_produz.dose_str + " "
-		end if
-	end if
-	if kist_stat_produz.no_prezzo = 2 then //escludi prezzi=0
-		k_sql += " and (s_armo.imp_fatt > 0 or s_armo.imp_da_fatt > 0) "
-	else
-		if kist_stat_produz.no_prezzo = 3 then //solo MOVIMENTI con prezzi=0
-			k_sql += " and (s_armo.imp_fatt = 0 and s_armo.imp_da_fatt = 0) "
-		end if
-	end if
-	
-	kguo_sqlca_db_magazzino.db_crea_temp_table(k_tabella, k_campi, k_sql)		
-
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally	
-//=== Riprist. il vecchio puntatore : 
-	SetPointer(kpointer)
-
-end try
-//
-end subroutine
-
-private subroutine crea_view_x_statp_dfatt ();//======================================================================
-//=== Crea le View per le query
-//======================================================================
-//
-int k_ctr
-string k_view, k_sql, k_sql_orig, k_stringn, k_string
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-
-
-//--- costruisco la view con ID_MECA delle fatture emesse da data a data
-	k_view = "vx_" + trim(kist_stat_produz.utente) + "_statp_dfat "
-	k_sql = " "
-	k_sql = &
-	"CREATE VIEW " + trim(k_view) &
-	 + " ( id_armo ) AS   " 
-	 
-	k_sql = + k_sql &
-	 + " SELECT distinct " &
-	 + "     arfa.id_armo  " &
-	 + " FROM arfa   " &
-	 + "	where " &  
-	 + "	  arfa.data_fatt between '" &
-	 + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  
-
-	
-	if kist_stat_produz.id_cliente > 0 then
-		k_sql +=  " and clie_3 = " + string(kist_stat_produz.id_cliente) + " "
-	end if
-//	if kist_stat_produz.id_gruppo > 0 then
-//		k_sql +=  " and gruppo = " + string(kist_stat_produz.id_gruppo) + " "
-//	end if
-//	if kist_stat_produz.magazzino <> 9 then
-//		k_sql +=  " and magazzino = " + string(kist_stat_produz.magazzino) + " "
-//	end if
-//	if kist_stat_produz.dose > 0 then
-//		k_sql +=  " and dose = " + string(kist_stat_produz.dose, "#0.00") + " "
-//	end if
-//	if kist_stat_produz.no_dose = 'S' then
-//		k_sql +=  " and dose = 0 " + " "
-//	else
-//		k_sql +=  " and dose > 0 " + " "
-//	end if
-	
-	try
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-	catch (uo_exception kuo_exception)
-		kuo_exception.messaggio_utente()
-	end try
-	
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
-//return k_esegui_query
-//
-end subroutine
-
-private subroutine crea_view_x_statp_mfat () throws uo_exception;//======================================================================
-//=== Crea le View per le query
-//======================================================================
-//
-int k_ctr
-string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_campi
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-
-try 
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-	kpointer = SetPointer(HourGlass!)
-
-//--- costruisco la view con ID_MECA delle fatture emesse da data a data
-	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_mfat "
-	k_sql = " "                                   
-//	k_sql = + &
-//	"CREATE VIEW " + trim(k_view) + " ( id_armo ) AS   " 
-	k_campi = " id_armo integer   " 
-	 
-	k_sql = + k_sql &
-	 + " SELECT distinct " &
-	 + " arfa.id_armo  " &
-	 + " FROM  s_arfa inner join arfa on s_arfa.num_fatt = arfa.num_fatt and s_arfa.data_fatt = arfa.data_fatt " &
-	 + "	where " &  
-	 + "	  s_arfa.data_fatt between '" &
-	 + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  
-
-	
-	if kist_stat_produz.id_cliente > 0 then
-		k_sql +=  " and s_arfa.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
-	end if
-	if kist_stat_produz.id_gruppo > 0 then
-		if kist_stat_produz.gruppo_flag = 1 then
-			k_sql += " and s_arfa.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
-		else
-			k_sql += " and s_arfa.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
-		end if
-	end if
-	if kist_stat_produz.magazzino <> 9 then
-		k_sql += " and s_arfa.magazzino = " + string(kist_stat_produz.magazzino) + " "
-	end if
-	if kist_stat_produz.dose > 0 then
-		k_sql += " and s_arfa.dose = " + kist_stat_produz.dose_str + " "
-	end if
-	if kist_stat_produz.no_dose = 'S' then
-		k_sql += " and s_arfa.dose = 0 " + " "
-	else
-		k_sql += " and s_arfa.dose > 0 " + " "
-	end if
-	
-//		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
-
-catch (uo_exception kuo_exception)
-
-finally	
-//=== Riprist. il vecchio puntatore : 
-	SetPointer(kpointer)
-
-end try
-//
-end subroutine
 
 private subroutine crea_view_x_statp_mfat_id_meca ();//======================================================================
 //=== Crea le View per le query
@@ -1594,7 +1318,7 @@ kpointer = SetPointer(HourGlass!)
 	end if
 	
 	try
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 	end try
@@ -1695,116 +1419,7 @@ try
 	end if
    k_sql +=  " group by  s_armo.id_armo,  s_armo.gruppo  "
 	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
-	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
-
-catch (uo_exception kuo_exception)
-
-finally	
-//=== Riprist. il vecchio puntatore : 
-	SetPointer(kpointer)
-
-end try
-//
-end subroutine
-
-private subroutine crea_view_x_statp_colli_trattati_x_clie () throws uo_exception;//======================================================================
-//=== Crea le View per le query
-//======================================================================
-//
-int k_ctr
-string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_campi
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-
-try 
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-	kpointer = SetPointer(HourGlass!)
-
-
-
-//--- costruisco la view 
-	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 "
-	k_sql = " "                                   
-//	k_sql = + &
-//	"CREATE VIEW " + trim(k_view) + " ( id_armo ) AS   " 
-	k_campi = " colli_trattati integer " &
-				+ ", n_dosimetri integer " &
-				+ ", id_armo integer " &
-				+ ", clie_3 integer   " 
-	 
-	k_sql = + k_sql &
-	 + " SELECT distinct " &
-	 + " count(barcode.barcode)  " &
-	 + " ,count(case when barcode.flg_dosimetro = '1' then 1 else null end) " &
-	 + " ,s_armo.id_armo  " &
-	 + " ,s_armo.clie_3  " &
-	 + " FROM  barcode inner join s_armo on barcode.id_armo = s_armo.id_armo " 
-
-   choose case kist_stat_produz.tipo_data
-      case '1' // x data fine lavorazione
-         k_sql +=  &
-          + "  where " &  
-          + " barcode.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + "    and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "'  " & 
-          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
-          + " and " + string(kist_stat_produz.id_meca_a) + " "  
-      case '2' // x data fine fatturazione
-         k_sql += &
-          + "  where " &  
-          + " barcode.data_lav_fin > '01/01/1990' " &
-          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
-          + " and " + string(kist_stat_produz.id_meca_a) + " "  &
-          + " and barcode.id_armo in " &  
-          + "  (select id_armo from  " + "#vx_" + trim(kist_stat_produz.utente) + "_stat_mfat )"  
-      case '3' // x data di riferimento
-         k_sql = + k_sql &
-          + "  where " &  
-          + " barcode.data_lav_fin > '01/01/1990' " &
-          + " and  barcode.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  &
-          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
-          + " and " + string(kist_stat_produz.id_meca_a) + " "  
-      case '4' // x data di entrata riferimento
-         k_sql = + k_sql &
-          + "  where " &  
-          + " barcode.data_lav_fin > '01/01/1990' " &
-          + " and S_ARMO.data_ent between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  &
-          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
-          + " and " + string(kist_stat_produz.id_meca_a) + " "  
-   end choose
-	if kist_stat_produz.id_cliente > 0 then
-		k_sql +=  " and s_armo.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
-	end if
-	if kist_stat_produz.id_gruppo > 0 then
-		if kist_stat_produz.gruppo_flag = 1 then
-			k_sql += " and s_armo.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
-		else
-			k_sql += " and s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
-		end if
-	end if
-	if kist_stat_produz.impianto > 0 then
-		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
-	end if
-	if kist_stat_produz.magazzino <> 9 then
-		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
-	end if
-	if kist_stat_produz.dose > 0 then
-		k_sql += " and s_armo.dose = " + kist_stat_produz.dose_str + " "
-	end if
-	if kist_stat_produz.no_dose = 'S' then
-		k_sql += " and s_armo.dose = 0 " + " "
-	else
-		k_sql += " and s_armo.dose > 0 " + " "
-	end if
-   k_sql +=  " group by  s_armo.id_armo, s_armo.clie_3  "
-	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1852,137 +1467,6 @@ int k_rc=0, k_ctr=0
 	k_rc = kids_zoom_gruppi.retrieve ()
 												
 
-
-end subroutine
-
-public subroutine popola_zoom_clie_3 ();string k_sql_orig, k_string, k_stringn
-int k_rc=0, k_ctr=0
-
-
-	if not isvalid(kids_zoom_clie_3) then 
-		kids_zoom_clie_3 = create datastore
-	end if
-	
-
-	kids_zoom_clie_3.dataobject = "d_stat_produz_zoom_meca" 
-//--- Aggiorna SQL della dw	
-	k_sql_orig = kids_zoom_clie_3.Object.DataWindow.Table.Select 
-	
-	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca"
-	k_string = "vx_info_stat_guida"
-	k_ctr = PosA(k_sql_orig, k_string, 1)
-	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-	LOOP
-	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli"
-	k_string = "vx_info_stat_dati"
-	k_ctr = PosA(k_sql_orig, k_string, 1)
-	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
-		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
-		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
-	LOOP
-
-	
-	kids_zoom_clie_3.Object.DataWindow.Table.Select = k_sql_orig	
-	
-	k_rc = kids_zoom_clie_3.settransobject ( kguo_sqlca_db_magazzino )
-	k_rc = kids_zoom_clie_3.reset( )
-	k_rc = kids_zoom_clie_3.retrieve ()
-												
-
-
-end subroutine
-
-private subroutine crea_view_x_statp_artr_x_cli () throws uo_exception;//======================================================================
-//=== Crea le View per le query
-//======================================================================
-//
-int k_ctr
-string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_tabella, k_campi 
-boolean k_esegui_query=true
-kuf_utility kuf1_utility
-pointer kpointer  // Declares a pointer variable
-
-
-try
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-	kpointer = SetPointer(HourGlass!)
-
-
-      
-//--- costruisco la view con Importi x Cliente
-   k_view = "#vx_" + trim(kist_stat_produz.utente)  + "_statp_artr_x_cli "
-   k_sql = " "
-// k_sql = + &
-// "CREATE view " + trim(k_view) &
-//  + " ( clie_3, colli_trattati, m_cubi, giri_f1_pl, giri_f1_lav, giri_f2_pl, giri_f2_lav, pedane, somma_giri) AS   " 
-   k_campi = "clie_3 integer, id_armo_contati integer, pedane_trattate  decimal(12,2), m_cubi decimal(12,4) " &
-             + ", giri_f1_pl decimal(12,2) " & 
-             + ", giri_f1_lav decimal(12,2) " & 
-             + ", giri_f2_pl decimal(12,2) " & 
-             + ", giri_f2_lav decimal(12,2) " & 
-             + ", giri_f1_pl_gp decimal(12,2) " & 
-             + ", giri_f1_lav_gp decimal(12,2) " & 
-             + ", giri_f2_pl_gp decimal(12,2) " & 
-             + ", giri_f2_lav_gp decimal(12,2) " & 
-             + ", somma_giri_F1 decimal(12,2)" &
-             + ", somma_giri_F2 decimal(12,2)" &
-             + ", somma_giri decimal(12,2)"
-   k_sql = &
-          + " SELECT " &
-          + " statp_meca.clie_3 " &
-        + "  ,count(statp_meca.id_armo) as id_armo_contati " &
-          + "  ,sum(coalesce(s_artr.pedane,0.00)) as pedane_trattate  " &  
-          + "  ,sum(coalesce(s_artr.m_cubi,0.00)) as m_cubi   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_pl,0.00)) / 2 as giri_f1_pl   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_lav,0.00)) / 2 as giri_f1_lav   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_pl,0.00)) / 2 as giri_f2_pl   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_lav,0.00)) / 2 as giri_f2_lav   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_pl_gp,0.00)) / 2 as giri_f1_pl_gp   " &
-          + "  ,sum(coalesce(s_artr.giri_f1_lav_gp,0.00)) / 2 as giri_f1_lav_gp   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_pl_gp,0.00)) / 2 as giri_f2_pl_gp   " &
-          + "  ,sum(coalesce(s_artr.giri_f2_lav_gp,0.00)) / 2 as giri_f2_lav_gp   " &
-          + " ,sum( coalesce(s_artr.giri_f1_lav,0.00) + coalesce(s_artr.giri_f1_lav_gp,0.00) ) as somma_giri_F1 " &
-          + " ,sum( coalesce(s_artr.giri_f2_lav,0.00) + coalesce(s_artr.giri_f2_lav_gp,0.00) ) as somma_giri_F2 " &
-          + " ,sum( coalesce(s_artr.giri_f1_lav,0.00) + coalesce(s_artr.giri_f2_lav,0.00) ) as somma_giri " &
-          + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
-          + "  s_artr.id_armo = statp_meca.id_armo " &
-			 
-
-   choose case kist_stat_produz.tipo_data
-         
-      case '1' // x data fine lavorazione
-         k_sql +=  &
-		 + "	where " &  
-		 + " s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
-          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "   
-    
-      case '2' // x data fine fatturazione
-         k_sql += " "
-          
-      case '3' // x data di riferimento
-         k_sql += " "
-          
-      case '4' // x data di entrata riferimento
-         k_sql += " "
-	 
-   end choose
-   
-   k_sql += " group by statp_meca.clie_3  "
-   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-// kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
-
-catch (uo_exception kuo_exception)
-	throw kuo_exception
-
-finally	
-//=== Riprist. il vecchio puntatore : 
-	SetPointer(kpointer)
-
-end try
 
 end subroutine
 
@@ -2062,7 +1546,7 @@ try
    
    k_sql += " group by statp_meca.gruppo, s_artr.impianto  "
    kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-// kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
+// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -2174,7 +1658,7 @@ try
 	end if
    k_sql +=  " group by  s_armo.id_armo, s_armo.clie_3, s_armo.id_listino   "
 	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -2266,7 +1750,7 @@ try
    
    k_sql += " group by statp_meca.id_listino  "
    kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
-// kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)      
+// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -2279,8 +1763,253 @@ end try
 
 end subroutine
 
-protected subroutine inizializza_4 () throws uo_exception;//======================================================================
-//=== Inizializzazione del TAB 5 controllandone i valori se gia' presenti
+protected subroutine inizializza_4 () throws uo_exception;//--------------------------------------------------------------------------------------------------------------------
+//---  TAB 5
+//--------------------------------------------------------------------------------------------------------------------
+//
+string k_codice_prec
+int k_rc
+int k_ctr
+string k_sql_orig, k_stringn, k_string
+boolean k_esegui_query=true
+
+
+//--- piglia i parametri x l'estrazione (prevalenmetente dalla prima pagina
+get_parametri()
+
+//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+if LenA(trim(tab_1.tabpage_5.st_5_retrieve.text)) > 0 then
+	k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
+else
+	k_codice_prec = " "
+end if
+
+//--- salvo i parametri cosi come sono stati immessi
+tab_1.tabpage_5.st_5_retrieve.Text = kiuf_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+
+if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
+
+	crea_temp_x_statp_meca()
+
+	crea_temp_x_statp_artr3()
+
+//--- valorizza titolo
+	kist_stampa_dw_3.titolo = 'Valore Trattato Clienti '
+	kist_stampa_dw_3.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a ) + '  '
+	if kist_stat_produz.magazzino <> 9 then
+		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
+	else 
+		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Magazzino: Tutti   ' 
+	end if
+	if kist_stat_produz.no_dose = 'S' then
+		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: No   '
+	else
+		if kist_stat_produz.dose = 0 then 
+			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: Tutte   '
+		else
+			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
+		end if
+	end if
+	if kist_stat_produz.id_gruppo > 0 then
+		if kist_stat_produz.gruppo_flag = 1 then
+			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+		else
+			kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+		end if
+	else
+		kist_stampa_dw_3.titolo_2 = kist_stampa_dw_3.titolo_2 + ' Gruppi: Tutti   ' 
+	end if	
+
+	if k_esegui_query then
+
+		tab_1.tabpage_5.dw_5.dataobject = ki_stat_riepilogo
+
+//--- Aggiorna SQL della dw	
+		k_sql_orig = tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select 
+		k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_artr3"
+		k_string = "vx_MAST1_stat_artr3"
+		k_ctr = PosA(k_sql_orig, k_string, 1)
+		DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+			k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+			k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+		LOOP
+		tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select = k_sql_orig 
+		
+		k_rc = tab_1.tabpage_5.dw_5.settransobject ( sqlca )
+
+		k_rc = tab_1.tabpage_5.dw_5.retrieve( )
+	end if
+
+end if
+
+attiva_tasti()
+
+if tab_1.tabpage_5.dw_5.rowcount() = 0 then
+	tab_1.tabpage_5.dw_5.insertrow(0) 
+end if
+
+tab_1.tabpage_5.dw_5.setfocus()
+	
+end subroutine
+
+public subroutine popola_zoom_x_list ();string k_sql_orig, k_string, k_stringn
+int k_rc=0, k_ctr=0
+
+
+	if not isvalid(kids_zoom_list) then 
+		kids_zoom_list = create datastore
+	end if
+	
+
+	kids_zoom_list.dataobject = "d_stat_produz_zoom_xlist" 
+//--- Aggiorna SQL della dw	
+	k_sql_orig = kids_zoom_list.Object.DataWindow.Table.Select 
+	
+	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca"
+	k_string = "vx_MAST5_statp_meca"
+	k_ctr = PosA(k_sql_orig, k_string, 1)
+	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+	LOOP
+	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli"
+	k_string = "vx_MAST5_statp_colli"
+	k_ctr = PosA(k_sql_orig, k_string, 1)
+	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
+		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
+		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
+	LOOP
+
+
+	
+	kids_zoom_list.Object.DataWindow.Table.Select = k_sql_orig	
+	
+	k_rc = kids_zoom_list.settransobject ( kguo_sqlca_db_magazzino )
+	k_rc = kids_zoom_list.reset( )
+	k_rc = kids_zoom_list.retrieve ()
+												
+
+
+end subroutine
+
+private subroutine old_crea_view_x_statp_dfatt ();//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_sql_orig, k_stringn, k_string
+boolean k_esegui_query=true
+kuf_utility kuf1_utility
+pointer kpointer  // Declares a pointer variable
+
+
+//=== Puntatore Cursore da attesa.....
+//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+kpointer = SetPointer(HourGlass!)
+
+
+
+//--- costruisco la view con ID_MECA delle fatture emesse da data a data
+	k_view = "vx_" + trim(kist_stat_produz.utente) + "_statp_dfat "
+	k_sql = " "
+	k_sql = &
+	"CREATE VIEW " + trim(k_view) &
+	 + " ( id_armo ) AS   " 
+	 
+	k_sql = + k_sql &
+	 + " SELECT distinct " &
+	 + "     arfa.id_armo  " &
+	 + " FROM arfa   " &
+	 + "	where " &  
+	 + "	  arfa.data_fatt between '" &
+	 + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  
+
+	
+	if kist_stat_produz.id_cliente > 0 then
+		k_sql +=  " and clie_3 = " + string(kist_stat_produz.id_cliente) + " "
+	end if
+	
+	try
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+	end try
+	
+//=== Riprist. il vecchio puntatore : 
+SetPointer(kpointer)
+
+//return k_esegui_query
+//
+end subroutine
+
+private subroutine old_crea_view_x_statp_mfat () throws uo_exception;//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_campi
+boolean k_esegui_query=true
+kuf_utility kuf1_utility
+pointer kpointer  // Declares a pointer variable
+
+
+
+try 
+	kpointer = SetPointer(HourGlass!)
+
+//--- costruisco la view con ID_MECA delle fatture emesse da data a data
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_mfat "
+	k_sql = " "                                   
+//	k_sql = + &
+//	"CREATE VIEW " + trim(k_view) + " ( id_armo ) AS   " 
+	k_campi = " id_armo integer   " 
+	 
+	k_sql = + k_sql &
+	 + " SELECT distinct " &
+	 + " arfa.id_armo  " &
+	 + " FROM  s_arfa inner join arfa on s_arfa.num_fatt = arfa.num_fatt and s_arfa.data_fatt = arfa.data_fatt " &
+	 + "	where " &  
+	 + "	  s_arfa.data_fatt between '" &
+	 + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  
+
+	
+	if kist_stat_produz.id_cliente > 0 then
+		k_sql +=  " and s_arfa.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
+	end if
+	if kist_stat_produz.id_gruppo > 0 then
+		if kist_stat_produz.gruppo_flag = 1 then
+			k_sql += " and s_arfa.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
+		else
+			k_sql += " and s_arfa.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
+		end if
+	end if
+	if kist_stat_produz.magazzino <> 9 then
+		k_sql += " and s_arfa.magazzino = " + string(kist_stat_produz.magazzino) + " "
+	end if
+	if kist_stat_produz.dose > 0 then
+		k_sql += " and s_arfa.dose = " + kist_stat_produz.dose_str + " "
+	end if
+	if kist_stat_produz.no_dose = 'S' then
+		k_sql += " and s_arfa.dose = 0 " + " "
+	else
+		k_sql += " and s_arfa.dose > 0 " + " "
+	end if
+	
+//		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
+
+catch (uo_exception kuo_exception)
+
+finally	
+//=== Riprist. il vecchio puntatore : 
+	SetPointer(kpointer)
+
+end try
+//
+end subroutine
+
+protected subroutine inizializza_7 () throws uo_exception;//======================================================================
+//=== Inizializzazione del TAB 8 controllandone i valori se gia' presenti
 //======================================================================
 //
 string k_codice_prec
@@ -2303,18 +2032,18 @@ get_parametri()
 
 
 //--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
-if LenA(trim(tab_1.tabpage_5.st_5_retrieve.text)) > 0 then
-   k_codice_prec = tab_1.tabpage_5.st_5_retrieve.text
+if LenA(trim(tab_1.tabpage_8.st_8_retrieve.text)) > 0 then
+   k_codice_prec = tab_1.tabpage_8.st_8_retrieve.text
 else
    k_codice_prec = " "
 end if
 
 //--- salvo i parametri cosi come sono stati immessi
-tab_1.tabpage_5.st_5_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+tab_1.tabpage_8.st_8_retrieve.Text = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
 
-if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
+if tab_1.tabpage_8.st_8_retrieve.text <> k_codice_prec then
 
-	crea_view_x_statp_meca()
+	crea_temp_x_statp_meca()
 	crea_view_x_statp_colli_trattati_x_list( )
 	crea_view_x_statp_artr_x_list()
 
@@ -2465,38 +2194,38 @@ if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
 	popola_zoom_x_list( )			
 
 //--- valorizza titolo
-   kist_stampa_dw_5.titolo = 'Valore Trattato per Listino E1 '
-   kist_stampa_dw_5.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a ) + '  '
+   kist_stampa_dw_8.titolo = 'Valore Trattato per Listino E1 '
+   kist_stampa_dw_8.titolo_2 = 'Dal ' + string( kist_stat_produz.data_da ) + ' al ' + string( kist_stat_produz.data_a ) + '  '
    if kist_stat_produz.magazzino <> 9 then
-      kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
+      kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + ' Magazzino: ' + string(kist_stat_produz.magazzino ) + '   '
    else 
-      kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + ' Magazzino: Tutti   ' 
+      kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + ' Magazzino: Tutti   ' 
    end if
    if kist_stat_produz.no_dose = 'S' then
-      kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + 'Dose: No   '
+      kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + 'Dose: No   '
    else
       if kist_stat_produz.dose = 0 then 
-         kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + 'Dose: Tutte   '
+         kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + 'Dose: Tutte   '
       else
-         kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
+         kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + 'Dose: ' +  string(kist_stat_produz.dose) + '   ' 
       end if
    end if 
    if kist_stat_produz.id_gruppo > 0 then
       if kist_stat_produz.gruppo_flag = 1 then
-         kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + 'Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+         kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + 'Gruppo: ' + string( kist_stat_produz.id_gruppo )  
       else
-         kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
+         kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + 'Escludi Gruppo: ' + string( kist_stat_produz.id_gruppo )  
       end if
    else
-      kist_stampa_dw_5.titolo_2 = kist_stampa_dw_5.titolo_2 + ' Gruppi: Tutti   ' 
+      kist_stampa_dw_8.titolo_2 = kist_stampa_dw_8.titolo_2 + ' Gruppi: Tutti   ' 
    end if   
 
    if k_esegui_query then
 
-      tab_1.tabpage_5.dw_5.dataobject = ki_stat_x_listino //"d_stat_produz_x_cliente" 
+      tab_1.tabpage_8.dw_8.dataobject = ki_stat_x_listino //"d_stat_produz_x_cliente" 
 
 //--- Aggiorna SQL della dw   
-      k_sql_orig = tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select 
+      k_sql_orig = tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select 
       k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp2"
       k_string = "vx_MAST5_statp_imp2"
       k_ctr = PosA(k_sql_orig, k_string, 1)
@@ -2511,11 +2240,11 @@ if tab_1.tabpage_5.st_5_retrieve.text <> k_codice_prec then
          k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
          k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
       LOOP
-      tab_1.tabpage_5.dw_5.Object.DataWindow.Table.Select = k_sql_orig 
+      tab_1.tabpage_8.dw_8.Object.DataWindow.Table.Select = k_sql_orig 
       
-      k_rc = tab_1.tabpage_5.dw_5.settransobject ( sqlca )
+      k_rc = tab_1.tabpage_8.dw_8.settransobject ( sqlca )
 
-      k_rc = tab_1.tabpage_5.dw_5.retrieve( )
+      k_rc = tab_1.tabpage_8.dw_8.retrieve( )
    end if
 
 end if
@@ -2525,11 +2254,11 @@ destroy kuf1_utility
 
 attiva_tasti()
 
-if tab_1.tabpage_5.dw_5.rowcount() = 0 then
-   tab_1.tabpage_5.dw_5.insertrow(0) 
+if tab_1.tabpage_8.dw_8.rowcount() = 0 then
+   tab_1.tabpage_8.dw_8.insertrow(0) 
 end if
 
-tab_1.tabpage_5.dw_5.setfocus()
+tab_1.tabpage_8.dw_8.setfocus()
    
 
 //--- Riprist. il vecchio puntatore : 
@@ -2538,43 +2267,1009 @@ SetPointer(kpointer)
 
 end subroutine
 
-public subroutine popola_zoom_x_list ();string k_sql_orig, k_string, k_stringn
+private subroutine crea_temp_statp_imp2 () throws uo_exception;/*
+ Crea le Temp Table per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+		
+//--- costruisco la table con Importi a Cliente
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_imp2 "
+	k_sql = " "
+	k_campi = "impianto tinyint " & 
+			+ ", clie_3 integer, colli_trattati integer,  colli_da_fatt integer " &
+			+ ", colli_entrati integer, colli_fatt integer, imp_trattati decimal(12,4) " &
+			+ ", imp_fatturati decimal(12,4) " & 
+			+ ", imp_armo_fatt decimal(12,4) " &
+			+ ", imp_x_pedana decimal(12,4) " & 	 
+			+ ", importo_fila1 decimal(12,4) " & 
+			+ ", importo_fila2 decimal(12,4) " &
+			+ ", importo_girig3p2 decimal(12,4) " & 
+			+ ", importo_girig3p4 decimal(12,4) " &
+			+ ", pedane decimal(12,2) "  &
+			+ ", colli_f1_lav integer " & 
+			+ ", colli_f2_lav integer " & 
+			+ ", colli_g3p2_LAV integer " &
+			+ ", colli_g3p4_LAV integer " &
+			+ ", id_meca_contati integer " & 
+			+ ", n_dosimetri integer " &
+			+ ", imp_fatt_dosimetri decimal(12,2) " 
+	k_sql = &
+			+ " SELECT  " &
+			+ " statp_colli2.impianto  " &
+			+ " ,statp_colli2.clie_3  " &
+			+ " ,(coalesce(B.colli_trattati,0.00)) as colli_trattati " & 
+			+ " ,0.0 as colli_da_fatt " & 
+			+ " ,(coalesce(B.colli_entrati,0.00)) as colli_entrati" & 
+			+ " ,0 as colli_fatt " & 
+			+ " ,(coalesce(B.imp_trattati,0.00) ) as imp_trattati " & 
+			+ " ,0.0 as imp_fatturati " & 
+			+ " ,0.0 as imp_armo_fatt " & 
+			+ " ,statp_colli2.imp_x_pedana " & 
+			+ " ,(coalesce(BF.importo_fila1,0.00) ) as importo_fila1 " & 
+			+ " ,(coalesce(BF.importo_fila2,0.00) ) as importo_fila2 " & 
+			+ " ,(coalesce(BF.importo_girig3p2,0.00) ) as importo_girig3p2 " & 
+			+ " ,(coalesce(BF.importo_girig3p4,0.00) ) as importo_girig3p4 " & 
+			+ " ,(coalesce(statp_colli2.pedane,0.00)) as pedane " &
+			+ " ,statp_colli2.colli_f1_lav " & 
+			+ " ,statp_colli2.colli_f2_lav " & 
+			+ " ,statp_colli2.colli_g3p2_LAV integer " &
+			+ " ,statp_colli2.colli_g3p4_LAV integer " &
+			+ " ,(select count(distinct smeca.id_meca) from #vx_" + trim(kist_stat_produz.utente) + "_statp_meca as smeca " &
+						+ " where smeca.clie_3 = statp_colli2.clie_3 " & 
+							+ " and smeca.impianto = statp_colli2.impianto)  " & 
+			+ " ,(coalesce(B.n_dosimetri,0)) as n_dosimetri " & 
+			+ " ,(coalesce(B.imp_fatt_dosimetri,0.00)) as imp_fatt_dosimetri " & 
+			+ " FROM "  + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 as statp_colli2 " &
+				+ " LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 as B ON " &
+						+ " statp_colli2.clie_3 = B.clie_3 and statp_colli2.impianto = B.impianto " &
+				+ " LEFT OUTER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila as BF ON " &
+						+ " statp_colli2.clie_3 = BF.clie_3 and statp_colli2.impianto = BF.impianto "
+	
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+public subroutine u_zoom_clienti (long a_id_cliente, integer a_impianto);//
+//=== Premuto pulsante nella DW
+//
+int k_rc
+kuf_utility kuf1_utility
+st_open_w kst_open_w
+kuf_menu_window kuf1_menu_window
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	if a_id_cliente = 0 then return
+	if kids_zoom_clie_3.RowCount() = 0 then return
+
+	set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+
+	kuf1_utility = create kuf_utility
+	if not isvalid(kdsi_elenco_output) then 
+		kdsi_elenco_output = create datastore
+	else
+		if kdsi_elenco_output.dataobject <> kids_zoom_clie_3.dataobject then 
+			kdsi_elenco_output = create datastore
+		end if
+	end if
+//--- popolo il datasore per appoggio elenco
+	kdsi_elenco_output.dataobject = kids_zoom_clie_3.dataobject  
+	kids_zoom_clie_3.rowscopy(kids_zoom_clie_3.GetRow(), kids_zoom_clie_3.RowCount(), Primary!, kdsi_elenco_output, 1, Primary!)
+	
+	kdsi_elenco_output.setfilter("clie_3 =  " + string(a_id_cliente) &
+														+ " and impianto =  " + string(a_impianto))
+	kdsi_elenco_output.filter()
+
+	kst_open_w.key1 = "Elenco Lotti scheda " + kuf1_utility.u_stringa_pulisci(trim(tab_1.tabpage_3.text)) &
+							+ ". Cliente: " + string(a_id_cliente) + ", Impianto: " + + string(a_impianto)
+
+	if kdsi_elenco_output.rowcount() > 0 then
+
+//--- chiamare la window di elenco
+		kst_open_w.id_programma = kkg_id_programma_elenco
+		kst_open_w.flag_primo_giro = "S"
+		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
+		kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
+		kst_open_w.flag_leggi_dw = " "
+		kst_open_w.flag_cerca_in_lista = " "
+		kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
+		kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
+		kst_open_w.key4 = this.title    //--- Titolo della Window di chiamata per riconoscerla
+		kst_open_w.key12_any = kdsi_elenco_output
+		kst_open_w.flag_where = " "
+		kuf1_menu_window = create kuf_menu_window 
+		kuf1_menu_window.open_w_tabelle(kst_open_w)
+		destroy kuf1_menu_window
+
+	else
+		
+		messagebox("Elenco dati", "Nessun valore disponibile per il cliente " + string(a_id_cliente) +  ", Impianto: " + + string(a_impianto) + ". ")
+		
+	end if
+
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_utility) then destroy kuf1_utility
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_statp_colli2 () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+	
+//--- costruisco la view della somma COLLI x CLIE_3
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2 "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			 + ", impianto tinyint " &
+			 + ", imp_x_pedana decimal(12,4)" &
+			 + ", pedane decimal(12,2) " &
+		  + ", colli_f1_lav integer " & 
+		  + ", colli_f2_lav integer " &
+		  + ", colli_g3p2_lav integer " &
+		  + ", colli_g3p4_lav integer " 
+	k_sql = &
+		 + " SELECT  " &
+		 + " clie_3  " &
+		 + " ,impianto  " &
+		 + " ,sum(imp_x_pedana)  as imp_x_pedana " & 
+		 + " ,sum(coalesce(pedane,0.00)) as pedane " &
+		 + " ,sum(colli_f1_lav) " & 
+		 + " ,sum(colli_f2_lav) " & 
+		 + " ,sum(colli_g3p2_LAV) " & 
+		 + " ,sum(colli_g3p4_LAV) " & 
+		 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo  " 
+	k_sql +=  " group by clie_3, impianto "
+// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+	
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_colli2_x_id_armo () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+
+//--- costruisco la view con X ID_ARMO
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli2_x_id_armo "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			+ ", impianto tinyint " &
+			+ ", id_armo integer " &
+			+ ", imp_x_pedana decimal(12,4)" &
+			+ ", pedane decimal(12,2) " &
+		 	+ ", colli_f1_lav integer " & 
+		  	+ ", colli_f2_lav integer " &
+		  	+ ", colli_g3p2_LAV integer " &
+		  	+ ", colli_g3p4_LAV integer " &
+		  	+ ", colli_trattati integer "
+	k_sql = &
+		+ " SELECT  distinct " &
+		 + " statp_meca.clie_3  " &
+		 + " ,statp_meca.impianto  " &
+		 + " ,s_artr.id_armo  " &
+	  	 + " ,CASE WHEN s_artr.nr_pedane > 0 and s_artr.imp_x_collo > 0 then (s_artr.importo_giri / s_artr.nr_pedane) " &
+		        + " ELSE 0 END as imp_x_pedana " & 
+		 + " ,coalesce(s_artr.nr_pedane,0.00) as pedane " &
+		 + " ,coalesce(s_artr.colli_f1_lav,0) " & 
+		 + " ,coalesce(s_artr.colli_f2_lav,0) " & 
+		 + " ,coalesce(s_artr.colli_g3p2_LAV,0) " & 
+		 + " ,coalesce(s_artr.colli_g3p4_LAV,0) " & 
+		+ " ,s_artr.colli_trattati integer " &
+		 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+		 + "  s_artr.id_armo = statp_meca.id_armo " 
+// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+//	      + " ,count(s_artr.id_armo) as id_armo_contati " &
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_meca () throws uo_exception;//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_tabella, k_campi, k_datetime_ini, k_datetime_fin 
+boolean k_esegui_query=true
+kuf_utility kuf1_utility
+pointer kpointer  // Declares a pointer variable
+
+
+try
+
+//=== Puntatore Cursore da attesa.....
+//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+	kpointer = SetPointer(HourGlass!)
+
+
+//--- costruisco la view con ID_MECA delle fatture emesse da data a data
+//	k_view = "vx_" + trim(kist_stat_produz.utente) + "_stat_meca "
+	k_tabella = "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca "
+	k_sql = " "                                   
+//	k_sql = + &
+//	"CREATE table  " + trim(k_view) &
+	k_campi = " id_armo integer, id_listino integer, id_meca integer, clie_3 integer, gruppo integer, data_int date, data_ent date, impianto tinyint " 
+
+	k_sql +=  &
+			  " SELECT distinct " &
+			 + " s_armo.id_armo  " &
+			 + " ,s_armo.id_listino  " &
+			 + " ,s_armo.id_meca  " &
+			 + " ,s_armo.clie_3  " &
+			 + " ,s_armo.gruppo  " &
+			 + " ,s_armo.data_int  " &
+			 + " ,s_armo.data_ent  " &
+			 + " ,s_armo.impianto " &
+			 + " FROM s_armo  " &
+			
+   choose case kist_stat_produz.tipo_data
+         
+      case '1' // x data fine lavorazione
+         k_sql += " inner join s_artr on  s_armo.id_armo = s_artr.id_armo " 
+		 	if kist_stat_produz.gruppo_flag <> 5 then
+		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
+			end if
+			k_sql += &
+		    " where " &  
+		    + " s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "   
+    
+//      case '2' // x data fine fatturazione
+//         k_sql += " inner join s_artr on  s_armo.id_armo = s_artr.id_armo " 
+//		 	if kist_stat_produz.gruppo_flag <> 5 then
+//		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
+//			end if
+//			k_sql += &
+//		    " where " &  
+//          + " s_artr.id_armo in " &  
+//          + " (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_statp_dfat )"  
+          
+      case '3' // x data di riferimento
+		 	if kist_stat_produz.gruppo_flag <> 5 then
+		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
+			end if
+			k_sql += &
+		    " where " &  
+          + " s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
+	 
+      case '4' // x data di entrata riferimento
+		 	if kist_stat_produz.gruppo_flag <> 5 then
+		      k_sql += " left outer join gru on s_armo.gruppo = gru.codice " 
+			end if
+			k_sql += &
+		    " where " &  
+          + " s_armo.data_ent between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
+	 
+   end choose
+   
+	if kist_stat_produz.id_cliente > 0 then
+		k_sql +=  " and s_armo.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
+	end if
+	
+	if kist_stat_produz.gruppo_flag <> 5 then
+		if kist_stat_produz.id_gruppo > 0 then
+			// solo un gruppo puntuale
+			if kist_stat_produz.gruppo_flag = 1 then
+				k_sql += " and s_armo.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
+			else
+			// escludi solo un gruppo (+tutti quelli da Escludere x stat)
+				if kist_stat_produz.gruppo_flag = 0 then
+					k_sql += " and (s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " or s_armo.gruppo is null)  "
+					k_sql += " and gru.escludi_da_stat_glob = 'N'  "
+				else
+			// tutti i gruppi (meno quelli da Escludere x stat)
+					k_sql += " and gru.escludi_da_stat_glob = 'N' "
+				end if
+			end if
+		else
+			k_sql += " and gru.escludi_da_stat_glob = 'N'  "
+		end if
+	end if
+	
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
+	end if
+	if kist_stat_produz.magazzino <> 9 then
+		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
+	end if
+	if kist_stat_produz.no_dose = 'S' then
+		k_sql += " and s_armo.dose = 0 " + " "
+	else
+		if kist_stat_produz.dose > 0 then
+			k_sql += " and s_armo.dose = " + kist_stat_produz.dose_str + " "
+		end if
+	end if
+	if kist_stat_produz.no_prezzo = 2 then //escludi prezzi=0
+		k_sql += " and (s_armo.imp_fatt > 0 or s_armo.imp_da_fatt > 0) "
+	else
+		if kist_stat_produz.no_prezzo = 3 then //solo MOVIMENTI con prezzi=0
+			k_sql += " and (s_armo.imp_fatt = 0 and s_armo.imp_da_fatt = 0) "
+		end if
+	end if
+	
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_tabella, k_campi, k_sql)		
+
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+//=== Riprist. il vecchio puntatore : 
+	SetPointer(kpointer)
+
+end try
+//
+end subroutine
+
+private subroutine crea_temp_x_statp_colli () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+
+//--- costruisco la view con COLLI FATT X ID_ARMO
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			 + ", id_armo integer " &
+			 + ", id_meca integer " &
+			 + ", colli_trattati integer " &
+			 + ", n_dosimetri integer " &
+			 + ", colli_entrati integer " &
+			 + ", imp_x_collo  decimal(12,4) " &
+			 + ", data_lav_fin date " &
+			 + ", impianto tinyint " 
+	k_sql = &
+			 + " SELECT " &
+				 + " statp_meca.clie_3  " &
+				 + " ,s_artr.id_armo  " &
+				 + " ,s_artr.id_meca  " &
+				 + " ,sum(coalesce(s_artr.colli_trattati,0)) as colli_trattati " & 
+				 + " ,(select isnull(count(case when barcode.flg_dosimetro = '1' then 1 else null end),0) " &
+				 				+ " from barcode where barcode.id_armo = s_artr.id_armo) as n_dosimetri " &
+				 + " ,(select isnull(s_armo.colli_2,0) " &
+								 + " from s_armo where s_armo.id_armo = s_artr.id_armo) as colli_entrati  " &
+				 + " ,(coalesce(s_artr.imp_x_collo,0)) as imp_x_collo " & 
+				 + " ,max(s_artr.data_lav_fin) as data_lav_fin " & 
+				 + " ,coalesce(statp_meca.impianto,0) as impianto " & 
+			 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+			 					+ " s_artr.id_armo = statp_meca.id_armo and s_artr.impianto = statp_meca.impianto " 
+
+				// + " ,(coalesce(s_artr.colli_entrati,0)) as colli_entrati" & 
+							 
+//				 + " ,sum(coalesce(s_artr.n_dosimetri,0)) as n_dosimetri " & 
+//			 + " ,(coalesce(cotr.colli_trattati,0)) as colli_trattati " & 
+//			 + " ,(coalesce(cotr.n_dosimetri,0)) as n_dosimetri " & 
+//			 + " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
+//			 + "  statp_meca.id_armo = cotr.id_armo " 
+
+//			 + ", imp_x_collo_g3 decimal(12,4) " &
+//			 + " ,CASE WHEN statp_meca.impianto <> 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo " & 
+//			 + " ,CASE WHEN statp_meca.impianto = 3 then (coalesce(s_artr.imp_x_collo,0)) else 0 end as imp_x_collo_g3 " & 
+			 
+	choose case kist_stat_produz.tipo_data
+		case '1' // x data fine lavorazione
+			k_sql +=  &
+			 + "	where " &  
+			 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+//		case '2' // x data fatturazione
+//			k_sql += &
+//			 + "	where " &  
+//			 + "  s_artr.id_armo in " &  
+//			 + "  (select id_armo from  " + "vx_" + trim(kist_stat_produz.utente) + "_stat_dfat )"  
+//		case '3' // x data di riferimento
+//			k_sql += &
+//			 + "	where " &  
+//			 + "	  s_armo.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+//			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' " 
+	end choose
+	k_sql += " group by  " &
+						+ " statp_meca.clie_3 " &
+						+ ", s_artr.id_armo " &
+						+ ", s_artr.id_meca " &
+						+ ", s_artr.colli_entrati " &
+						+ ", s_artr.imp_x_collo " &
+						+ ", statp_meca.impianto " &
+		
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_colli_x_fila () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+
+//--- costruisco la view con X ID_ARMO X FILA 1 e FILA 2
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			  + ", id_armo integer " &
+			  + ", impianto tinyint " &
+			  + ", importo_fila1 decimal(12,4) " & 
+			  + ", importo_fila2 decimal(12,4) " &
+			  + ", importo_girig3p2 decimal(12,4) " & 
+			  + ", importo_girig3p4 decimal(12,4) " 
+	k_sql = &
+			 + " SELECT   " &
+			 + " statp_meca.clie_3 " &
+			 + " ,statp_meca.id_armo  " &
+			 + " ,statp_meca.impianto " &
+			 + " ,s_artr.importo_giriF1 " &
+			 + " ,s_artr.importo_giriF2 " &
+			 + " ,s_artr.importo_girig3p2 " &
+			 + " ,s_artr.importo_girig3p4 " &
+		 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+		 + "  s_artr.id_armo = statp_meca.id_armo " 
+//          + " inner join vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 as cotr on " &
+//          + "  statp_meca.id_armo = cotr.id_armo " 
+
+	choose case kist_stat_produz.tipo_data
+		case '1' // x data fine lavorazione
+			k_sql +=  &
+			 + "	where " &  
+			 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+	end choose
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_colli_clie_3 () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+string k_prezzo_dosim_x
+kuf_listino kuf1_listino
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+
+	kuf1_listino = create kuf_listino	
+	k_prezzo_dosim_x = string(kuf1_listino.get_prezzo_dosimetro()) // get del prezzo a listino dei dosimetri
+	k_prezzo_dosim_x = kiuf_utility.u_num_itatousa(k_prezzo_dosim_x)
+
+//--- costruisco la view con X CLIE_3
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3 "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			 + ", impianto tinyint " &
+			 + ", colli_entrati integer " & 
+			 + ", colli_trattati integer " &
+			 + ", imp_trattati decimal(12,4) " &
+			 + ", n_dosimetri integer " &
+			 + ", imp_fatt_dosimetri decimal(12,2) " 
+ k_sql = &
+		 + " SELECT   " &
+		 + " SC.clie_3  " &
+		 + " ,SC.impianto  " &
+		 + " ,(SCENT.colli_entrati)" & 
+		 + " ,sum(colli_trattati) " & 
+		 + " ,sum(imp_x_collo * colli_trattati) " & 
+		 + " ,sum(n_dosimetri) " & 
+		 + " ,sum(n_dosimetri) * " + k_prezzo_dosim_x & 
+		 + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli SC " &
+		 		+ " inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_ent_clie_3 SCENT on " &
+				+ " SC.clie_3 = SCENT.clie_3 and SC.impianto = SCENT.impianto "
+	k_sql +=  " group by SC.clie_3, SC.impianto, SCENT.colli_entrati  "
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+
+
+		// + " ,CASE WHEN impianto <> 3 then sum(imp_x_collo * colli_trattati) else 0.00 end " & 
+		// + " ,CASE WHEN impianto = 3  then sum(imp_x_collo_g3 * colli_trattati) else 0.00 end " & 
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	if isvalid(kuf1_listino) then destroy kuf1_listino
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_colli_clie_3_x_fila () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+		
+//--- costruisco la view con COLLI IMPORTI X CLIE_3 X LAV "
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_clie_3_x_fila "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+				 + ", impianto tinyint " &
+				 + ", importo_fila1 decimal(12,4) " & 
+				 + ", importo_fila2 decimal(12,4) " &
+				 + ", importo_girig3p2 decimal(12,4) " & 
+				 + ", importo_girig3p4 decimal(12,4) " 
+	k_sql = &
+		 + " SELECT  " &
+		 + " clie_3  " &
+		 + " ,impianto  " &
+		 + " ,sum(coalesce(importo_fila1,0.00)) " & 
+		 + " ,sum(coalesce(importo_fila2,0.00)) " &  
+		 + " ,sum(coalesce(importo_girig3p2,0.00)) " & 
+		 + " ,sum(coalesce(importo_girig3p4,0.00)) " &  
+		  + " FROM #vx_" + trim(kist_stat_produz.utente) + "_statp_colli_x_fila " 
+	k_sql +=  " group by clie_3, impianto  "
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_artr_x_cli () throws uo_exception;//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_tabella, k_campi 
+boolean k_esegui_query=true
+kuf_utility kuf1_utility
+pointer kpointer  // Declares a pointer variable
+
+
+try
+
+//=== Puntatore Cursore da attesa.....
+//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+	kpointer = SetPointer(HourGlass!)
+
+
+      
+//--- costruisco la view con Importi x Cliente
+   k_view = "#vx_" + trim(kist_stat_produz.utente)  + "_statp_artr_x_cli "
+   k_sql = " "
+// k_sql = + &
+// "CREATE view " + trim(k_view) &
+//  + " ( clie_3, colli_trattati, m_cubi, giri_f1_pl, giri_f1_lav, giri_f2_pl, giri_f2_lav, pedane, somma_giri) AS   " 
+   k_campi = "clie_3 integer " &
+				 + ", impianto tinyint " &
+				 + ", id_armo_contati integer " &
+	          + ", pedane_trattate  decimal(12,2) " &
+				 + ", m_cubi decimal(12,4) " &
+             + ", giri_f1_pl decimal(12,2) " & 
+             + ", giri_f1_lav decimal(12,2) " & 
+             + ", giri_f2_pl decimal(12,2) " & 
+             + ", giri_f2_lav decimal(12,2) " & 
+             + ", giri_f1_pl_gp decimal(12,2) " & 
+             + ", giri_f1_lav_gp decimal(12,2) " & 
+             + ", giri_f2_pl_gp decimal(12,2) " & 
+             + ", giri_f2_lav_gp decimal(12,2) " & 
+             + ", somma_giri_F1 decimal(12,2)" &
+             + ", somma_giri_F2 decimal(12,2)" &
+             + ", giri_g3p2_pl decimal(12,2) " & 
+             + ", giri_g3p2_lav decimal(12,2) " & 
+             + ", giri_g3p4_pl decimal(12,2) " & 
+             + ", giri_g3p4_lav decimal(12,2) " & 
+             + ", giri_g3p2_pl_gp decimal(12,2) " & 
+             + ", giri_g3p2_lav_gp decimal(12,2) " & 
+             + ", giri_g3p4_pl_gp decimal(12,2) " & 
+             + ", giri_g3p4_lav_gp decimal(12,2) " & 
+             + ", pedane decimal(12,2) " &
+             + ", somma_giri decimal(12,2) "
+   k_sql = &
+          + " SELECT " &
+          + " statp_meca.clie_3 " &
+			 + "	,statp_meca.impianto " &
+          + "  ,count(statp_meca.id_armo) as id_armo_contati " &
+          + "  ,sum(coalesce(s_artr.pedane,0.00)) as pedane_trattate  " &  
+          + "  ,sum(coalesce(s_artr.m_cubi,0.00)) as m_cubi   " &
+          + "  ,sum(coalesce(s_artr.giri_f1_pl,0.00)) / 2 as giri_f1_pl   " &
+          + "  ,sum(coalesce(s_artr.giri_f1_lav,0.00)) / 2 as giri_f1_lav   " &
+          + "  ,sum(coalesce(s_artr.giri_f2_pl,0.00)) / 2 as giri_f2_pl   " &
+          + "  ,sum(coalesce(s_artr.giri_f2_lav,0.00)) / 2 as giri_f2_lav   " &
+          + "  ,sum(coalesce(s_artr.giri_f1_pl_gp,0.00)) / 2 as giri_f1_pl_gp   " &
+          + "  ,sum(coalesce(s_artr.giri_f1_lav_gp,0.00)) / 2 as giri_f1_lav_gp   " &
+          + "  ,sum(coalesce(s_artr.giri_f2_pl_gp,0.00)) / 2 as giri_f2_pl_gp   " &
+          + "  ,sum(coalesce(s_artr.giri_f2_lav_gp,0.00)) / 2 as giri_f2_lav_gp   " &
+          + " ,sum( coalesce(s_artr.giri_f1_lav,0.00) + coalesce(s_artr.giri_f1_lav_gp,0.00) ) as somma_giri_F1 " &
+          + " ,sum( coalesce(s_artr.giri_f2_lav,0.00) + coalesce(s_artr.giri_f2_lav_gp,0.00) ) as somma_giri_F2 " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_pl,0)) as giri_g3p2_pl  " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_lav,0)) as giri_g3p2_lav   " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_pl,0))  as giri_g3p4_pl  " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_lav,0)) as giri_g3p4_lav  " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_pl_gp,0)) as giri_g3p2_pl_gp  " &
+          + " ,sum(coalesce(s_artr.giri_g3p2_lav_gp,0)) as giri_g3p2_lav_gp   " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_pl_gp,0))  as giri_g3p4_pl_gp  " &
+          + " ,sum(coalesce(s_artr.giri_g3p4_lav_gp,0)) as giri_g3p4_lav_gp  " &
+          + " ,sum(coalesce(s_artr.pedane,0)) as pedane " &
+          + " ,sum(coalesce(s_artr.giri_f1_lav,0) + coalesce(s_artr.giri_f2_lav,0) " &
+							 + " + coalesce(s_artr.giri_g3p2_lav,0) + coalesce(s_artr.giri_g3p4_lav,0)) as somma_giri " &
+          + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+      		    + "  s_artr.id_armo = statp_meca.id_armo and s_artr.impianto = statp_meca.impianto " 
+
+   choose case kist_stat_produz.tipo_data
+         
+      case '1' // x data fine lavorazione
+         k_sql +=  &
+		 + "	where " &  
+		 + " s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "   
+    
+      case '2' // x data fine fatturazione
+         k_sql += " "
+          
+      case '3' // x data di riferimento
+         k_sql += " "
+          
+      case '4' // x data di entrata riferimento
+         k_sql += " "
+	 
+   end choose
+   
+   k_sql += " group by statp_meca.clie_3, statp_meca.impianto  "
+   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+// kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+//=== Riprist. il vecchio puntatore : 
+	SetPointer(kpointer)
+
+end try
+
+end subroutine
+
+public subroutine popola_zoom_clie_3 ();string k_sql_orig, k_string, k_stringn
 int k_rc=0, k_ctr=0
 
 
-	if not isvalid(kids_zoom_list) then 
-		kids_zoom_list = create datastore
+	if not isvalid(kids_zoom_clie_3) then 
+		kids_zoom_clie_3 = create datastore
 	end if
 	
 
-	kids_zoom_list.dataobject = "d_stat_produz_zoom_xlist" 
+	kids_zoom_clie_3.dataobject = "d_stat_produz_zoom_meca" 
 //--- Aggiorna SQL della dw	
-	k_sql_orig = kids_zoom_list.Object.DataWindow.Table.Select 
+	k_sql_orig = kids_zoom_clie_3.Object.DataWindow.Table.Select 
 	
 	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca"
-	k_string = "vx_MAST5_statp_meca"
+	k_string = "vx_info_stat_guida"
 	k_ctr = PosA(k_sql_orig, k_string, 1)
 	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
 		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
 		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
 	LOOP
 	k_stringn = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli"
-	k_string = "vx_MAST5_statp_colli"
+	k_string = "vx_info_stat_dati"
 	k_ctr = PosA(k_sql_orig, k_string, 1)
 	DO WHILE k_ctr > 0 and trim(k_string) <> trim(k_stringn)  
 		k_sql_orig = ReplaceA(k_sql_orig, k_ctr, LenA(k_string), (k_stringn))
 		k_ctr = PosA(k_sql_orig, k_string, k_ctr+LenA(k_string))
 	LOOP
 
-
 	
-	kids_zoom_list.Object.DataWindow.Table.Select = k_sql_orig	
+	kids_zoom_clie_3.Object.DataWindow.Table.Select = k_sql_orig	
 	
-	k_rc = kids_zoom_list.settransobject ( kguo_sqlca_db_magazzino )
-	k_rc = kids_zoom_list.reset( )
-	k_rc = kids_zoom_list.retrieve ()
+	k_rc = kids_zoom_clie_3.settransobject ( kguo_sqlca_db_magazzino )
+	k_rc = kids_zoom_clie_3.reset( )
+	k_rc = kids_zoom_clie_3.retrieve ()
 												
 
+
+end subroutine
+
+private subroutine _crea_temp_x_statp_colli_trattati_x_clie () throws uo_exception;//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_sql_orig, k_stringn, k_string, k_campi
+boolean k_esegui_query=true
+kuf_utility kuf1_utility
+pointer kpointer  // Declares a pointer variable
+
+
+
+try 
+//=== Puntatore Cursore da attesa.....
+//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
+	kpointer = SetPointer(HourGlass!)
+
+
+
+//--- costruisco la view 
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_trattati_x_clie_3 "
+	k_sql = " "                                   
+//	k_sql = + &
+//	"CREATE VIEW " + trim(k_view) + " ( id_armo ) AS   " 
+	k_campi = " colli_trattati integer " &
+					+ ", n_dosimetri integer " &
+					+ ", id_armo integer " &
+				 	+ ", impianto tinyint " &
+					+ ", clie_3 integer   " 
+	 
+	k_sql = + k_sql &
+	 + " SELECT distinct " &
+	 + " count(barcode.barcode)  " &
+	 + " ,count(case when barcode.flg_dosimetro = '1' then 1 else null end) " &
+	 + " ,s_armo.id_armo  " &
+	 + " ,s_armo.impianto  " &
+	 + " ,s_armo.clie_3  " &
+	 + " FROM barcode inner join s_armo on barcode.id_armo = s_armo.id_armo " 
+
+   choose case kist_stat_produz.tipo_data
+      case '1' // x data fine lavorazione
+         k_sql +=  &
+          + "  where " &  
+          + " barcode.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + "    and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "'  " & 
+          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
+          + " and " + string(kist_stat_produz.id_meca_a) + " "  
+      case '2' // x data fine fatturazione
+         k_sql += &
+          + "  where " &  
+          + " barcode.data_lav_fin > '01/01/1990' " &
+          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
+          + " and " + string(kist_stat_produz.id_meca_a) + " "  &
+          + " and barcode.id_armo in " &  
+          + "  (select id_armo from  " + "#vx_" + trim(kist_stat_produz.utente) + "_stat_mfat )"  
+      case '3' // x data di riferimento
+         k_sql = + k_sql &
+          + "  where " &  
+          + " barcode.data_lav_fin > '01/01/1990' " &
+          + " and  barcode.data_int between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  &
+          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
+          + " and " + string(kist_stat_produz.id_meca_a) + " "  
+      case '4' // x data di entrata riferimento
+         k_sql = + k_sql &
+          + "  where " &  
+          + " barcode.data_lav_fin > '01/01/1990' " &
+          + " and S_ARMO.data_ent between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+          + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  &
+          + " and barcode.id_meca between " + string(kist_stat_produz.id_meca_da) &
+          + " and " + string(kist_stat_produz.id_meca_a) + " "  
+   end choose
+	if kist_stat_produz.id_cliente > 0 then
+		k_sql +=  " and s_armo.clie_3 = " + string(kist_stat_produz.id_cliente) + " "
+	end if
+	if kist_stat_produz.id_gruppo > 0 then
+		if kist_stat_produz.gruppo_flag = 1 then
+			k_sql += " and s_armo.gruppo = " + string(kist_stat_produz.id_gruppo) + " "
+		else
+			k_sql += " and s_armo.gruppo <> " + string(kist_stat_produz.id_gruppo) + " "
+		end if
+	end if
+	if kist_stat_produz.impianto > 0 then
+		k_sql += " and s_armo.impianto = " + string(kist_stat_produz.impianto) + " "
+	end if
+	if kist_stat_produz.magazzino <> 9 then
+		k_sql += " and s_armo.magazzino = " + string(kist_stat_produz.magazzino) + " "
+	end if
+	if kist_stat_produz.dose > 0 then
+		k_sql += " and s_armo.dose = " + kist_stat_produz.dose_str + " "
+	end if
+	if kist_stat_produz.no_dose = 'S' then
+		k_sql += " and s_armo.dose = 0 " + " "
+	else
+		k_sql += " and s_armo.dose > 0 " + " "
+	end if
+   k_sql +=  " group by  s_armo.id_armo, s_armo.clie_3, s_armo.impianto  "
+	
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
+
+catch (uo_exception kuo_exception)
+
+finally	
+//=== Riprist. il vecchio puntatore : 
+	SetPointer(kpointer)
+
+end try
+//
+end subroutine
+
+private subroutine crea_temp_x_statp_colli_ent_clie_3 () throws uo_exception;/*
+ Crea le View per le query
+*/
+int k_ctr
+string k_view, k_sql, k_campi
+string k_prezzo_dosim_x
+kuf_listino kuf1_listino
+
+
+try 
+	SetPointer(kkg.pointer_attesa)
+
+	kuf1_listino = create kuf_listino	
+
+//--- costruisco la view con X CLIE_3
+	k_view = "#vx_" + trim(kist_stat_produz.utente) + "_statp_colli_ent_clie_3 "
+	k_sql = " "
+	k_campi = "clie_3 integer " &
+			 + ", impianto tinyint " &
+			 + ", colli_entrati integer " 
+	k_sql = &
+		 + " SELECT   " &
+		 + " s_armo.clie_3  " &
+		 + " ,s_armo.impianto  " &
+		 + " ,sum(isnull(s_armo.colli_2,0)) " & 
+		 + " FROM s_armo inner join #vx_" + trim(kist_stat_produz.utente) + "_statp_meca SM on s_armo.id_meca = SM.id_meca " 
+	k_sql +=  " group by s_armo.clie_3, s_armo.impianto  "
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	if isvalid(kuf1_listino) then destroy kuf1_listino
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
+
+private subroutine crea_temp_x_statp_artr3 () throws uo_exception;//======================================================================
+//=== Crea le View per le query
+//======================================================================
+//
+int k_ctr
+string k_view, k_sql, k_campi 
+
+
+try
+
+	SetPointer(kkg.pointer_attesa)
+
+//--- costruisco la view Valore Giri 
+	k_view = "#vx_" + trim(kist_stat_produz.utente)  + "_statp_artr3 "
+	k_sql = " "
+	k_campi = " " &
+			+ " id_armo integer " & 
+			+ ", valore_x_giri_f1_lav decimal(12,4) " & 
+			+ ", nr_giri_f1_lav integer" & 
+			+ ", nr_giri_f1_grp_lav integer" & 
+			+ ", valore_x_giri_f2_lav decimal(12,4) " & 
+			+ ", nr_giri_f2_lav integer" & 
+			+ ", nr_giri_f2_grp_lav integer" & 
+			+ ", somma_giri integer" &
+			+ ", valore_x_girig3p2_lav decimal(12,4) " & 
+			+ ", giri_g3p2_LAV integer" & 
+			+ ", giri_g3p2_grp_lav integer" & 
+			+ ", valore_x_girig3p4_lav decimal(12,4) " & 
+			+ ", giri_g3p4_LAV integer" & 
+			+ ", giri_g3p4_LAV_grp integer" & 
+			+ ", somma_giri_g3 integer" &
+			+ ", valore_totale decimal(12,4) " 
+			 
+//--- Per calcolare l'esatto importo per FILA devo frazionare le eventuali lav (vedi COPAN) che hanno colli che sono sia in FILA 1 che 2 
+ k_sql = &
+		 + " SELECT distinct s_artr.id_armo " &
+          + " , case when statp_meca.impianto = 2 then coalesce(s_artr.importo_giriF1, 0.00) else 0.00 end " &
+	       + " , case when statp_meca.impianto = 2 then coalesce(s_artr.giri_f1_lav,0) else 0 end  as nr_giri_f1_lav " &
+	       + " , case when statp_meca.impianto = 2 then coalesce(s_artr.giri_f1_lav_gp,0) else 0 end as nr_giri_f1_grp_lav " &
+          + " , case when statp_meca.impianto = 2 then coalesce(s_artr.importo_giriF2, 0.00) else 0.00 end " &
+		    + " , case when statp_meca.impianto = 2 then coalesce(s_artr.giri_f2_lav,0) else 0 end as nr_giri_f2_lav " &
+		    + " , case when statp_meca.impianto = 2 then coalesce(s_artr.giri_f2_lav_gp,0) else 0 end as nr_giri_f2_grp_lav " &
+          + " , case when statp_meca.impianto = 2 then coalesce(s_artr.giri_f1_lav,0) + coalesce(s_artr.giri_f2_lav,0) else 0 end  as somma_giri " &
+          + " , case when statp_meca.impianto = 3 then coalesce(s_artr.importo_girig3p2, 0.00) else 0.00 end as valore_x_girig3p2_lav" &
+	       + " , case when statp_meca.impianto = 3 then coalesce(s_artr.giri_g3p2_LAV,0) else 0 end  as giri_g3p2_LAV " &
+	       + " , case when statp_meca.impianto = 3 then coalesce(s_artr.giri_g3p2_LAV_gp,0) else 0 end as giri_g3p2_grp_lav " &
+          + " , case when statp_meca.impianto = 3 then coalesce(s_artr.importo_girig3p4, 0.00) else 0.00 end as valore_x_girig3p4_lav " &
+		    + " , case when statp_meca.impianto = 3 then coalesce(s_artr.giri_g3p4_LAV,0) else 0 end as giri_g3p4_LAV " &
+		    + " , case when statp_meca.impianto = 3 then coalesce(s_artr.giri_g3p4_LAV_gp,0) else 0 end as giri_g3p4_LAV_grp " &
+          + " , case when statp_meca.impianto = 3 then coalesce(s_artr.giri_g3p2_LAV,0) + coalesce(s_artr.giri_g3p4_LAV,0) else 0 end  as somma_giri_g3 " &
+          + " , coalesce(s_artr.colli_trattati * imp_x_collo, 0.00 ) as valore_totale" & 
+		 + " FROM s_artr INNER JOIN " + "#vx_" + trim(kist_stat_produz.utente) + "_statp_meca as statp_meca ON " &
+		 + "  s_artr.id_armo = statp_meca.id_armo " 
+		 
+//	choose case kist_stat_produz.tipo_data
+//			
+//		case '1' // x data fine lavorazione
+//			k_sql +=  &
+//			 + "	where " &  
+//			 + "	  s_artr.data_lav_fin between '" + string(kist_stat_produz.data_da, "dd/mm/yyyy") + "' " &
+//			 + " and '" + string(kist_stat_produz.data_a, "dd/mm/yyyy") + "' "  	
+//	 			 
+//	end choose
+	
+	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
+
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+
+finally	
+	SetPointer(kkg.pointer_default)
+
+end try
 
 end subroutine
 
@@ -2677,7 +3372,9 @@ return k_return
 end event
 
 event close;call super::close;//
-//if isvalid(kiuf_contratti  ) then destroy kiuf_contratti
+//if isvalid(  ) then destroy kiuf_contratti
+if isvalid(kiuf_utility) then destroy kiuf_utility
+
 
 end event
 
@@ -2954,8 +3651,6 @@ end type
 
 type dw_2 from w_g_tab_3`dw_2 within tabpage_2
 boolean visible = true
-integer x = -5
-integer y = 68
 integer width = 3104
 integer height = 1200
 boolean enabled = true
@@ -3056,109 +3751,28 @@ end type
 type tabpage_3 from w_g_tab_3`tabpage_3 within tab_1
 boolean visible = true
 boolean enabled = true
-string text = "clienti"
+string text = "G2 clienti"
 end type
 
 type dw_3 from w_g_tab_3`dw_3 within tabpage_3
 boolean visible = true
-integer x = 41
-integer y = 24
 integer width = 3099
 integer height = 1192
 boolean enabled = true
 string dataobject = "d_stat_produz_x_cliente"
+boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 end type
 
 event dw_3::clicked;call super::clicked;//
-//=== Premuto pulsante nella DW
-//
-int k_rc
-long k_ctr
-string k_codice_prec, k_sql_orig, k_stringn, k_string
-string k_inventario
-string k_view, k_sql, k_sql_w
-kuf_utility kuf1_utility
-window k_window
-st_open_w kst_open_w
-kuf_menu_window kuf1_menu_window
-pointer kpointer  // Declares a pointer variable
-
-
-//=== Puntatore Cursore da attesa.....
-//=== Se volessi riprist. il vecchio puntatore : SetPointer(kpointer)
-kpointer = SetPointer(HourGlass!)
-
-
 if dwo.name = "b_fzoom" or dwo.name = "fzoom"  then
 	
-	kuf1_utility = create kuf_utility
-
-	try 
-		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
-	catch ( uo_exception kuo_exception )
-	end try		
-
-	kist_stat_produz.id_cliente = tab_1.tabpage_3.dw_3.getitemnumber(row, "clie_3")  
-	if isnull(kist_stat_produz.id_cliente) then
-		kist_stat_produz.id_cliente = 0
-	end if
-
-//--- popolo il datasore (dw non visuale) per appoggio elenco
-	if not isvalid(kdsi_elenco_output) then kdsi_elenco_output = create datastore
-	
-	kdsi_elenco_output.dataobject = kids_zoom_clie_3.dataobject //"d_stat_produz_zoom_meca" 
-	kids_zoom_clie_3.rowscopy(kids_zoom_clie_3.GetRow(), kids_zoom_clie_3.RowCount(), Primary!, kdsi_elenco_output, 1, Primary!)
-	
-	kdsi_elenco_output.setfilter("clie_3 =  " + string(kist_stat_produz.id_cliente))
-	kdsi_elenco_output.filter()
-
-//	k_rc = kdsi_elenco_output.settransobject ( sqlca )
-//	k_rc = kdsi_elenco_output.reset( )
-//	k_rc = kdsi_elenco_output.retrieve ()
-												
-	kst_open_w.key1 = "Zoom di " + kuf1_utility.u_stringa_pulisci(trim(tab_1.tabpage_3.text)) &
-							+ ". Cliente: " + + trim(string(kist_stat_produz.id_cliente))
-
-	if kdsi_elenco_output.rowcount() > 0 then
-
-		k_window = kGuf_data_base.prendi_win_attiva()
-		
-//--- chiamare la window di elenco
-//
-//=== Parametri : 
-//=== struttura st_open_w
-		kst_open_w.id_programma = kkg_id_programma_elenco
-		kst_open_w.flag_primo_giro = "S"
-		kst_open_w.flag_modalita = kkg_flag_modalita.elenco
-		kst_open_w.flag_adatta_win = KKG.ADATTA_WIN
-		kst_open_w.flag_leggi_dw = " "
-		kst_open_w.flag_cerca_in_lista = " "
-		kst_open_w.key2 = trim(kdsi_elenco_output.dataobject)
-		kst_open_w.key3 = "0"     //--- viene riempito con il nr di riga selezionata
-		kst_open_w.key4 = k_window.title    //--- Titolo della Window di chiamata per riconoscerla
-		kst_open_w.key12_any = kdsi_elenco_output
-		kst_open_w.flag_where = " "
-		kuf1_menu_window = create kuf_menu_window 
-		kuf1_menu_window.open_w_tabelle(kst_open_w)
-		destroy kuf1_menu_window
-
-	else
-		
-		messagebox("Elenco Dati", &
-					"Nessun valore disponibile. ")
-		
-	end if
-
-	destroy kuf1_utility
+	u_zoom_clienti(this.getitemnumber(row, "clie_3"), 2) //this.getitemnumber(row, "impianto")) 
 	
 end if
 
-//=== Riprist. il vecchio puntatore : 
-SetPointer(kpointer)
-
-
-//
 end event
 
 type st_3_retrieve from w_g_tab_3`st_3_retrieve within tabpage_3
@@ -3167,7 +3781,7 @@ end type
 type tabpage_4 from w_g_tab_3`tabpage_4 within tab_1
 boolean visible = true
 boolean enabled = true
-string text = "fila 1 & 2"
+string text = "G3 clienti"
 ln_1 ln_1
 end type
 
@@ -3186,18 +3800,27 @@ end on
 
 type dw_4 from w_g_tab_3`dw_4 within tabpage_4
 boolean visible = true
-integer x = -5
-integer y = 36
+integer y = 4
 integer width = 3374
 integer height = 1212
 integer taborder = 10
 boolean enabled = true
-string dataobject = "d_stat_produz_val_giri"
+string dataobject = "d_stat_produz_x_cliente_g3"
 boolean ki_link_standard_sempre_possibile = true
 boolean ki_colora_riga_aggiornata = false
-boolean ki_attiva_standard_select_row = false
-boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
+boolean ki_db_conn_standard = false
 end type
+
+event dw_4::clicked;call super::clicked;//
+if dwo.name = "b_fzoom" or dwo.name = "fzoom"  then
+	
+	u_zoom_clienti(this.getitemnumber(row, "clie_3"), 3) //this.getitemnumber(row, "impianto")) 
+	
+end if
+
+end event
 
 type st_4_retrieve from w_g_tab_3`st_4_retrieve within tabpage_4
 end type
@@ -3205,18 +3828,25 @@ end type
 type tabpage_5 from w_g_tab_3`tabpage_5 within tab_1
 boolean visible = true
 boolean enabled = true
-string text = "listini E1"
-string powertiptext = "produzione per codice listino E1 "
+string text = "Giri G2 & G3"
+string powertiptext = "Riepilogo lavorazioni"
 end type
 
 type dw_5 from w_g_tab_3`dw_5 within tabpage_5
 boolean visible = true
-integer width = 3214
-integer height = 1212
+integer y = 24
+integer width = 2962
+integer height = 1188
 boolean enabled = true
-string dataobject = "d_stat_produz_x_list"
+string dataobject = "d_stat_produz_val_giri"
 boolean ki_link_standard_sempre_possibile = true
+boolean ki_button_standard_attivi = false
+boolean ki_colora_riga_aggiornata = false
+boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 end type
 
 event dw_5::clicked;call super::clicked;//
@@ -3320,8 +3950,9 @@ type st_6_retrieve from w_g_tab_3`st_6_retrieve within tabpage_6
 end type
 
 type dw_6 from w_g_tab_3`dw_6 within tabpage_6
-integer width = 3259
-integer height = 1244
+integer y = 52
+integer width = 2962
+integer height = 1192
 boolean ki_link_standard_sempre_possibile = true
 end type
 
@@ -3340,15 +3971,23 @@ boolean ki_d_std_1_attiva_cerca = false
 end type
 
 type tabpage_8 from w_g_tab_3`tabpage_8 within tab_1
-string powertiptext = "materiale trattato ma non spedito "
+boolean visible = true
+boolean enabled = true
+string text = "listini E1"
+string powertiptext = "Importi per Listini "
 end type
 
 type st_8_retrieve from w_g_tab_3`st_8_retrieve within tabpage_8
 end type
 
 type dw_8 from w_g_tab_3`dw_8 within tabpage_8
+boolean visible = true
+integer y = 12
 integer width = 3141
-string dataobject = "d_stat_inventario_x_cliente_mandante"
+boolean enabled = true
+string dataobject = "d_stat_produz_x_list"
+boolean ki_select_multirows = false
+boolean ki_attiva_dragdrop_solo_ins_mod = false
 end type
 
 type tabpage_9 from w_g_tab_3`tabpage_9 within tab_1

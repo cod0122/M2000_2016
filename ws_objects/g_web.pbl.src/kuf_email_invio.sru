@@ -74,6 +74,7 @@ public function st_tab_email u_get_st_tab_email_email_invio (ref st_tab_email_in
 private function boolean invio_old (st_tab_email_invio ast_tab_email_invio) throws uo_exception
 public function boolean link_call (string a_campo_link) throws uo_exception
 public function boolean link_call (ref datastore ads_1, string a_campo_link) throws uo_exception
+public subroutine if_len_max_ok (st_tab_email_invio ast_tab_email_invio)
 end prototypes
 
 public function st_esito anteprima (datastore kdw_anteprima, st_tab_email_invio kst_tab_email_invio);//
@@ -171,6 +172,7 @@ try
 	kst_tab_email_invio.x_utente = kGuf_data_base.prendi_x_utente()
 	
 	//????get_email(kst_tab_email_invio)
+	if_len_max_ok(kst_tab_email_invio)   // verifica se campi troppo lunghi
 
 	kst_tab_email_invio.data_ins = date(kst_tab_email_invio.x_datins) 
 	
@@ -2351,6 +2353,36 @@ public function boolean link_call (ref datastore ads_1, string a_campo_link) thr
 return link_call(a_campo_link)
 
 end function
+
+public subroutine if_len_max_ok (st_tab_email_invio ast_tab_email_invio);/*
+	Verifica le lunghezze massime delle colonne su db x evitare errori di troncatura
+*/
+constant string kk_table = "email_invio"
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+	
+	// Controllo per ogni campo
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "note", ast_tab_email_invio.note)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "email", ast_tab_email_invio.email)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "oggetto", ast_tab_email_invio.oggetto)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "link_lettera", ast_tab_email_invio.link_lettera)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "allegati_cartella", ast_tab_email_invio.allegati_cartella)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "email_di_ritorno", ast_tab_email_invio.email_di_ritorno)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "email_cc", ast_tab_email_invio.email_cc)
+	kguo_sqlca_db_magazzino.u_if_col_len_ok(kk_table, "email_ccn", ast_tab_email_invio.email_ccn)
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+
+end try
+
+end subroutine
 
 on kuf_email_invio.create
 call super::create

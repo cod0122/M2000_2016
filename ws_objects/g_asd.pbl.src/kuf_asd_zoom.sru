@@ -19,6 +19,7 @@ public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception
 public function boolean link_call (ref datawindow adw_link, string a_campo_link) throws uo_exception
 private function boolean anteprima_x_barcode (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackbarcode kst_tab_asdrackbarcode) throws uo_exception
 private function boolean anteprima_x_asddevice (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackcode kst_tab_asdrackcode) throws uo_exception
+private function boolean anteprima_x_rackcode (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackcode ast_tab_asdrackcode) throws uo_exception
 end prototypes
 
 public function boolean if_sicurezza (st_open_w ast_open_w) throws uo_exception;//---------------------------------------------------------------------------------------------------------------------------
@@ -112,6 +113,16 @@ try
 				k_return = false
 			end if
 	
+		case "rackcode"
+			if trim(adw_link.getitemstring(adw_link.getrow(), a_campo_link)) > " " then
+			
+				kst_tab_asdrackcode.rackcode = adw_link.getitemstring(adw_link.getrow(), a_campo_link)
+				anteprima_x_rackcode ( kdsi_elenco_output, kst_tab_asdrackcode )
+				k_title = "Elseno Barcode del Rack: " + trim(kst_tab_asdrackcode.rackcode) 
+					
+			else
+				k_return = false
+			end if
 	end choose
 	
 	
@@ -210,6 +221,43 @@ boolean k_return
 			kguo_exception.kist_esito = kds_anteprima.kist_esito
 			kguo_exception.kist_esito.sqlerrtext = "Errore in lettura Schermatura, Dispositivo id: " + string(kst_tab_asdrackcode.id_asddevice) &
 			                                    + kkg.acapo + kds_anteprima.kist_esito.sqlerrtext
+			throw kguo_exception
+		end if
+		
+		if k_rc > 0 then
+			k_return = true
+		end if
+		
+	end if
+
+
+return k_return
+
+end function
+
+private function boolean anteprima_x_rackcode (ref uo_ds_std_1 kds_anteprima, st_tab_asdrackcode ast_tab_asdrackcode) throws uo_exception;/*
+  Operazione di preparazione datastore dei dati richiesti
+  Inp: datastore su cui fare l'anteprima
+       dati tabella per estrazione dell'anteprima
+  Out: datastore di anteprima
+*/
+long k_rc
+boolean k_return
+
+
+	kguo_exception.inizializza(this.classname())
+
+	//if_sicurezza(kkg_flag_modalita.anteprima)
+
+	if trim(ast_tab_asdrackcode.rackcode) > " " then
+
+		kds_anteprima.dataobject = "d_asdrackbarcode_l_x_rackcode"
+		kds_anteprima.settransobject(sqlca)
+
+		kds_anteprima.reset()	
+		k_rc=kds_anteprima.retrieve(ast_tab_asdrackcode.rackcode)
+		if k_rc < 0 then
+			kguo_exception.set_st_esito_err_ds(kds_anteprima, "Errore in lettura dati Rack del codice: " + trim(ast_tab_asdrackcode.rackcode))
 			throw kguo_exception
 		end if
 		

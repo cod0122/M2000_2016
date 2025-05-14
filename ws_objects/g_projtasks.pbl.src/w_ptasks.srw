@@ -25,7 +25,6 @@ private st_tab_ptasks kist_tab_ptasks_orig
 private st_tab_ptasks_rows kist_tab_ptasks_rows
 
 private kuf_ptasks kiuf_ptasks
-
 private kuf_ptasks_rows kiuf_ptasks_rows
 //private kuf_utility kiuf_utility
 private kuf_armo kiuf_armo
@@ -2027,6 +2026,12 @@ try
 	//	if u_cancella_project( ) then
 	//		k_return = 0
 	//	end if
+//	//--- Cancella tutti i dati del tipo TASK selezionato
+//		if tab_1.tabpage_1.dw_task.classname( ) = this.event u_GetFocus() then
+//			if u_cancella_all_task_x_id_ptasks_type( ) > 0 then
+//				k_return = 0
+//			end if
+//		end if
 	elseif tab_1.selectedtab > 1 and tab_1.selectedtab < 6 then
 		//--- cancella solo l'ATTIVITA'
 		if u_cancella_attivita( ) > 0 then
@@ -2065,10 +2070,10 @@ try
 		kst_tab_ptasks.n_ptask = kidw_selezionata.getitemnumber(1, "n_ptask")
 
 		if messagebox("Rimozione Attività", &
-		              "Rimuovere dal Progetto '" + string(kst_tab_ptasks.n_ptask) &
-								+ "'  l'Attività " + string(kst_tab_ptasks_types.id_ptasks_type, "#") &
-								+ " " + kst_tab_ptasks_types.descr + " Id: " + string(kst_tab_ptasks_rows.id_ptasks_row) & 
-								+ "?", question!, yesno!, 2) = 1 then
+		              "Rimuovere dal Progetto n. '" + string(kst_tab_ptasks.n_ptask) &
+								+ "' tutti i dati legati all'Attività '" + string(kst_tab_ptasks_types.id_ptasks_type, "#") &
+								+ "' " + kst_tab_ptasks_types.descr + " (id: " + string(kst_tab_ptasks_rows.id_ptasks_row) & 
+								+ ")?", question!, yesno!, 2) = 1 then
 
 
 			if kst_tab_ptasks_rows.id_ptasks_row > 0 then
@@ -2087,6 +2092,7 @@ try
 					tab_1.tabpage_4.dw_4.reset() 
 					tab_1.tabpage_5.dw_5.reset() 
 					
+					tab_1.tabpage_1.dw_task.reset( )
 					tab_1.tabpage_1.dw_task.event u_retrieve( )
 				end if	
 			end if
@@ -2097,10 +2103,10 @@ try
 catch (uo_exception kuo_exception)
 	kguo_sqlca_db_magazzino.db_rollback( )
 	tab_1.tabpage_1.dw_1.event u_disp_avvertenze("Errore in Rimozione dati Attività '" &
-	                             + kst_tab_ptasks_types.descr + " Id: " + string(kst_tab_ptasks_rows.id_ptasks_row) &
+	                             + string(kst_tab_ptasks_types.id_ptasks_type) + "' " &
 										  + kst_tab_ptasks_types.descr &
-										  + " (" + string(kst_tab_ptasks_types.id_ptasks_type, "#") + ") " &
-										   + ". Progetto " + string(kst_tab_ptasks.n_ptask) + "' " )
+										  + ". Id: " + string(kst_tab_ptasks_rows.id_ptasks_row) &
+										  + " (Progetto n. '" + string(kst_tab_ptasks.n_ptask) + "' " )
 	throw kuo_exception
 	
 end try
@@ -3691,12 +3697,13 @@ else
 					end if
 				elseif k_add_minus = "-" then
 					this.deleterow(row)
-					post attiva_tasti( )
+					//post attiva_tasti( )
 				end if
 	//		end if
 		end if
 	end if
 	
+	post attiva_tasti( )
 	this.event u_select_row(row)
 	
 	u_set_tab_1_enable( )
@@ -3713,6 +3720,7 @@ end event
 event rowfocuschanged;call super::rowfocuschanged;//
 //--- resetta i tab se cambio l'attività scelta
 long k_return 
+
 k_return = u_dw_task_change_selected()
 post u_protegge_sprotegge_dw( )
 
@@ -3737,5 +3745,9 @@ if this.ki_in_DRAG then
 else
 	return 0
 end if
+end event
+
+event getfocus;call super::getfocus;//
+post attiva_tasti( )
 end event
 

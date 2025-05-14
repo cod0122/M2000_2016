@@ -91,8 +91,8 @@ try
 	cb_start.visible = false
 
 	//dw_about.setitem(1, "st_ultimo_utente_login_data", "")
-	dw_about.modify("sle_password.protect = '1' sle_utente.protect = '1'")
-	dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_disattivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_disattivo)+"'")
+//	dw_about.modify("sle_password.protect = '1' sle_utente.protect = '1'")
+//	dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_disattivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_disattivo)+"'")
 	dw_about.setitem(1, "sle_utente", kguo_utente.get_codice())
 		
 //	if kuf1_utility.u_check_network() then
@@ -315,18 +315,18 @@ try
 
 	kuf1_utility = create kuf_utility	
 	
+//	dw_about.setitem(1, "sle_utente", kguo_utente.get_codice())
+	
 	if kist_open_w.flag_modalita = kkg_flag_modalita.visualizzazione then
 	
 		cb_start.visible = false
 		
-		dw_about.modify("sle_password.protect = '1' sle_utente.protect = '1'")
-		dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_disattivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_disattivo)+"'")
-		dw_about.setitem(1, "sle_utente", kguo_utente.get_codice())
+//		dw_about.modify("sle_password.protect = '1' sle_utente.protect = '1'")
+//		dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_disattivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_disattivo)+"'")
 	
 	else
-		dw_about.modify("sle_password.protect = '0' sle_utente.protect = '0'")
-		dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_attivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_attivo)+"'")
-		dw_about.setitem(1, "sle_utente", kguo_utente.get_codice())
+//		dw_about.modify("sle_password.protect = '0' sle_utente.protect = '0'")
+//		dw_about.modify("sle_password.Background.Color='"+ string(kkg_colore.campo_attivo)+"' sle_utente.Background.Color='"+ string(kkg_colore.campo_attivo)+"'")
 		
 		kuf1_base = create kuf_base
 		k_utente_codice = trim(mid(kuf1_base.prendi_dato_base("ultimo_utente_login_nome"), 2))
@@ -352,7 +352,7 @@ try
 			//					 + "  (" + trim(k_utente_codice) + ") "
 		end if
 	
-		dw_about.setcolumn("sle_password")
+	//	dw_about.setcolumn("sle_password")
 		
 		dw_about.modify("cb_img_start.enabled = '1'")
 		
@@ -477,7 +477,7 @@ end if
 
 //--- pwd non ok
 dw_about.setitem(1, "sle_password", "")
-dw_about.setcolumn("sle_password")
+//dw_about.setcolumn("sle_password")
 
 //--- Segnala il mancato login dell'applicazione 
 kguo_exception.kist_esito.esito = kguo_exception.KK_st_uo_exception_tipo_noaut
@@ -780,7 +780,6 @@ event u_lbuttondown pbm_lbuttondown
 event u_lbuttonup pbm_lbuttonup
 event u_set_st_informa ( string a_txt )
 boolean visible = false
-integer y = 4
 integer width = 2016
 integer height = 1356
 integer taborder = 10
@@ -795,7 +794,28 @@ u_start()
 end event
 
 event u_dwnkey;//
-if key = KeyCapsLock! then
+integer li_current_column, li_next_column, li_previous_column
+
+
+li_current_column = this.GetColumn()
+
+if key = KeyTab! then
+    // Spostati alla colonna successiva
+    li_next_column = li_current_column + 1
+    if li_next_column <= integer(this.Describe("DataWindow.Column.Count")) then
+        this.SetColumn(li_next_column)
+    else
+        this.SetColumn(li_current_column)
+    end if
+elseif KeyDown(KeyShift!) and key = KeyTab! then
+    // Spostati alla colonna precedente
+    li_previous_column = li_current_column - 1
+    if li_previous_column >= 1 then
+        this.SetColumn(li_previous_column)
+    else
+        this.SetColumn(li_current_column)
+    end if
+elseif key = KeyCapsLock! then
 	kuf_utility kuf1_utility
 	kuf1_utility = create kuf_utility
 	if kuf1_utility.u_check_caps_on() then

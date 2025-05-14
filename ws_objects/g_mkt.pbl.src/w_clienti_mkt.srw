@@ -1358,7 +1358,7 @@ try
 		  + " ) " 
 		//+ " or upper(coalesce(clienti_mkt.tipo_rapporto,' ')+coalesce(CONVERT(VARCHAR,clienti_mkt.id_cliente_link),' ') 
 	k_query += "   "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_query)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_query)		
 	
 	if dw_lista_0.dataobject = "d_contatti_l_mkt" then
 		k_select_orig = ki_sqlsyntax_origine_contatti

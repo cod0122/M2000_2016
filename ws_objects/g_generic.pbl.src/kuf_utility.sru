@@ -12,14 +12,14 @@ type prototypes
 //=== copia file win32
 function boolean CopyFileA (string szExistingFile, string szNewFile, boolean bFail) library "kernel32.DLL" alias for "FileCopy;Ansi"
 //=== findwindow 95 e w3.x
-function ulong FindWindowA (ulong szclass, string sztitle) library "USER32.DLL" alias for "FindWindowA;Ansi"
-function ulong findwindowa3(ulong szclass, string sztitle) library "USER.EXE" alias for "FindWindow;Ansi"
+function LongPtr FindWindowA (LongPtr szclass, string sztitle) library "USER32.DLL" alias for "FindWindowA;Ansi"
+function LongPtr findwindowa3(LongPtr szclass, string sztitle) library "USER.EXE" alias for "FindWindow;Ansi"
 //=== setfocus 95 e w3.x
 //function ulong setfocus (uint wWnd) library "user32.dll" alias for "SetFocus"
 //function ulong setfocus3(uint wWnd) library "user.exe" alias for "SetFocus"
 //=== playsound 95 e w3.x
-function uint playsoundA (string szsound, uint homd, ulong dwsound) library "winmm.dll" alias for "PlaySoundA;Ansi"
-function uint playsoundA3(string szsound, uint homd, ulong dwsound) library "winmm.exe" alias for "PlaySound;Ansi"
+function uint playsoundA (string szsound, uint homd, LongPtr dwsound) library "winmm.dll" alias for "PlaySoundA;Ansi"
+function uint playsoundA3(string szsound, uint homd, LongPtr dwsound) library "winmm.exe" alias for "PlaySound;Ansi"
 //=== sndplaysound 95 e w 31
 FUNCTION boolean sndPlaySoundA (string SoundName, uint Flags) LIBRARY "WINMM.DLL" alias for "sndPlaySoundA;Ansi" 
 FUNCTION boolean sndPlaySoundA3 (string SoundName, uint Flags) LIBRARY "WINMM.EXE" alias for "sndPlaySoundA;Ansi" 
@@ -34,16 +34,29 @@ FUNCTION  INT GetKeyState(int keystatus) LIBRARY "user32.dll"
 FUNCTION long ShellExecuteEx(REF st_shellexecuteinfo lpExecInfo) LIBRARY "shell32.dll" ALIAS FOR ShellExecuteExA
 
 //--- piglia il nome del computer
-FUNCTION long GetComputerNameA(ref string compname,ref ulong slength) LIBRARY "kernel32" alias for "GetComputerNameA;Ansi"
+FUNCTION long GetComputerNameA(ref string compname,ref LongPtr slength) LIBRARY "kernel32" alias for "GetComputerNameA;Ansi"
 
+//--- verifica Connessione di Rete LAN
+Function boolean InternetGetConnectedState(ref LongPtr dwFlags, LongPtr dwReserved) Library "wininet.dll"
 
 end prototypes
-
 type variables
 
 end variables
 
 forward prototypes
+public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag)
+public function integer ext_popola_new_tab ()
+public function integer ext_popola_contratti ()
+public function integer ext_db_esterno ()
+public function integer ext_popola_ric_id ()
+public function string u_stringa_campi_dw (integer k_tipo, long k_riga, ref datawindow k_dw)
+public function string u_dw_copia (integer k_tipo, ref datawindow k_dw_source, ref datawindow k_dw_target)
+public function integer u_setfocus (unsignedlong k_hwnd)
+public function unsignedlong u_findwindow (unsignedlong k_classe, string k_window)
+public subroutine u_ds_toglie_ddw (integer k_tipo, ref datastore k_dw_source)
+public subroutine u_dw_toglie_ddw (integer k_tipo, ref datawindow k_dw_source)
+public function st_esito errori_visualizza_log (integer k_tipo)
 public function unsignedinteger u_sound (string k_suono, unsignedinteger k_umodule, unsignedlong k_flag)
 public function integer ext_popola_new_tab ()
 public function integer ext_popola_contratti ()
@@ -1496,8 +1509,8 @@ public function string u_nome_computer ();//
 //--- torna il nome del PC
 //
 String ls_name
-ulong li_size
-long ll_ret
+LongPtr li_size
+LongPtr ll_ret
 
 li_size = 255
 ls_name = FillA(" ",255)
@@ -1940,53 +1953,65 @@ public function boolean u_check_network ();//---
 //---  Out:  false=non connesso; true=connesso
 //---
 boolean k_return = true
+LongPtr luFlags
 
-// The computer has one or more LAN cards that are active.
-CONSTANT integer NETWORK_ALIVE_LAN = 1;
-// The computer has one or more active RAS connections (internet).
-CONSTANT integer NETWORK_ALIVE_WAN = 2;
-// Win9x. The computer is connected to the America Online network.
-//CONSTANT integer NETWORK_ALIVE_AOL = 4;
 
-OleObject wsh
-int networkState, k
+//// The computer has one or more LAN cards that are active.
+//CONSTANT integer NETWORK_ALIVE_LAN = 1;
+//// The computer has one or more active RAS connections (internet).
+//CONSTANT integer NETWORK_ALIVE_WAN = 2;
+//// Win9x. The computer is connected to the America Online network.
+////CONSTANT integer NETWORK_ALIVE_AOL = 4;
+//
+//OleObject wsh
+//int networkState, k
 
 try 
 	
-	// to do the "bitwise AND" later...
-	wsh = CREATE OleObject
-	if isvalid(wsh) then
-		if wsh.ConnectToNewObject( "MSScriptControl.ScriptControl" ) < 0 then
-			k_return = false
-		else
-			
-			wsh.language = "vbscript"
-			
-			
-			IF IsNetworkAlive(networkState) THEN
-				// check if a network card is active
-				k = integer(wsh.Eval( string(networkState) + &
-											  " AND " + &
-											 string(NETWORK_ALIVE_LAN)))
-				IF k = NETWORK_ALIVE_LAN THEN
-					k_return = true
-				ELSE
-					k_return = false
-				END IF  
-			else
-				k_return = false
-			end if
-		end if
-	else
-		k_return = false
-	end if	
+//	// to do the "bitwise AND" later...
+//	wsh = CREATE OleObject
+//	if isvalid(wsh) then
+//		if wsh.ConnectToNewObject( "MSScriptControl.ScriptControl" ) < 0 then
+//			k_return = false
+//		else
+//			
+//			wsh.language = "vbscript"
+//			
+//			
+//			IF IsNetworkAlive(networkState) THEN
+//				// check if a network card is active
+//				k = integer(wsh.Eval( string(networkState) + &
+//											  " AND " + &
+//											 string(NETWORK_ALIVE_LAN)))
+//				IF k = NETWORK_ALIVE_LAN THEN
+//					k_return = true
+//				ELSE
+//					k_return = false
+//				END IF  
+//			else
+//				k_return = false
+//			end if
+//		end if
+//	else
+//		k_return = false
+//	end if	
+	
+	k_return = InternetGetConnectedState(luFlags, 0)
+	
+//	IF lbConnected THEN
+//		k_return = true
+//		 //MessageBox("Connessione", "La rete LAN è attiva")
+//	ELSE
+//		k_return = false
+//		 //MessageBox("Connessione", "Nessuna connessione LAN rilevata")
+//	END IF
+
 catch (uo_exception kuo_exception)
 	k_return = false
-//   MessageBox("","no network ?!?")
 
 finally 
 
-	destroy wsh
+//	destroy wsh
 	
 END try
 
@@ -4958,10 +4983,11 @@ try
 
 		kuf1_file_explorer.u_directory_create(a_path)
 
-		k_pathfilename = trim(a_path) + trim(a_namefile) + ".xls"
+		k_pathfilename = trim(a_path) + trim(a_namefile) + ".xlsx"
 		if isnull(a_namesheet) then a_namesheet = string(now(), "dd_mmm_yyyy")
 
-//--- genera XLS
+//--- genera XLSX
+		kn_dwr_service_parm.is_version = "OOXML"
 		kn_dwr_service_parm.is_sheet_name = a_namesheet
 		kn_dwr_service_parm.il_title_fg_color = kkg_colore.blu_chiaro
 		kn_dwr_service_parm.ib_background = false

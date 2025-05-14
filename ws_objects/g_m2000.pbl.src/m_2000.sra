@@ -287,7 +287,7 @@ function uint waveOutGetNumDevs () LIBRARY "WINMM.DLL"
 
 //--- IMPORTATA X FARE I TOAST NOTIFICATION
 // Funcion para tomar el directorio de la aplicacion  -64Bits 
-FUNCTION	uLong	GetModuleFileName ( uLong lhModule, ref string sFileName, ulong nSize )  LIBRARY "Kernel32.dll" ALIAS FOR "GetModuleFileNameW"
+FUNCTION	LongPtr	GetModuleFileName ( LongPtr lhModule, ref string sFileName, LongPtr nSize )  LIBRARY "Kernel32.dll" ALIAS FOR "GetModuleFileNameW"
 
 //--- piglia il nome del computer
 //FUNCTION long GetComputerNameA(ref string compname,ref longptr slength) LIBRARY "kernel32" alias for "GetComputerNameA;Ansi"
@@ -298,7 +298,6 @@ FUNCTION	uLong	GetModuleFileName ( uLong lhModule, ref string sFileName, ulong n
 //--- Setta il fuoco da Windows a un oggetto PB  
 //SUBROUTINE SetFocus(long objhandle) LIBRARY "User32.dll"
 end prototypes
-
 type variables
 
 end variables

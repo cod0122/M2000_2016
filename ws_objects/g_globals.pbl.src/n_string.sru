@@ -832,10 +832,16 @@ public function string u_stringa_pulisci_asc (string ka_stringa);//
 //
 string k_return_stringa = ""
 boolean k_forza_spazio=false
-string k_char_ok[] = {" ","{","a","b","c","d","e","f","g","h","k","i","j","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","K","I","J","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","1","2","3","4","5","6","7","8","9","0","è","ò","à","ì","ù",".",",",";",":","-","+","'","!","%","&","/","?","@","#","(",")","€","$","£","=","^","<",">","}"}
+string k_char_ok[] = {" ","{","a","b","c","d","e","f","g","h","k","i","j","l","m","n","o","p" &
+							,"q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H" &
+							,"K","I","J","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z" &
+							,"1","2","3","4","5","6","7","8","9","0","è","ò","à","ì","ù",".",",",";",":","*" &
+							,"-","+","'","!","%","&","/","?","@","#","(",")","[","]","€","$","£","=","^","<",">","}"}
 int k_item, k_item_tot, k_len_stringa, k_item_len
 boolean k_char_scrivi = false
 
+
+	if trim(ka_stringa) = "" then return ""
 
 	k_len_stringa = len(trim(ka_stringa))
 	k_item_tot = upperbound(k_char_ok[])
@@ -921,6 +927,7 @@ boolean k_space = false, k_ok = true
 		
 		choose case mid(k_stringa, k_start_pos, 1)
 			case "a" to "z" & 
+				 ,"è" to "à", "ù", "ì", "ò" & 
 				 ,"A" to "Z" &
 				 ," "
 				if mid(k_stringa, k_start_pos, 1) = " " then
@@ -1430,19 +1437,24 @@ public function integer u_stringa_split (ref string a_string[], string a_sep);/*
 	  Ret: numero di spezzoni
 */
 string k_string
-//string k_str_split
-//int k_pos_start, k_pos_end, k_len, 
 int k_str_split_idx
 long k_pos, k_i, k_len_sep
 
 
-if upperbound(a_string[]) > 0 then
-	
+	if upperbound(a_string[]) = 0 then return 0
+	if trim(a_string[1]) > " " then
+	else 
+		return 0 
+	end if
+
 	k_string = trim(a_string[1])
 
 	a_string[1] = ""
 
 	k_len_sep = len(a_sep)
+
+//--- se manca aggiunge il char separatore alla fine 
+	if right(k_string, k_len_sep) <> a_sep then k_string += a_sep 
 
 	k_i = 1
 	k_pos = pos(k_string, a_sep, k_i)
@@ -1461,39 +1473,6 @@ if upperbound(a_string[]) > 0 then
 			a_string[k_str_split_idx] = mid(k_string, k_i, len(k_string) - k_i + 1) 
 		end if
 	end if
-
-
-////--- trova il primo spezzone	
-//	k_pos_start = 1
-//	k_pos_end = pos(k_string, a_sep, k_pos_start)
-//	
-//	do while k_pos_end > 1
-//		
-//		k_len = k_pos_end - k_pos_start  
-//		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-//		if k_str_split > " " then
-//			k_str_split_idx ++
-//			a_string[k_str_split_idx] = k_str_split
-//		end if
-//		
-////--- legge il successivo spezzone		
-//		k_pos_start = k_pos_end + 1
-//		k_pos_end = pos(k_string, a_sep, k_pos_start)
-//		
-//	loop
-//
-////--- accoda ultimo spezzone se non ha il separatore
-//	k_pos_end = len(k_string)
-//	if k_pos_end > k_pos_start then
-//		k_len = k_pos_end - k_pos_start  + 1
-//		k_str_split = trim(mid(k_string, k_pos_start, k_len))
-//		if k_str_split > " " then
-//			k_str_split_idx ++
-//			a_string[k_str_split_idx] = k_str_split
-//		end if
-//	end if
-
-end if
 
 return k_str_split_idx
 
@@ -1608,10 +1587,11 @@ return k_return_name
 
 end function
 
-public function string u_stringa_alfanum_spazio (string k_stringa);//
-//--- restituisce campo con solo char alfabetici o numerici o spazio (o'_' che diventa spazio)
-//--- esempio  'fabio 027 / 5_cinque'    torna   'fabio 027 5 cinque'
-//
+public function string u_stringa_alfanum_spazio (string k_stringa);/*
+	Restituisce campo con solo char alfabetici, numerici + spazio (o'_' che diventa spazio)
+										+ lettere accentate
+		esempio  fabio 027 / 5_cinque    --->   'fabio 027 5 cinque'
+*/
 string k_return_stringa = ""
 int k_start_pos
 
@@ -1619,6 +1599,7 @@ int k_start_pos
 		
 		choose case mid(k_stringa, k_start_pos, 1)
 			case "a" to "z" & 
+				 ,"è" to "à", "ù", "ì", "ò" & 
 				 ,"A" to "Z" & 
 				 ,"0" to "9" &
 				 ," " &

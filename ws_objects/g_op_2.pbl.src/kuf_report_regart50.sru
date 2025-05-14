@@ -157,7 +157,7 @@ uo_exception kuo_exception
 //	 + "         clienti1.rag_soc_10    " 
 	 
 	 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -232,7 +232,7 @@ uo_exception kuo_exception
 //	 + "         sped.num_bolla_out ASC     " 
 //	 + "    and id_armo in ( select id_armo from   vx_" + trim(kguo_utente.get_comp()) + "_art50_entrate_l )     " &
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -286,7 +286,7 @@ uo_exception kuo_exception
 //	 + "ORDER BY arfa_testa.data_fatt ASC,     " &
 //	 + "         arfa_testa.num_fatt ASC     " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -431,7 +431,7 @@ get_id_meca(kst_tab_meca_da, kst_tab_meca_a) // ricava il range ID MECA
 //	 + "ORDER BY meca.data_int ASC,     " &
 //	 + "         meca.num_int ASC     " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -510,7 +510,7 @@ kuf1_utility = create kuf_utility
 //	 + "         sped.num_bolla_out ASC     " 
 //	 + "    and id_armo in ( select id_armo from   vx_" + trim(kguo_utente.get_comp()) + "_art50_entrate_l )     " &
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 

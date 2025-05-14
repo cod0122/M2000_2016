@@ -28,7 +28,9 @@ private string ki_win_titolo_orig_save = ""
 private string ki_rag_soc_10 = ""
 private st_tab_listino ki_st_tab_listino
 private st_tab_listino ki_st_tab_listino_arg
-private long ki_ultimo_clie_3_cercato=999999
+//private long ki_ultimo_clie_3_cercato=999999
+private boolean ki_primo_giro=true
+private string ki_valore_cercato = ""
 private date ki_data_scad, ki_data_al
 private boolean ki_duplica_enabled = false
 private string ki_mc_co_filtro
@@ -980,9 +982,9 @@ string k_filtro
 
 	ki_win_titolo_orig = ki_win_titolo_orig_save
 	
-	if ki_mc_co_filtro > " " then
-		k_filtro = "mc_co = '" + trim(ki_mc_co_filtro) + "' and "
-	end if
+//	if ki_mc_co_filtro > " " then
+//		k_filtro = "mc_co like '" + trim(ki_mc_co_filtro) + "' and "
+//	end if
 	
 	choose case ki_mostra_nascondi_in_lista
 		case "S" 
@@ -1023,7 +1025,13 @@ end event
 event dw_lista_0::u_retrieve_filter();//
 long k_rowcount
 
+
+	if ki_valore_cercato = trim(dw_guida.getitemstring(1, "rag_soc_1")) + dw_guida.getitemstring(1, "mostra") + dw_guida.getitemstring(1, "nodose") then
+		return
+	end if
 	
+	ki_valore_cercato = trim(dw_guida.getitemstring(1, "rag_soc_1")) + dw_guida.getitemstring(1, "mostra") + dw_guida.getitemstring(1, "nodose")
+
 	setpointer(kkg.pointer_attesa)
 
 	this.setredraw(false)
@@ -1048,19 +1056,18 @@ long k_rowcount
 		
 	end if		
 		
-	if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
-//		this.visible = false
+//	if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
 		event u_retrieve()   //RETRIEVE
-	end if	
+//	end if	
 
-   if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
+ //  if k_rowcount = 0 or ki_mostra_nascondi_in_lista <> dw_guida.getitemstring(1, "mostra") then
    	ki_mostra_nascondi_in_lista = dw_guida.getitemstring(1, "mostra")
 		this.event u_filtra()
-	end if
+//	end if
 
-	if k_rowcount <> this.rowcount() then
+//	if k_rowcount <> this.rowcount() then
 		event u_retrieve_post()
-	end if
+//	end if
 	
 	this.setredraw(true)
 
@@ -1106,7 +1113,7 @@ long k_return=0
 	if ki_listini_nodose = "S" then  // listino NO DOSE di servizio
 		k_return = this.retrieve() 
 	else
-		k_return = this.retrieve(ki_st_tab_listino.cod_cli, ki_data_scad, ki_st_tab_listino.contratto, ki_rag_soc_10) 
+		k_return = this.retrieve(ki_st_tab_listino.cod_cli, ki_data_scad, ki_st_tab_listino.contratto, ki_rag_soc_10, ki_mc_co_filtro) 
 	end if
 	
 return k_return
@@ -1141,7 +1148,7 @@ try
 	
 		case "rag_soc_1" 
 			k_rag_soc = k_dato
-			if LenA(k_rag_soc) > 0 then
+			if Len(k_rag_soc) > 0 then
 				this.getchild("rag_soc_1", kdwc_cliente)
 				if kdwc_cliente.rowcount() < 2 then
 					kdwc_cliente.retrieve("%")
@@ -1237,7 +1244,7 @@ event dw_guida::u_clear();//
 end event
 
 event dw_guida::u_search_reset();//
-	ki_ultimo_clie_3_cercato = 999999
+//	ki_ultimo_clie_3_cercato = 999999
 	ki_st_tab_listino.cod_cli = 0
 	ki_mc_co_filtro = ""
 	ki_rag_soc_10 = ""
@@ -1252,62 +1259,80 @@ end event
 
 event dw_guida::ue_buttonclicked;call super::ue_buttonclicked;//---
 boolean k_elabora=true
-string k_dacercare
+string k_valoreDaCercare
 
 
 	if this.getitemstring(1, "nodose") = "N" then
-		k_dacercare = trim(this.getitemstring(1, "rag_soc_1"))
+		k_valoreDaCercare = trim(this.getitemstring(1, "rag_soc_1"))
 		ki_st_tab_listino.cod_cli = ki_st_tab_listino_arg.cod_cli
 		ki_st_tab_listino_arg.cod_cli = 0
 		ki_mc_co_filtro = ""
 	
-		if ki_st_tab_listino.cod_cli = 0 and k_dacercare > " " then
-				
-			if isnumber(k_dacercare) then
-				this.event ue_itemchanged( "id_cliente", k_dacercare)
-			else
-				if left(k_dacercare,2) = "E1" then
-					this.event ue_itemchanged( "e1an", mid(k_dacercare,3))
-				elseif left(k_dacercare,2) = "CO" and isnumber(mid(k_dacercare,3,2)) then
-					ki_mc_co_filtro = trim(mid(k_dacercare,3))
-					this.setitem(1, "id_cliente",0)
-				else
-					this.event ue_itemchanged( "rag_soc_1", k_dacercare)
-				end if		
+		if ki_st_tab_listino.cod_cli > 0  then
+			this.post setitem(1, "id_cliente", ki_st_tab_listino.cod_cli)
+
+		else
+			this.post setitem(1, "id_cliente", 0)
+			
+			if k_valoreDaCercare > " " then
+				choose case true
+					case isnumber(k_valoreDaCercare)
+						this.post event ue_itemchanged( "id_cliente", (k_valoreDaCercare))
+					case upper(left(k_valoreDaCercare,2)) = "E1"
+						this.post event ue_itemchanged( "e1an", mid(k_valoreDaCercare,3))
+					case upper(left(k_valoreDaCercare,2)) = "CO" and isnumber(mid(k_valoreDaCercare,3,2))
+						ki_mc_co_filtro = mid(k_valoreDaCercare,3) + "%"
+					case else
+						this.post event ue_itemchanged( "rag_soc_1", k_valoreDaCercare)
+				end choose
+	
+//		if ki_st_tab_listino.cod_cli = 0 and k_valoreDaCercare > " " then
+//				
+//			if isnumber(k_valoreDaCercare) then
+//				this.event ue_itemchanged( "id_cliente", k_valoreDaCercare)
+//			else
+//				if left(k_valoreDaCercare,2) = "E1" then
+//					this.event ue_itemchanged( "e1an", mid(k_valoreDaCercare,3))
+//				elseif left(k_valoreDaCercare,2) = "CO" and isnumber(mid(k_valoreDaCercare,3,2)) then
+//					ki_mc_co_filtro = trim(mid(k_valoreDaCercare,3))
+//					this.setitem(1, "id_cliente",0)
+//				else
+//					this.event ue_itemchanged( "rag_soc_1", k_valoreDaCercare)
+//				end if		
 			end if
 		end if
 	else
 		ki_st_tab_listino.cod_cli = 0
 	end if
 	
-//--- se cliente non trovato (quindi digitato ma il codice e' rimasto a zero), non faccio la retrieve
-   if ki_st_tab_listino.cod_cli = 0 and k_dacercare > " " and ki_mc_co_filtro = "" then
-		dw_lista_0.reset( )
-	else
+////--- se cliente non trovato (quindi digitato ma il codice e' rimasto a zero), non faccio la retrieve
+//   if ki_st_tab_listino.cod_cli = 0 and k_valoreDaCercare > " " and ki_mc_co_filtro = "" then
+//		dw_lista_0.reset( )
+//	else
 //--- parte la query solo se ricerco un cliente diverso oppure sono cambiati i flag di ricerca
-      if ki_ultimo_clie_3_cercato <> ki_st_tab_listino.cod_cli &
-				or ki_mostra_nascondi_in_lista <> this.getitemstring(1, "mostra") &
-				or ki_listini_nodose <> this.getitemstring(1, "nodose") &
-				or left(k_dacercare,2) = "CO" then
+//      if ki_ultimo_clie_3_cercato <> ki_st_tab_listino.cod_cli &
+//				or ki_mostra_nascondi_in_lista <> this.getitemstring(1, "mostra") &
+//				or ki_listini_nodose <> this.getitemstring(1, "nodose") &
+//				or ki_mc_co_filtro <> k_mc_co_filtro then
+			
+//	      if ki_st_tab_listino.cod_cli = 0 or ki_ultimo_clie_3_cercato <> ki_st_tab_listino.cod_cli then
+//				ki_mostra_nascondi_in_lista = ""  // cambiato il cliente reset anche il flag
+//			end if
 
-	      if ki_st_tab_listino.cod_cli = 0 or ki_ultimo_clie_3_cercato <> ki_st_tab_listino.cod_cli then
-				ki_mostra_nascondi_in_lista = ""  // cambiato il cliente reset anche il flag
-			end if
-
-         ki_ultimo_clie_3_cercato = ki_st_tab_listino.cod_cli
-			dw_lista_0.event u_retrieve_filter( )
-//         u_retrieve_dw_lista()
-//         u_retrieve_post()   
-      end if
-   end if
+			dw_lista_0.post event u_retrieve_filter( )
+//      end if
+//   end if
 
 end event
 
-event dw_guida::itemchanged;call super::itemchanged;//
+event dw_guida::itemchanged;//
 if dwo.name = "rag_soc_1" then
 //	this.post event ue_buttonclicked("default")
 elseif dwo.name = "mostra" then
-	if ki_ultimo_clie_3_cercato <> 999999 then
+	if ki_primo_giro then
+		ki_primo_giro = false
+	else
+// if ki_ultimo_clie_3_cercato <> 999999 then
 		ki_mostra_nascondi_in_lista = ""
 		this.post event ue_buttonclicked("default")
 	end if

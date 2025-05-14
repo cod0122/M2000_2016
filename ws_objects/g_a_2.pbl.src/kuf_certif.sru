@@ -3213,7 +3213,7 @@ st_esito kst_esito
 	 + "   WHERE       " &
 	 + "    certif.id_meca >= "  + string(a_id_meca) + "  "  
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
 		kguo_exception.inizializza(this.classname())

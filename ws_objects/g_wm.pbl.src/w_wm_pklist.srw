@@ -69,7 +69,6 @@ private subroutine put_video_gruppo_dw_riga (st_tab_gru kst_tab_gru)
 private subroutine put_video_cliente (st_tab_clienti kst_tab_clienti, string k_tipo)
 private subroutine call_m_r_f ()
 private subroutine call_elenco_contratti ()
-public subroutine u_set_k_e1litm_ok ()
 protected subroutine inizializza_4 () throws uo_exception
 public subroutine u_modifica_barcode ()
 protected subroutine attiva_tasti_0 ()
@@ -84,6 +83,8 @@ private subroutine set_st_tab_wm_pklist_righe_da_dw4 (long k_riga, ref st_tab_wm
 private subroutine set_st_tab_wm_pklist_da_dw1 (long k_riga, ref st_tab_wm_pklist kst_tab_wm_pklist)
 protected function st_esito u_genera_lotto_check_dati () throws uo_exception
 protected subroutine inizializza_6 () throws uo_exception
+private function string u_inizializza ()
+private subroutine u_set_k_e1litm_ok ()
 end prototypes
 
 protected function string aggiorna ();//
@@ -702,178 +703,28 @@ protected function string inizializza ();//
 //=== Ripristino DW; tasti; e retrieve liste
 //======================================================================
 //
-int k_err_ins, k_rc
-st_tab_wm_pklist kst_tab_wm_pklist
-st_tab_clienti kst_tab_clienti
-st_esito kst_esito
-uo_exception kuo_exception
-kuf_base kuf1_base
-kuf_utility kuf1_utility
 
-
-//=== Puntatore Cursore da attesa.....
-SetPointer(kkg.pointer_attesa)
-
-kuo_exception = create uo_exception 
-
-//--- reset degli elenchi ddw
-if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and  ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
-
-	tab_1.tabpage_1.dw_1.ki_link_standard_attivi = FALSE
-
-else
-	tab_1.tabpage_1.dw_1.ki_link_standard_attivi = true
+	SetPointer(kkg.pointer_attesa)
 	
-end if
+	kguo_exception.inizializza(this.classname())
 
-if tab_1.tabpage_1.dw_1.rowcount() = 0 then
+	//--- reset degli elenchi ddw
+	if ki_st_open_w.flag_modalita <> kkg_flag_modalita.visualizzazione and  ki_st_open_w.flag_modalita <> kkg_flag_modalita.cancellazione then
 	
-	kst_tab_wm_pklist.id_wm_pklist = 0
-	kst_tab_wm_pklist.clie_1 = 0
-	if isnumber(ki_st_open_w.key1) then
-		kst_tab_wm_pklist.id_wm_pklist  = long(trim(ki_st_open_w.key1))
-	end if
-	if isnumber(ki_st_open_w.key2) then
-		kst_tab_wm_pklist.clie_1  = long(trim(ki_st_open_w.key2))
-	end if
-
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-		
-		k_err_ins = inserisci()
-
-		if kst_tab_wm_pklist.clie_1 > 0 then
-			kst_tab_clienti.codice = kst_tab_wm_pklist.clie_1 
-			get_dati_cliente(kst_tab_clienti)
-			put_video_cliente(kst_tab_clienti, "clie_1")
-		end if
-		
+		tab_1.tabpage_1.dw_1.ki_link_standard_attivi = FALSE
+	
 	else
-
-		k_rc = tab_1.tabpage_1.dw_1.retrieve(kst_tab_wm_pklist.id_wm_pklist) 
-		
-		choose case k_rc
-
-			case is < 0		
-				SetPointer(kkg.pointer_default)
-				kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-				kuo_exception.setmessage(  &
-					"Mi spiace ma si è verificato un errore interno al programma~n~r" + &
-					"(ID Documento cercato:" + string(kst_tab_wm_pklist.id_wm_pklist) + ") " )
-				kuo_exception.messaggio_utente( )	
-				cb_ritorna.postevent(clicked!)
-
-			case 0
-				tab_1.tabpage_1.dw_1.reset()
-
-				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-					ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
-
-					SetPointer(kkg.pointer_default)
-					kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_not_fnd )
-					kuo_exception.setmessage(  &
-						"Mi spiace ma il Documento non è in archivio ~n~r" + &
-						"(ID Documento cercato:" + string(kst_tab_wm_pklist.id_wm_pklist) + ") " )
-					kuo_exception.messaggio_utente( )	
-					
-					cb_ritorna.postevent(clicked!)
-					
-				else
-					k_err_ins = inserisci()
-				end if
-
-			case is > 0		
-				kist_tab_wm_pklist_orig.id_wm_pklist = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_wm_pklist")
-				
-				if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-					SetPointer(kkg.pointer_default)
-					kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_allerta )
-					kuo_exception.setmessage(  &
-						"Attenzione, il Documento è già in archivio ~n~r" + &
-						"(ID Documento cercato:" + string(kist_tab_wm_pklist_orig.id_wm_pklist) + ") " )
-					kuo_exception.messaggio_utente( )	
-			
-					ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
-
-				end if
-				u_set_k_e1litm_ok()   // verifica se c'è almeno un Contratto-E1 è attivo su Listino
-
-				kiw_this_window.setfocus( )
-				tab_1.tabpage_1.dw_1.setfocus()
-				tab_1.tabpage_1.dw_1.setcolumn("clie_1")
-		end choose
-		
-//---- azzera il flag delle modifiche
-		tab_1.tabpage_1.dw_1.SetItemStatus( 1, 0, Primary!, NotModified!)
-
-
-	end if	
-
-	//--- se inserimento inabilito gli altri TAB, sono inutili
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-	
-		tab_1.tabpage_2.enabled = false
-		tab_1.tabpage_3.enabled = false
-		tab_1.tabpage_4.enabled = false
+		tab_1.tabpage_1.dw_1.ki_link_standard_attivi = true
 		
 	end if
-	
-	//--- Inabilita campi alla modifica se Visualizzazione
-	kuf1_utility = create kuf_utility 
-	if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.modifica &
-			 and trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento then
-	
-	//		tab_1.tabpage_1.dw_1.object.b_indi.visible = false 
-	//		tab_1.tabpage_1.dw_1.object.b_note.visible = false 
-	
-		kuf1_utility.u_proteggi_dw("1", 0, tab_1.tabpage_1.dw_1)
-	
-	else		
-	
-	//--- popola dw child dw clienti 
-		set_dw_clienti_child()
-		
-	//--- S-protezione campi per riabilitare la modifica a parte la chiave
-		kuf1_utility.u_proteggi_dw("0", 0, tab_1.tabpage_1.dw_1)
-	
-	//--- Inabilita campi documento alla modifica se Funzione MODIFICA
-		if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
-	//			kuf1_utility.u_proteggi_dw("1", "stato", tab_1.tabpage_1.dw_1)
-			kuf1_utility.u_proteggi_dw("1", "id_wm_pklist", tab_1.tabpage_1.dw_1)
-			kuf1_utility.u_proteggi_dw("1", "dtimportazione", tab_1.tabpage_1.dw_1)
-		end if
-		kuf1_utility.u_proteggi_dw("0", "note_lotto", tab_1.tabpage_1.dw_1)  // sprotegge note lotto
-		
-	end if
-	
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-		if len(trim(tab_1.tabpage_1.dw_1.getitemstring( 1, "stato"))) > 0 then
-			if tab_1.tabpage_1.dw_1.getitemstring( 1, "stato") <> kiuf_wm_pklist_testa.kki_stato_nuovo then
-	//						ki_st_open_w.flag_modalita = kkg_flag_modalita.visualizzazione
-	
-				kuf1_utility.u_proteggi_dw("1", "customerlot", tab_1.tabpage_1.dw_1)
-	
-				kuo_exception.set_tipo( kuo_exception.kk_st_uo_exception_tipo_allerta )
-				kuo_exception.setmessage(  &
-					"Attenzione, Packing List già Importato come Lotto di Trattamento (Riferimento). ~n~rLa Modifica potebbe comprometterne l'integrità. ~n~r" + &
-					"(ID Documento cercato:" + string(kst_tab_wm_pklist.id_wm_pklist) + ") " )
-				kuo_exception.messaggio_utente( )	
-			end if
-		end if
-		
-		u_set_ki_flag_note_aco( )  //x attivare o meno il tasto di 'carico' delle Note ACO
-		
+
+	if tab_1.tabpage_1.dw_1.rowcount() = 0 then
+		u_inizializza( )
 	end if	
+
+	attiva_tasti( )
 	
-	
-	if isvalid(kuf1_utility) then destroy kuf1_utility
-	if isvalid(kuo_exception) then destroy kuo_exception
-
-
-end if
-
-attiva_tasti()
-
-SetPointer(kkg.pointer_default)
+	SetPointer(kkg.pointer_default)
 
 return "0"
 
@@ -1777,51 +1628,6 @@ SetPointer(kkg.pointer_default)
 
 end subroutine
 
-public subroutine u_set_k_e1litm_ok ();//
-int k_nr_e1litm 
-st_esito kst_esito
-kuf_contratti kuf1_contratti
-kuf_listino kuf1_listino
-st_tab_listino kst_tab_listino
-st_tab_contratti kst_tab_contratti
-
-
-try
-	
-
-	kst_tab_listino.contratto = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_contratto")
-	if kst_tab_listino.contratto > 0 then
-	else
-		kuf1_contratti = create kuf_contratti
-		kst_tab_contratti.mc_co = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "mc_co"))
-		kst_tab_contratti.sc_cf = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "sc_cf"))
-		kst_tab_listino.contratto = kuf1_contratti.get_contratto_da_cf_co(kst_tab_contratti)
-	end if
-	if kst_tab_listino.contratto > 0 then
-		tab_1.tabpage_1.dw_1.setitem(1, "id_contratto", kst_tab_listino.contratto) 
-		kuf1_listino = create kuf_listino
-		k_nr_e1litm = kuf1_listino.if_e1litm_x_contratto (kst_tab_listino)
-	end if
-	if k_nr_e1litm > 0 then
-		tab_1.tabpage_1.dw_1.setitem(1, "k_e1litm_ok", "1") 
-	else
-		tab_1.tabpage_1.dw_1.setitem(1, "k_e1litm_ok", "0") 
-	end if
-	
-catch (uo_exception kuo_exception)
-	kuo_exception.messaggio_utente()
-	
-
-finally
-	if isvalid(kuf1_listino) then destroy kuf1_listino
-	if isvalid(kuf1_contratti) then destroy kuf1_contratti
-	
-end try
-
-
-
-end subroutine
-
 protected subroutine inizializza_4 () throws uo_exception;//======================================================================
 //=== Inizializzazione del TAB 5 controllandone i valori se gia' presenti
 //======================================================================
@@ -2678,6 +2484,188 @@ tab_1.tabpage_7.dw_7.setfocus()
 
 attiva_tasti()
 	
+
+end subroutine
+
+private function string u_inizializza ();/*
+Richiamato da INIZIALIZZA
+*/
+int k_err_ins, k_rc
+st_tab_wm_pklist kst_tab_wm_pklist
+st_tab_clienti kst_tab_clienti
+
+
+	SetPointer(kkg.pointer_attesa)
+	
+	kguo_exception.inizializza(this.classname())
+	
+	kst_tab_wm_pklist.id_wm_pklist = 0
+	kst_tab_wm_pklist.clie_1 = 0
+	if isnumber(ki_st_open_w.key1) then
+		kst_tab_wm_pklist.id_wm_pklist  = long(trim(ki_st_open_w.key1))
+	end if
+	if isnumber(ki_st_open_w.key2) then
+		kst_tab_wm_pklist.clie_1  = long(trim(ki_st_open_w.key2))
+	end if
+
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+		
+		k_err_ins = inserisci()
+
+		if kst_tab_wm_pklist.clie_1 > 0 then
+			kst_tab_clienti.codice = kst_tab_wm_pklist.clie_1 
+			get_dati_cliente(kst_tab_clienti)
+			put_video_cliente(kst_tab_clienti, "clie_1")
+		end if
+		
+	else
+
+		k_rc = tab_1.tabpage_1.dw_1.retrieve(kst_tab_wm_pklist.id_wm_pklist) 
+		
+		choose case k_rc
+
+			case is < 0		
+				SetPointer(kkg.pointer_default)
+				kguo_exception.set_st_esito_err_dw(tab_1.tabpage_1.dw_1,  &
+						"Errore in lettura del Packing-List id " + string(kst_tab_wm_pklist.id_wm_pklist))
+				kguo_exception.messaggio_utente( )	
+				ki_exit_si = true
+
+			case 0
+				tab_1.tabpage_1.dw_1.reset()
+
+				if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+					ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento
+
+					SetPointer(kkg.pointer_default)
+					kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_not_fnd )
+					kguo_exception.messaggio_utente("Packing-List id " + string(kst_tab_wm_pklist.id_wm_pklist) + " non Trovato in archivio!")	
+					ki_exit_si = true
+				else
+					k_err_ins = inserisci()
+				end if
+
+			case is > 0		
+				kist_tab_wm_pklist_orig.id_wm_pklist = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_wm_pklist")
+				
+				if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+					SetPointer(kkg.pointer_default)
+					kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_allerta )
+					kguo_exception.messaggio_utente("Packing-List id " + string(kst_tab_wm_pklist.id_wm_pklist) + " è già stato caricato in archivio, entro in modifica documento!")	
+			
+					ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica
+
+				end if
+				u_set_k_e1litm_ok()   // verifica se c'è almeno un Contratto-E1 è attivo su Listino
+
+				kiw_this_window.setfocus( )
+				tab_1.tabpage_1.dw_1.setfocus()
+				tab_1.tabpage_1.dw_1.setcolumn("clie_1")
+		end choose
+		
+//---- azzera il flag delle modifiche
+		tab_1.tabpage_1.dw_1.SetItemStatus( 1, 0, Primary!, NotModified!)
+
+
+	end if	
+
+	//--- se inserimento inabilito gli altri TAB, sono inutili
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+	
+		tab_1.tabpage_2.enabled = false
+		tab_1.tabpage_3.enabled = false
+		tab_1.tabpage_4.enabled = false
+		
+	end if
+	
+	//--- Inabilita campi alla modifica se Visualizzazione
+	if trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.modifica &
+				 and trim(ki_st_open_w.flag_modalita) <> kkg_flag_modalita.inserimento then
+	
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("1", 0)
+	
+	else		
+	
+	//--- popola dw child dw clienti 
+		set_dw_clienti_child()
+		
+	//--- S-protezione campi per riabilitare la modifica a parte la chiave
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", 0)
+	
+	//--- Inabilita campi documento alla modifica se Funzione MODIFICA
+		if trim(ki_st_open_w.flag_modalita) = kkg_flag_modalita.modifica then
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "id_wm_pklist")
+			tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "dtimportazione")
+		end if
+		tab_1.tabpage_1.dw_1.u_proteggi_dw("0", "note_lotto")  // sprotegge note lotto
+		
+	end if
+	
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+		if len(trim(tab_1.tabpage_1.dw_1.getitemstring( 1, "stato"))) > 0 then
+			if tab_1.tabpage_1.dw_1.getitemstring( 1, "stato") <> kiuf_wm_pklist_testa.kki_stato_nuovo then
+	
+				tab_1.tabpage_1.dw_1.u_proteggi_dw("1", "customerlot")
+	
+				kguo_exception.set_tipo(kguo_exception.kk_st_uo_exception_tipo_allerta )
+				kguo_exception.messaggio_utente(  &
+					"Attenzione, Packing List '" + string(kst_tab_wm_pklist.id_wm_pklist) &
+						+ "' già Importato come Riferimento Lotto di Trattamento. " &
+						+ kkg.acapo + "La modifica dei dati può compromettere la congruenza con il Lotto. ") 
+			end if
+		end if
+		
+		u_set_ki_flag_note_aco( )  //x attivare o meno il tasto di 'carico' delle Note ACO
+		
+	end if	
+	
+	SetPointer(kkg.pointer_default)
+
+return "0"
+
+
+end function
+
+private subroutine u_set_k_e1litm_ok ();//
+int k_nr_e1litm 
+st_esito kst_esito
+kuf_listino kuf1_listino
+st_tab_listino kst_tab_listino
+st_tab_contratti kst_tab_contratti
+
+
+try
+	
+
+	kst_tab_listino.contratto = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_contratto")
+	if kst_tab_listino.contratto > 0 then
+	else
+		kst_tab_contratti.mc_co = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "mc_co"))
+		kst_tab_contratti.sc_cf = trim(tab_1.tabpage_1.dw_1.getitemstring(1, "sc_cf"))
+		kst_tab_contratti.cod_cli = tab_1.tabpage_1.dw_1.getitemnumber(1, "clie_3")
+		kst_tab_listino.contratto = kiuf_contratti.get_contratto_da_cf_co_cli(kst_tab_contratti)
+	end if
+	if kst_tab_listino.contratto > 0 then
+		tab_1.tabpage_1.dw_1.setitem(1, "id_contratto", kst_tab_listino.contratto) 
+		kuf1_listino = create kuf_listino
+		k_nr_e1litm = kuf1_listino.if_e1litm_x_contratto (kst_tab_listino)
+	end if
+	if k_nr_e1litm > 0 then
+		tab_1.tabpage_1.dw_1.setitem(1, "k_e1litm_ok", "1") 
+	else
+		tab_1.tabpage_1.dw_1.setitem(1, "k_e1litm_ok", "0") 
+	end if
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.messaggio_utente()
+	
+
+finally
+	if isvalid(kuf1_listino) then destroy kuf1_listino
+	
+end try
+
+
 
 end subroutine
 

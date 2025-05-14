@@ -1,0 +1,27 @@
+﻿$PBExportHeader$fx_barcode_get_imptime_tot.srf
+global type fx_barcode_get_imptime_tot from function_object
+end type
+
+forward prototypes
+global function long fx_barcode_get_imptime_tot (integer a_g2_ngiri, long a_g3_ngiri, integer a_g3_npass, long a_imptime_second)
+end prototypes
+
+global function long fx_barcode_get_imptime_tot (integer a_g2_ngiri, long a_g3_ngiri, integer a_g3_npass, long a_imptime_second);/*
+   Calcolo dei tempi Impianto per barcode
+*/
+if a_g3_ngiri > 0 then 
+	if a_imptime_second > 15000 then
+		return a_imptime_second
+	else
+		if a_g3_npass = 2 then 
+			return a_imptime_second * 18
+		else
+			return a_imptime_second * 36
+		end if
+	end if
+else
+	return a_imptime_second * 8 * a_g2_ngiri
+end if
+
+end function
+

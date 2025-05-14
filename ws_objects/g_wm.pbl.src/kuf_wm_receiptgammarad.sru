@@ -2501,11 +2501,10 @@ public function boolean tb_delete_x_idwmpklist (ref st_tab_wm_receiptgammarad ks
 //--------------------------------------------------------------------------
 //
 boolean k_return = false
-st_esito kst_esito
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	//if_sicurezza(kkg_flag_modalita.CANCELLAZIONE)
 	
@@ -2517,11 +2516,7 @@ try
 		
 		
 		if sqlca.sqlcode < 0 then
-			kst_esito.sqlcode = sqlca.sqlcode
-			kst_esito.SQLErrText = "Errore in Cancellazione Packing List 'grezzo' cod.pkl= " + string(kst_tab_wm_receiptgammarad.idwmpklist) &
-										+ " (wm_receiptgammarad). Errore:" + trim(sqlca.SQLErrText)
-			kst_esito.esito = kkg_esito.db_ko
-			kguo_exception.set_esito(kst_esito)
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, "Errore in Cancellazione Packing List in area di lavoro codice = " + string(kst_tab_wm_receiptgammarad.idwmpklist))
 			throw kguo_exception
 		end if
 				
@@ -2538,7 +2533,6 @@ catch(uo_exception kuo_exception)
 	if kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit <> "N" or isnull(kst_tab_wm_receiptgammarad.st_tab_g_0.esegui_commit) then
 		kguo_sqlca_db_magazzino.db_rollback( )
 	end if
-
 	throw kuo_exception
 
 finally
@@ -3037,40 +3031,35 @@ public function long if_exists_packinglistcode (readonly st_tab_wm_receiptgammar
 //---	Controllo se Packing List gia' Caricato per lo stesso packinglistcode
 //---	inp: st_wm_receiptgammarad.packinglistcode
 //---	out:
-//---	rit: idwmpklist > 0  = gia' caricato
+//---	rit: idwmpklist > 0  = gia' caricato in wm_pklist
 //---	x ERRORE lancia UO_EXCEPTION
 //---
 //------------------------------------------------------------------------------------------------------------------------------------
 //
 long k_return, k_rc
-st_esito kst_esito
-//kuo_sqlca_db_0 kuo1_sqlca_db_0
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	if kst_tab_wm_receiptgammarad.packinglistcode > " " then
-		//kuo1_sqlca_db_0 = set_connessione(true)
 		
+		//select max(id)
 		select max(idwmpklist)
 			into :k_rc
 			from receiptgammarad
 			where packinglistcode = :kst_tab_wm_receiptgammarad.packinglistcode 
-				using kguo_sqlca_db_magazzino;
+			using kguo_sqlca_db_magazzino;
+
+		if kguo_sqlca_db_magazzino.sqlcode < 0 then
+			kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino, &
+									"Errore in verifica di Packing List su archivio WM già caricato e in uso (receiptgammarad). Codice '" &
+									+ trim(kst_tab_wm_receiptgammarad.packinglistcode) + "' ")			
+			throw kguo_exception
+		end if
 		
 		if kguo_sqlca_db_magazzino.sqlcode = 0 and k_rc > 0 then
 			k_return = k_rc
-		else
-			if kguo_sqlca_db_magazzino.sqlcode < 0 then
-				kst_esito.esito = kkg_esito.db_ko
-				kst_esito.sqlcode = kguo_sqlca_db_magazzino.sqlcode
-				kst_esito.SQLErrText = "Errore in verifica esistenza Packing List grezzo. Codice '" + trim(kst_tab_wm_receiptgammarad.packinglistcode) & 
-										+ "'"&
-										+ "~n~rErrore: " + trim(kguo_sqlca_db_magazzino.SQLErrText) 
-				kguo_exception.set_esito(kst_esito)
-				throw kguo_exception
-			end if
 		end if			
 	end if
 	
@@ -3078,7 +3067,6 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 	
 finally
-	//set_connessione(false)
 
 end try
 
@@ -3389,11 +3377,11 @@ st_tab_wm_receiptgammarad kst_tab_wm_receiptgammarad[]
 st_tab_wm_pklist_cfg kst_tab_wm_pklist_cfg
 st_esito kst_esito
 kuf_wm_pklist_cfg kuf1_wm_pklist_cfg
-datastore kds_1
+uo_ds_std_1 kds_1
 
   
 	try
-		kds_1 = create datastore
+		kds_1 = create uo_ds_std_1
 		kds_1.dataobject = "ds_receiptgammarad_l"
 		kuf1_wm_pklist_cfg = create kuf_wm_pklist_cfg
 

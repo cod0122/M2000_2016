@@ -1,0 +1,40 @@
+﻿$PBExportHeader$fx_get_color_background.srf
+global type fx_get_color_background from function_object
+end type
+
+forward prototypes
+global function long fx_get_color_background (string a_tipo_oggetto)
+end prototypes
+
+global function long fx_get_color_background (string a_tipo_oggetto);/*
+ Torna il colore per il tipo di ogetto indicato
+*/
+
+if isvalid(kguo_g) then
+
+	if kguo_g.theme_dark then
+		if a_tipo_oggetto = "DISABLED" then
+			return kkg_colore.CAMPO_DISATTIVON
+		elseif a_tipo_oggetto = "TRANSPARENT" or  a_tipo_oggetto = "NONE" then 
+			return kkg_colore.TRASPARENTE
+		elseif a_tipo_oggetto = "LIGHT" then 
+			return kkg_colore.giallochiaro
+		elseif a_tipo_oggetto = "ONCURSOR" then 
+			return kkg_colore.VERDELIGHT
+		end if
+	
+	else
+	
+		if a_tipo_oggetto = "DISABLED" then
+			return kkg_colore.CAMPO_DISATTIVON
+		elseif a_tipo_oggetto = "TRANSPARENT" or  a_tipo_oggetto = "NONE" then 
+			return kkg_colore.TRASPARENTE
+		elseif a_tipo_oggetto = "LIGHT" then 
+			return kkg_colore.grigio_chiaro 
+		elseif a_tipo_oggetto = "ONCURSOR" then 
+			return kkg_colore.AZZURRO
+		end if
+	end if
+end if
+end function
+

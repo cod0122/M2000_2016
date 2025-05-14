@@ -749,14 +749,15 @@ string k_flag_modalita=""
 st_esito kst_esito
 
 
-	k_flag_modalita = kiuf1_sync_window.get_flag_modalita( )
-	
-	if k_flag_modalita = kkg_flag_modalita.modifica then
-		smista_funz(KKG_FLAG_RICHIESTA.refresh_row)
-	else
-		smista_funz(kkg_flag_richiesta.refresh)
+	if isvalid(kiuf1_sync_window) then
+		k_flag_modalita = kiuf1_sync_window.get_flag_modalita( )
+		
+		if k_flag_modalita = kkg_flag_modalita.modifica then
+			smista_funz(KKG_FLAG_RICHIESTA.refresh_row)
+		else
+			smista_funz(kkg_flag_richiesta.refresh)
+		end if
 	end if
-
 
 return kst_esito
 

@@ -104,23 +104,18 @@ if isnull(kst_tab_f5537001.MPMATH08) then kst_tab_f5537001.MPMATH08 = 0
 
 end subroutine
 
-public function integer set_datilav_f5537001 (st_tab_f5537001 kst_tab_f5537001) throws uo_exception;//
-//------------------------------------------------------------------------------------
-//--- Registra i dati per E1 circa il progetto 'Cube Interface' ovvero
-//--- 			tempi di lavorazione n. padri ecc...
-//--- 
-//--- inp: st_tab_f5537001 
-//--- out:
-//--- Ritorna: nr righe aggiornate
-//--- lancia exception x errore grave
-//------------------------------------------------------------------------------------
+public function integer set_datilav_f5537001 (st_tab_f5537001 kst_tab_f5537001) throws uo_exception;/*
+	Registra i dati per E1 circa il progetto 'Cube Interface' ovvero
+				tempi di lavorazione n. padri ecc...
+		inp: st_tab_f5537001 
+		Rit: nr righe aggiornate
+*/
 int k_return
-st_esito kst_esito
 kds_e1_f5537001 kds1_e1_f5537001
 
 
 try
-	kst_esito = kguo_exception.inizializza(this.classname())
+	kguo_exception.inizializza(this.classname())
 	
 	kds1_e1_f5537001 = create kds_e1_f5537001
 	
@@ -140,11 +135,9 @@ try
 
 	k_return = kds1_e1_f5537001.u_update()
 	if k_return < 0 then
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = k_return
-		kst_esito.SQLErrText = "Aggiornamento fallito ('Cube Interface') per scambio dati con E1 'F5537001'. ~n~rWO (MPDOCO): "+string(kst_tab_f5537001.MPDOCO)
-		kguo_exception.inizializza()
-		kguo_exception.set_esito (kst_esito)
+		kguo_exception.set_st_esito_err_ds(kds1_e1_f5537001, &
+											"Aggiornamento fallito ('Cube Interface') per scambio dati con E1 'F5537001'. " &
+											+ kkg.acapo + "Codice WO (MPDOCO): "+string(kst_tab_f5537001.MPDOCO))
 		throw kguo_exception
 	end if
 	

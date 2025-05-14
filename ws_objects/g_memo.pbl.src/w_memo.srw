@@ -15,7 +15,6 @@ string title = "Piano di Trattamento SL-PT"
 boolean ki_sincronizza_window_ok = true
 boolean ki_fai_nuovo_dopo_update = false
 boolean ki_fai_nuovo_dopo_insert = false
-boolean ki_fai_exit_dopo_update = true
 boolean ki_msg_dopo_update = false
 end type
 global w_memo w_memo
@@ -25,6 +24,7 @@ type prototypes
 subroutine DragAcceptFiles(long l_hWnd,boolean fAccept) library "shell32.dll"
 subroutine DragFinish(long hDrop) library "shell32.dll"
 function int DragQueryFileW(long hDrop,int iFile,ref string szFileName,int cb) library "shell32.dll"
+
 end prototypes
 
 type variables
@@ -74,13 +74,13 @@ private subroutine put_video_lotto (st_tab_meca kst_tab_meca)
 private subroutine dragdrop_dw_esterna (datastore kdw_source, long k_riga)
 protected function integer cancella_custom ()
 private subroutine u_add_memo_link (string a_file[], integer a_file_nr)
-public function long u_drop_file (integer a_k_tipo_drag, long a_handle)
 public subroutine legge_dwc_sl_pt ()
 private subroutine put_video_pt ()
 public subroutine u_proteggi_pt ()
 public subroutine u_clicked_fascicola_pt ()
 protected subroutine attiva_tasti_0 ()
 public subroutine u_resize_1 ()
+public function long u_drop_file (integer a_k_tipo_drag, longptr a_handle)
 end prototypes
 
 private function integer inserisci ();//
@@ -1165,9 +1165,9 @@ try
 	if kist_memo.st_tab_memo.id_memo  > 0 then
 
 		if a_file_nr = 1 then
-			k_risposta_load_memo_link = messagebox("Associa un Allegato al MEMO", "Oltre al collegamento vuoi importare anche l'intero documento nel DB", Question!, yesnocancel!, k_risposta_load_memo_link)
+			k_risposta_load_memo_link = messagebox("Associa un Allegato al MEMO", "Oltre al singolo Collegamento vuoi importare anche l'intero documento nel DB", Question!, yesnocancel!, k_risposta_load_memo_link)
 		else
-			k_risposta_load_memo_link = messagebox("Associa  " + string(a_file_nr) + " Allegati al MEMO", "Oltre ai collegamenti vuoi importare anche tutti i documenti nel DB", Question!, yesnocancel!, k_risposta_load_memo_link)
+			k_risposta_load_memo_link = messagebox("Associa  " + string(a_file_nr) + " Allegati al MEMO", "Oltre ai Collegamenti vuoi importare anche tutti i documenti nel DB", Question!, yesnocancel!, k_risposta_load_memo_link)
 		end if
 
 		if k_risposta_load_memo_link = 3 then
@@ -1204,36 +1204,6 @@ end try
 
 
 end subroutine
-
-public function long u_drop_file (integer a_k_tipo_drag, long a_handle);//
-int k_sn
-long k_file_nr
-string k_file_drop[], k_modalita_descr
-
-
-if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
-
-k_file_nr = kiuf_file_dragdrop.u_get_file(a_k_tipo_drag, a_handle, k_file_drop[])
-if k_file_nr > 0 then	
-
-	kGuf_data_base.set_focus(handle(this)) // dovrebbe prendere il fuoco
-
-	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
-//	messagebox("Operazione fermata", "Prima di caricare gli allegati, devo salvare questo MEMO in Archivio. Posso Procedere", question!, yesno!, 1) 
-		aggiorna_dati( )
-		u_add_memo_link(k_file_drop[], k_file_nr)  // carica i file in archivio
-	else
-		if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
-			u_add_memo_link(k_file_drop[], k_file_nr)  // carica i file in archivio
-		else
-			k_modalita_descr = kguo_g.get_descrizione( ki_st_open_w.flag_modalita)
-			messagebox("Operazione non Permessa", "Modalità '" + k_modalita_descr + "' non permessa per il carico dei MEMO", stopsign!) 
-		end if
-	end if
-end if
-
-return k_file_nr
-end function
 
 public subroutine legge_dwc_sl_pt ();//--- legge i DWC presenti
 int k_rc=0
@@ -1374,6 +1344,36 @@ public subroutine u_resize_1 ();//
 	tab_1.tabpage_1.rte_1.setredraw(true)
 
 end subroutine
+
+public function long u_drop_file (integer a_k_tipo_drag, longptr a_handle);//
+int k_sn
+long k_file_nr
+string k_file_drop[], k_modalita_descr
+
+
+if not isvalid(kiuf_file_dragdrop) then kiuf_file_dragdrop = create kuf_file_dragdrop 
+
+k_file_nr = kiuf_file_dragdrop.u_get_file(a_k_tipo_drag, a_handle, k_file_drop[])
+if k_file_nr > 0 then	
+
+	kGuf_data_base.set_focus(handle(this)) // dovrebbe prendere il fuoco
+
+	if ki_st_open_w.flag_modalita = kkg_flag_modalita.inserimento then
+//	messagebox("Operazione fermata", "Prima di caricare gli allegati, devo salvare questo MEMO in Archivio. Posso Procedere", question!, yesno!, 1) 
+		aggiorna_dati( )
+		u_add_memo_link(k_file_drop[], k_file_nr)  // carica i file in archivio
+	else
+		if ki_st_open_w.flag_modalita = kkg_flag_modalita.modifica then
+			u_add_memo_link(k_file_drop[], k_file_nr)  // carica i file in archivio
+		else
+			k_modalita_descr = kguo_g.get_descrizione( ki_st_open_w.flag_modalita)
+			messagebox("Operazione non Permessa", "Modalità '" + k_modalita_descr + "' non permessa per il carico dei MEMO", stopsign!) 
+		end if
+	end if
+end if
+
+return k_file_nr
+end function
 
 on w_memo.create
 int iCurrent

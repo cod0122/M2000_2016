@@ -185,7 +185,7 @@ kuf1_utility = create kuf_utility
 							+ " or meca.aperto = '" + kuf1_armo.kki_meca_aperto_RIAPERTO + "') " 
 
 	 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -315,7 +315,7 @@ kuf1_utility = create kuf_utility
 
 	 //	 + "  	(colli_danontrattare + colli_NoMag),    " &
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	destroy kuf1_utility
 	
@@ -379,7 +379,7 @@ kpointer = SetPointer(HourGlass!)
 			 + "	and (meca_causali.flag_ddt_si =  '" + trim(kst_tab_meca_causali.flag_ddt_si) + "' ) " &
 	 + "	   group by armo.id_meca, armo.id_armo  " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	
 //=== Riprist. il vecchio puntatore : 
@@ -472,7 +472,7 @@ st_esito kst_esito
 				 + " artr.num_certif,   " & 
 				 + " certif.data_stampa    " 
 
-	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kst_esito = kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	if kst_esito.esito <> kkg_esito.ok and  kst_esito.esito <> kkg_esito.db_wrn then
 		kguo_exception.inizializza(this.classname())

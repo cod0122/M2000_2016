@@ -238,7 +238,9 @@ string k_num_colonne, k_nome, k_nome_orig
 					,"b_armo_colli_campioni_barcode_lav", "b_armo_colli_campioni", "campionecolli_lotto" & 
 					,"k_hyperlink", "url" &
 					,"programmi_richieste_id_programma" &
-					,"pl_barcode"
+					,"pl_barcode" &
+					,"asdrackbarcode", "asdrackbarcode_1" &
+				 	,"id_asdrackcode", "id_asddevice", "id_asdrackbarcode", "rackcode"
 
 //		if k_nome = 'barcode_figli' then
 //			sleep (1)
@@ -520,7 +522,7 @@ choose case k_nome_link
 		kuf1_parent = create using "kuf_ptasks"
 		
 	case "asdrackbarcode", "asdrackbarcode_1" &
-	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode"
+	 	, "id_asdrackcode", "id_asddevice", "id_asdrackbarcode", "rackcode"
 		kuf1_parent = create using "kuf_asd_zoom"
 		
 	case "armo_colli_campioni_barcode_lav", "armo_colli_campioni", "campionecolli_lotto", "campionecolli_print"

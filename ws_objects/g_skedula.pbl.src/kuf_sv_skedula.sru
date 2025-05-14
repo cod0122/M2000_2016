@@ -520,7 +520,7 @@ kuf_menu_window kuf1_menu_window
 		if isvalid(kuf1_parent0) then destroy kuf1_parent0
 		if isvalid(kuf1_menu_window) then destroy kuf1_menu_window
 		
-		kist_sv_eventi_sked[1].run_giorno_stop = kGuf_data_base.prendi_dataora() 
+		kist_sv_eventi_sked[1].run_giorno_stop = kguo_g.get_datetime_current_local( ) //kGuf_data_base.prendi_dataora() 
 		kist_sv_eventi_sked[1].stato = kki_sv_eventi_sked_stato_eseg
 			
 	end try
@@ -536,13 +536,12 @@ datetime k_dataoggi
 
 
 	try 
+		kguo_exception.inizializza(this.classname( ))
 					
-		k_dataoggi = kGuf_data_base.prendi_dataora( )
+		k_dataoggi = kguo_g.get_datetime_current_local( ) //kGuf_data_base.prendi_dataora( )
 		k_return = kids_eventi_da_lanciare.retrieve(k_dataoggi, kki_sv_eventi_sked_stato_da_eseg) 
 
 	catch (RuntimeError re)
-		kguo_exception.inizializza( )
-		kguo_exception.kist_esito.nome_oggetto = this.classname( )
 		kguo_exception.kist_esito.sqlerrtext = "Errore di 'runtime' " + trim(re.text)
 		throw kguo_exception
 
@@ -622,7 +621,7 @@ st_esito kst_esito
 
 			if isvalid(kuf1_file_run) then destroy kuf1_file_run
 			
-			kist_sv_eventi_sked[1].run_giorno_stop = kGuf_data_base.prendi_dataora() 
+			kist_sv_eventi_sked[1].run_giorno_stop = kguo_g.get_datetime_current_local( ) //kGuf_data_base.prendi_dataora() 
 			kist_sv_eventi_sked[1].stato = kki_sv_eventi_sked_stato_eseg
 			
 		end try
@@ -685,105 +684,90 @@ int k_return
 long k_righe, k_ctr, k_rc
 st_sv_eventi_sked kst_sv_eventi_sked
 uo_exception kuo_exception2
-st_esito kst_esito
+st_open_w k_st_open_w
 
 
 ki_db_disconnesso = false
 
-//=== Parametri : 
-//=== struttura st_open_w
-//=== dati particolare programma
-//
-//=== Si potrebbero passare:
-//=== key1=codice IVA;key2=cod.pagamento;key3=cod gruppi;key4=cod causali;
-st_open_w k_st_open_w
-
 try
-		k_righe = ds_eventi_da_lanciare_retrieve()   // get elenco eventi da lanciare
+	k_righe = ds_eventi_da_lanciare_retrieve()   // get elenco eventi da lanciare
 
-		if k_righe <= 0 then
-			k_return = 0
-		else	
+	if k_righe <= 0 then return 0
+
+	K_st_open_w.flag_primo_giro = "S"
+	K_st_open_w.flag_modalita = kkg_flag_modalita.BATCH
+	K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
+	K_st_open_w.flag_leggi_dw = "N"
+	K_st_open_w.key1 = " "
+	K_st_open_w.key2 = " "
+	K_st_open_w.key3 = " "
+	K_st_open_w.flag_where = " "
+
+	k_ctr = 1
+		
+	K_st_open_w.id_programma = kids_eventi_da_lanciare.object.id_menu_window[k_ctr] 
+		  
+	kist_sv_eventi_sked[1].id_menu_window = kids_eventi_da_lanciare.object.id_menu_window[k_ctr]
+	kist_sv_eventi_sked[1].id = kids_eventi_da_lanciare.object.id[k_ctr] 
+	kist_sv_eventi_sked[1].run_datetime = kids_eventi_da_lanciare.object.run_datetime[k_ctr] 
+	kist_sv_eventi_sked[1].run_giorno_start = kguo_g.get_datetime_current_local( ) //kGuf_data_base.prendi_dataora() 
+	kist_sv_eventi_sked[1].esito = "operazione lanciata"
+	kist_sv_eventi_sked[1].stato = kki_sv_eventi_sked_stato_in_esec
 	
-			K_st_open_w.flag_primo_giro = "S"
-			K_st_open_w.flag_modalita = kkg_flag_modalita.BATCH
-			K_st_open_w.flag_adatta_win = KKG.ADATTA_WIN
-			K_st_open_w.flag_leggi_dw = "N"
-			K_st_open_w.key1 = " "
-			K_st_open_w.key2 = " "
-			K_st_open_w.key3 = " "
-			K_st_open_w.flag_where = " "
-	
-			k_ctr = 1
-//			for k_ctr = 1 to k_righe 
-				
-				K_st_open_w.id_programma = kids_eventi_da_lanciare.object.id_menu_window[k_ctr] 
-					  
-				kist_sv_eventi_sked[1].id_menu_window = kids_eventi_da_lanciare.object.id_menu_window[k_ctr]
-				kist_sv_eventi_sked[1].id = kids_eventi_da_lanciare.object.id[k_ctr] 
-				kist_sv_eventi_sked[1].run_datetime = kids_eventi_da_lanciare.object.run_datetime[k_ctr] 
-				kist_sv_eventi_sked[1].run_giorno_start = kGuf_data_base.prendi_dataora() 
-				kist_sv_eventi_sked[1].esito = "operazione lanciata"
-				kist_sv_eventi_sked[1].stato = kki_sv_eventi_sked_stato_in_esec
-				
-				kist_sv_eventi_sked[1].cmd_dos = trim(kids_eventi_da_lanciare.object.cmd_dos[k_ctr])
-				kist_sv_eventi_sked[1].id_menu_window = kids_eventi_da_lanciare.object.id_menu_window[k_ctr]
+	kist_sv_eventi_sked[1].cmd_dos = trim(kids_eventi_da_lanciare.object.cmd_dos[k_ctr])
+	kist_sv_eventi_sked[1].id_menu_window = kids_eventi_da_lanciare.object.id_menu_window[k_ctr]
 
 //--- aggiornare lo stato 	
-				tb_aggiorna_stato_sv_eventi_sked()	
+	tb_aggiorna_stato_sv_eventi_sked()	
 
 //--- Se Comando DOS...
-				if Len(trim(kids_eventi_da_lanciare.object.cmd_dos[k_ctr])) > 0 then
-					
+	if Len(trim(kids_eventi_da_lanciare.object.cmd_dos[k_ctr])) > 0 then
+		
 //--- Se Funzione DOS...
-					run_eventi_sched_dos(K_ctr)
-							
+		run_eventi_sched_dos(K_ctr)
+				
 //---- Se disconesso riconnette il DB
-					try
-						KGuo_sqlca_db_magazzino.db_connetti()
-					catch (uo_exception kuo_exception11)
-						kst_esito = kuo_exception11.get_st_esito()
-						kguo_exception.set_esito(kst_esito)
-						destroy kuo_exception11
-					finally
-					end try
-							
-				else
-	
+		try
+			KGuo_sqlca_db_magazzino.db_connetti()
+		catch (uo_exception kuo_exception11)
+			kguo_exception.set_esito(kuo_exception11.get_st_esito())
+			destroy kuo_exception11
+		finally
+		end try
+				
+	else
+
 //--- Se Funzione M2000...
-					K_st_open_w.key12_any = kist_sv_eventi_sked[1]
-		
+		K_st_open_w.key12_any = kist_sv_eventi_sked[1]
+
 //--- lancio la funzione
-					run_eventi_sched(k_st_open_w)
-		
-				end if			
+		run_eventi_sched(k_st_open_w)
+
+	end if			
 
 //--- Verifica se la tabella schedulatore è stata rigenerata, se è così non aggiorna nulla
-				kst_sv_eventi_sked.run_datetime = get_run_datetime(kist_sv_eventi_sked[1])
-				if kist_sv_eventi_sked[1].run_datetime <> kst_sv_eventi_sked.run_datetime then
-					// tabella rigenerata!
-				else
+	kst_sv_eventi_sked.run_datetime = get_run_datetime(kist_sv_eventi_sked[1])
+	if kist_sv_eventi_sked[1].run_datetime <> kst_sv_eventi_sked.run_datetime then
+		// tabella rigenerata!
+	else
 //--- aggiornare lo stato in eseguito	
-					tb_aggiorna_stato_sv_eventi_sked()             
-				end if
-				
-			k_return = k_righe
-//			next
+		tb_aggiorna_stato_sv_eventi_sked()             
+	end if
+		
+	k_return = k_righe
 
-		end if
-			
-	catch (uo_exception kuo_exception1)
-		throw kuo_exception1		
-		
-	catch (RuntimeError kRuntimeError2)
-		kuo_exception2 = create uo_exception
-		kst_esito.esito = kkg_esito.ko
-		kst_esito.sqlerrtext = trim(kRuntimeError2.text) + "; Object: " +  trim(kRuntimeError2.ObjectName) + "; Routine: " + trim(kRuntimeError2.RoutineName) + "; Line: " + string(kRuntimeError2.line)
-		kuo_exception2.set_esito(kst_esito)
-		throw kuo_exception2		
-		
-	finally
-		
+catch (uo_exception kuo_exception1)
+	throw kuo_exception1		
+	
+catch (RuntimeError kRuntimeError2)
+	kuo_exception2 = create uo_exception
+	kuo_exception2.inizializza(this.classname())
+	kuo_exception2.kist_esito.esito = kkg_esito.ko
+	kuo_exception2.kist_esito.sqlerrtext = trim(kRuntimeError2.text) + "; Object: " +  trim(kRuntimeError2.ObjectName) + "; Routine: " + trim(kRuntimeError2.RoutineName) + "; Line: " + string(kRuntimeError2.line)
+	throw kuo_exception2		
+	
+finally
+	
 end try
 	
 	

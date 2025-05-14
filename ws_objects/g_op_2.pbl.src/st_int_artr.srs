@@ -60,6 +60,7 @@ global type st_int_artr from structure
 	string		xcliente		descriptor "comment" = "1 = estrae dati clienti"
 	string		quarantena		descriptor "comment" = "S=lotto in quarantena"
 	integer		tipo		descriptor "comment" = "tipologia generico"
+	string		tipox		descriptor "comment" = "tipo in string"
 	string		laboratorio
 	string		memortf		descriptor "comment" = "S=mostra il testo memo"
 	long		id_ptasks_types		descriptor "comment" = "tipo Attività"

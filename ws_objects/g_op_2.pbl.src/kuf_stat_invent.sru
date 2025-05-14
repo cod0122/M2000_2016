@@ -231,7 +231,7 @@ try
 		end if
 		k_sql_w = k_sql_w + " group by s_armo.id_meca ,s_armo.id_armo  "
 		k_sql += " " + trim(k_sql_w)  //+ " group by 1, 2  "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	//--- costruisco la view dei  Spediti (Ritirati) 
@@ -254,7 +254,7 @@ try
 				 + " FROM " + "vx_" + trim(ast_stat_invent.utente) + "_statEntrate" + string(ast_stat_invent.stat_tab) + " as a  " &
 				 + " ) " 
 		k_sql += " group by s_arsp.id_meca, s_arsp.id_armo  "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	//--- costruisco la view dei Rif Trattati meno gli Spediti (Ritirati) maggiori di zero 
@@ -272,7 +272,7 @@ try
 				 + "   left outer join  vx_" + trim(ast_stat_invent.utente) + "_statSped" + string(ast_stat_invent.stat_tab) + " as s  on " & 
 				 + "   a.id_armo = s.id_armo " &
 					 + "  where s.colli is null or a.colli > s.colli " 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	//--- costruisco la view con Entrata
@@ -293,7 +293,7 @@ try
 				 + "	  s_armo.id_armo in (select distinct id_armo from " &
 				 + " vx_" + trim(ast_stat_invent.utente) + "_statNoSped" + string(ast_stat_invent.stat_tab) + ") " 
 		k_sql += " group by s_arsp.id_meca, s_arsp.id_armo  "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	
 	//--- costruisco la view con colli_fatturati
@@ -312,7 +312,7 @@ try
 			k_sql += " and data_fatt between '" + string(ast_stat_invent.data_da) + "' and '" + string(ast_stat_invent.data_a) + "'"
 		end if
 		k_sql += " group by arfa.id_armo "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	//--- Union delle tabelle per simularne una sola
 		k_view = "vx_" + trim(ast_stat_invent.utente) + "_statinv_5" + string(ast_stat_invent.stat_tab)	
@@ -355,7 +355,7 @@ try
 			 + " nosp.id_meca, " &
 			 + " nosp.id_armo " 
 		k_sql = k_sql + " " + trim(k_sql_w) 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	//--- costruisco la view con valorizzazione x singola riga Lotto 
 		k_view = "vx_" + trim(ast_stat_invent.utente) + "_statinv15" + string(ast_stat_invent.stat_tab)	
@@ -381,7 +381,7 @@ try
 			 + " s.id_meca, " &
 			 + " s.id_armo, " &
 			 + " f.colli_fatt "    
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	
 	//--- costruisco la temp-table con valorizzazione x singolo Lotto 
 		k_view = "#vx_" + trim(ast_stat_invent.utente) + "_statinv25" + string(ast_stat_invent.stat_tab)	
@@ -540,7 +540,7 @@ kpointer = SetPointer(HourGlass!)
 
 
  	k_sql += " GROUP BY s_armo.id_meca "
-	//kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	//kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 //--- costruisco la view x Reperire il Numero Fattura + altro x id_meca
@@ -616,7 +616,7 @@ kpointer = SetPointer(HourGlass!)
 		k_sql += " and s_armo.dose = " + kast_stat_invent.dose_str + " "
 	end if
  	k_sql += " GROUP BY s_armo.id_meca "
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 	
 //--- Riprist. il vecchio puntatore : 
@@ -660,7 +660,7 @@ kpointer = SetPointer(HourGlass!)
 		k_sql +=  " and clie_3 = " + string(kast_stat_invent.id_cliente) + " "
 	end if
 	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 
 
 	
@@ -730,7 +730,7 @@ try
 			k_sql += " and s_arfa.dose > 0 " + " "
 	end choose
 	
-//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -825,7 +825,7 @@ kpointer = SetPointer(HourGlass!)
 	end choose
 	
 	try
-	//	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	//	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 	catch (uo_exception kuo_exception)
 		kuo_exception.scrivi_log()
@@ -1013,8 +1013,8 @@ try
 			 + " ,id_armo integer" &
 			 + " ,causale char(1)" &
 			 + " ,magazzino integer" 
-	k_sql = "CREATE VIEW " + trim(k_view) &
-				+ " (data_inv, clie_3, barcode, id_meca, id_armo, causale, magazzino ) AS   "  
+	//k_sql = "CREATE VIEW " + trim(k_view) &
+	k_sql = " (data_inv, clie_3, barcode, id_meca, id_armo, causale, magazzino ) AS   "  
 	k_sql += &
 			 + " SELECT distinct " &
 			 + " '" + string(ast_stat_invent.data_a) + "' " &
@@ -1085,7 +1085,7 @@ try
 			k_sql_w += " and s_armo.dose > 0 " + " "
 	end choose
 	k_sql += " " + trim(k_sql_w)  //+ " group by 1, 2  "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 
@@ -1138,7 +1138,7 @@ try
 				+ " (select distinct a.id_meca " &
 							 + " from " + a_view_name_pilota + " as a) " &
 			+ " group by r.id_meca  "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 
@@ -1171,7 +1171,8 @@ try
 	
 	//--- costruisco la view dei Trattati  
 		k_view = a_view_name	
-		k_sql = "CREATE VIEW " + trim(k_view) + " ( id_meca, colli ) AS   "  
+		//k_sql = "CREATE VIEW " + trim(k_view) 
+		k_sql = " ( id_meca, colli ) AS   "  
 		k_sql +=  &
 				 + " SELECT  " &
 				 + " barcode.id_meca " &
@@ -1185,7 +1186,7 @@ try
 					  		 + " (select distinct a.barcode " &
 					  		 		    + " from " + a_view_name_pilota + " as a) " &
 				 + " group by barcode.id_meca  "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 
@@ -1230,7 +1231,7 @@ try
 					+ " where a.causale = '"  + kst_tab_barcode.causale + "' " &
 						 + " and a.magazzino = " + string(kkg_magazzino.LAVORAZIONE)  &
 			 + " group by a.id_meca  "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1278,7 +1279,7 @@ try
 								 + " from " + a_view_name_pilota + " as a) " &
 			 + " group by s_arsp.id_meca  "
 			// + " (s_arsp.data_rit > '" + string(date(0)) + "' "  &  
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1337,7 +1338,7 @@ try
 				 + " left outer join " + a_view_name_trattati + " as trattati on r.id_meca = trattati.id_meca " &
 				 + " left outer join " + a_view_name_spediti + " as spediti on r.id_meca = spediti.id_meca " &
 				 + " left outer join " + a_view_name_danontrattatare + " as daNonTrattare on r.id_meca = daNonTrattare.id_meca " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1724,7 +1725,7 @@ try
 				+ " (select distinct a.id_meca " &
 							 + " from " + a_view_name_pilota + " as a) " &
 			+ " group by r.clie_3  "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 
@@ -1757,7 +1758,8 @@ try
 	
 	//--- costruisco la view dei Trattati  
 		k_view = a_view_name	
-		k_sql = "CREATE VIEW " + trim(k_view) + " ( clie_3, colli ) AS   "  
+		//k_sql = "CREATE VIEW " + trim(k_view) 
+		k_sql = " ( clie_3, colli ) AS   "  
 		k_sql +=  &
 				 + " SELECT  " &
 				 + " s_armo.clie_3 " &
@@ -1771,7 +1773,7 @@ try
 					  		 + " (select distinct a.barcode " &
 					  		 		    + " from " + a_view_name_pilota + " as a) " &
 				 + " group by s_armo.clie_3  "
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 
@@ -1820,7 +1822,7 @@ try
 								 + " from " + a_view_name_pilota + " as a) " &
 			 + " group by s_arsp.clie_3  "
 			// + " (s_arsp.data_rit > '" + string(date(0)) + "' "  &  
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1875,7 +1877,7 @@ try
 				 + " left outer join " + a_view_name_entrate + " as entrate on r.clie_3 = entrate.clie_3 " &
 				 + " left outer join " + a_view_name_trattati + " as trattati on r.clie_3 = trattati.clie_3 " &
 				 + " left outer join " + a_view_name_spediti + " as spediti on r.clie_3 = spediti.clie_3 " 
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 catch (uo_exception kuo_exception)
@@ -1917,8 +1919,8 @@ try
 			 + " ,id_armo integer" &
 			 + " ,causale char(1)" &
 			 + " ,magazzino integer" 
-	k_sql = "CREATE VIEW " + trim(k_view) &
-				+ " (data_inv, clie_3, barcode, id_meca, id_armo, causale, magazzino ) AS   "  
+	//k_sql = "CREATE VIEW " + trim(k_view) &
+	k_sql = " (data_inv, clie_3, barcode, id_meca, id_armo, causale, magazzino ) AS   "  
 	k_sql += &
 		   " SELECT distinct " &
 			 + " cal.cal_date " &
@@ -1978,7 +1980,7 @@ try
 			k_sql_w += " and s_armo.dose > 0 " + " "
 	end choose
 	k_sql += " " + trim(k_sql_w)  //+ " group by 1, 2  "
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 //		kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)		
 
 

@@ -600,9 +600,11 @@ CHOOSE CASE kist_esito.SQLdbcode
 			if kist_esito.SQLdbcode = kist_esito.SQLcode then
 				kist_esito.SQLcode = kguo_sqlca_db_magazzino.sqlcode
 			end if
+			messaggio_utente("Programma non operativo", "Errore in comunicazione con il database " + kguo_sqlca_db_magazzino.ki_db_descrizione + ", il programma verrà chiuso.")
+		else
+			messaggio_utente("Programma non operativo", "Errore in comunicazione con il database, il programma verrà chiuso.")
 		end if
 		u_write_error()
-		messaggio_utente("Programma non operativo", "Errore in comunicazione con il database di Magazzino, il programma verrà chiuso.")
 		halt close
 	
 	case else

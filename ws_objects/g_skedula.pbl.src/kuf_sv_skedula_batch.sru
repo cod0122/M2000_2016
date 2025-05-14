@@ -62,7 +62,7 @@ try
 	setpointer(kkg.pointer_attesa )
 
 //--- prendi data oggi		
-	k_dataoggi = kGuf_data_base.prendi_dataora( )
+	k_dataoggi = kGuo_g.get_datetime_current_local( ) //kGuf_data_base.prendi_dataora( )
 	
 	k_ora_attuale = now()
 	

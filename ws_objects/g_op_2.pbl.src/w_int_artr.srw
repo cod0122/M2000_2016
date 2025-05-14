@@ -11,6 +11,8 @@ end type
 end forward
 
 global type w_int_artr from w_g_tab_3
+integer width = 686
+integer height = 1180
 string title = "Interrogazioni"
 boolean ki_toolbar_window_presente = true
 rte_1 rte_1
@@ -202,6 +204,7 @@ if tab_1.tabpage_1.dw_1.rowcount( ) = 0 then
 
 		u_scegli_report(ki_scelta_report)
 		tab_1.enabled = true
+		attiva_tasti()
 		
 	end if
 end if
@@ -442,7 +445,7 @@ kpointer = SetPointer(HourGlass!)
 
 //order by armo.data_int desc, armo.num_int desc
 	try 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 	end try	
@@ -963,7 +966,6 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	tab_1.tabpage_1.dw_1.visible = true
 end if
 
-attiva_tasti()
 		
 //return "0"
 
@@ -1002,7 +1004,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 
 				
-attiva_tasti()
+
 		
 
 	
@@ -1084,7 +1086,7 @@ catch (uo_exception kuo_exception)
 //	kuo_exception.messaggio_utente()
 
 finally
-	attiva_tasti()
+	
 	if kdw_1.rowcount() = 0 then
 		kdw_1.insertrow(0) 
 	end if
@@ -1202,7 +1204,7 @@ end if
 
 //	end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -1286,7 +1288,7 @@ datastore kds_1
 //		kuo_exception.messaggio_utente()
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -1336,7 +1338,7 @@ end if
 
 //	end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -1474,7 +1476,7 @@ st_tab_clienti kst_tab_clienti
 //		kuo_exception.messaggio_utente()
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		else
@@ -1562,7 +1564,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 
 end subroutine
 
@@ -1677,7 +1679,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 
 
 end subroutine
@@ -1814,7 +1816,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 		
 end if
 				
-attiva_tasti()
+
 
 end subroutine
 
@@ -1895,7 +1897,7 @@ kuf_base kuf1_base
 
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -2104,7 +2106,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 
 				
-attiva_tasti()
+
 
 end subroutine
 
@@ -2211,7 +2213,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 
 				
-attiva_tasti()
+
 		
 
 	
@@ -2318,7 +2320,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -2436,7 +2438,7 @@ datetime k_data_ent_da, k_data_ent_a
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -2526,7 +2528,7 @@ kuf_calendar_working kuf1_calendar_working
 
 	finally		
 		if isvalid(kuf1_calendar_working) then destroy kuf1_calendar_working
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -2624,7 +2626,7 @@ catch (uo_exception kuo_exception)
 
 finally
 	if isvalid(kuf1_e1_asn) then destroy kuf1_e1_asn
-	attiva_tasti()
+	
 	if kdw_1.rowcount() = 0 then
 		kdw_1.insertrow(0) 
 	end if
@@ -2775,7 +2777,7 @@ st_report_etichette_lotti kst_report_etichette_lotti
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -2847,7 +2849,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -2922,7 +2924,7 @@ long k_righe
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -2972,7 +2974,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 			
-attiva_tasti()
+
 		
 
 end subroutine
@@ -3058,7 +3060,7 @@ kuf_report_etichette_lotti kuf1_report_etichette_lotti
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -3131,7 +3133,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -3199,7 +3201,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 
 				
-attiva_tasti()
+
 		
 
 end subroutine
@@ -3283,7 +3285,7 @@ kuf_report_merce_sped kuf1_report_merce_sped
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -3346,7 +3348,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 		
 
 	
@@ -3442,7 +3444,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -3494,7 +3496,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -3595,7 +3597,7 @@ kuf_base kuf1_base
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -3699,7 +3701,7 @@ kuf_base kuf1_base
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -3753,7 +3755,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 end if
 
 				
-attiva_tasti()
+
 		
 
 	
@@ -3806,7 +3808,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 				
-attiva_tasti()
+
 
 end subroutine
 
@@ -3930,7 +3932,7 @@ kuf_sped kuf1_sped
 
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -4088,7 +4090,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -4150,7 +4152,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 		
-attiva_tasti()
+
 		
 
 	
@@ -4210,7 +4212,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	
 end if
 			
-attiva_tasti()
+
 	
 
 
@@ -4268,7 +4270,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -4438,7 +4440,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	
 end if
 				
-attiva_tasti()
+
 	
 end subroutine
 
@@ -4498,7 +4500,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -4888,7 +4890,7 @@ kuf_base kuf1_base
 //			kuo_exception.messaggio_utente()
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -5196,8 +5198,10 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 
 finally
+	attiva_tasti()
 	
 	if isvalid(kdw_1) then
+		kdw_1.ki_last_dataobject_x_zoom = ""  // resetta il nome del dw x rifare sempre i link
 		kdw_1.event u_personalizza_dw()
 	end if
 	
@@ -5543,7 +5547,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	end try				
 	
 end if	
-attiva_tasti()
+
 
 	
 
@@ -5708,7 +5712,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -5807,7 +5811,7 @@ select min(id_meca), max(id_meca)
 			" group by  armo.id_armo "
 
 	try 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
 	end try	
@@ -5995,7 +5999,7 @@ kpointer = SetPointer(HourGlass!)
 			" group by  armo.id_armo, armo.id_meca "
 
 	try 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
  //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -6115,7 +6119,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	end try
 end if
 			
-attiva_tasti()
+
 
 end subroutine
 
@@ -6185,7 +6189,7 @@ st_report_indici_run kst_report_indici_run
 //			kuo_exception.messaggio_utente()
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -6361,7 +6365,7 @@ catch (uo_exception kuo_exception)
 	throw kuo_exception
 
 finally
-	attiva_tasti()
+	
 	if kdw_1.rowcount() = 0 then
 		kdw_1.insertrow(0) 
 	end if
@@ -6410,7 +6414,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -6494,7 +6498,7 @@ kuf_base kuf1_base
 //			kuo_exception.messaggio_utente()
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -6559,7 +6563,7 @@ try
 
 	k_sql += " group by armo.id_armo " 
 			
-	kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+	kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
  //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 	
 catch (uo_exception kuo_exception)
@@ -6615,7 +6619,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -6707,7 +6711,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -6957,7 +6961,7 @@ kuf_utility kuf1_utility
 	k_sql += " group by armo.id_armo " 
 			
 	try 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
  //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -7168,7 +7172,7 @@ pointer kpointer  // Declares a pointer variable
 			+ " having (sum(tab1.colli_2) - sum(colli_arsp)) > 0 " &
  
 	try 
-		kguo_sqlca_db_magazzino.db_crea_view(1, k_view, k_sql)		
+		kguo_sqlca_db_magazzino.db_crea_view(k_view, k_sql)		
  //   kguo_sqlca_db_magazzino.db_crea_temp_table(k_view, k_campi, k_sql)      
 	catch (uo_exception kuo_exception)
 		kuo_exception.messaggio_utente()
@@ -7231,7 +7235,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -7330,7 +7334,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -7545,7 +7549,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 	
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -7609,7 +7613,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -7699,7 +7703,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -7763,7 +7767,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -7818,7 +7822,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -7910,7 +7914,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -8042,7 +8046,7 @@ if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d
 
 end if
 
-attiva_tasti()
+
 		
 
 	
@@ -8094,7 +8098,7 @@ kuf_utility kuf1_utility
 	//--- piglia i parametri per l'estrazione 
 			get_parametri_30()
 
-			k_righe = kdw_1.retrieve(ki_st_int_artr.clie_3, ki_st_int_artr.data_ini, ki_st_int_artr.data_fin)
+			k_righe = kdw_1.retrieve(ki_st_int_artr.clie_3, ki_st_int_artr.tipox, ki_st_int_artr.data_ini, ki_st_int_artr.data_fin)
 
 		end if
 
@@ -8102,7 +8106,7 @@ kuf_utility kuf1_utility
 		throw kuo_exception
 
 	finally		
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -8139,7 +8143,7 @@ ki_st_int_artr.clie_3 = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_clie_3")
 ki_st_int_artr.data_ini = k_data_ini
 ki_st_int_artr.data_fin = k_data_fin
 
-
+ki_st_int_artr.tipox = tab_1.tabpage_1.dw_1.getitemstring(1, "tipodata") 
 
 end subroutine
 
@@ -8238,7 +8242,7 @@ kuf_report_regart50 kuf1_report_regart50
 		throw kuo_exception
 
 	finally
-		attiva_tasti()
+		
 		if kdw_1.rowcount() = 0 then
 			kdw_1.insertrow(0) 
 		end if
@@ -8958,7 +8962,7 @@ if NOT kguf_data_base.u_if_run_dev_mode( ) then
 	kiuf_int_artr.kki_scelta_report_pic_bcode_trattati                  =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_bcode_trattati = 16     
 	kiuf_int_artr.kki_scelta_report_pic_memo                            =   this.AddPicture("edit16.png") 		// kki_scelta_report_memo = 17
 //	kiuf_int_artr.kki_scelta_report_pic_lotti_sped_dafatt               =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_lotti_sped_dafatt = 18        
-	kiuf_int_artr.kki_scelta_report_pic_attestati                       =   this.AddPicture("certificato16.gif") // kki_scelta_report_attestati = 19
+	kiuf_int_artr.kki_scelta_report_pic_attestati                       =   this.AddPicture("certificate16.png") // kki_scelta_report_attestati = 19
 	kiuf_int_artr.kki_scelta_report_pic_art_movim                       =   this.AddPicture("CheckStatus5!")	// kki_scelta_report_art_movim = 20
 	kiuf_int_artr.kki_scelta_report_pic_armo_Contratti                  =   this.AddPicture("DataWindow!")		// kki_scelta_report_armo_Contratti = 21     
 	kiuf_int_artr.kki_scelta_report_pic_LavxCapitolato                  =   this.AddPicture("DataWindow!")		// kki_scelta_report_LavxCapitolato = 22     

@@ -53,6 +53,7 @@ private function boolean u_crea_view_v_clienti_mkt_web () throws uo_exception
 private function boolean u_crea_view_v_memo () throws uo_exception
 private function boolean u_crea_view_v_rubrica_clienti () throws uo_exception
 private function boolean u_crea_view_v_rubrica_all () throws uo_exception
+private function boolean u_tb_crea_view (kuo_sqlca_db_0 auo_sqlca_db_0, string a_viewname, string a_sql) throws uo_exception
 end prototypes
 
 private function boolean u_crea_view_v_arfa_riga () throws uo_exception;//
@@ -1739,21 +1740,16 @@ private function boolean u_crea_view_v_alarm_instock_tosend () throws uo_excepti
 //=== Estemporanea da lanciare una sola volta
 //=== Crae tabella View  'v_alarm_instock_tosend' 
 //===
-int k_errore=0
 boolean k_return = true
 string k_sql
-st_esito kst_esito
 kuf_alarm_instock kuf1_alarm_instock
-uo_exception kuo_exception
  
-
 
 	SetPointer(kkg.pointer_attesa)
 
 //13-12-2022 richiesta da Pietro di mettere x gg lavorativi (quindi aggiungo parte circa la tab u_calendario)
 
-	k_sql = "create view v_alarm_instock_tosend  " &
-		+ " as SELECT " &
+	k_sql = " as SELECT " &
    	+ " distinct alarm_instock.id_alarm_instock,  " & 
    	+ " armo.id_meca  " &
    	+ " FROM alarm_instock " &
@@ -1783,67 +1779,9 @@ uo_exception kuo_exception
 		+       "( select sum(arsp.colli) from arsp where arsp.id_armo = armo.id_armo " &
 		+                " HAVING SUM(colli) >= armo.colli_2 ) " 
 		
-//13-12-2022 richiesta da Pietro di mettere x gg lavorativi (quindi tolgo questa parte):
-//    + " and ((alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_data_ent) &
-//	   +        " and meca.data_ent <= dateadd(DD, (-1 * alarm_instock.nday_instock), getdate()) " &
-//		+        ") or (alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_certif_data) &
-//	   +        " and certif.data <= dateadd(DD, (-1 * alarm_instock.nday_instock), getdate()) " &
-//      +       ")) " &
-
-//   	+ " (alarm_instock.nday_instock = 0 OR alarm_instock.nday_instock > DATEDIFF(d, getdate(), meca.data_ent) ) " &
-	EXECUTE IMMEDIATE "drop VIEW v_alarm_instock_tosend " using sqlca;
-
-	EXECUTE IMMEDIATE :k_sql using sqlca;
-
-	if sqlca.sqlcode <> 0 then
-		k_return = false
-		k_errore = 1
-		SetPointer(kkg.pointer_default)
-		kuo_exception = create uo_exception
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.db_ko
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Errore durante creazione View (v_alarm_instock_tosend): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-		kuo_exception.set_esito(kst_esito )
-		throw kuo_exception
-//	else
-//		k_sql = "grant select on v_meca_pl_v1 to ixuser as informix"		
-//		EXECUTE IMMEDIATE :k_sql using sqlca;
-//		if sqlca.sqlcode <> 0 then
-//			k_return = false
-//			k_errore = 1
-//			SetPointer(kkg.pointer_default)
-//			kuo_exception = create uo_exception
-//			kst_esito.nome_oggetto = this.classname()
-//			kst_esito.esito = kkg_esito.db_ko
-//			kst_esito.sqlcode = sqlca.sqlcode
-//			kst_esito.sqlerrtext = "Errore durante GRANT View (v_meca_pl_v1): " + string(sqlca.sqldbcode, "#####") + "; " +sqlca.sqlerrtext
-//			kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_internal_bug )
-//			kuo_exception.set_esito(kst_esito )
-//			throw kuo_exception
-//		end if	
-	end if	
-			
-
+	k_return = u_tb_crea_view("v_rubrica_all", k_sql)
 
 	SetPointer(kkg.pointer_default)
-
-	if k_errore = 0 then
-		
-		kst_esito.nome_oggetto = this.classname()
-		kst_esito.esito = kkg_esito.ok
-		kst_esito.sqlcode = sqlca.sqlcode
-		kst_esito.sqlerrtext = "Generazione VIEW 'v_alarm_instock_tosend' completata." 
-		kuo_exception = create uo_exception
-		kuo_exception.set_tipo( kuo_exception.KK_st_uo_exception_tipo_OK )
-		kuo_exception.set_esito(kst_esito )
-		kuo_exception.scrivi_log()
-		destroy kuo_exception
-	end if
-	
-	 
-SetPointer(kkg.pointer_default)
 
 return k_return
 
@@ -2437,8 +2375,8 @@ string k_sql
 
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_ptasks_rows  " &
-		+ " as SELECT ptasks_rows.id_ptasks_row " &
+	//k_sql = "create view " + k_viewName + "as "
+	k_sql = " as SELECT ptasks_rows.id_ptasks_row " &
 		+ " ,ptasks_rows.id_ptask " &
 		+ " ,ptasks_rows.id_ptasks_type " & 
 		+ " , ptasks_rows.x_datins " &
@@ -2611,8 +2549,8 @@ string k_sql
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_sped_free  " &
-		+ " as SELECT " &
+	//k_sql = "create view v_sped_free  " &
+	k_sql = " as SELECT " &
 		+ " id_sped_free " & 
 		+ " ,id_deposito " & 
 		+ " ,data_bolla_out " & 
@@ -2733,9 +2671,6 @@ string k_sql
 		+ " , x_datins " &
 		+ " , coalesce(x_utente, '') x_utente" &
 		+ " FROM sped_free " 
-
-//				+ " ,JSON_VALUE(dati ,'$.iva') iva " & 
-
 
 	k_return = u_tb_crea_view("v_sped_free", k_sql)
 
@@ -4006,7 +3941,7 @@ uo_exception kuo_exception
             + "  , isnull(modgiri_data, '') modgiri_data  " &
             + "  , isnull(modgiri_utente, '') modgiri_utente  " &
             + "  , isnull(upd_utente_ok, '') upd_utente_ok  " &
-            + "  , isnull(imptime_second, '') imptime_second  " &
+            + "  , isnull(imptime_second, 0) imptime_second  " &
             + "  , isnull(flg_parziale, 0) flg_parziale  " &
             + "  , isnull(flg_campione, 0) flg_campione" &
 		+ "  , x_utente " &
@@ -4099,7 +4034,7 @@ uo_exception kuo_exception
             + "  , isnull(modgiri_data, '') modgiri_data  " &
             + "  , isnull(modgiri_utente, '') modgiri_utente  " &
             + "  , isnull(upd_utente_ok, '') upd_utente_ok  " &
-            + "  , isnull(imptime_second, '') imptime_second  " &
+            + "  , isnull(imptime_second, 0) imptime_second  " &
             + "  , isnull(flg_parziale, 0) flg_parziale  " &
             + "  , isnull(flg_campione, 0) flg_campione" &
 		+ "  , x_utente " &
@@ -6027,9 +5962,9 @@ boolean k_return
 string k_sql
 
 
-	k_sql = "create view v_contatti  " &
-		+ " as " &
-		 +" SELECT  " &
+//	k_sql = "create view v_contatti  " &
+
+	k_sql = " as SELECT " &
 			+" isnull(clienti.codice, 0) id_cliente ," & 
 			+" isnull(clienti.stato,'6') stato, " & 
 			+" isnull(clienti.tipo,'') tipo, " & 
@@ -6085,7 +6020,8 @@ boolean k_return
 string k_sql
 
 
-	k_sql = "CREATE VIEW v_meca_artr_impianto  " &
+	//k_sql = "CREATE VIEW v_meca_artr_impianto  " &
+	k_sql = " " &
 			+ " (id_meca , " &
 			+ " impianto " & 
 	      + ") " &
@@ -6110,41 +6046,9 @@ private function boolean u_tb_crea_view (string a_viewname, string a_sql) throws
   Inp: nome della view + sql della view
   ret: TRUE = ok
 */
-boolean k_return
-string k_immediate_sql
 
+return u_tb_crea_view(kguo_sqlca_db_magazzino, a_viewname, a_sql)
 
-try
-	
-	SetPointer(kkg.pointer_attesa)
-
-	kguo_exception.inizializza(this.classname())
-
-	k_immediate_sql = "drop VIEW " + a_viewname
-	EXECUTE IMMEDIATE :k_immediate_sql using kguo_sqlca_db_magazzino;
-
-	EXECUTE IMMEDIATE :a_sql using kguo_sqlca_db_magazzino;
-
-	if kguo_sqlca_db_magazzino.sqlcode < 0 then
-		kguo_exception.set_st_esito_err_db(kguo_sqlca_db_magazzino,	"Errore durante la creazione della View " + trim(a_viewname))
-		throw kguo_exception
-	end if	
-			
-	kguo_exception.kist_esito.nome_oggetto = this.classname()
-	kguo_exception.kist_esito.sqlerrtext = "Generazione della View '" + trim(a_viewname) + "' completata." 
-	kguo_exception.scrivi_log()
-	 
-	k_return = true
-
-catch ( uo_exception kuo_exception)	
-	throw kuo_exception
-		
-finally		
-	SetPointer(kkg.pointer_default)
-
-end try
-
-return k_return
 
 end function
 
@@ -6156,8 +6060,7 @@ boolean k_return
 string k_sql
 
 
-	k_sql = "create view v_colli_sped  " &
-			 + " ( id_meca, id_armo, colli_sped) AS   " &
+	k_sql = " ( id_meca, id_armo, colli_sped) AS  " &
 			 + "  SELECT armo.id_meca,   " &
 					+ " armo.id_armo,   " &
 					+ " sum(arsp.colli) " &
@@ -6181,8 +6084,7 @@ string k_sql
 
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_sped_deposito_anag  " &
-		+ " as SELECT " &
+	k_sql = " as SELECT " &
 		+ " id_sped " & 
 		+ " ,convert(integer,isnull(JSON_VALUE(deposito_anag ,'$.id_deposito_anag'),0))  id_deposito_anag " &
 		+ ",CASE " &
@@ -6244,8 +6146,7 @@ string k_sql
 
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_barcode_data_json  " &
-		+ " as SELECT barcode.barcode " &
+	k_sql = " as SELECT barcode.barcode " &
 		+ " , case when JSON_VALUE(barcode.data_json ,'$.g3lav_cicloin' ) > '0' then convert(INTEGER, JSON_VALUE(barcode.data_json ,'$.g3lav_cicloin'  )) else 0 end g3lav_cicloin " & 
 		+ " , case when JSON_VALUE(barcode.data_json ,'$.g3lav_cicloout') > '0' then convert(integer, JSON_VALUE(barcode.data_json ,'$.g3lav_cicloout' )) else 0 end g3lav_cicloout " & 
 		+ " FROM barcode " 
@@ -6266,9 +6167,8 @@ boolean k_return
 string k_sql
 
 
-	k_sql = "create view v_clienti_mkt_web  " &
-		+ " as " &
-		 +" SELECT  " &
+	k_sql = " as " &
+		  +" SELECT  " &
         +" clienti_mkt.id_cliente,   " &
         +" trim(clienti_mkt.qualifica) as qualifica,   " &
         +" isnull(clienti_mkt.id_cliente_link,0) as id_cliente_link,   " &
@@ -6338,8 +6238,7 @@ string k_sql
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_memo  " &
-		+ " as SELECT " &
+	k_sql = " as SELECT " &
 			+ " clienti_memo.id_cliente_memo " &
 			+ " ,clienti_memo.id_memo " &
 			+ " ,clienti_memo.id_cliente " &
@@ -6404,8 +6303,7 @@ string k_sql
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_rubrica_clienti  " &
-		+ " as SELECT " &
+	k_sql = " as SELECT " &
 		+ " email " &
       + " ,rag_soc_10 " &
       + " ,id_cliente " &
@@ -6479,8 +6377,7 @@ string k_sql
 //=== Puntatore Cursore da attesa.....
 	SetPointer(kkg.pointer_attesa)
 
-	k_sql = "create view v_rubrica_all  " &
-		+ " as SELECT " &
+	k_sql = " as SELECT " &
 		+ " email " &
       + " ,rag_soc_10 " &
       + " ,id_cliente " &
@@ -6507,6 +6404,41 @@ string k_sql
 	k_return = u_tb_crea_view("v_rubrica_all", k_sql)
 
 	SetPointer(kkg.pointer_default)
+
+return k_return
+
+end function
+
+private function boolean u_tb_crea_view (kuo_sqlca_db_0 auo_sqlca_db_0, string a_viewname, string a_sql) throws uo_exception;/*
+  Esegue la CREATE VIEW
+  Inp: kuo_sqlca_db_0, nome della view + sql della view
+  ret: TRUE = ok
+*/
+boolean k_return
+string k_immediate_sql
+
+
+try
+	
+	SetPointer(kkg.pointer_attesa)
+
+	kguo_exception.inizializza(this.classname())
+
+	auo_sqlca_db_0.db_crea_view(a_viewname, a_sql)
+
+	kguo_exception.kist_esito.nome_oggetto = this.classname()
+	kguo_exception.kist_esito.sqlerrtext = "Generazione della View '" + trim(a_viewname) + "' completata." 
+	kguo_exception.scrivi_log()
+	 
+	k_return = true
+
+catch ( uo_exception kuo_exception)	
+	throw kuo_exception
+		
+finally		
+	SetPointer(kkg.pointer_default)
+
+end try
 
 return k_return
 

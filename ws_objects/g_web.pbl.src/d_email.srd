@@ -19,9 +19,9 @@ table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes na
  column=(type=char(12) update=yes updatewhereclause=yes name=x_utente dbname="email.x_utente" )
  column=(type=char(1) updatewhereclause=yes name=k_email_ricev_rit dbname="k_path_base" )
  column=(type=char(255) update=yes updatewhereclause=yes name=attached dbname="attached" )
- column=(type=char(255) update=yes updatewhereclause=yes name=email_to dbname="email_to" )
- column=(type=char(255) update=yes updatewhereclause=yes name=email_cc dbname="email_cc" )
- column=(type=char(255) update=yes updatewhereclause=yes name=email_ccn dbname="email_ccn" )
+ column=(type=char(512) update=yes updatewhereclause=yes name=email_to dbname="email_to" )
+ column=(type=char(512) update=yes updatewhereclause=yes name=email_cc dbname="email_cc" )
+ column=(type=char(512) update=yes updatewhereclause=yes name=email_ccn dbname="email_ccn" )
  column=(type=long update=yes updatewhereclause=yes name=invio_batch dbname="invio_batch" values="invio in Automatico (se schedulato)	1/invio in Automatico (se schedulato)	0" )
  retrieve="  SELECT email.id_email,   
          email.stato,   
@@ -100,4 +100,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

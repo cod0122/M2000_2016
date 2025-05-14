@@ -2495,6 +2495,7 @@ integer width = 1010
 integer height = 880
 integer taborder = 20
 boolean enabled = true
+borderstyle borderstyle = StyleBox!
 pointer kipointer_orig = hourglass!
 end type
 
@@ -2607,6 +2608,7 @@ event u_get_focus_change_tab ( )
 integer width = 1038
 integer height = 916
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -2713,6 +2715,7 @@ event u_get_focus_change_tab ( )
 integer width = 1074
 integer height = 884
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -2816,6 +2819,7 @@ event u_get_focus_change_tab ( )
 integer width = 992
 integer height = 868
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -2918,6 +2922,7 @@ event u_get_focus_change_tab ( )
 integer width = 814
 integer height = 508
 integer taborder = 10
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -3038,6 +3043,7 @@ event u_get_focus_change_tab ( )
 integer width = 731
 integer height = 528
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -3139,6 +3145,7 @@ type dw_7 from uo_d_std_1 within tabpage_7
 event u_get_focus_change_tab ( )
 integer width = 1042
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -3240,6 +3247,7 @@ type dw_8 from uo_d_std_1 within tabpage_8
 event u_get_focus_change_tab ( )
 integer width = 1042
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//
@@ -3341,6 +3349,7 @@ type dw_9 from uo_d_std_1 within tabpage_9
 event u_get_focus_change_tab ( )
 integer width = 1042
 integer taborder = 20
+borderstyle borderstyle = StyleBox!
 end type
 
 event u_get_focus_change_tab();//

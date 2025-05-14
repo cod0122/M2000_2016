@@ -1622,7 +1622,6 @@ try
 	kst_profilestring_ini.esito = "0"
 		
 //--- Imposta i valori di default come se manca il nome file allora lo sostituisco con il nome titolo 	
-//--- Imposta i valori di default come se manca il nome file allora lo sostituisco con il nome titolo 	
 	if trim(kst_profilestring_ini.titolo) > " " then
 	else
 		kst_profilestring_ini.titolo = "ambiente"

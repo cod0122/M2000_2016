@@ -206,12 +206,12 @@ public function st_esito u_check_dati (ref datastore ads_inp) throws uo_exceptio
 //---
 //------------------------------------------------------------------------------------------------------
 //
-int k_errori = 0
-long k_nr_righe
-int k_riga
-string k_tipo_errore="0", k_type, k_valore
+int k_errors = 0
+long k_rows, k_row
+int k_ret
+string k_error_type="0", k_type, k_description, k_code
+boolean k_code_numeric
 st_esito kst_esito
-
 
 
 try
@@ -220,9 +220,9 @@ try
 // ESEMPIO
 //	if trim(ads_inp.object.descr) > " "  then
 //	else
-//		k_errori ++
-//		k_tipo_errore="3"      // errore in questo campo: dati insuff.
-//		ads_inp.object.descr.tag = k_tipo_errore 
+//		k_errors ++
+//		k_error_type="3"      // errore in questo campo: dati insuff.
+//		ads_inp.object.descr.tag = k_error_type 
 //		kst_esito.esito = kkg_esito.err_formale
 //		kst_esito.sqlerrtext = "Manca descrizione nel campo " + trim(ads_inp.object.descr_t.text) +  "~n~r"  
 //		kguo_exception.inizializza( )
@@ -230,76 +230,83 @@ try
 //		throw kguo_exception
 //	end if
 	
-	k_nr_righe =ads_inp.rowcount()
-	k_errori = 0
-	k_riga =ads_inp.getnextmodified(0, primary!)
+	k_rows = ads_inp.rowcount()
+	k_errors = 0
+	k_row = ads_inp.getnextmodified(0, primary!)
 
-	do while k_riga > 0  and k_errori < 99
+	do while k_row > 0 and k_errors < 11
 
 		k_type = ads_inp.Describe("#1.Coltype")
 		if left(k_type,4) = 'char' then
-			k_valore = trim(ads_inp.getitemstring ( k_riga, 1)) // presuppone un codice alfanumerico
+			k_code_numeric = false
+			k_code = trim(ads_inp.getitemstring ( k_row, 1)) // presuppone un codice alfanumerico
 		else
-			k_valore = string(ads_inp.getitemnumber ( k_riga, 1), "#") // presuppone un codice numerico intero
+			k_code_numeric = true
+			k_code = string(ads_inp.getitemnumber ( k_row, 1), "#") // presuppone un codice numerico intero
 		end if
-		if k_valore > " " then  
+		if k_code > " " then  
 			k_type = ads_inp.Describe("#2.Coltype")
 			if left(k_type,4) = 'char' then
-				k_valore = ads_inp.getitemstring ( k_riga, 2)
+				k_description = ads_inp.getitemstring ( k_row, 2)
 			else
-				k_valore = string(ads_inp.getitemnumber ( k_riga, 1), "#") // presuppone un codice numerico intero
+				k_description = string(ads_inp.getitemnumber ( k_row, 1), "#") // presuppone un codice numerico intero
 			end if
-			if k_valore > " " then  // presuppone ci sia la descrizione
+			if k_description > " " then  // presuppone ci sia la descrizione
 			else
-				k_tipo_errore="3"      // errore in questo campo: dati insuff.
-				ads_inp.modify("#2.tag = '" + k_tipo_errore + "' ")
+				k_errors ++
+				k_error_type="3"      // errore in questo campo: dati insuff.
+				ads_inp.modify("#2.tag = '" + k_error_type + "' ")
 				kst_esito.esito = kkg_esito.DATI_INSUFF
-				if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
 				kst_esito.sqlerrtext = "Manca valore nel campo '" &
 						+ trim(ads_inp.describe(ads_inp.describe("#2.name") + "_t.text")) &
-						+ "' alla riga " + string(k_riga)
-				k_errori ++
+						+ "' alla riga " + string(k_row) &
+						+ "~n~r"  
 			end if
 		else
-			k_tipo_errore="3"      // errore in questo campo: dati insuff.
-			ads_inp.modify("#1.tag = '" + k_tipo_errore + "' ")
+			k_errors ++
+			k_error_type="3"      // errore in questo campo: dati insuff.
+			ads_inp.modify("#1.tag = '" + k_error_type + "' ")
 			kst_esito.esito = kkg_esito.DATI_INSUFF
-			if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
 			kst_esito.sqlerrtext = "Manca valore nel campo '" &
 						+ trim(ads_inp.describe(ads_inp.describe("#1.name") + "_t.text")) &
-						+ "' alla riga " + string(k_riga) 
-			k_errori ++
+						+ "' alla riga " + string(k_row) &
+						+ "~n~r"  
 		end if
 
-		if k_tipo_errore = "0" or k_tipo_errore = "4" or k_tipo_errore = kkg_esito.DATI_WRN  then
-			if ads_inp.find("#1 = '" + k_valore  + "'", k_riga, k_nr_righe) > 0 then
-				k_tipo_errore="1"      // errore in questo campo: logico
-				ads_inp.modify("#1.tag = '" + k_tipo_errore + "' ")
-				kst_esito.esito = kkg_esito.ERR_LOGICO
-				if k_errori > 0 then kst_esito.sqlerrtext += kkg.acapo
-				kst_esito.sqlerrtext = "Codice " + k_valore + " già in elenco " 
-				k_errori ++
+		if k_error_type = "0" or k_error_type = "4" or k_error_type = kkg_esito.DATI_WRN  then
+			// verifica che ci sia solo un codice se ci sono più righe
+			if k_rows > 1 then 
+				if k_code_numeric then
+					k_ret = ads_inp.find("#1 = " + k_code  + " ", k_row, k_rows) 
+				else
+					k_ret = ads_inp.find("#1 = '" + k_code  + "'", k_row, k_rows) 
+				end if	
+				if k_ret > 0 then
+					k_errors ++
+					k_error_type="1"      // errore in questo campo: logico
+					ads_inp.modify("#1.tag = '" + k_error_type + "' ")
+					kst_esito.esito = kkg_esito.ERR_LOGICO
+					kst_esito.sqlerrtext = "Codice " + k_code + " già in elenco " + "~n~r" 
+				end if
 			end if
 		end if
 
-		if k_tipo_errore <> "0"  and k_tipo_errore <> "4" and k_tipo_errore <> kkg_esito.DATI_WRN then
+		if k_error_type <> "0"  and k_error_type <> "4" and k_error_type <> kkg_esito.DATI_WRN then
 			kguo_exception.inizializza( )
 			kguo_exception.set_esito(kst_esito)
 			throw kguo_exception
 		end if
 
-		k_riga++
-		k_riga = ads_inp.getnextmodified(k_riga, primary!)
+		k_row++
+		k_row = ads_inp.getnextmodified(k_row, primary!)
 
 	loop
-
-	
 	
 catch (uo_exception kuo_exception)
 	throw kuo_exception
 
 finally
-	if k_errori > 0 then
+	if k_errors > 0 then
 		
 	end if
 	
@@ -309,7 +316,7 @@ end try
 return kst_esito
  
  
- 
+  
 end function
 
 public function boolean u_open_ds (st_open_w ast_open_w) throws uo_exception;//

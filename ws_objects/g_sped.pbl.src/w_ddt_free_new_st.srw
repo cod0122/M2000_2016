@@ -759,6 +759,10 @@ end type
 
 type cbx_chiude from w_g_tab_st`cbx_chiude within w_ddt_free_new_st
 integer y = 1616
+integer width = 1120
+end type
+
+type dw_note from w_g_tab_st`dw_note within w_ddt_free_new_st
 end type
 
 type gb_aggiorna from w_g_tab_st`gb_aggiorna within w_ddt_free_new_st
