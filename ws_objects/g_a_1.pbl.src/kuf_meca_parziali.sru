@@ -142,8 +142,10 @@ long k_rows, k_row
 uo_ds_std_1 kds_1
 
 
+try
+	SetPointer(kkg.pointer_attesa)
 	kguo_exception.inizializza(this.classname())
-
+	
 //	if_sicurezza(kkg_flag_modalita.inserimento)
 
 	if ast_tab_meca_parziali.id_meca > 0 then
@@ -180,9 +182,7 @@ uo_ds_std_1 kds_1
 		
 		k_rc = kds_1.update( ) 
 		if k_rc < 0 then
-			kguo_exception.inizializza(this.classname())
-			kguo_exception.set_esito(kds_1.kist_esito)
-			kguo_exception.kist_esito.sqlerrtext = "Errore in Inserimento in tabella 'Lotti Parziali',  id Lotto " + string(ast_tab_meca_parziali.id_meca) + ". " + kkg.acapo + kds_1.kist_esito.sqlerrtext
+			kguo_exception.set_st_esito_err_ds(kds_1, "Errore in Inserimento in tabella 'Lotti Parziali',  id Lotto " + string(ast_tab_meca_parziali.id_meca) + ". ")
 			throw kguo_exception
 		end if
 		
@@ -193,6 +193,20 @@ uo_ds_std_1 kds_1
 		end if
 		
 	end if	
+	
+catch (uo_exception kuo_exception)
+	kuo_exception.scrivi_log( )
+	if ast_tab_meca_parziali.st_tab_g_0.esegui_commit = "N" then
+	else
+		kguo_sqlca_db_magazzino.db_rollback( )
+	end if
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kds_1) then destroy kds_1
+
+end try
 
 return k_return
 

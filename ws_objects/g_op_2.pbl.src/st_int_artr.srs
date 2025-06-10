@@ -65,5 +65,6 @@ global type st_int_artr from structure
 	string		memortf		descriptor "comment" = "S=mostra il testo memo"
 	long		id_ptasks_types		descriptor "comment" = "tipo Attività"
 	long		id_ptasks_types_grp		descriptor "comment" = "gruppo Tipo Attività "
+	long		e1an		descriptor "comment" = "id anagrafica di E1"
 end type
 

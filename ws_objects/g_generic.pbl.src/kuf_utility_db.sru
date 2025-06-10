@@ -1749,24 +1749,35 @@ kuf_alarm_instock kuf1_alarm_instock
 
 //13-12-2022 richiesta da Pietro di mettere x gg lavorativi (quindi aggiungo parte circa la tab u_calendario)
 
-	k_sql = " as SELECT " &
-   	+ " distinct alarm_instock.id_alarm_instock,  " & 
-   	+ " armo.id_meca  " &
+	k_sql = " as SELECT distinct " &
+   	+ " alarm_instock.id_alarm_instock " & 
+   	+ " ,armo.id_meca  " &
+      + " ,case when alarm_instock.workday = 1 then (kcal_today.workday - kcal_start_date.workday - 1) " &
+	   	+ " else " &
+		  	   + " case when (select sum(weekendflag) from u_calendar_working kcal_sum where kcal_sum.cal_date between kcal_start_date.cal_date and kcal_today.cal_date) > 0 then " &
+                + " (DATEDIFF(DAY, kcal_start_date.cal_date, kcal_today.cal_date)) - 2 " &
+	          + " else (DATEDIFF(DAY, kcal_start_date.cal_date, kcal_today.cal_date))" &
+		       + " end  " &		
+		    + " end as n_giorni " & 		
    	+ " FROM alarm_instock " &
 	  			+ " , armo inner join meca on armo.id_meca = meca.id and (meca.aperto in ('S', 'R', '') or meca.aperto is null) " &
 	  					+ " left outer join certif on armo.id_meca = certif.id_meca " &
 					+ " inner join u_calendar_working kcal_today on kcal_today.cal_date = (CONVERT (date, GETUTCDATE())) " &
-					+ ", u_calendar_working kcal_start_stock " &
+					+ ", u_calendar_working kcal_start_date_p inner join u_calendar_working kcal_start_date on kcal_start_date.nday = kcal_start_date_p.nextworkday " &
    	+ " WHERE " &
    	+ " alarm_instock.attivo = '" + trim(kuf1_alarm_instock.kki_attivo_si) +"' " &
    	+ " and (alarm_instock.id_cliente = 0 OR alarm_instock.id_cliente = meca.clie_3) " &
    	+ " and (alarm_instock.contratto = 0 OR alarm_instock.contratto = meca.contratto) " &
-	  	+ " and ((kcal_start_stock.cal_date = (CONVERT (date, meca.data_ent )) and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_data_ent) + ")" &
-  	        + " or (kcal_start_stock.cal_date = certif.data and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_certif_data) + "))" &
+	  	+ " and ((kcal_start_date_p.cal_date = (CONVERT (date, meca.data_ent )) and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_data_ent) + ")" &
+  	        + " or (kcal_start_date_p.cal_date = certif.data and alarm_instock.calc_stocktime = " + string(kuf1_alarm_instock.ki_calc_stocktime_by_certif_data) + "))" &
 		+ " and meca.data_ent > '01.01.1990' " &
-		+ " and ((alarm_instock.workday = 1 " &
-		+ "         and (kcal_today.workday - kcal_start_stock.workday - 1) > alarm_instock.nday_instock) " &
-		+ "      or (DATEDIFF(day, kcal_start_stock.cal_date, kcal_today.cal_date) - 1) > alarm_instock.nday_instock ) " &
+      + " and case when alarm_instock.workday = 1 then (kcal_today.workday - kcal_start_date.workday - 1) " &
+	   	+ " else " &
+		  	   + " case when (select sum(weekendflag) from u_calendar_working kcal_sum where kcal_sum.cal_date between kcal_start_date.cal_date and kcal_today.cal_date) > 0 then " &
+                + " (DATEDIFF(DAY, kcal_start_date.cal_date, kcal_today.cal_date)) - 2 " &
+	          + " else (DATEDIFF(DAY, kcal_start_date.cal_date, kcal_today.cal_date))" &
+		       + " end  " &		
+		    + " end > alarm_instock.nday_instock " &		
    	+ " and not exists " &
 	         + "(select " &
 	      	+ " alarm_instock_email.id_alarm_instock_email " &
@@ -1778,8 +1789,12 @@ kuf_alarm_instock kuf1_alarm_instock
    	+ " and not exists " &
 		+       "( select sum(arsp.colli) from arsp where arsp.id_armo = armo.id_armo " &
 		+                " HAVING SUM(colli) >= armo.colli_2 ) " 
-		
-	k_return = u_tb_crea_view("v_rubrica_all", k_sql)
+
+		//		+ " and ((alarm_instock.workday = 1 " &
+//		+ "         and (kcal_today.workday - kcal_start_date.workday - 1) > alarm_instock.nday_instock) " &
+//		+ "      or (DATEDIFF(day, kcal_start_date.cal_date, kcal_today.cal_date) - 1) > alarm_instock.nday_instock ) " &
+				
+	k_return = u_tb_crea_view("v_alarm_instock_tosend", k_sql)
 
 	SetPointer(kkg.pointer_default)
 

@@ -13,7 +13,7 @@ table(column=(type=char(13) updatewhereclause=yes key=yes name=meca_dosim_barcod
  column=(type=char(1) updatewhereclause=yes name=t_info dbname="t_info" )
  column=(type=char(1) updatewhereclause=yes name=dosim_tipo dbname=".dosim_tipo" )
  column=(type=long updatewhereclause=yes name=k_border_color dbname="k_border_color" )
- retrieve="  SELECT COALESCE(trim(meca_dosim.barcode), '') as meca_dosim_barcode,   
+ retrieve="  SELECT distinct COALESCE(trim(meca_dosim.barcode), '') as meca_dosim_barcode,   
          COALESCE(trim(meca_dosim.barcode_dosimetro), '') as barcode_dosimetro,   
          meca_dosim.id_meca,   
          meca.num_int,   

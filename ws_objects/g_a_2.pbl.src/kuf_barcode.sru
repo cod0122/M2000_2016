@@ -5373,7 +5373,7 @@ try
 				ads_1.setitem(k_riga_flegga_barcode+k_riga_ds_spezzato, "x_utente", kGuf_data_base.prendi_x_utente())
 				
 				k_return += kst_tab_sl_pt.dosim_x_bcode  // i dosimetri x barcode possono essere anche più di 1
-				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode
+				k_riga_flegga_barcode += kst_tab_sl_pt.dosim_delta_bcode  // incrementa il flag del DELTA n. tra un dosimetro e l'altro
 			loop
 			k_riga_flegga_barcode -= kst_tab_sl_pt.dosim_delta_bcode
 		end if
@@ -5416,6 +5416,19 @@ try
 		k_riga_ds_spezzato += k_n_barcode_lotto_inelab
 
 	loop while k_n_barcode_lotto > 0
+
+//--- Per i RACK (k_lotto_spezzato) 
+	if k_lotto_spezzato and ads_1.rowcount() > 1 then
+		// se nell'ultimo rack c'è un numero pari di pallet (2 o 4 ecc...) 
+		if mod(k_n_barcode_lotto_inelab, 2) = 0 then
+		// verifica se l'ulimo e il penultimo plt abbiano il Dosimetro se è così lo rimuovo dal penultimo 
+			if ads_1.getitemstring(ads_1.rowcount() - 1, "flg_dosimetro") = ki_flg_dosimetro_si &
+						and ads_1.getitemstring(ads_1.rowcount(), "flg_dosimetro") = ki_flg_dosimetro_si then
+				ads_1.setitem(ads_1.rowcount() - 1, "flg_dosimetro", ki_flg_dosimetro_No)  // setta NO sul penultimo  
+				k_return --
+			end if
+		end if
+	end if
 
 catch (uo_exception kuo_exception)
 	throw kuo_exception
@@ -6951,7 +6964,7 @@ try
 			/* calcolo del tempo totale impiegato dal barcode per compiere un giro di trattamento in impianto 
 						(Tempo CICLO * GIRI * 36 stazioni se 4Pass e 18 per 2Pass)
 				  dal 22-04-2025 tolgo la moltiplicazione per le stazioni e lascio solo il singolo tempo a stazione */
-			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo * ast_tab_barcode.g3lav_ngiri   
+			ast_tab_barcode.imptime_second = ast_tab_barcode.g3lav_ciclo 
 
 			//set_imptime_second(ast_tab_barcode)  // UPDATE!
 				

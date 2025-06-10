@@ -8464,7 +8464,7 @@ on m_sd_md.create
 call super::create
 this.tag = "sd_md       "
 this.text = "Dose-Mapping"
-this.menuimage = "map"
+this.menuimage = "Custom003a!"
 this.menustyle = contemporarymenu!
 this.menubackcolor = 12632256
 this.menuhighlightcolor = 8388736

@@ -3161,9 +3161,8 @@ event ue_inizializza ( readonly st_tab_armo kst_tab_armo,  string k_flag_modalit
 event ue_nuovo ( st_tab_armo kst_tab_armo )
 event ue_aggiorna ( ) throws uo_exception
 event type integer ue_dati_modif ( )
-integer x = 123
 integer y = 992
-integer width = 2757
+integer width = 0
 integer taborder = 60
 boolean bringtotop = true
 boolean enabled = true
@@ -3174,8 +3173,12 @@ boolean controlmenu = true
 boolean resizable = true
 string icon = "Form!"
 boolean hsplitscroll = false
+boolean ki_colora_riga_aggiornata = false
 boolean ki_attiva_standard_select_row = false
+boolean ki_d_std_1_attiva_sort = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_select_multirows = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event ue_inizializza(readonly st_tab_armo kst_tab_armo, string k_flag_modalita);//======================================================================
@@ -3466,10 +3469,9 @@ return k_errore
 end event
 
 event constructor;call super::constructor;//
-this.width = 2900
-this.height = 1020
+this.width = 0
+this.x = 0
 
-	
 this.settransobject ( sqlca )
 
 end event
@@ -3481,11 +3483,17 @@ datawindowchild kdwc_1
 st_tab_armo kst_tab_armo
 
 if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
-	if k_visibile then
 	
-		this.x = parent.width/2 - this.width / 2
-		this.y = parent.height/3 - this.height / 3
+	if k_visibile then
 		
+		if this.width = 0 then
+			this.width = tab_1.tabpage_2.dw_2.width
+			this.height = tab_1.tabpage_2.dw_2.height * 0.90
+		end if
+		if this.x = 0 then
+			this.x = tab_1.tabpage_2.dw_2.x
+			this.y = tab_1.tabpage_2.dw_2.height * 0.10 
+		end if
 		kst_tab_armo.id_armo = this.getitemnumber( 1, "id_armo")
 		kst_tab_armo.num_int = this.getitemnumber( 1, "num_int")
 		kst_tab_armo.data_int = this.getitemdate( 1, "data_int")
@@ -3493,7 +3501,6 @@ if tab_1.tabpage_1.dw_1.rowcount( ) > 0 then
 		this.title = " Dettaglio riga Lotto: " + string(kst_tab_armo.num_int) + " / " + string(kst_tab_armo.data_int, "yyyy") + "  (id=" + string(kst_tab_armo.id_armo) + ") " 
 	
 	end if
-	
 	
 	this.visible = k_visibile
 else
@@ -3603,8 +3610,10 @@ string dataobject = "d_meca_num_data"
 boolean controlmenu = true
 boolean hsplitscroll = false
 boolean livescroll = false
+borderstyle borderstyle = StyleShadowBox!
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event buttonclicked;call super::buttonclicked;//
@@ -3732,8 +3741,10 @@ boolean hscrollbar = false
 boolean vscrollbar = false
 boolean hsplitscroll = false
 boolean livescroll = false
+borderstyle borderstyle = StyleShadowBox!
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event u_display(boolean a_visible);//
@@ -3777,8 +3788,10 @@ boolean hscrollbar = false
 boolean vscrollbar = false
 boolean hsplitscroll = false
 boolean livescroll = false
+borderstyle borderstyle = StyleShadowBox!
 boolean ki_colora_riga_aggiornata = false
 boolean ki_d_std_1_attiva_cerca = false
+boolean ki_dw_visibile_in_open_window = false
 end type
 
 event u_display(boolean a_visible);//

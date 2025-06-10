@@ -70,8 +70,12 @@ try
 	//st_versione.text = kkG_versione
 	
 	kuf1_utility = create kuf_utility	
-	
-	this.title = trim(this.title) + "  Versione " + kguo_g.get_app_release( ) 
+		
+	if kguo_g.if_pbprocess64bit( ) then	
+		this.title = trim(this.title) + "  Versione " + kguo_g.get_app_release( ) + "+"
+	else
+		this.title = trim(this.title) + "  Versione " + kguo_g.get_app_release( ) 
+	end if
 	this.title = this.title + " su " + trim(kuf1_utility.u_nome_computer()) //prendo nome del Computer
 	
 	kiuf_sr_utenti = create kuf_sr_utenti

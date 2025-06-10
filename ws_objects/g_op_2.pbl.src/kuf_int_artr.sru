@@ -42,6 +42,7 @@ int kki_scelta_report_PtasksLab
 int kki_scelta_report_PtasksFatt 
 int kki_scelta_report_PtasksTempi
 int kki_scelta_report_PklistCamion
+int kki_scelta_report_E1DatiLottoEsportati
 //
 
 int kki_scelta_report_pic_lotti_entrati
@@ -73,6 +74,7 @@ int kki_scelta_report_pic_PtasksLab
 int kki_scelta_report_pic_PtasksFatt 
 int kki_scelta_report_pic_PtasksTempi 
 int kki_scelta_report_pic_PklistCamion
+int kki_scelta_report_pic_E1DatiLottoEsportati
 
 //int kki_scelta_report_pic_lotti_entrati
 //int kki_scelta_report_pic_generico

@@ -184,7 +184,10 @@ private function string u_e1_importa_e1srst () throws uo_exception
 private function integer u_e1_importa_barcode () throws uo_exception
 private function datetime u_e1_importa_data_ent () throws uo_exception
 private function long u_e1_importa_wo_so () throws uo_exception
-public subroutine set_dw4_parzialecolli ()
+private function integer get_n_parzialecolli_from_dw_5 (long a_id_armo)
+private subroutine set_parziale_colli_if_changed ()
+private function integer set_parzialecolli_dw_4 ()
+private function integer set_parzialecolli_dw_riga_0 ()
 end prototypes
 
 protected function string aggiorna ();//
@@ -991,31 +994,26 @@ end subroutine
 protected subroutine riempi_id ();//
 //=== Imposta gli Effettivi ID degli archivi
 long k_righe, k_ctr
-long k_id_meca_1
+long k_id_meca
 st_tab_meca kst_tab_meca
 st_tab_clienti kst_tab_clienti
 st_esito kst_esito
 
 
 if tab_1.tabpage_1.dw_1.rowcount() > 0 then
-	k_ctr = 1
-end if
-
-if k_ctr > 0 then
 	
 //=== Salvo ID originale x piu' avanti
-	k_id_meca_1 = tab_1.tabpage_1.dw_1.getitemnumber(k_ctr, "id_meca")
+	k_id_meca = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca")
 
-	if isnull(k_id_meca_1) then				
-		tab_1.tabpage_1.dw_1.setitem(k_ctr, "id_meca", 0)
-		k_id_meca_1 = 0
+	if isnull(k_id_meca) then				
+		tab_1.tabpage_1.dw_1.setitem(1, "id_meca", 0)
+		k_id_meca = 0
 	end if
-
 	
 	k_righe = tab_1.tabpage_4.dw_4.rowcount()
 	for k_ctr = 1 to k_righe 
 		
-		tab_1.tabpage_4.dw_4.setitem(k_ctr, "id_meca", k_id_meca_1)
+		tab_1.tabpage_4.dw_4.setitem(k_ctr, "id_meca", k_id_meca)
 
 //=== Se non sono in caricamento allora prelevo l'ID dalla dw
 		if tab_1.tabpage_4.dw_4.getitemstatus(k_ctr, 0, primary!) = newmodified! then
@@ -1024,7 +1022,7 @@ if k_ctr > 0 then
 	
 	end for
 
-	set_dw4_parzialecolli( )  // sistema numero colli parziali 
+	set_parziale_colli_if_changed( )  // sistema numero colli parziali sulle Righe di Dettaglio
 
 end if
 
@@ -1049,10 +1047,9 @@ kuf_meca_set_e1srst kuf1_meca_set_e1srst
 
 	ki_toolbar_window_presente=true
 	
-	tab_1.tabpage_5.picturename = "Barcode.ICO"
-	tab_1.tabpage_6.picturename = "Barcode.ICO"
-//	tab_1.tabpage_6.picturename = "carrello16.png"
-	tab_1.tabpage_7.picturename = "e1Lotto.png"
+//	tab_1.tabpage_5.picturename = "Barcode.ICO"
+//	tab_1.tabpage_6.picturename = "Barcode.ICO"
+//	tab_1.tabpage_7.picturename = "e1Lotto.png"
 	
 	
 	kist_tab_meca.id  = 0
@@ -1735,40 +1732,40 @@ try
 //				end if
 //			else
 //				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > 0 then
-				if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] then
-					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) &
-												+ " Campioni associati sulla Riga di Dettaglio, "&
-												+ kkg.acapo + "oppure rimuovere l'indicazione dall'elenco dei Barcode.")
-  					kst_esito = kguo_exception.get_st_esito()
-				end if
-//			end if
-			if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 0 then
-				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
-					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] then
-						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
-										"ATTENZIONE: numero dei pallet Parziali indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + ") diverso dal numero dei Barcode segnalati come Parziali " &
-											+ string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) +".")
-						kst_esito = kguo_exception.get_st_esito()
-					end if
-				else
-					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 1 then
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i " + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + " Barcode Parziali.")
-					else
-						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode Parziale.")
-					end if
-					kst_esito = kguo_exception.get_st_esito()
-				end if
-			else
-				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
-					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
-					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) + " Barcode Parziali sulla Riga di Dettaglio.")
-					kst_esito = kguo_exception.get_st_esito()
-				end if
+			if tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1] > tab_1.tabpage_4.dw_4.object.kcampionecolli_sum[1] then
+				kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+				kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_campione_count[1]) &
+											+ " Campioni associati sulla Riga di Dettaglio, "&
+											+ kkg.acapo + "oppure rimuovere l'indicazione dall'elenco dei Barcode.")
+				kst_esito = kguo_exception.get_st_esito()
 			end if
 		end if
+//			if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 0 then
+//				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
+//					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] <> tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] then
+//						kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+//										"ATTENZIONE: numero dei pallet Parziali indicati sul dettaglio (" + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + ") diverso dal numero dei Barcode segnalati come Parziali " &
+//											+ string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) +".")
+//						kst_esito = kguo_exception.get_st_esito()
+//					end if
+//				else
+//					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+//					if tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1] > 1 then
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare i " + string(tab_1.tabpage_4.dw_4.object.kparzialecolli_sum[1]) + " Barcode Parziali.")
+//					else
+//						kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare il Barcode Parziale.")
+//					end if
+//					kst_esito = kguo_exception.get_st_esito()
+//				end if
+//			else
+//				if tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1] > 0 then
+//					kguo_exception.kist_esito.esito = kkg_esito.DATI_INSUFF
+//					kst_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline("ATTENZIONE: è necessario indicare " + string(tab_1.tabpage_5.dw_5.object.k_flg_parziale_count[1]) + " Barcode Parziali sulla Riga di Dettaglio.")
+//					kst_esito = kguo_exception.get_st_esito()
+//				end if
+//			end if
+//		end if
 	end if
 	
 
@@ -2951,16 +2948,11 @@ try
 		k_riga = tab_1.tabpage_4.dw_4.getnextmodified(k_riga, primary!)
 
 	loop
-
 		
 //--- Aggiorna, se modificato, la TAB_5  - FLAG DEI BARCODE  ---------------------------------------------------------------------------------------
 	if tab_1.tabpage_5.dw_5.getnextmodified(0, primary!) > 0	or tab_1.tabpage_5.dw_5.DeletedCount ( ) > 0 then
 		if tab_1.tabpage_5.dw_5.update( ) < 0 then
-			kst_esito.sqlcode = 0
-			kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
-			kst_esito.sqlerrtext = "Fallito aggiornamento '" + trim(tab_1.tabpage_5.text) + "', " + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!"
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
+			kguo_exception.set_st_esito_err_dw(tab_1.tabpage_5.dw_5, "Fallito aggiornamento '" + trim(tab_1.tabpage_5.text) + "', " + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!")
 			throw kguo_exception
 		end if
 	end if
@@ -2968,11 +2960,7 @@ try
 //--- Aggiorna, se modificato, la TAB_6  - PREZZI RIGA ------------------------------------------------------------------------------------------
 	if tab_1.tabpage_6.dw_6.getnextmodified(0, primary!) > 0	or tab_1.tabpage_6.dw_6.DeletedCount ( ) > 0 then
 		if tab_1.tabpage_6.dw_6.update( ) < 0 then
-			kst_esito.sqlcode = 0
-			kst_esito.esito = kkg_esito.db_ko  // fermo la registrazione  ROLLBACK!
-			kst_esito.sqlerrtext = "Fallito aggiornamento '" + trim(tab_1.tabpage_6.text) + "'," + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!"
-			kguo_exception.inizializza( )
-			kguo_exception.set_esito(kst_esito)
+			kguo_exception.set_st_esito_err_dw(tab_1.tabpage_6.dw_6, "Fallito aggiornamento '" + trim(tab_1.tabpage_6.text) + "', " + kkg.acapo + "Impossibile proseguire con gli aggiornamenti!")
 			throw kguo_exception
 		end if
 	end if
@@ -4420,48 +4408,49 @@ kuf_certif kuf1_certif
 				"Attenzione, Lotto 'CHIUSO', modifiche non consentite! ~n~r" + &
 				"(ID lotto: " + string(kist_tab_meca.id) + ") " )
 			kguo_exception.messaggio_utente( )	
-		else
-			kuf1_sped = create kuf_sped
-			k_colli_sped = kuf1_sped.get_colli_sped_lotto(kist_tab_meca_orig.id)
-			if k_colli_sped > 0 then
-				ki_lotto_spedito = true
-			end if
+			return
+		end if
+
+		kuf1_sped = create kuf_sped
+		k_colli_sped = kuf1_sped.get_colli_sped_lotto(kist_tab_meca_orig.id)
+		if k_colli_sped > 0 then
+			ki_lotto_spedito = true
+		end if
 
 //--- Verifica Lotto Certificato Stampato
-			kuf1_certif = create kuf_certif
-			kst_tab_certif.id_meca = kist_tab_meca.id
-			ki_certif_stampato = kuf1_certif.if_stampato_x_id_meca(kst_tab_certif)
+		kuf1_certif = create kuf_certif
+		kst_tab_certif.id_meca = kist_tab_meca.id
+		ki_certif_stampato = kuf1_certif.if_stampato_x_id_meca(kst_tab_certif)
 
 //--- Lotto già Spedito avvertenze
-			if ki_lotto_spedito then 
+		if ki_lotto_spedito then 
+			kguo_exception.inizializza()
+			kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_allerta )
+			kguo_exception.setmessage(  &
+				"Attenzione, già Spediti " + string(k_colli_sped) + " colli per questo LOTTO. La Modifica potrebbe comprometterne l'integrità. ~n~r" + &
+				"(ID lotto: " + string(kist_tab_meca.id) + ") " )
+			kguo_exception.messaggio_utente( )	
+		else
+			
+			u_allarme_cliente( )  // legge allarmi 
+			
+			ki_lotto_pianificato = kiuf_armo.if_lotto_pianificato(kist_tab_meca) 
+//--- Lotto già PIANIFICATO allora ATTENZIONE alle Modifiche	!!!!!	
+			if ki_lotto_pianificato then 
 				kguo_exception.inizializza()
 				kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_allerta )
 				kguo_exception.setmessage(  &
-					"Attenzione, già Spediti " + string(k_colli_sped) + " colli per questo LOTTO. La Modifica potrebbe comprometterne l'integrità. ~n~r" + &
+					"Attenzione, LOTTO già Pianificato per il Trattamento. La Modifica potrebbe comprometterne l'integrità. ~n~r" + &
 					"(ID lotto: " + string(kist_tab_meca.id) + ") " )
 				kguo_exception.messaggio_utente( )	
 			else
-				
-				u_allarme_cliente( )  // legge allarmi 
-				
-				ki_lotto_pianificato = kiuf_armo.if_lotto_pianificato(kist_tab_meca) 
-//--- Lotto già PIANIFICATO allora ATTENZIONE alle Modifiche	!!!!!	
-				if ki_lotto_pianificato then 
-					kguo_exception.inizializza()
-					kguo_exception.set_tipo( kguo_exception.kk_st_uo_exception_tipo_allerta )
-					kguo_exception.setmessage(  &
-						"Attenzione, LOTTO già Pianificato per il Trattamento. La Modifica potrebbe comprometterne l'integrità. ~n~r" + &
-						"(ID lotto: " + string(kist_tab_meca.id) + ") " )
-					kguo_exception.messaggio_utente( )	
-				else
 //--- Barcode e altri dati da importare?
-					k_msg = u_e1_importa_all(false)
-					if k_msg > " " then
-						u_write_avvertenze(k_msg)
-						messagebox("Importati Dati da E1", k_msg)
-					end if
-
+				k_msg = u_e1_importa_all(false)
+				if k_msg > " " then
+					u_write_avvertenze(k_msg)
+					messagebox("Importati Dati da E1", k_msg)
 				end if
+
 			end if
 		end if
 		
@@ -5492,36 +5481,123 @@ return k_return
 
 end function
 
-public subroutine set_dw4_parzialecolli ();//--- Imposta se maggiore il numero barcode parziali nel numero dei Parziali di dettaglio
-int k_row, k_row_bcd, k_n_parziali, k_parz_dett
+private function integer get_n_parzialecolli_from_dw_5 (long a_id_armo);/*
+Calcolo dei Colli parziali indicati sui Barcode x ID_ARMO
+*/
+int k_n_parziali_dw5, k_row_dw5
    
 
-if tab_1.tabpage_5.dw_5.rowcount( ) > 0 then
-	
-	for k_row = 1 to tab_1.tabpage_4.dw_4.rowcount( )
-		
-		k_n_parziali = 0
-		for k_row_bcd = 1 to tab_1.tabpage_5.dw_5.rowcount( )
-			if tab_1.tabpage_5.dw_5.getitemnumber( k_row_bcd , "id_armo") = tab_1.tabpage_4.dw_4.getitemnumber( k_row, "id_armo") &
-					and tab_1.tabpage_5.dw_5.getitemnumber(k_row_bcd, "flg_parziale") = 1 then
-				k_n_parziali ++
-			end if
-		next
-		k_parz_dett = tab_1.tabpage_4.dw_4.getitemnumber(k_row, "parzialecolli")		
-		if k_n_parziali <> k_parz_dett then
-			tab_1.tabpage_4.dw_4.setitem(k_row, "parzialecolli", k_n_parziali)
-			kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn 
-			kguo_exception.kist_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
-						"ATTENZIONE: è stato aggiornato il numero dei colli Parziali da " + string(k_parz_dett) &
-						+ " a " + string(k_n_parziali) + " sulla Riga di Dettaglio.")
-			kguo_exception.messaggio_utente()
-		end if
-
-	next
-	
+if tab_1.tabpage_5.dw_5.rowcount( ) <= 0 then // elenco barcode
+	return 0
 end if
+		
+k_n_parziali_dw5= 0
+for k_row_dw5 = 1 to tab_1.tabpage_5.dw_5.rowcount( ) // conta i parziali x ID_ARMO
+	if tab_1.tabpage_5.dw_5.getitemnumber( k_row_dw5 , "id_armo") = a_id_armo &
+								and tab_1.tabpage_5.dw_5.getitemnumber(k_row_dw5, "flg_parziale") = 1 then
+		k_n_parziali_dw5++
+	end if
+next
+
+return k_n_parziali_dw5
+
 	
+end function
+
+private subroutine set_parziale_colli_if_changed ();/*
+Imposta i COLLI PARZIALI sulle RIGHE 
+*/
+integer k_n_parziali_changed, k_n_parziali
+
+
+k_n_parziali = set_parzialecolli_dw_riga_0()
+if k_n_parziali > 0 then k_n_parziali_changed = k_n_parziali
+
+k_n_parziali = set_parzialecolli_dw_4()
+if k_n_parziali > 0 and k_n_parziali_changed = 0 then k_n_parziali_changed = k_n_parziali
+
+
+if k_n_parziali_changed > 0 then
+	
+	if tab_1.selectedtab = 4 then // sul tab del dettaglio non importa il box modale
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_ko // fa solo la notifica
+	else
+		kguo_exception.kist_esito.esito = kguo_exception.kk_st_uo_exception_tipo_dati_wrn 
+	end if
+// if k_n_parziali_changed > 0 then
+//		kguo_exception.kist_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+//				"ATTENZIONE: è stato aggiornato il numero dei colli Parziali da " + string(k_n_parziali_dw4) &
+//				+ " a " + string(k_n_parziali_dw5) + " sulla Riga di Dettaglio.")
+//	else
+		if k_n_parziali_changed = 1 then
+			kguo_exception.kist_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+				"ATTENZIONE: è stato impostato 1 collo Parziale sulla Riga di Dettaglio.")
+		else
+			kguo_exception.kist_esito.sqlerrtext = kguo_exception.u_add_esito_and_nwline(&
+				"ATTENZIONE: sono stati impostati " + string(k_n_parziali_changed) + " colli Parziali sulla Riga di Dettaglio.")
+		end if
+//	end if
+	kguo_exception.messaggio_utente()
+
+end if
+
+
 end subroutine
+
+private function integer set_parzialecolli_dw_4 ();/*
+	Imposta il n. colli Parziali sulle righe di dettaglio
+*/
+integer k_return
+int k_row_dw4, k_row_dw5, k_n_parziali_dw5, k_n_parziali_dw4
+   
+	
+for k_row_dw4 = 1 to tab_1.tabpage_4.dw_4.rowcount( ) // elenco righe ARMO
+	
+	k_n_parziali_dw5 = get_n_parzialecolli_from_dw_5(tab_1.tabpage_4.dw_4.getitemnumber( k_row_dw4, "id_armo")) // conta i parziali x ID_ARMO
+
+	k_n_parziali_dw4 = tab_1.tabpage_4.dw_4.getitemnumber(k_row_dw4, "parzialecolli")		
+	if isnull(k_n_parziali_dw4) then k_n_parziali_dw4 = 0
+
+	if k_n_parziali_dw5 <> k_n_parziali_dw4 then
+		
+		k_return = k_n_parziali_dw5
+		
+		tab_1.tabpage_4.dw_4.setitem(k_row_dw4, "parzialecolli", k_n_parziali_dw5)
+		
+	end if
+
+next
+
+return k_return	
+
+end function
+
+private function integer set_parzialecolli_dw_riga_0 ();/*
+ Imposta il numero barcode parziali in riga dettaglio
+*/
+int k_return, k_n_parziali_dw_riga_0, k_n_parziali_dw5
+   
+
+	if tab_1.tabpage_4.dw_riga_0.rowcount( ) <= 0 then // elenco barcode
+		return 0
+	end if
+
+	k_n_parziali_dw5 = get_n_parzialecolli_from_dw_5(tab_1.tabpage_4.dw_riga_0.getitemnumber(1, "id_armo")) // conta i parziali x ID_ARMO
+		
+	k_n_parziali_dw_riga_0 = tab_1.tabpage_4.dw_riga_0.getitemnumber(1, "parzialecolli")		
+	if isnull(k_n_parziali_dw_riga_0) then k_n_parziali_dw_riga_0 = 0
+
+	if k_n_parziali_dw5 <> k_n_parziali_dw_riga_0 then
+		k_return = k_n_parziali_dw5
+
+		tab_1.tabpage_4.dw_riga_0.setitem(1, "parzialecolli", k_n_parziali_dw5)
+
+	end if
+
+return k_return 
+
+	
+end function
 
 on w_lotto.create
 int iCurrent
@@ -6213,6 +6289,7 @@ integer width = 3465
 integer height = 1872
 boolean enabled = true
 string text = "barcode"
+string picturename = "Barcode.ICO"
 long picturemaskcolor = 553648127
 end type
 
@@ -6221,7 +6298,7 @@ boolean visible = true
 integer width = 2153
 integer height = 1296
 boolean enabled = true
-string dataobject = "d_barcode_l_2a"
+string dataobject = "d_barcode_l_2a1"
 boolean ki_link_standard_sempre_possibile = true
 end type
 
@@ -6235,6 +6312,7 @@ integer width = 3465
 integer height = 1872
 boolean enabled = true
 string text = "Dosimetri"
+string picturename = "Custom077a!"
 string powertiptext = "Dosimetri generati"
 dw_riga_6 dw_riga_6
 st_orizzontal_6 st_orizzontal_6
@@ -6835,7 +6913,10 @@ string k_nome
 		case "cod_sl_pt"
 			legge_dwc()
 
-		
+//--- Calcola il Parzialecolli dai Barcode
+		case "b_calcola_n_parzialecolli"
+			set_parziale_colli_if_changed( )
+
 	end choose
 
 

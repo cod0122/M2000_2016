@@ -28,7 +28,11 @@ try
 		kuf1_armo.get_dati_rid(kst_tab_meca)
 		
 		if kst_tab_meca.num_int > 0 then 
-			k_return = string(kst_tab_meca.num_int, '#') + '/' + string(kst_tab_meca.data_ent,'yyyy')
+			if date(kst_tab_meca.data_ent) > date(0) then
+				k_return = string(kst_tab_meca.num_int, '#') + '/' + string(kst_tab_meca.data_ent,'yyyy')
+			else
+				k_return = string(kst_tab_meca.num_int, '#') + '/' + string(kst_tab_meca.data_int,'yyyy') + '*'
+			end if
 		end if
 		
 	end if

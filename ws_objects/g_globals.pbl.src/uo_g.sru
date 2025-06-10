@@ -148,6 +148,7 @@ public function datetime get_datetime_current_local ()
 public function string get_month (integer a_month, string a_lang)
 private subroutine set_month ()
 public function decimal u_round_fixed (decimal a_numero, integer a_decimal)
+public function boolean if_pbprocess64bit ()
 end prototypes
 
 public subroutine set_attiva_suoni (boolean a_attiva_suoni);
@@ -946,6 +947,19 @@ string k_x
 	end if
 
 
+end function
+
+public function boolean if_pbprocess64bit ();//
+Environment env
+
+GetEnvironment(env)
+
+// Verifica se è 64 bit
+if env.ProcessBitness = 64 then
+    return true
+else
+    return false
+end if
 end function
 
 on uo_g.create

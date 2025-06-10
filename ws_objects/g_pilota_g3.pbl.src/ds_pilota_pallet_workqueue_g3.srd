@@ -43,7 +43,7 @@ table(column=(type=char(5) updatewhereclause=yes name=stato dbname="stato" )
       , coalesce(groupage.ordine_figlio, 0) as ordine_figlio 
       , trim(coalesce(wof.lotto, '')) as lotto_figlio
       , (SELECT Data_Ciclo FROM gam3.film order by Data_Ciclo desc limit 1) update_last
-      , coalesce((select t.ciclo_entrata from esposizioni t where t.giro in (select max(t1.giro) from esposizioni t1 where t1.barcode = wip.barcode)),0) as ciclo_entrata
+      , coalesce((select distinct max( t.ciclo_entrata ) from esposizioni t where t.giro in (select max(t1.giro) from esposizioni t1 where t1.barcode = wip.barcode)),0) as ciclo_entrata
     FROM pallet left outer join groupage on pallet.barcode = groupage.barcode_padre    
 					 left outer join wo wof on groupage.work_order = wof.wo  
                 left outer join wip on pallet.barcode = wip.barcode 
@@ -113,4 +113,3 @@ export.xml(headgroups="1" includewhitespace="0" metadatatype=0 savemetadata=0 )
 import.xml()
 export.pdf(method=0 distill.custompostscript="0" nativepdf.customsize=0 nativepdf.customorientation=0 nativepdf.pdfstandard=0 nativepdf.useprintspec=no )
 export.xhtml()
- 

@@ -59,7 +59,6 @@ public function integer x_db_connetti_post_ok () throws uo_exception
 public function boolean db_connetti () throws uo_exception
 protected function boolean u_if_dberror_grave (integer a_code)
 protected function boolean u_error_db_if_login (ref st_esito ast_esito)
-private subroutine u_error_db (ref st_esito ast_esito)
 protected function boolean u_error_db_if_conn (ref st_esito ast_esito)
 protected function boolean u_error_db_if_conn_timeout (ref st_esito ast_esito)
 private subroutine u_error_common (ref st_esito ast_esito)
@@ -72,6 +71,7 @@ public function st_esito db_crea_temp_table (string a_table, string a_campi, str
 public function st_esito db_crea_temp_table (string a_table, string a_campi) throws uo_exception
 private function st_esito db_crea_temp_table_1 (string a_table, string a_campi) throws uo_exception
 public subroutine u_if_col_len_ok (string a_table, string a_col, string a_value) throws uo_exception
+protected subroutine u_error_db (ref st_esito ast_esito)
 end prototypes
 
 event type integer u_dberror(long a_code, string a_sqlsyntax, string a_sqlerrtext);//
@@ -668,38 +668,6 @@ protected function boolean u_error_db_if_login (ref st_esito ast_esito);//
 
 end function
 
-private subroutine u_error_db (ref st_esito ast_esito);//
-//---- gestione prsonalizzata a seconda del DB degli errori della procedura
-//
-//
-long k_sqlcode 
-long k_sqldbcode
-string k_sqlerrtext
-
-
-k_sqlcode = this.sqlcode
-k_sqldbcode = this.sqldbcode
-k_sqlerrtext = this.sqlerrtext
-
-if u_error_db_if_login(ast_esito) then
-	
-elseif u_error_db_if_conn(ast_esito) then
-
-elseif u_error_db_if_conn_timeout(ast_esito) then
-	
-elseif u_error_others(ast_esito) then
-	
-	u_error_common(ast_esito)
-	
-end if
-
-this.sqlcode = k_sqlcode
-this.sqldbcode = k_sqldbcode 
-this.sqlerrtext = k_sqlerrtext
-
-
-end subroutine
-
 protected function boolean u_error_db_if_conn (ref st_esito ast_esito);//
 //---- gestione personalizzata a seconda del DB per errore di CONNESSIONE
 //
@@ -999,6 +967,38 @@ IF k_len_db > 0 and len(trim(a_value)) > k_len_db THEN
    THROW kguo_exception
 END IF
 	 
+end subroutine
+
+protected subroutine u_error_db (ref st_esito ast_esito);//
+//---- gestione prsonalizzata a seconda del DB degli errori della procedura
+//
+//
+long k_sqlcode 
+long k_sqldbcode
+string k_sqlerrtext
+
+
+k_sqlcode = this.sqlcode
+k_sqldbcode = this.sqldbcode
+k_sqlerrtext = this.sqlerrtext
+
+if u_error_db_if_login(ast_esito) then
+	
+// questo può mandare il LOOP l'errore xhè c'è un comando SQL elseif u_error_db_if_conn(ast_esito) then
+
+elseif u_error_db_if_conn_timeout(ast_esito) then
+	
+elseif u_error_others(ast_esito) then
+	
+	u_error_common(ast_esito)
+	
+end if
+
+this.sqlcode = k_sqlcode
+this.sqldbcode = k_sqldbcode 
+this.sqlerrtext = k_sqlerrtext
+
+
 end subroutine
 
 on kuo_sqlca_db_0.create

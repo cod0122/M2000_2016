@@ -11,8 +11,8 @@ end type
 end forward
 
 global type w_int_artr from w_g_tab_3
-integer width = 686
-integer height = 1180
+integer width = 1760
+integer height = 1904
 string title = "Interrogazioni"
 boolean ki_toolbar_window_presente = true
 rte_1 rte_1
@@ -170,6 +170,9 @@ private function long report_30_inizializza (uo_d_std_1 kdw_1) throws uo_excepti
 private subroutine get_parametri_30 () throws uo_exception
 private function long report_9_inizializza (ref uo_d_std_1 kdw_1) throws uo_exception
 private function string u_get_data_ultima_estrazione ()
+private function long report_31_inizializza (uo_d_std_1 kdw_1) throws uo_exception
+private subroutine report_31 ()
+private subroutine get_parametri_31 () throws uo_exception
 end prototypes
 
 protected function string inizializza () throws uo_exception;//======================================================================
@@ -5187,6 +5190,9 @@ try
 	
 		case kiuf_int_artr.kki_scelta_report_pklistcamion // Pakcing-List Composizione Camion
 			k_righe = report_30_inizializza(kdw_1)
+		
+		case kiuf_int_artr.kki_scelta_report_e1datilottoesportati // Legge da E1 i dati esportati da M2000
+			k_righe = report_31_inizializza(kdw_1)
 			
 		case else
 			kdw_1.visible = false
@@ -6905,6 +6911,9 @@ choose case ki_scelta_report
 	case kiuf_int_artr.kki_scelta_report_PklistCamion	// composizione dei Pklist nel Camion 
 		report_30()
 
+	case kiuf_int_artr.kki_scelta_report_e1datilottoesportati	// Legge da E1 i dati esportati da M2000
+		report_31()
+
 	case else  
 		k_return = false
 		report_0( )
@@ -8275,6 +8284,180 @@ string k_importato, k_importato_ora
 return k_importato + " " + k_importato_ora
 end function
 
+private function long report_31_inizializza (uo_d_std_1 kdw_1) throws uo_exception;//
+//======================================================================
+//=== Inizializzazione del TAB 2 controllandone i valori se gia' presenti
+//======================================================================
+//
+string k_scelta, k_codice_prec
+long k_righe=0, k_rc
+kuf_utility kuf1_utility
+
+
+	try
+	
+		kguo_exception.inizializza( this.classname())
+		k_scelta = trim(ki_st_open_w.flag_modalita)
+	
+	//--- Acchiappo i codice della RETRIEVE per evitare eventalmente la rilettura
+		if not isnull(kdw_1.tag) then
+			k_codice_prec = kdw_1.tag
+		else
+			k_codice_prec = " "
+		end if
+	
+	//--- salvo i parametri cosi come sono stati immessi
+		kuf1_utility = create kuf_utility
+		kdw_1.tag = kuf1_utility.u_stringa_campi_dw(1, 1, tab_1.tabpage_1.dw_1)
+		destroy kuf1_utility
+
+		if trim(k_codice_prec) <> trim(kdw_1.tag) then
+			u_set_tabpage_picture(true)
+		else
+			u_set_tabpage_picture(false)
+		end if
+	
+		if trim(k_codice_prec) =  "" or kdw_1.rowcount() = 0 then //<> k_codice_prec then
+
+			kdw_1.visible = true
+			kguo_sqlca_db_e1.db_connetti( )
+			kdw_1.dataobject = "d_report_31_e1_asn_f5547_l"			
+			k_rc = kdw_1.settransobject(kguo_sqlca_db_e1)
+			if k_rc > 0 then
+	//--- piglia i parametri per l'estrazione 
+				get_parametri_31()
+
+				k_righe = kdw_1.retrieve(string(ki_st_int_artr.id_meca, "0"), ki_st_int_artr.e1an)
+				
+			else
+				kguo_exception.kist_esito.esito = kkg_esito.db_ko
+				kguo_exception.kist_esito.sqlerrtext = "Collegamento al DB di E1 fallito! Operazione Interrotta. "
+				throw kguo_exception
+			end if
+		end if
+
+	catch (uo_exception kuo_exception)
+		throw kuo_exception
+
+	finally		
+		
+		if kdw_1.rowcount() = 0 then
+			kdw_1.insertrow(0) 
+		end if
+		kdw_1.setfocus()
+
+	end try
+
+
+return k_righe
+
+end function
+
+private subroutine report_31 ();//======================================================================
+//=== Inizializzazione della Windows
+//=== Ripristino DW; tasti; e retrieve liste
+//======================================================================
+//
+string k_scelta, k_importa
+
+
+if tab_1.tabpage_1.dw_1.rowcount() <= 0 or tab_1.tabpage_1.dw_1.dataobject <> "d_report_31" then
+	tab_1.tabpage_1.dw_1.dataobject = "d_report_31"
+	tab_1.tabpage_1.dw_1.settransobject(sqlca)
+	
+	try	
+		if u_dw_selezione_ripri( ) > 0 then
+		else
+			tab_1.tabpage_1.dw_1.insertrow(0)
+
+			if tab_1.tabpage_1.dw_1.getitemnumber( 1, "anno") > 0 then
+			else
+				tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kguo_g.get_dataoggi( )))
+			end if
+		end if
+
+//--- imposto l'utente (il "terminale") x costruire il nome della view
+		set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+		tab_1.tabpage_1.dw_1.setitem(1, "utente", ki_st_int_artr.utente)
+
+	catch (uo_exception kuo_exception)
+		kuo_exception.messaggio_utente()
+
+	end try
+
+	tab_1.tabpage_1.dw_1.visible = true
+	tab_1.tabpage_1.dw_1.setfocus()
+
+end if
+
+
+		
+
+	
+
+
+
+end subroutine
+
+private subroutine get_parametri_31 () throws uo_exception;//======================================================================
+//=== Polola la struttura con i parametri di estrazione
+//======================================================================
+//
+date  k_data_fin, k_data_ini
+st_tab_meca kst_tab_meca
+kuf_armo kuf1_armo
+
+
+try
+	SetPointer(kkg.pointer_attesa)
+	kguo_exception.inizializza(this.classname())
+
+ 	set_nome_utente_tab() //--- imposta il nome utente da utilizzare x i nomi view 
+	
+	kuf1_armo = create kuf_armo
+	
+	//--- piglia param dalla window
+	kst_tab_meca.id = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_meca") 
+	if kst_tab_meca.id > 0 then
+		kuf1_armo.get_dati_rid(kst_tab_meca) 
+		if kst_tab_meca.num_int > 0 then
+			tab_1.tabpage_1.dw_1.setitem(1, "num_int", kst_tab_meca.num_int)
+			tab_1.tabpage_1.dw_1.setitem(1, "anno", year(kst_tab_meca.data_int))
+		else
+			kGuo_exception.setmessage("Dati non Trovati", "Id Lotto " + string(kst_tab_meca.id) + " non trovato in archivio. "+kkg.acapo+"Prosegue comunque l'estrazione.")
+			//throw kGuo_exception 
+		end if
+	else
+		kst_tab_meca.num_int = tab_1.tabpage_1.dw_1.getitemnumber(1, "num_int") 
+		if kst_tab_meca.num_int > 0 then
+			kst_tab_meca.data_int = date(tab_1.tabpage_1.dw_1.getitemnumber(1, "anno"),01,01) 
+			kuf1_armo.get_id_meca(kst_tab_meca) 
+			if kst_tab_meca.id > 0 then
+				tab_1.tabpage_1.dw_1.setitem(1, "id_meca", kst_tab_meca.id)
+			else
+				kGuo_exception.setmessage("Dati non Trovati", "Lotto n. " + string(kst_tab_meca.num_int) + " del "  + string(year(kst_tab_meca.data_int)) &
+									+ " non trovato in archivio. " + kkg.acapo + "Prego, correggere i valori.")
+				throw kGuo_exception 
+			end if
+		end if
+	end if
+	
+//	ki_st_int_artr.clie_3 = tab_1.tabpage_1.dw_1.getitemnumber(1, "id_clie_3") 
+	ki_st_int_artr.e1an = tab_1.tabpage_1.dw_1.getitemnumber(1, "e1an") 
+	if isnull(ki_st_int_artr.e1an) then ki_st_int_artr.e1an = 0
+	ki_st_int_artr.id_meca = kst_tab_meca.id
+	if isnull(ki_st_int_artr.id_meca) then ki_st_int_artr.id_meca = 0
+
+catch (uo_exception kuo_exception)
+	throw kuo_exception
+	
+finally
+	SetPointer(kkg.pointer_default)
+	if isvalid(kuf1_armo) then destroy kuf1_armo
+
+end try
+end subroutine
+
 on w_int_artr.create
 int iCurrent
 call super::create
@@ -8469,6 +8652,9 @@ end on
 type dw_1 from w_g_tab_3`dw_1 within tabpage_1
 event u_set_clienti ( long k_row,  string k_colname )
 event u_dwc_mc_co_retrieve ( string a_colname )
+event u_set_clienti_clie_x ( long k_row,  string k_colname,  character k_x )
+event u_set_clienti_id_clie_x ( long k_row,  string k_colname,  character k_x )
+event u_set_clienti_e1an ( datawindowchild kdwc_cliente,  long k_row_found,  character k_x )
 boolean visible = true
 integer x = 1061
 integer y = 160
@@ -8496,156 +8682,23 @@ datawindowchild kdwc_cliente
 	choose case k_colname //dwo.name 
 		
 		case "clie_1" 
-			k_rag_soc = this.getitemstring(k_row, k_colname) //trim(string(dwo))
-			if trim(k_rag_soc) > " " then
-				this.getchild("clie_1", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
-				else
-					k_riga = kdwc_cliente.getrow( )
-				end if
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_1",	kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_1",	kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_1","Non trovato")
-					this.setitem(1, "id_clie_1",0)
-				end if
-			//	k_errore = 1
-			else
-				this.setitem(1, "id_clie_1",0)
-			end if
-	
+			event u_set_clienti_clie_x(k_row, k_colname, "1")
 	
 		case "id_clie_1" 
-			k_id_clie = this.getitemnumber(k_row, k_colname)
-			if k_id_clie > 0 then
-				this.getchild("clie_1", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-				end if
-				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
-										kdwc_cliente.getrow(), kdwc_cliente.rowcount())
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_1",	kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_1",	kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_1","Non trovato")
-					this.setitem(1, "id_clie_1",0)
-				end if
-//				k_errore = 1
-			else
-				this.setitem(1, "clie_1","")
-				this.setitem(1, "id_clie_1",0)
-			end if
-
+			event u_set_clienti_id_clie_x(k_row, k_colname, "1")
 	
 		case "clie_2" 
-			k_rag_soc = this.getitemstring(k_row, k_colname)
-			if LenA(k_rag_soc) > 0 then
-				this.getchild("clie_2", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
-				else
-					k_riga = kdwc_cliente.getrow( )
-				end if
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_2",&
-									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_2",&
-									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_2","Non trovato")
-					this.setitem(1, "id_clie_2",0)
-				end if
-//				k_errore = 1
-			else
-				this.setitem(1, "id_clie_2",0)
-			end if
-	
-	
+			event u_set_clienti_clie_x(k_row, k_colname, "2")
+		
 		case "id_clie_2" 
-			k_id_clie = this.getitemnumber(k_row, k_colname) //long(trim(string(dwo)))
-			if k_id_clie > 0 then
-				this.getchild("clie_2", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-				end if
-				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
-										1, kdwc_cliente.rowcount())
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_2",&
-									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_2",&
-									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_2","Non trovato")
-					this.setitem(1, "id_clie_2",0)
-				end if
-//				k_errore = 1
-			else
-				this.setitem(1, "clie_2","")
-				this.setitem(1, "id_clie_2",0)
-			end if
-	
+			event u_set_clienti_id_clie_x(k_row, k_colname, "2")	
 	
 		case "clie_3" 
-			k_rag_soc = this.getitemstring(k_row, k_colname)
-			if LenA(k_rag_soc) > 0 then
-				this.getchild("clie_3", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-					k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
-				else
-					k_riga = kdwc_cliente.getrow( )
-				end if
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_3",&
-									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_3",&
-									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_3","Non trovato")
-					this.setitem(1, "id_clie_3",0)
-				end if
-//				k_errore = 1
-			else
-				this.setitem(1, "id_clie_3",0)
-			end if
-	
+			event u_set_clienti_clie_x(k_row, k_colname, "3")
 	
 		case "id_clie_3" 
-			k_id_clie = this.getitemnumber(k_row, k_colname)
-			if k_id_clie > 0 then
-				this.getchild("clie_3", kdwc_cliente)
-				if kdwc_cliente.rowcount() < 2 then
-					kdwc_cliente.retrieve("%")
-					kdwc_cliente.insertrow(1)
-				end if
-				k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
-										1, kdwc_cliente.rowcount())
-				if k_riga > 0 then
-					this.setitem(1, "id_clie_3",&
-									kdwc_cliente.getitemnumber(k_riga, "id_cliente"))
-					this.setitem(1, "clie_3",&
-									kdwc_cliente.getitemstring(k_riga, "rag_soc_1"))
-				else
-					this.setitem(1, "clie_3","Non trovato")
-					this.setitem(1, "id_clie_3",0)
-				end if
-//				k_errore = 1
-			else
-				this.setitem(1, "clie_3","")
-				this.setitem(1, "id_clie_3",0)
-			end if
-	
+			event u_set_clienti_id_clie_x(k_row, k_colname, "3")
+				
 		case "id_gruppo"
 			post leggi_dwc_gruppi(kidw_selezionata)
 			
@@ -8668,6 +8721,83 @@ this.getchild("mc_co", kdwc_contratti_1)
 kdwc_contratti_1.retrieve(k_id_cliente)
 kdwc_contratti_1.insertrow(1)
 
+end event
+
+event dw_1::u_set_clienti_clie_x(long k_row, string k_colname, character k_x);//
+long  k_id_clie, k_riga
+string k_rag_soc
+datawindowchild kdwc_cliente
+
+
+	k_rag_soc = this.getitemstring(k_row, k_colname) //trim(string(dwo))
+	if trim(k_rag_soc) > " " then
+		this.getchild("clie_" + k_x, kdwc_cliente)
+		kdwc_cliente.settransobject( sqlca)
+		if kdwc_cliente.rowcount() < 2 then
+			kdwc_cliente.retrieve("%")
+			kdwc_cliente.insertrow(1)
+			k_riga=kdwc_cliente.find("rag_soc_1 like '%"+trim(k_rag_soc)+"%'", 1, kdwc_cliente.rowcount())
+		else
+			k_riga = kdwc_cliente.getrow( )
+		end if
+
+	end if
+	
+	event u_set_clienti_e1an(kdwc_cliente, k_riga, k_x)
+	
+//	else
+//		this.setitem(1, "id_clie_" + k_x, 0)
+//	end if
+	
+end event
+
+event dw_1::u_set_clienti_id_clie_x(long k_row, string k_colname, character k_x);//
+long  k_id_clie, k_riga
+string k_rag_soc
+datawindowchild kdwc_cliente
+
+
+	k_id_clie = this.getitemnumber(k_row, k_colname)
+	if k_id_clie > 0 then
+		this.getchild("clie_" + k_x, kdwc_cliente)
+		kdwc_cliente.settransobject( sqlca)
+		if kdwc_cliente.rowcount() < 2 then
+			kdwc_cliente.retrieve("%")
+			kdwc_cliente.insertrow(1)
+		end if
+		k_riga=kdwc_cliente.find("id_cliente = "+string(k_id_clie)+" ",&
+								kdwc_cliente.getrow(), kdwc_cliente.rowcount())
+
+	end if
+	
+	event u_set_clienti_e1an(kdwc_cliente, k_riga, k_x)
+
+//	else
+//		this.setitem(1, "clie_" + k_x, "")
+//		this.setitem(1, "id_clie_" + k_x, 0)
+//	end if
+
+
+end event
+
+event dw_1::u_set_clienti_e1an(datawindowchild kdwc_cliente, long k_row_found, character k_x);//
+
+	if k_row_found > 0 then
+		this.setitem(1, "id_clie_" + k_x,	kdwc_cliente.getitemnumber(k_row_found, "id_cliente"))
+		this.setitem(1, "clie_" + k_x,	kdwc_cliente.getitemstring(k_row_found, "rag_soc_1"))
+	else
+		this.setitem(1, "clie_" + k_x, "")
+		this.setitem(1, "id_clie_" + k_x, 0)
+	end if
+
+	if isnumber(describe("e1an.x")) then
+		if k_row_found > 0 then
+			this.setitem(1, "e1an",	kdwc_cliente.getitemnumber(k_row_found, "e1an"))
+		else
+			this.setitem(1, "e1an", 0)
+		end if
+	end if
+	
 end event
 
 event dw_1::clicked;call super::clicked;//
@@ -8709,35 +8839,53 @@ datawindowchild kdwc_contratti_1
 ki_colname = dwo.Name  // salva il nome colonna con il fuoco 	
 
 //---- se ho cambiato il cliente rileggo il Contratto
-if ki_scelta_report = kiuf_int_artr.kki_scelta_report_armo_Contratti then
-	if dwo.name = "id_clie_3" or dwo.name = "clie_3" then
-		post event u_dwc_mc_co_retrieve(dwo.name)
-	elseif dwo.name = "mc_co" then
-		this.setitem(1, "descr", "" )
-		this.setitem(1, "scadenza", "" )
-		this.setitem(1, "idem", "" )
-		this.setitem(1, "codice", 0 )
-		this.getchild("mc_co", kdwc_contratti_1)
-		k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
-		if k_riga > 0 then
-			this.setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
-			this.setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
-			this.setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
-		end if
-	end if
-else
-	
-	post event u_set_clienti(row, dwo.name)
+choose case ki_scelta_report 
 
-	if dwo.name = "annodef" or dwo.name = "nrprot_def" or dwo.name = "nrpag_def" &
-				or dwo.name = "mesedef" then
-		tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '0'")
-	elseif dwo.name = "mod_dati" then
-		if data = "S" then
-			tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='Yes'
+	case kiuf_int_artr.kki_scelta_report_armo_Contratti 
+		if dwo.name = "id_clie_3" or dwo.name = "clie_3" then
+			post event u_dwc_mc_co_retrieve(dwo.name)
+		elseif dwo.name = "mc_co" then
+			this.post setitem(1, "descr", "" )
+			this.post setitem(1, "scadenza", "" )
+			this.post setitem(1, "idem", "" )
+			this.post setitem(1, "codice", 0 )
+			this.getchild("mc_co", kdwc_contratti_1)
+			k_riga=kdwc_contratti_1.getrow() // kdwc_contratti_1.find("mc_co = '"+trim(data)+"' ", 1, kdwc_contratti_1.rowcount())
+			if k_riga > 0 then
+				this.post setitem(1, "descr", kdwc_contratti_1.getitemstring(k_riga, "descr"))
+				this.post setitem(1, "codice",	kdwc_contratti_1.getitemnumber(k_riga, "codice"))
+				this.post setitem(1, "scadenza", "scadenza: " + string(kdwc_contratti_1.getitemdate(k_riga, "data_scad")))
+			end if
 		end if
-	end if
-end if
+
+	case kiuf_int_artr.kki_scelta_report_e1datilottoesportati
+		if dwo.name = "num_int" or dwo.name = "anno" or dwo.name = "id_meca" then
+			this.post setitem(1, "id_clie_3", 0)
+			this.post setitem(1, "clie_3", "")
+			if dwo.name = "num_int" or dwo.name = "anno" then
+				this.post setitem(1, "id_meca", 0)
+			end if
+		elseif dwo.name = "id_clie_3" or dwo.name = "clie_3" then
+			this.post setitem(1, "id_meca", 0)
+			this.post setitem(1, "num_int", 0)
+			post event u_set_clienti(row, dwo.name)
+		end if
+
+	case else
+	
+		post event u_set_clienti(row, dwo.name)
+
+		if dwo.name = "annodef" or dwo.name = "nrprot_def" or dwo.name = "nrpag_def" &
+				or dwo.name = "mesedef" then
+			tab_1.tabpage_1.dw_1.modify("p_salvato_esito.visible = '0'")
+		elseif dwo.name = "mod_dati" then
+			if data = "S" then
+				tab_1.tabpage_1.dw_1.Object.b_registra.Enabled='Yes'
+			end if
+		end if
+end choose
+
+
 
 //if k_errore = 1 then
 //	return 2
@@ -8973,6 +9121,7 @@ if NOT kguf_data_base.u_if_run_dev_mode( ) then
 	kiuf_int_artr.kki_scelta_report_pic_PtasksFatt                      =   this.AddPicture("prjtask16.png")	// kki_scelta_report_PtasksFatt = 27 
 	kiuf_int_artr.kki_scelta_report_pic_PtasksTempi  	                 =   this.AddPicture("prjtask16.png")	// kki_scelta_report_PtasksTempi = 28
 	kiuf_int_artr.kki_scelta_report_pic_PklistCamion  	                 =   this.AddPicture("camion32.png")	// kki_scelta_report_PklistCamion = 29
+	kiuf_int_artr.kki_scelta_report_pic_E1DatiLottoEsportati     		  =   this.AddPicture("DataWindow!")	
 end if
 
 kiuf_int_artr.kki_scelta_report_lotti_entrati = k_ctr; k_ctr++
@@ -9004,6 +9153,7 @@ kiuf_int_artr.kki_scelta_report_PtasksLab = k_ctr; k_ctr++
 kiuf_int_artr.kki_scelta_report_PtasksFatt = k_ctr; k_ctr++ 
 kiuf_int_artr.kki_scelta_report_PtasksTempi = k_ctr; k_ctr++ 
 kiuf_int_artr.kki_scelta_report_PklistCamion = k_ctr; k_ctr++ 
+kiuf_int_artr.kki_scelta_report_E1DatiLottoEsportati = k_ctr; k_ctr++ 
 
 this.InsertItem(  "Lotti entrati", kiuf_int_artr.kki_scelta_report_pic_lotti_entrati, kiuf_int_artr.kki_scelta_report_lotti_entrati) //7 report 
 this.InsertItem(  "Interrogazione Generica", kiuf_int_artr.kki_scelta_report_pic_generico, kiuf_int_artr.kki_scelta_report_generico) //1
@@ -9033,7 +9183,8 @@ this.InsertItem(  "Indicatori ", kiuf_int_artr.kki_scelta_report_pic_RunsRtrRts,
 this.InsertItem(  "Progetti: Laboratori ", kiuf_int_artr.kki_scelta_report_pic_PtasksLab, kiuf_int_artr.kki_scelta_report_PtasksLab) //26
 this.InsertItem(  "Progetti: Fatture ", kiuf_int_artr.kki_scelta_report_pic_PtasksFatt, kiuf_int_artr.kki_scelta_report_PtasksFatt) //27
 this.InsertItem(  "Progetti: Tempi ", kiuf_int_artr.kki_scelta_report_pic_PtasksTempi, kiuf_int_artr.kki_scelta_report_PtasksTempi) //28
-this.InsertItem(  "Packig List: Camion ", kiuf_int_artr.kki_scelta_report_pic_PklistCamion, kiuf_int_artr.kki_scelta_report_PklistCamion) //29
+this.InsertItem(  "Packig List: Camion ", kiuf_int_artr.kki_scelta_report_pic_PklistCamion, kiuf_int_artr.kki_scelta_report_PklistCamion) //30
+this.InsertItem(  "E1: dati Lotto esportati", kiuf_int_artr.kki_scelta_report_pic_E1DatiLottoEsportati, kiuf_int_artr.kki_scelta_report_E1DatiLottoEsportati) //31
  
 end event
 
